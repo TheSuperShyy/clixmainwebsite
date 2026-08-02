@@ -1,0 +1,254 @@
+[
+ {
+  "vw": 1600,
+  "vh": 900,
+  "scrollW": 1600,
+  "clientW": 1600,
+  "overflow": false,
+  "section": {
+   "x": 0,
+   "w": 1600,
+   "right": 1600,
+   "fs": "16px",
+   "maxW": "none",
+   "pad": "120px 40px 56px",
+   "gap": "40px"
+  },
+  "h1": {
+   "x": 500,
+   "w": 600,
+   "right": 1100,
+   "fs": "64px",
+   "maxW": "none",
+   "pad": "0px",
+   "gap": "normal"
+  },
+  "h1wrap": {
+   "x": 500,
+   "w": 600,
+   "right": 1100,
+   "fs": "16px",
+   "maxW": "600px",
+   "pad": "0px",
+   "gap": "normal"
+  },
+  "tagline": {
+   "x": 625,
+   "w": 350,
+   "right": 975,
+   "fs": "20px",
+   "maxW": "none",
+   "pad": "0px",
+   "gap": "normal"
+  },
+  "cta": {
+   "x": 728.1,
+   "w": 143.7,
+   "right": 871.8,
+   "fs": "16px",
+   "maxW": "none",
+   "pad": "8px 16px",
+   "gap": "8px"
+  },
+  "widthContainer": {
+   "x": 160,
+   "w": 1280,
+   "right": 1440,
+   "fs": "16px",
+   "maxW": "1280px",
+   "pad": "0px 0px 56px",
+   "gap": "48px"
+  },
+  "label": "xl",
+  "requested": "1600x900"
+ },
+ {
+  "vw": 1440,
+  "vh": 900,
+  "scrollW": 1440,
+  "clientW": 1440,
+  "overflow": false,
+  "section": {
+   "x": 0,
+   "w": 1440,
+   "right": 1440,
+   "fs": "16px",
+   "maxW": "none",
+   "pad": "120px 40px 56px",
+   "gap": "40px"
+  },
+  "h1": {
+   "x": 420,
+   "w": 600,
+   "right": 1020,
+   "fs": "64px",
+   "maxW": "none",
+   "pad": "0px",
+   "gap": "normal"
+  },
+  "h1wrap": {
+   "x": 420,
+   "w": 600,
+   "right": 1020,
+   "fs": "16px",
+   "maxW": "600px",
+   "pad": "0px",
+   "gap": "normal"
+  },
+  "tagline": {
+   "x": 545,
+   "w": 350,
+   "right": 895,
+   "fs": "20px",
+   "maxW": "none",
+   "pad": "0px",
+   "gap": "normal"
+  },
+  "cta": {
+   "x": 648.1,
+   "w": 143.7,
+   "right": 791.8,
+   "fs": "16px",
+   "maxW": "none",
+   "pad": "8px 16px",
+   "gap": "8px"
+  },
+  "widthContainer": {
+   "x": 80,
+   "w": 1280,
+   "right": 1360,
+   "fs": "16px",
+   "maxW": "1280px",
+   "pad": "0px 0px 56px",
+   "gap": "48px"
+  },
+  "label": "desktop",
+  "requested": "1440x900"
+ },
+ {
+  "vw": 1024,
+  "vh": 800,
+  "scrollW": 1024,
+  "clientW": 1024,
+  "overflow": false,
+  "section": {
+   "x": 0,
+   "w": 1024,
+   "right": 1024,
+   "fs": "16px",
+   "maxW": "none",
+   "pad": "120px 40px 40px",
+   "gap": "40px"
+  },
+  "h1": {
+   "x": 327,
+   "w": 370,
+   "right": 697,
+   "fs": "56px",
+   "maxW": "none",
+   "pad": "0px",
+   "gap": "normal"
+  },
+  "h1wrap": {
+   "x": 327,
+   "w": 370,
+   "right": 697,
+   "fs": "16px",
+   "maxW": "370px",
+   "pad": "0px",
+   "gap": "normal"
+  },
+  "tagline": {
+   "x": 337,
+   "w": 350,
+   "right": 687,
+   "fs": "20px",
+   "maxW": "none",
+   "pad": "0px",
+   "gap": "normal"
+  },
+  "cta": {
+   "x": 440.1,
+   "w": 143.7,
+   "right": 583.8,
+   "fs": "16px",
+   "maxW": "none",
+   "pad": "8px 16px",
+   "gap": "8px"
+  },
+  "widthContainer": {
+   "x": 40,
+   "w": 944,
+   "right": 984,
+   "fs": "16px",
+   "maxW": "1280px",
+   "pad": "0px 0px 56px",
+   "gap": "48px"
+  },
+  "label": "tablet",
+  "requested": "1024x800"
+ },
+ {
+  "vw": 390,
+  "vh": 844,
+  "scrollW": 390,
+  "clientW": 390,
+  "overflow": false,
+  "section": {
+   "x": 0,
+   "w": 390,
+   "right": 390,
+   "fs": "16px",
+   "maxW": "none",
+   "pad": "156px 16px 40px",
+   "gap": "40px"
+  },
+  "h1": {
+   "x": 45,
+   "w": 300,
+   "right": 345,
+   "fs": "48px",
+   "maxW": "none",
+   "pad": "0px",
+   "gap": "normal"
+  },
+  "h1wrap": {
+   "x": 45,
+   "w": 300,
+   "right": 345,
+   "fs": "16px",
+   "maxW": "300px",
+   "pad": "0px",
+   "gap": "normal"
+  },
+  "tagline": {
+   "x": 45,
+   "w": 300,
+   "right": 345,
+   "fs": "20px",
+   "maxW": "none",
+   "pad": "0px",
+   "gap": "normal"
+  },
+  "cta": {
+   "x": 123.1,
+   "w": 143.7,
+   "right": 266.8,
+   "fs": "16px",
+   "maxW": "none",
+   "pad": "8px 16px",
+   "gap": "8px"
+  },
+  "widthContainer": {
+   "x": 16,
+   "w": 358,
+   "right": 374,
+   "fs": "16px",
+   "maxW": "1280px",
+   "pad": "0px 0px 56px",
+   "gap": "44px"
+  },
+  "label": "phone",
+  "requested": "390x844"
+ }
+]

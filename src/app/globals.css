@@ -1,0 +1,139 @@
+@import "tailwindcss";
+@import "./fonts.css";
+
+/* ---------------------------------------------------------------------------
+ * Design tokens — extracted from the rogo.ai capture (2026-08-02).
+ * Source of truth: docs/DESIGN-SYSTEM.md. Add values there FIRST, then here.
+ * No raw hex in components.
+ * ------------------------------------------------------------------------ */
+
+@theme {
+  /* Color — the 6 tokens actually used on the home page.
+     The Framer project defines 18; the other 12 belong to other pages. */
+  --color-ink: #151515; /* x148 — primary text, dark section backgrounds */
+  --color-paper: #ffffff; /* x130 — white text on dark, light backgrounds */
+  --color-muted: #737373; /* x49  — secondary / supporting text */
+  --color-ink-soft: #383838; /* x6   — softened dark */
+  --color-surface: #f5f5f5; /* x2   — light surface fill */
+  --color-hairline: #a8a29e33; /* x2   — warm gray @20%, dividers/borders */
+  --color-banner: #211e1e; /* x1   — announcement banner bg, rgb(33,30,30) */
+  --color-hairline-light: #ffffff26; /* x1   — white @15%, header border <1200px */
+
+  /* Type */
+  --font-display: "ABC Arizona Mix Regular", serif;
+  --font-sans: "Inter", sans-serif;
+  --font-mono: "Fragment Mono", monospace;
+
+  /* Breakpoints — Framer's real tiers, NOT Tailwind defaults.
+     Tailwind v4 is min-width based, so these are the tier floors. */
+  --breakpoint-tablet: 810px; /* 810 – 1199.98 */
+  --breakpoint-desktop: 1200px; /* 1200 – 1599.98 */
+  --breakpoint-xl: 1600px; /* >= 1600 */
+
+  /* Layout */
+  --container-max: 1280px; /* x9 — main content container */
+  --measure-wide: 1100px;
+  --measure: 844px;
+
+  /* Radius — this is a square-cornered design; 0 is the default. */
+  --radius-none: 0px;
+  --radius-pill: 10000px;
+
+  /* Motion — the ONLY authored curve in the capture. Everything else is
+     Framer Motion in JS and must be measured by observation. */
+  --ease-rogo: cubic-bezier(0.44, 0, 0.56, 1);
+}
+
+/* Framer's own reset behavior that affects measurement fidelity. */
+:root {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+/* Hero "Darken" overlay (.framer-e39ygh).
+   #15151500 is ink at zero alpha — NOT `transparent`, which would interpolate
+   through rgba(0,0,0,0) and grey the fade.
+
+   The first stop is 85% at EVERY tier except 810–1199.98, which is 80%. It is not a
+   simple phone-vs-desktop split: the capture declares 85% as the base rule and overrides
+   it inside `@media (min-width:810px) and (max-width:1199.98px)` only. Corrected
+   2026-08-02 — this was previously implemented as 80% below 810 and 85% above, i.e.
+   backwards on both tiers it touched. Measured: features/hero/FEATURE.md */
+.hero-darken {
+  background: linear-gradient(180deg, #15151500 85%, var(--color-ink) 100%);
+  opacity: 0.4;
+}
+
+@media (min-width: 810px) and (max-width: 1199.98px) {
+  .hero-darken {
+    background: linear-gradient(180deg, #15151500 80%, var(--color-ink) 100%);
+  }
+}
+
+/* Nav header backdrop blur. Both header tiers carry `backdrop-filter: blur(5px)` in the
+   capture, over a background that is very nearly transparent — `rgba(21,21,21,0)` on the
+   >=1200 header and `rgba(21,21,21,0.01)` below it. The blur, not the fill, is what
+   separates the nav from the video behind it; do not "simplify" it to an opaque bar. */
+.hero-nav-blur {
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+
+/* Hero copy scrim — OURS, not the target's. Deliberately a separate layer from
+   `.hero-darken` above so that the target-matching overlay stays byte-faithful and
+   this deviation can be tuned or removed on its own.
+
+   Why it exists: the original gets away with only a bottom gradient because its NYC
+   footage is dark through the middle band where the copy sits. Our sunset montage is
+   far brighter — the aerial-flare segment in particular puts near-white sky directly
+   behind white 64px display type. Two layers:
+     · a soft elliptical pool centred slightly above middle, tracking the headline +
+       tagline + CTA stack, so the copy always has its own ground;
+     · a very light full-bleed dim, weighted to the edges, to stop the pool reading as
+       a visible blob against the corners.
+   Ink at zero alpha (`#15151500`), never `transparent` — same reason as .hero-darken. */
+.hero-scrim {
+  background:
+    radial-gradient(ellipse 78% 58% at 50% 44%, #15151573 0%, #15151500 70%),
+    linear-gradient(180deg, #15151538 0%, #1515151f 50%, #15151538 100%);
+}
+
+/* Hero background crop anchor.
+   The target's own footage is centre-weighted and uses 50% 50% at every tier;
+   ours now matches. An earlier build anchored the phone tier at 78% to hold a
+   right-edge flag composite in shot — that footage was replaced by the sunset
+   montage (2026-08-02), which has no edge-anchored subject, so the override is
+   gone and we track the target exactly. */
+.hero-media {
+  background-position: 50% 50%;
+}
+.hero-video {
+  object-position: 50% 50%;
+}
+
+/* Accessibility floor — a deliberate divergence from the target, which ships
+   no reduced-motion handling. Documented in docs/DESIGN-SYSTEM.md so it is
+   never logged as a fidelity defect. */
+@media (prefers-reduced-motion: reduce) {
+  /* Drop the looping video; the poster painted on the wrapper remains. */
+  .hero-video {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
