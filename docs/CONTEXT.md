@@ -307,3 +307,13 @@ Line format:
   **Standing rules now in public/README.md: one `xmlns`, always a `viewBox`, and validate by
   rasterising, not grepping.** All three failure modes are silent — build and lint both pass.
   → [detail](../features/logo-carousel/CONTEXT.md)
+- **[--:--]** `infra` — **Repo slimmed to what the site actually needs.** `git rm --cached`
+  (files kept on disk) for the 19.4 MB the running app never loads: raw/superseded hero
+  source clip (9.0 MB), our four render screenshots (3.2 MB), and the target's own
+  `hero-original.mp4` + poster (7.1 MB). **29 MB → 9.6 MB, 138 → 133 files.** Added
+  `.gitignore` rules so they cannot drift back in; `features/hero/assets/measurements.json`
+  is deliberately still tracked, being small and the CDP evidence CONTEXT.md cites. Removing
+  the target's own video also resolves the copyright concern raised when the repo went
+  public. Older log entries still name those paths — history left intact per §5; a pointer
+  note was added to the hero CONTEXT's *Current state* instead. Added a root `README.md`,
+  which a public repo needs and did not have.

@@ -30,8 +30,12 @@ Do not apply them to home-page sections.
 |---|---|
 | `hero-tel-aviv.mp4` | **In use.** 1920×1080 · h264 · yuv420p · 24000/1001 fps · 15.015s · 360 frames · 6.52 MB |
 | `hero-tel-aviv-poster.jpg` | Poster frame — frame 0 of the montage (`preload="none"` shows this first) |
-| `hero-original.mp4` | The target's actual hero video — US flag over the NYC skyline. Kept as the fidelity baseline and grading reference. 6.55 MB |
-| `hero-poster-original.jpg` | The target's actual poster frame |
+| `hero-original.mp4` | **Local only — not in the repo.** The target's actual hero video (US flag over the NYC skyline), kept on disk as the fidelity baseline and grading reference. 6.55 MB |
+| `hero-poster-original.jpg` | **Local only — not in the repo.** The target's actual poster frame |
+
+> The two `*-original.*` files are `.gitignore`d. The running site never loads them — they
+> exist only to grade against — and they are the target's own copyrighted media, so they are
+> kept out of a public repo. Re-download from the live site if you need to re-grade.
 
 **This is the one deliberate content deviation from 1:1**, requested on 2026-08-02: Israeli
 sunset footage in place of the original's NYC skyline. Everything else in the hero — layout,

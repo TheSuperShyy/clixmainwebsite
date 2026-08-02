@@ -39,3 +39,18 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Local-only working artifacts — deliberately NOT in the repo (2026-08-02).
+# All of these still live on disk; they are simply things the running site never
+# loads, and they accounted for 19.4 MB of a 29 MB repo.
+#
+#  · raw/superseded source downloads for the hero background
+#  · our own render screenshots (regenerate them; don't commit them)
+#  · the target's real video + poster, kept locally as a grading reference only
+#
+# `assets/measurements.json` IS tracked — it is small and is the CDP evidence
+# that features/hero/CONTEXT.md cites.
+features/*/assets/*.mp4
+features/*/assets/render-*.png
+public/video/hero-original.mp4
+public/video/hero-poster-original.jpg

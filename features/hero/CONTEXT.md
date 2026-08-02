@@ -21,6 +21,13 @@ chosen by the user. It replaced the Tel-Aviv-skyline-plus-flag composite on 2026
 **there is no flag any more**, so `object-position` is back to the target's own `50% 50%`
 at every tier and the hero carries no crop-anchor deviation. See the latest log entry.
 
+> **Assets referenced in older log entries below are now local-only.** As of 2026-08-02 the
+> raw source clips (`assets/*.mp4`), our render screenshots (`assets/render-*.png`) and the
+> target's own `public/video/hero-original.*` are `.gitignore`d — they still exist on disk
+> but are not in the repo, because the running site never loads them and they were 19.4 MB
+> of a 29 MB tree. `assets/measurements.json` **is** tracked. Log entries below still name
+> those files; that is history, left intact deliberately.
+
 **Status:** `review` — *not* `done`. Two acceptance rows are unticked because the values
 cannot be observed from the capture: CTA hover/active styling, and any hero entrance
 animation. Both need a look at the live site.
