@@ -317,3 +317,8 @@ Line format:
   public. Older log entries still name those paths — history left intact per §5; a pointer
   note was added to the hero CONTEXT's *Current state* instead. Added a root `README.md`,
   which a public repo needs and did not have.
+- **[--:--]** `infra` — Browser tab title set to **`clix`** (was `"Rogo — clone"`), per user.
+  An **intentional divergence from 1:1**: the `<title>` is the one place the build identifies
+  as itself rather than as the clone target, and a tab reading "Rogo" misrepresents whose site
+  it is. Flagged in `layout.tsx` so nobody "corrects" it back to match the capture. Favicon is
+  still the Next.js default — not addressed.
