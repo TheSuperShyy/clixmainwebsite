@@ -8,7 +8,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "clix",
   description:
-    "Section-by-section clone study of rogo.ai. See docs/PROJECT.md for scope.",
+    "Clix is the trusted AI partner to the world’s leading financial institutions.",
 };
 
 export default function RootLayout({

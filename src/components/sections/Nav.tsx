@@ -60,7 +60,10 @@ type NavTheme = "hero" | "light" | "dark";
 
 const BANNER_TEXT = "Announcing our $160M Series D led by Kleiner Perkins";
 const BANNER_HREF = "/news/series-d";
-const LOGIN_HREF = "https://tryrogo.com";
+/* Was `https://tryrogo.com` — the target's real product login. Neutralised with the brand
+   rename (2026-08-03) for the same reason as the footer's contact links: it would send a
+   clix user to another company's app. Placeholder until clix has its own. */
+const LOGIN_HREF = "#";
 
 /* Button — padding 8/16, inner row 20px tall with a 1px top nudge, radius 6.
    The border is 1px and transparent in both variants; it exists so the box does not

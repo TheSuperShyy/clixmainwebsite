@@ -36,6 +36,15 @@ type Testimonial = {
   role: string;
 };
 
+/* ⚠️ THESE QUOTES STILL SAY "ROGO", AND THAT IS DELIBERATE. Do not complete the
+   2026-08-03 brand rename by find-and-replacing them.
+   Every other "Rogo" on the site was product copy — rogo's claims about their own
+   software, which this clone reuses wholesale. These are different: they are real
+   statements by real, named, identifiable people at real firms. Swapping the product
+   name inside one manufactures an endorsement of clix from someone who never gave it.
+   The section as a whole is rogo's customer material — quotes, names, titles, firms and
+   the three logo marks — and needs replacing outright before this site faces the public.
+   Renaming the product is not that fix; it makes it worse. See features/testimonials/. */
 const TESTIMONIALS: Testimonial[] = [
   {
     id: "truist",

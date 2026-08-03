@@ -17,6 +17,33 @@ Line format:
 
 ## 2026-08-03
 
+- **[--:--]** `docs` — **Brand name changed Rogo → Clix in all product copy.** User:
+  *"change the brand name to clix instead of rogo"*.
+  · **Changed (9 strings):** hero tagline · `why-rogo` h2 "choose Clix" + all 5 item bodies ·
+    `by-the-numbers` caption "Bankers and investors using Clix" · `layout.tsx` meta
+    description (was "clone study of rogo.ai", which would have shipped as the search-result
+    snippet).
+  · **Capitalised "Clix" in prose**, lowercase in the logo and `<title>`. Matches how the
+    target treats its own name — a lowercase-set wordmark, an ordinary proper noun in copy.
+  · **Five outbound links neutralised to `#`** — `sales@rogo.ai`, `press@rogo.ai`,
+    `linkedin.com/company/rogoai`, `x.com/RogoAI`, and the nav's `tryrogo.com` login. These
+    were not dead like the internal `/product` paths: they **resolve to rogo's real
+    mailboxes and accounts**, so under a clix brand they deliver a prospect to another
+    company. `#` is least-wrong, not finished — needs clix's own destinations.
+  · **Bug found and fixed in the same pass.** Both "Press" links keyed on
+    `label + href`; once both hrefs became `#` the keys collided and React logged
+    *"Encountered two children with the same key, Press-#"*. Now keyed on `label + only`
+    (the tier), which is what actually distinguishes them and survives any future href.
+    **Caught from the dev overlay's issue badge in a screenshot, not from the build** —
+    tsc, eslint and `next build` were all clean with the duplicate key present.
+  · **NOT changed, deliberately: the three testimonial quotes.** Every other "Rogo" was
+    rogo's own product copy, which this clone reuses wholesale. The quotes are real
+    statements by real, named, identifiable executives at Truist, Nomura and Baird —
+    renaming the product inside one manufactures an endorsement of clix that nobody gave.
+    A guard comment now sits above `TESTIMONIALS` so the rename is not "completed" later by
+    find-and-replace. The **whole section** (quotes, names, titles, firms, 3 logo marks) is
+    rogo customer material and needs replacing outright before this faces the public;
+    renaming the product would make that worse, not better. → `features/testimonials/`
 - **[--:--]** `nav` — **The logo's typeface identified as Inter Bold — already vendored, no
   licence needed.** User sent their CLIX lockup: *"i want this font"*.
   · **Identified by proportion, not by eye.** Ink-width ÷ ink-height of C, L, I and X are

@@ -66,22 +66,17 @@ const GROUPS: LinkGroup[] = [
     title: "Contact",
     links: [
       { label: "Request Demo", href: "/demo" },
-      { label: "Sales", href: "mailto:sales@rogo.ai" },
-      {
-        label: "LinkedIn",
-        href: "https://www.linkedin.com/company/rogoai/",
-        external: true,
-      },
+      /* ⚠️ These four pointed at rogo.ai's REAL mailboxes and social accounts. Neutralised
+         with the brand rename (2026-08-03): on a clix site they do not 404, they deliver a
+         prospect to another company. `#` is a placeholder and needs clix's own destinations
+         — it is the least-wrong thing until those exist, not a finished state. */
+      { label: "Sales", href: "#" },
+      { label: "LinkedIn", href: "#", external: true },
       /* "Press" has two different destinations in the original, split by tier: a mailto on
          the >=1200 variant, an x.com profile below it. Both shipped, each gated to the tier
          that declares it. Flagged in FEATURE.md. */
-      {
-        label: "Press",
-        href: "mailto:press@rogo.ai",
-        external: true,
-        only: "desktop",
-      },
-      { label: "Press", href: "https://x.com/RogoAI", only: "below-desktop" },
+      { label: "Press", href: "#", external: true, only: "desktop" },
+      { label: "Press", href: "#", only: "below-desktop" },
     ],
   },
 ];
@@ -198,9 +193,13 @@ export default function Footer() {
                   </p>
                 </div>
                 <div className="relative flex w-full flex-none flex-col items-start gap-3 overflow-visible">
+                  {/* Keyed on label + tier, not label + href. "Press" appears twice — once
+                      per tier — and the two used to differ by href, which no longer holds
+                      now both are the `#` placeholder. Tier is what actually distinguishes
+                      them, so the key stays unique whatever the destinations become. */}
                   {group.links.map((item) => (
                     <FooterLinkItem
-                      key={`${item.label}-${item.href}`}
+                      key={`${item.label}-${item.only ?? "all"}`}
                       item={item}
                     />
                   ))}

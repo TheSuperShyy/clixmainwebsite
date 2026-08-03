@@ -99,6 +99,16 @@ Findings that are easy to get wrong and are documented in full under `features/`
 
 Intentional, and each documented where it applies:
 
+- **The brand is clix, not rogo** (2026-08-03) — logo, favicon, `<title>`, footer copyright,
+  and the product name throughout the copy. Layout, type and spacing are still graded
+  against the capture; only the identity moved. **The three testimonial quotes are the one
+  exception and still say "Rogo" on purpose** — they are real statements by named executives
+  at real firms, and renaming the product inside one fabricates an endorsement. That whole
+  section is rogo's customer material and needs replacing, not renaming.
+  → `features/testimonials/CONTEXT.md`
+- **Outbound links are `#` placeholders.** The originals pointed at rogo's real mailboxes,
+  LinkedIn, X and product login — under a clix brand those send a prospect to another
+  company, which is worse than a dead link. They need clix's own destinations.
 - **Hero background** — an Israeli sunset montage (Pexels, commercial-use) in place of the
   original's NYC skyline, plus a copy scrim the original does not have.
   → `features/hero/FEATURE.md`

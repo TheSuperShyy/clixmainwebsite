@@ -19,9 +19,39 @@ overflow at any tier.
 **Next action:** time the open/close animation on the live site, and get the user's call on
 the two inherited contrast failures (role text 2.50:1, logo marks 1.92:1).
 
+⚠️ **This section is the one place the 2026-08-03 brand rename stopped.** The quotes still
+say "Rogo" on purpose — see the log entry below before changing them.
+
 ---
 
 ## Log
+
+### 2026-08-03 — excluded from the brand rename, and why
+
+Every other "Rogo" on the site became "Clix" when the user asked to change the brand name.
+These three quotes did not, and the exclusion is deliberate rather than an oversight.
+
+**The distinction.** Everywhere else, "Rogo" sat in *product copy* — rogo's own claims about
+their own software, which this clone reuses wholesale. Renaming that is just rebranding
+borrowed marketing. These are **statements by real, named, identifiable people**: Tom
+Hackett (CEO, Truist Securities), Patrice Maffre (International Head of IB, Nomura), Ross
+Williams (COO, Baird Global IB). Substituting the product name inside a quote manufactures
+an endorsement of clix from someone who never gave one — a different act from rebranding
+copy, and not one to perform silently.
+
+**The real problem is bigger than the word.** The section reproduces rogo's customer
+material entire — quote, name, title, firm, and the three logo marks. On a clix site that
+already implies three real institutions endorse clix, whichever product name the sentences
+carry. So the fix is to **replace the section**, not to rename inside it; renaming makes the
+implication worse because it removes the only signal that the statements were about
+something else.
+
+**Options when the user wants this closed:** (a) fictional attributions + reworded quotes,
+which needs the logo marks pulled too or the firms still show; (b) real clix testimonials
+with permission; (c) drop the section until (b) exists. All three need the user.
+
+**Guard in place:** a comment above `TESTIMONIALS` in `Testimonials.tsx` states this, so the
+rename is not "finished" later by find-and-replace.
 
 ### 2026-08-03 — built
 

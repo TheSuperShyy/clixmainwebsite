@@ -1,5 +1,5 @@
 /**
- * Why financial institutions choose Rogo — clone of the rogo.ai section Framer names
+ * Why financial institutions choose Clix — clone of the rogo.ai section Framer names
  * `Series C Tenants` (`.framer-1lovf32`). The internal name is stale (the site is on a
  * Series D banner); our slug is descriptive. No `id` in the original, so none here.
  *
@@ -66,7 +66,7 @@ const TENANTS: Tenant[] = [
     frameOpacity: "opacity-60",
     title: "By finance, for finance",
     titleMax: "max-w-[844px]",
-    body: "Domain expertise is in Rogo’s DNA. Our team of former bankers and investors understands the nuance and complexity of high-finance workflows — and why generic AI chatbots break down. That’s why our platform and model are built explicitly for finance.",
+    body: "Domain expertise is in Clix’s DNA. Our team of former bankers and investors understands the nuance and complexity of high-finance workflows — and why generic AI chatbots break down. That’s why our platform and model are built explicitly for finance.",
     bodyTracking: "-0.1px",
     containerClass: "gap-7 py-[72px] border-b border-hairline-dark",
   },
@@ -77,7 +77,7 @@ const TENANTS: Tenant[] = [
     frameOpacity: "opacity-70",
     title: "Agents that understand, and act",
     titleMax: "max-w-[500px]",
-    body: "Rogo agents don’t just answer questions. They understand financial workflows and execute end-to-end work across deals and investments — the same way your team does.",
+    body: "Clix agents don’t just answer questions. They understand financial workflows and execute end-to-end work across deals and investments — the same way your team does.",
     bodyTracking: "-0.1px",
     containerClass: "gap-7 pb-[72px] border-b border-hairline-dark",
   },
@@ -89,7 +89,7 @@ const TENANTS: Tenant[] = [
     title: "Integrated into your firm & the financial data universe",
     titleMax: "max-w-[300px]",
     /* En dash before "market data", not the em dash the other items use. The capture's. */
-    body: "Rogo is embedded directly into your firm’s systems and data, from SharePoint and CRM to the financial data platforms your team relies on – market data, filings, research, and proprietary sources.",
+    body: "Clix is embedded directly into your firm’s systems and data, from SharePoint and CRM to the financial data platforms your team relies on – market data, filings, research, and proprietary sources.",
     bodyTracking: "-0.01em",
     containerClass: "gap-7 pb-[72px] border-b border-hairline-dark",
   },
@@ -100,7 +100,7 @@ const TENANTS: Tenant[] = [
     frameOpacity: "opacity-100",
     title: "Institutional-grade outputs",
     titleMax: "max-w-[844px]",
-    body: "Rogo produces real institutional outputs: auditable Excel models, investment memos, diligence materials, and slide decks — built to the same standards your best people hold themselves to.",
+    body: "Clix produces real institutional outputs: auditable Excel models, investment memos, diligence materials, and slide decks — built to the same standards your best people hold themselves to.",
     bodyTracking: "-0.1px",
     containerClass: "gap-8 pb-[72px] border-b border-hairline-dark",
   },
@@ -111,7 +111,7 @@ const TENANTS: Tenant[] = [
     frameOpacity: "opacity-70",
     title: "Custom deployed + partnership-minded",
     titleMax: "max-w-[844px]",
-    body: "Every firm is different. That’s why every Rogo deployment is bespoke. Our operating model pairs enterprise-grade security with white-glove partnership, led by ex-finance professionals who act as true change-management partners.",
+    body: "Every firm is different. That’s why every Clix deployment is bespoke. Our operating model pairs enterprise-grade security with white-glove partnership, led by ex-finance professionals who act as true change-management partners.",
     bodyTracking: "-0.01em",
     containerClass: "gap-8 pb-[72px]",
   },
@@ -196,7 +196,7 @@ export default function WhyRogo() {
             {/* The hard break is in the capture at every tier, and it survives the 400px
                 measure at all of them — it is the author's line break, not a fallback. */}
             Why financial institutions <br />
-            choose Rogo
+            choose Clix
           </h2>
         </div>
 

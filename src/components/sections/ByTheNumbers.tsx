@@ -39,7 +39,7 @@ const STATS: Stat[] = [
   {
     id: "users",
     value: "40,000+",
-    lead: "Bankers and investors using Rogo",
+    lead: "Bankers and investors using Clix",
     tail: null,
     numberCellPhone: "",
     labelPhone: "max-w-none whitespace-pre",

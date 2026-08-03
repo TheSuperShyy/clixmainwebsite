@@ -11,8 +11,10 @@
 import LogoCarousel from "@/components/sections/LogoCarousel";
 
 const HEADLINE = "For the most ambitious firms in finance";
+/* "Clix", capitalised — the logo is a lowercase-set wordmark but prose treats the name as
+   an ordinary proper noun, which is also how the target handles its own. */
 const TAGLINE =
-  "Rogo is the trusted AI partner to the world’s leading financial institutions.";
+  "Clix is the trusted AI partner to the world’s leading financial institutions.";
 
 export default function Hero() {
   return (
