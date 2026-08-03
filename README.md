@@ -118,3 +118,8 @@ are here for this study only — not for reuse.
 
 The target's own hero video and poster are **deliberately not in this repo** (`.gitignore`d);
 they are kept locally as a grading reference only.
+
+The favicon and app icons (`src/app/icon.png`, `apple-icon.png`, `favicon.ico`) are the **clix
+mark**, not the target's — the same reasoning as the `<title>`. They are keyed to a transparent
+background from an uploaded raster; the luminance ramp and why it is overdriven are recorded in
+[docs/CONTEXT.md](docs/CONTEXT.md) under 2026-08-03.

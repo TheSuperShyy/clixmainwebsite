@@ -17,6 +17,110 @@ Line format:
 
 ## 2026-08-03
 
+- **[--:--]** `nav` — **The logo's typeface identified as Inter Bold — already vendored, no
+  licence needed.** User sent their CLIX lockup: *"i want this font"*.
+  · **Identified by proportion, not by eye.** Ink-width ÷ ink-height of C, L, I and X are
+    scale-free, so a 29px-tall screenshot is enough to name a face. 16 candidates scored:
+
+    | | C | L | I | X | err |
+    |---|---|---|---|---|---|
+    | reference (the logo) | 0.862 | 0.655 | 0.207 | 0.897 | — |
+    | **Inter 700** | 0.880 | 0.633 | 0.213 | 0.927 | **0.0209** |
+    | Outfit 700 | 0.878 | 0.646 | 0.224 | 0.946 | 0.0275 |
+    | Plus Jakarta Sans 800 | 0.910 | 0.619 | 0.213 | 0.865 | 0.0341 |
+
+    Widest gap in the table, and confirmed visually on the C's aperture and the X junction.
+  · **Only the tracking was wrong.** The logo's set width is **3.034** ink-widths per cap
+    height; Inter unmodified is 3.099, so it is a hair tight — `-0.015em`, essentially the
+    natural fit. Shipped `0.1em` earlier on the reasoning that tracking separates a logo
+    from the nav links beside it. That was taste; the brand asset overrules it. Now
+    `-0.015em`, and the header says not to re-loosen it.
+  · **Bears on the Discovery decision below**: the face in their own logo is one the repo
+    already vendors. If the intent was "the whole site in the logo's font", that is **free
+    and already done** — see the open question there.
+
+  **Two traps in the identification method, both of which silently produce a wrong answer:**
+  · **Google Fonts CSS2 returns one `@font-face` per subset, and Latin is LAST.** Taking the
+    first `url()` yields a file with no A–Z; it loads without error and renders as the
+    fallback. All 16 candidates scored *identically* — that identical row was the only tell.
+  · **`document.fonts.check()` proves the family loaded, not that it has the glyphs.** It
+    returned `true` for all 16 Cyrillic-only files. Real coverage test: measure the string
+    against a deliberately non-existent family and require the widths to differ.
+  Also: a `@font-face` is inert until something requests it, so `document.fonts.ready` alone
+  resolves immediately and every measurement lands on the fallback — `document.fonts.load()`
+  each face first.
+- **[--:--]** `docs` — **Discovery (Fontshok) staged for the sans role; blocked on purchase.**
+  User linked <https://fontshok.co.il/font/discovery/> — *"i want this font"* — and chose the
+  **body/UI role** (replacing Inter), leaving ABC Arizona Mix on headlines.
+  · **It is commercial and cannot be obtained here.** ₪354/weight · ₪2,265 full family (list
+    ₪2,832) · or a **WebStop subscription at ₪320/mo** covering all Fontshok fonts with
+    webfont rights on 3 domains. Webfont licence ships otf/ttf/woff, 3 domains/subdomains.
+  · ⚠️ **Name collision.** Searching "Discovery font free" returns TypeType's Discovery,
+    weknow's, and several 1001Fonts entries — **all different typefaces**. There is no free
+    version of the Fontshok face.
+  · **Two weights are needed, not three — measured, not grepped.** A CDP sweep of every
+    text-painting element at 1600/1440/1024/390 found exactly three (family, weight) pairs
+    in the sans role: **Inter 400 (28 els)**, **Inter 500 (31 els)**, **Inter 700 (1 el)**.
+    The lone 700 is `ClixWordmark`, added the same day. So ₪708, not ₪1,062 — and if 700 is
+    ever wanted, note the browser will otherwise **synthesise a fake bold** from the 500
+    outlines, which is worse on a logotype than any real weight.
+  · Staged `src/app/fonts-discovery.css` — **deliberately not imported**, so nothing 404s
+    while the files are absent. Activation is two steps, written in its header. Kept out of
+    `fonts.css` because that file is a verbatim dump of the target's own rules and carries a
+    "regenerate, don't hand-edit" warning.
+  · Fallback stack is `"Discovery", "Inter", sans-serif` on purpose: a failed load lands on
+    the metrics the layout was built against, not on a system sans.
+  · **Open:** Discovery is Hebrew + Yiddish + Latin (1447 glyphs), so the face is large. No
+    `unicode-range` split declared — fine while the site is Latin-only, but a Hebrew version
+    would need per-script subsetting or every English page pulls glyphs it never draws.
+- **[--:--]** `nav` — **Logo is the clix wordmark now, not rogo's.** User, on a hero
+  screenshot: *"make it CLIX instead of rogo"*. `ClixWordmark` **set in type**, not drawn —
+  our own brand has no capture to be faithful to, and outlining a face the site already loads
+  would only add bytes and make the mark unsearchable. `RogoWordmark` unmounted but **kept**:
+  it is the target's logotype captured verbatim, i.e. the thing the clone is graded against.
+  · **Measured against the real loaded Inter, not guessed.** Inter 700 / 22px / 0.1em puts
+    "CLIX" at **61.6px wide with a 15.0px cap**; the rogo SVG occupied a 60×24 box with
+    ~16.7px of ascender. Same optical slot, so the nav's rhythm is unchanged.
+  · **CSS paints letter-spacing after the final glyph.** On a tracked wordmark that leaves
+    the run sitting 2.2px left of centre in its own box, reading as a misalignment against
+    the nav's left edge. `margin-right: -0.1em` cancels it — needed on any tracked logotype.
+  · Both logo boxes lost their fixed `w-[60px]` and size to the text. Nothing moves: the
+    compact logo is the lone child of a `justify-between` group, and the ≥1200 centred nav is
+    absolutely positioned.
+  · One step beyond the ask: footer copyright `Rogo AI` → `clix`, since a clix mark over a
+    `© ROGO AI` line names the wrong holder.
+  · **Body copy deliberately untouched** — "Rogo" remains in the hero tagline, the `why-rogo`
+    headline + 5 bodies, a `by-the-numbers` caption, and all 3 testimonial quotes. Needs the
+    user, and **the quotes are a default no**: they are real statements attributed to named
+    executives at Truist, Nomura and Baird, so renaming the product inside them would
+    fabricate a quote from a real person.
+  → [detail](../features/nav/CONTEXT.md)
+- **[--:--]** `infra` — **Favicon is now the clix mark, background removed.** User uploaded
+  `clix-logo.png` (1728×2304, dark mark on an off-white field) and asked for *"only the logo
+  no bg"*. Replaces the Next.js default noted in the 2026-08-02 title entry below.
+  · Shipped: `src/app/icon.png` (512), `src/app/apple-icon.png` (180), and `src/app/favicon.ico`
+    (16/32/48). Next's file-convention metadata emits all three `<link>` tags itself — no
+    `metadata.icons` entry in `layout.tsx`. Verified in the prerendered `<head>`, not assumed.
+  · **Transparency is keyed on luminance, not on a background colour match.** Alpha ramps
+    `246 → 54` (measured: corners 247–255, mark mean `rgb(48,54,65)`), so antialiased edges
+    survive instead of being hard-thresholded into stairsteps. RGB is then flattened to the
+    measured `rgb(48,54,65)`, which is what stops the source's noise reaching the icon and
+    kills colour fringing on downscale.
+  · **The ramp is overdriven ×1.3, and that is load-bearing.** The upload's dark mass is not
+    flat — it carries low-frequency compression mottle spanning luma 48–80. A straight ramp
+    turned that into blotchy *alpha* inside the mark, invisible on white and obvious on a dark
+    tab bar. Saturating everything below luma ~98 fixed it: fully-opaque pixels went 7.8% →
+    34.1% and the PNG halved, 62 KB → 31 KB. Safe because the histogram is empty between 96
+    and 208, so the overdrive cannot touch a real edge. Costs ~0.1px of edge weight.
+  · Crop is the mark's own bbox (219,561)–(1504,1739), squared on its centre at 1389px with
+    8% padding — deliberately tight, since a transparent icon has no background plate and
+    margin is just lost pixels at 16px.
+  · The `.ico` is hand-packed with **embedded PNG payloads** rather than BMP + AND-mask.
+    Universally supported, and Next parsed the directory back out as `sizes="48x48"`.
+  · **Open:** the mark is `#303641`, which is `1.6:1` on a dark browser chrome — legible on
+    light tab bars, nearly invisible on dark. A light variant under `prefers-color-scheme`
+    would fix it and needs the user's call. The 989 KB master is still **untracked at the repo
+    root**; without it the icons cannot be regenerated.
 - **[--:--]** `nav` — **The bar now tracks the section behind it.** User, looking at the
   footer: *"the navbar is color white i want the bar to be black when black"*. The colour
   flip was a boolean (over hero → transparent, past hero → white), which was fine until

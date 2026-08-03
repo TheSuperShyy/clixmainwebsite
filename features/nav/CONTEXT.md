@@ -32,6 +32,87 @@ live site for the mobile menu, the scroll flip point, and the `Indicator` elemen
 
 ## Log
 
+### 2026-08-03 — the logo's face identified as Inter Bold; tracking corrected
+
+**Trigger:** user sent their CLIX lockup — *"i want this font"*.
+
+**Answer: it is Inter Bold, which this repo already vendors.** No new licence.
+
+**Method — proportion, not eye.** Ink-width ÷ ink-height for C, L, I, X is scale-free, so a
+29px-tall screenshot still identifies a face. 16 candidates, RMS error on those four ratios:
+
+| | C | L | I | X | err |
+|---|---|---|---|---|---|
+| reference | 0.862 | 0.655 | 0.207 | 0.897 | — |
+| **Inter 700** | 0.880 | 0.633 | 0.213 | 0.927 | **0.0209** |
+| Outfit 700 | 0.878 | 0.646 | 0.224 | 0.946 | 0.0275 |
+| Plus Jakarta Sans 800 | 0.910 | 0.619 | 0.213 | 0.865 | 0.0341 |
+| DM Sans 700 | 0.897 | 0.616 | 0.199 | 0.849 | 0.0358 |
+
+Tracking is excluded from scoring on purpose — it is a setting, not part of the face.
+
+**Corrected:** tracking `0.1em` → `-0.015em`. The logo's set width is 3.034 ink-widths per
+cap height against Inter's natural 3.099, so it is a hair tight and nothing more. The 0.1em
+was my reasoning that tracking separates a logo from adjacent nav links; the brand asset
+says otherwise and wins. `marginRight` still cancels the trailing gap — negligible now, but
+only correct with it.
+
+**Method traps, each of which yields a confident wrong answer:**
+- **Google Fonts CSS2 returns one `@font-face` per subset and Latin is LAST.** Taking the
+  first `url()` gives a file with no A–Z. It loads clean and renders as the fallback; all 16
+  candidates then score *identically*, which is the only symptom.
+- **`document.fonts.check()` verifies the family loaded, not glyph coverage** — `true` for
+  all 16 Cyrillic-only files. Test coverage by measuring against a family that cannot exist
+  and requiring a width difference.
+- **A `@font-face` is inert until requested**, so `document.fonts.ready` resolves instantly
+  and everything measures the fallback. `document.fonts.load()` each face first.
+
+**Not done:** the lockup pairs the mark with the wordmark; the nav still shows the wordmark
+alone. Adding the mark needs a call on the gap and the mark's height — not asked for.
+
+### 2026-08-03 — logo is the clix wordmark, not rogo's
+
+**Trigger:** user, on a hero screenshot — *"make it CLIX instead of rogo"*.
+
+**Done**
+- New `src/components/ui/ClixWordmark.tsx`; `RogoWordmark` is unmounted but **kept**, since
+  it is the target's own logotype captured verbatim and is what the clone is graded against.
+- Set in type rather than drawn. There is no capture to be faithful to for our own brand, and
+  the face is one the site already loads — outlining it would add bytes and make the mark
+  unsearchable for nothing.
+
+**Measured, against the real loaded Inter (not guessed) — `wordmeasure.js`:**
+
+| | width of "CLIX" | cap height |
+|---|---|---|
+| Inter 700 / 22px / 0.1em | 61.6px | 15.0px |
+| the rogo SVG it replaces | 60px box | ~16.7px ascender |
+
+So it drops into the same optical slot and the nav's rhythm is unchanged.
+
+**Two details that are load-bearing:**
+- **Tracking is what makes it read as a mark.** The nav links beside it are also Inter, so
+  weight alone does not separate the logo from them.
+- **CSS paints letter-spacing *after* the final glyph**, so the run sits 2.2px left of centre
+  in its own box and the mark reads as misaligned against the nav's left edge. `margin-right:
+  -0.1em` cancels it.
+
+**Both logo boxes lost their fixed `w-[60px]`** and now size to the text. Safe at both tiers:
+the compact row's logo is the lone child of a `justify-between` group, and the ≥1200 row's
+centred nav is absolutely positioned, so neither moves when the logo's width changes.
+
+**Also changed, one step beyond the ask:** the footer copyright, `Rogo AI` → `clix`. A clix
+mark above a `© ROGO AI` line names the wrong copyright holder.
+
+**Deliberately NOT changed: body copy.** "Rogo" still appears in the hero tagline, the
+`why-rogo` headline and five item bodies, one `by-the-numbers` caption, and all three
+testimonial quotes. Needs the user — and **the quotes are a hard no by default**: they are
+real statements attributed to named executives at Truist, Nomura and Baird, so swapping the
+product name inside them would fabricate a quote from a real person.
+
+**Open:** `LOGIN_HREF` still points at `https://tryrogo.com`, along with every other link
+destination — already flagged, unchanged here.
+
 ### 2026-08-03 — bar tracks the section behind it (three-way, not boolean)
 
 **Trigger:** user, looking at localhost scrolled to the footer — *"the navbar is color white

@@ -1,0 +1,54 @@
+/* Discovery (Fontshok / Shoki Dayan) — https://fontshok.co.il/font/discovery/
+ *
+ * NOT IMPORTED YET. This file is staged and inert until the licensed files exist; it is
+ * kept separate from fonts.css because that one is a verbatim dump of the target's own
+ * @font-face rules and is meant to be regenerated from the capture, not hand-edited.
+ *
+ * ---------------------------------------------------------------------------------
+ * TO ACTIVATE (two steps, both required)
+ *
+ *   1. Drop the licensed files in, named exactly:
+ *        public/fonts/discovery/discovery-400.woff2
+ *        public/fonts/discovery/discovery-500.woff2
+ *
+ *   2. In globals.css:
+ *        · add `@import "./fonts-discovery.css";` under the fonts.css import
+ *        · change the token to `--font-sans: "Discovery", "Inter", sans-serif;`
+ *
+ * Leaving Inter in the stack is deliberate: if a Discovery file ever fails to load the
+ * page falls back to the metrics it was built against rather than to a system sans.
+ * ---------------------------------------------------------------------------------
+ *
+ * WHY ONLY TWO WEIGHTS. Measured, not assumed — a CDP sweep of every element that paints
+ * text, at 1600/1440/1024/390, found exactly three (family, weight) pairs in the sans role:
+ *   · Inter 400 — 28 elements (body copy, banner, security labels)
+ *   · Inter 500 — 31 elements (nav links, buttons, names, footer titles)
+ *   · Inter 700 —  1 element  (ClixWordmark, and nothing else)
+ * At ₪354 a weight, buying 700 for a single word is the difference between ₪708 and
+ * ₪1,062. Setting the wordmark at 500 removes the need entirely.
+ *
+ * If 700 is NOT licensed, the wordmark must be changed to a weight that is — otherwise the
+ * browser synthesises a fake bold by smearing the 500 outlines, which looks worse on a
+ * logotype than any real weight would.
+ *
+ * NOTE ON HEBREW. Discovery ships Hebrew + Yiddish + Latin (1447 glyphs), so the full face
+ * is large. No `unicode-range` split is declared here because the site is Latin-only today;
+ * if a Hebrew version happens, subset per script and split these rules, or every English
+ * page will pull the Hebrew glyphs it never draws.
+ */
+
+@font-face {
+  font-family: "Discovery";
+  src: url("/fonts/discovery/discovery-400.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Discovery";
+  src: url("/fonts/discovery/discovery-500.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}

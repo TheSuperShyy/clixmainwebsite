@@ -209,16 +209,17 @@ export default function Footer() {
             ))}
           </div>
 
-          {/* Copyright — "© 2026" and "ROGO AI" as two separate uppercase runs, 8px apart.
-              The second is the literal string "Rogo AI"; the caps come from
-              `text-transform`, so the accessible name stays "Rogo AI". */}
+          {/* Copyright — "© 2026" and the holder as two separate uppercase runs, 8px apart.
+              The caps come from `text-transform`, so the accessible name stays lowercase.
+              The target says "Rogo AI" here; changed with the nav logo (2026-08-03), since
+              a clix mark over a "© ROGO AI" line names the wrong copyright holder. */}
           <div className="relative flex w-full flex-none flex-row items-start justify-center gap-4 overflow-hidden px-12 py-4">
             <div className="relative flex w-px flex-[1_0_0] flex-row items-center justify-center gap-2 overflow-visible">
               <p className="text-center text-[14px] leading-[1.3em] tracking-[-0.02em] whitespace-pre text-muted uppercase tablet:font-medium desktop:text-[12px]">
                 © 2026
               </p>
               <p className="text-center text-[14px] leading-[1.3em] tracking-[-0.02em] whitespace-pre text-muted uppercase tablet:font-medium desktop:text-[12px]">
-                Rogo AI
+                clix
               </p>
             </div>
           </div>

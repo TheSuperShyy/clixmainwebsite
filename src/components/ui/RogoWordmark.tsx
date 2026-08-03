@@ -1,6 +1,10 @@
 /**
  * rogo wordmark.
  *
+ * **No longer mounted** — the nav shows `ClixWordmark` as of 2026-08-03. Kept, not deleted,
+ * because it is the target's own logotype captured verbatim: it is the reference the clone
+ * is graded against, and swapping it back in is a one-line import change.
+ *
  * Path data is **verbatim** from the capture's SVG defs block
  * (`#svg-124366052_1499`, rendered via `<use>` in the original). Nothing is redrawn or
  * traced — see the 1:1 fidelity policy in docs/PROJECT.md.

@@ -42,7 +42,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import RogoWordmark from "@/components/ui/RogoWordmark";
+import ClixWordmark from "@/components/ui/ClixWordmark";
 
 const LINKS = [
   { label: "Felix", href: "/felix" },
@@ -388,13 +388,15 @@ export default function Nav() {
           <div className="flex w-min items-center gap-10">
             <Link
               href="/"
-              className={`relative block h-6 w-[60px] flex-none no-underline
+              /* Width was a fixed 60px while this box held the target's SVG logotype. The
+                 clix mark is set in type, so it sizes itself and the box follows it. */
+              className={`flex h-6 flex-none items-center no-underline
                           focus-visible:ring-2 focus-visible:outline-none
                           ${light ? "focus-visible:ring-ink" : "focus-visible:ring-paper"}`}
-              aria-label="rogo — home"
+              aria-label="clix — home"
             >
-              <RogoWordmark
-                className={`absolute inset-x-0 -bottom-px h-6 transition-colors duration-300
+              <ClixWordmark
+                className={`transition-colors duration-300
                             ${light ? "text-ink" : "text-paper"}`}
               />
             </Link>
@@ -488,14 +490,13 @@ export default function Nav() {
         <div className="relative flex w-full max-w-[var(--container-max)] items-center justify-between">
           <Link
             href="/"
-            className={`relative block h-7 w-[60px] flex-none cursor-pointer no-underline
+            className={`flex h-7 flex-none cursor-pointer items-center no-underline
                         focus-visible:ring-2 focus-visible:outline-none
                         ${light ? "focus-visible:ring-ink" : "focus-visible:ring-paper"}`}
-            aria-label="rogo — home"
+            aria-label="clix — home"
           >
-            <RogoWordmark
-              className={`absolute bottom-0 left-1/2 h-6 w-[60px] -translate-x-1/2
-                          transition-colors duration-300
+            <ClixWordmark
+              className={`transition-colors duration-300
                           ${light ? "text-ink" : "text-paper"}`}
             />
           </Link>
