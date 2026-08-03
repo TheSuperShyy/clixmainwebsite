@@ -20,7 +20,8 @@ npm run build
 | 1 | `nav` | `review` | Banner + both header layouts + mobile panel |
 | 2 | `hero` | `review` | Headline / tagline / CTA over a looping background montage |
 | 3 | `logo-carousel` | `review` | 14-logo GSAP marquee — renders *inside* the hero |
-| 4–8 | testimonials · why-rogo · by-the-numbers · security · footer | `todo` | |
+| 4 | `testimonials` | `review` | One-open accordion — 3-column row at ≥1200, stack below |
+| 5–8 | why-rogo · by-the-numbers · security · footer | `todo` | |
 
 `review` means built and building clean, but **not yet visually diffed against the reference
 at all four breakpoints**. Nothing here is claimed as `done`. Per-section acceptance
@@ -49,6 +50,9 @@ Three findings that are easy to get wrong and are documented in full under `feat
   `<section id="hero">`, 248px tall against the bottom edge.
 - **The hero `Darken` gradient stop is 85% at every tier except 810–1199.98**, which is 80% —
   a single override, not a phone-vs-desktop split.
+- **On a Framer multi-variant component, only the variant that actually renders is
+  authoritative.** The testimonial quote is 20px below 1200px — but the collapsed mobile
+  cards in the capture still say 28px, and only the *open* one says 20px.
 
 ## Deviations from 1:1
 

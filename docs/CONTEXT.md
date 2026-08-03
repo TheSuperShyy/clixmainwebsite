@@ -15,6 +15,40 @@ Line format:
 
 ---
 
+## 2026-08-03
+
+- **[--:--]** `testimonials` — **Section 4 built** → `Testimonials.tsx` +
+  `TestimonialLogos.tsx`, wired into `page.tsx`. One-open accordion; 600px three-column row
+  at ≥1200, stack below. Computed values verified in-browser at all four tiers; no
+  horizontal overflow; `npm run build` clean.
+  → [detail](../features/testimonials/CONTEXT.md)
+  **Findings worth carrying forward:**
+  · **The quote font size drops 28 → 20px below 1200, and the capture hides it** — the
+    *collapsed* mobile cards still say 28px; only the **open** mobile variant says 20px.
+    Reading the first mobile card in document order gets this wrong. General lesson for the
+    remaining sections: on a Framer multi-variant component, the value that ships is the one
+    on the variant that actually renders, not the first one in the DOM.
+  · **The plus button changes PARENT between tiers** (card `Bottom` at ≥1200, logo row
+    below). CSS cannot move a node between parents — this is the one thing we render twice
+    and hide per tier. Everything else is a single DOM with `desktop:` variants rather than
+    Framer's two `ssr-variant` subtrees.
+  · **`#testimonials` inlines its own dark-fill logo set, and Nomura's artwork differs from
+    the carousel's** (120×21 vs 122×22). Two separate asset sets; do not consolidate.
+  · Desktop row is `17% / 17% / flex:1` → 217.6 / 820.8 / 217.6 on a 1280 container.
+    Reimplemented as `17%` / `calc(66% - 24px)` so the transition has two numbers to
+    interpolate; browser confirms 218 / 821 / 218.
+  · **No `min-width:1600px` rule exists for this section** — XL and Desktop are identical.
+  · Built with **CSS transitions, no animation library**; neither skill's trigger matched.
+    SECTIONS.md's "`framer-motion`" note was an inventory guess and is corrected.
+  **Unresolved, needs the user:** motion timings are estimates (500/500/300ms), and **two
+  contrast failures inherited from the target** — provider role (ink @0.4 → 2.50:1) and the
+  logo marks (ink @0.3 → 1.92:1) — were deliberately **not** fixed, because unlike our other
+  a11y divergences this one is visible. `PROJECT.md`'s AA floor and `CLAUDE.md` §1's colour
+  fidelity rule genuinely conflict here.
+- **[--:--]** `docs` — 3 tokens added: `canvas` `#f7f7f7`, `card` `#eeedec`,
+  `ink-wash` `rgb(21 21 21 / .05)`. Noted in DESIGN-SYSTEM.md that `canvas` is **not**
+  `surface` `#f5f5f5` — two different near-whites.
+
 ## 2026-08-02
 
 - **[--:--]** `setup` — Repo scaffolded: CLAUDE.md, docs/ (PROJECT, CONTEXT, SECTIONS,

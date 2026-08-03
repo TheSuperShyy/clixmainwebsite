@@ -1,5 +1,6 @@
 import Nav from "@/components/sections/Nav";
 import Hero from "@/components/sections/Hero";
+import Testimonials from "@/components/sections/Testimonials";
 
 export default function Home() {
   return (
@@ -10,6 +11,7 @@ export default function Home() {
       <Nav />
       <main>
         <Hero />
+        <Testimonials />
       </main>
     </>
   );

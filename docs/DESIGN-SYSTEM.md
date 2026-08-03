@@ -38,13 +38,20 @@ uses 6** — the rest belong to other pages in the same Framer project.
 | `hairline` | `#a8a29e33` | ×2 | warm gray @ 20% — dividers, card borders |
 | `banner` | `#211e1e` | ×1 | announcement banner background (`rgb(33,30,30)`) |
 | `hairline-light` | `#ffffff26` | ×1 | white @ 15% — header bottom border below 1200px |
+| `canvas` | `#f7f7f7` | ×1 | testimonials section background |
+| `card` | `#eeedec` | ×3 | testimonial card fill (`rgb(238,237,236)`) |
+| `ink-wash` | `rgb(21 21 21 / .05)` | ×6 | ink @ 5% — plus-button fill |
 
 **The home page is monochrome.** No brand color appears on it. Do not introduce one.
 
-`banner` and `hairline-light` were added 2026-08-02 while building `nav`. Neither is a
-Framer *token* — both are literal values Framer inlined on the element rather than
-publishing as variables. They are tokenized here anyway because they recur across the
-nav's tiers and §7 forbids stray hex in components.
+`banner` and `hairline-light` were added 2026-08-02 while building `nav`; `canvas`, `card`
+and `ink-wash` on 2026-08-03 while building `testimonials`. **None of the five is a Framer
+*token*** — all are literal values Framer inlined on the element rather than publishing as
+variables. They are tokenized here anyway because each recurs across a section's tiers and
+§7 forbids stray hex in components.
+
+`canvas` `#f7f7f7` is **not** `surface` `#f5f5f5`. Two different near-whites, two
+different uses; do not collapse them.
 
 > **`hairline` is exactly `rgba(168,162,158,0.2)`.** The nav's inner header border is
 > written that way in the capture; `0x33` = 51/255 = 0.2, so it is the same value and
