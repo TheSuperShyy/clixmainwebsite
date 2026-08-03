@@ -18,6 +18,26 @@
  * media query that hides it.
  *
  * Structure mirrors the original's container nesting so the gaps land in the right places.
+ *
+ * SCROLL STATE — added 2026-08-03 from a live-site screenshot, not from the capture.
+ * The capture only ever froze the at-rest state (`data-framer-name="Transparent Dark"`,
+ * logo variant `Light`). Its CSS proves a *second* nav variant exists (`.framer-v-yxrzsa`
+ * alongside the rendered `.framer-v-174l6nt`) but carries none of its colors — Framer
+ * applies those inline from JS. So the palette below is read off the screenshot, and the
+ * trigger is our own. See features/nav/FEATURE.md.
+ *
+ * THE BAR TRACKS THE SECTION BEHIND IT (2026-08-03, user request). It is a three-way
+ * state, not a boolean:
+ *
+ *   hero  -> transparent + blur, paper content   (the at-rest state from the capture)
+ *   light -> solid `paper` bar, ink content      (testimonials / why-rogo / by-the-numbers)
+ *   dark  -> solid `ink` bar, paper content      (security / footer)
+ *
+ * The page is not uniformly light below the hero: `security` and `footer` are both `ink`,
+ * and a white bar sat on top of them. Each section declares its own `data-nav-theme`, and
+ * the nav reads whichever one spans its bottom edge — so adding a section can never leave
+ * the nav out of sync with it. Content colours for `dark` are identical to `hero`; only the
+ * background differs, which is why one `light` flag still drives every text colour.
  */
 
 import { useEffect, useRef, useState } from "react";
@@ -34,6 +54,10 @@ const LINKS = [
   { label: "Careers", href: "/careers" },
 ] as const;
 
+/* Each page section declares which of these it is, via `data-nav-theme`. Anything the nav
+   cannot classify falls back to `light`, which is the majority of the page. */
+type NavTheme = "hero" | "light" | "dark";
+
 const BANNER_TEXT = "Announcing our $160M Series D led by Kleiner Perkins";
 const BANNER_HREF = "/news/series-d";
 const LOGIN_HREF = "https://tryrogo.com";
@@ -43,11 +67,15 @@ const LOGIN_HREF = "https://tryrogo.com";
    resize if a later state colors it in, exactly as the original does via its `:after`. */
 function NavButton({
   variant,
+  light,
   children,
   href,
   external,
 }: {
   variant: "ghost" | "inverse";
+  /* `true` only over a light section. Over the hero AND over a dark section the content
+     palette is the same — see the header comment. */
+  light: boolean;
   children: string;
   href?: string;
   external?: boolean;
@@ -59,20 +87,31 @@ function NavButton({
       className={[
         "flex w-min items-center justify-center gap-2 rounded-[6px] border px-4 py-2",
         "cursor-pointer whitespace-nowrap no-underline",
-        "transition-opacity duration-300 hover:opacity-90",
-        "focus-visible:ring-2 focus-visible:ring-paper focus-visible:ring-offset-2",
-        "focus-visible:ring-offset-ink focus-visible:outline-none",
+        "transition-[opacity,background-color] duration-300 hover:opacity-90",
+        "border-transparent focus-visible:ring-2 focus-visible:ring-offset-2",
+        "focus-visible:outline-none",
+        light
+          ? "focus-visible:ring-ink focus-visible:ring-offset-paper"
+          : "focus-visible:ring-paper focus-visible:ring-offset-ink",
         variant === "inverse"
-          ? "border-transparent bg-paper"
-          : "border-transparent bg-transparent",
+          ? light
+            ? "bg-ink"
+            : "bg-paper"
+          : "bg-transparent",
       ].join(" ")}
       style={{ transitionTimingFunction: "var(--ease-rogo)" }}
     >
       <span className="flex h-5 items-center justify-center gap-[10px] pt-px">
         <span
           className={[
-            "font-sans text-[14px] font-medium",
-            variant === "inverse" ? "text-ink" : "text-paper",
+            "font-sans text-[14px] font-medium transition-colors duration-300",
+            variant === "inverse"
+              ? light
+                ? "text-paper"
+                : "text-ink"
+              : light
+                ? "text-ink"
+                : "text-paper",
           ].join(" ")}
           style={{ lineHeight: "1em", letterSpacing: "-0.01em" }}
         >
@@ -113,6 +152,107 @@ export default function Nav() {
   const [open, setOpen] = useState(false);
   const toggleRef = useRef<HTMLButtonElement>(null);
 
+  /* Scroll state. Trigger: whichever section spans the BOTTOM EDGE OF THE NAV ROW — i.e.
+     the last thing the header is actually sitting on top of. That boundary is the same one
+     an earlier pass used as `rootMargin: -navH` on an IntersectionObserver watching `#hero`;
+     this generalises it from "is the hero still there" to "what is there", which is what the
+     page needs now that `security` and `footer` are dark too.
+
+     It is also the *functional* reason the original flips at all — white-on-dark becomes
+     unreadable — so the flip point is unchanged from the observed behaviour. Still
+     unverified against the live site; open question in FEATURE.md. */
+  const bannerRef = useRef<HTMLDivElement>(null);
+  const compactRowRef = useRef<HTMLDivElement>(null);
+  const fullRowRef = useRef<HTMLDivElement>(null);
+  const [theme, setTheme] = useState<NavTheme>("hero");
+  const [bannerH, setBannerH] = useState(0);
+  const [bannerShift, setBannerShift] = useState(0);
+
+  /* One flag drives every text, ring and border colour: `dark` and `hero` share a palette
+     and differ only in the bar's fill. */
+  const light = theme === "light";
+
+  /* The banner leaves on its own, NOT with the colour flip. Live-site evidence: rogo.ai can
+     be caught with the header already light AND the banner still on screen, so the two are
+     not one state. It is direction-aware — confirmed on the live site: scroll up anywhere
+     in the page and the black bar comes back.
+
+     The whole rule is one line: shift = (down && scrolled at all) ? bannerH : 0.
+       · scrolling DOWN — it eases out of view;
+       · scrolling UP   — it eases back in, wherever you are in the page.
+       · at the very top — always in place, so a fresh load never starts collapsed.
+
+     It is a two-position animation, NOT scroll-tracking: both directions run the same
+     300ms `--ease-rogo` on the header's transform. An earlier pass had the hide follow the
+     scrollbar 1:1, which is more literal but reads as a jerk at the top of the page.
+     4px deadzone so inertial jitter can't flip the direction mid-scroll.
+
+     The section-theme probe rides the same rAF: both answers come from one scroll pass and
+     one layout read, and both need the live nav height, so splitting them would mean
+     measuring the same boxes twice a frame. */
+  useEffect(() => {
+    let frame = 0;
+    let lastY = Math.max(0, window.scrollY);
+    let down = true;
+    /* Cached because it only changes when sections mount/unmount, not on scroll. */
+    let sections = Array.from(
+      document.querySelectorAll<HTMLElement>("[data-nav-theme]"),
+    );
+
+    const onScroll = () => {
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        const y = Math.max(0, window.scrollY);
+        const h = bannerRef.current?.offsetHeight ?? 0;
+        /* Rows are measured separately rather than off the <header> box: the open mobile
+           panel lives inside that box and would inflate it. Exactly one row is ever
+           displayed per tier, so the other measures 0. Re-read every frame so a resize
+           (the banner wraps to two lines below 810) needs no separate handler. */
+        const navH =
+          (compactRowRef.current?.offsetHeight ?? 0) +
+          (fullRowRef.current?.offsetHeight ?? 0);
+
+        if (Math.abs(y - lastY) > 4) {
+          down = y > lastY;
+          lastY = y;
+        }
+        setBannerH(h);
+        setBannerShift(down && y > 0 ? h : 0);
+
+        /* Which section is under the bar's bottom edge? Sections are contiguous, so
+           exactly one matches; `light` is the fallback if the page ever has a gap. */
+        let next: NavTheme = "light";
+        for (const el of sections) {
+          const r = el.getBoundingClientRect();
+          if (r.top <= navH && r.bottom > navH) {
+            next = (el.dataset.navTheme as NavTheme) ?? "light";
+            break;
+          }
+        }
+        setTheme(next);
+      });
+    };
+
+    const onResize = () => {
+      sections = Array.from(
+        document.querySelectorAll<HTMLElement>("[data-nav-theme]"),
+      );
+      onScroll();
+    };
+
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onResize);
+    return () => {
+      if (frame) cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onResize);
+    };
+  }, []);
+
+  const bannerGone = bannerH > 0 && bannerShift >= bannerH;
+
   /* Close on Escape and lock body scroll while the panel is up. Neither behavior is
      observable in the capture (the menu is never rendered open) — both are our own
      baseline, flagged as an open question in FEATURE.md. */
@@ -144,12 +284,28 @@ export default function Nav() {
   }, []);
 
   return (
-    <header className="fixed inset-x-0 top-0 z-[3] flex flex-col items-center overflow-hidden">
+    <header
+      className="fixed inset-x-0 top-0 z-[3] flex flex-col items-center overflow-hidden
+                 transition-transform duration-300"
+      style={{
+        transform: bannerShift ? `translateY(-${bannerShift}px)` : "none",
+        transitionTimingFunction: "var(--ease-rogo)",
+      }}
+    >
       {/* ---------------------------------------------------------------- Banner
           >=810: centred row, padding 12/40, gap 10 between the dot group and "Learn more".
           <810 : padding 12/16, left-aligned, headline truncates to one line so the
-                 "Learn more" link is never pushed off the edge. */}
-      <div className="w-full bg-banner">
+                 "Learn more" link is never pushed off the edge.
+
+          Eases out on the way down and back in on the way up, even though it sits in the
+          fixed block — see the `bannerShift` effect above. `aria-hidden` + `inert` whenever
+          it is on its way out, so it never sits in the tab order invisibly. */}
+      <div
+        ref={bannerRef}
+        className="w-full bg-banner"
+        aria-hidden={bannerGone}
+        {...(bannerGone ? { inert: true } : null)}
+      >
         <div
           className="flex w-full items-center gap-6
                      px-4 py-3 tablet:justify-center tablet:px-10"
@@ -161,7 +317,10 @@ export default function Nav() {
                     declared, so it renders as pure spacing. Kept because removing it
                     would close up 18px (8 + the 10px gap) on every tier. */}
                 <div className="flex min-w-0 flex-1 items-center gap-[10px] tablet:w-min tablet:flex-none">
-                  <div className="h-2 w-2 flex-none rounded-full" aria-hidden="true" />
+                  <div
+                    className="h-2 w-2 flex-none rounded-full"
+                    aria-hidden="true"
+                  />
                   <a
                     href={BANNER_HREF}
                     target="_blank"
@@ -205,19 +364,39 @@ export default function Nav() {
           hairline on the inner row. Both reproduced; they overlay rather than stack
           because the padding lives on the inner element. */}
       <div
-        className="hero-nav-blur relative flex w-full flex-col items-center overflow-hidden
-                   border-b border-b-hairline-light desktop:hidden"
-        style={{ backgroundColor: "rgba(21, 21, 21, 0.01)" }}
+        className={`hero-nav-blur relative flex w-full flex-col items-center overflow-hidden
+                    border-b transition-[background-color,border-color] duration-300
+                    desktop:hidden
+                    ${light ? "border-b-hairline" : "border-b-hairline-light"}`}
+        style={{
+          /* `rgba(21,21,21,0.01)` is the capture's at-rest fill below 1200 — effectively
+             transparent; the `blur(5px)` is what separates the bar from the video. Over a
+             dark section it goes fully opaque `ink` instead. */
+          backgroundColor:
+            theme === "light"
+              ? "var(--color-paper)"
+              : theme === "dark"
+                ? "var(--color-ink)"
+                : "rgba(21, 21, 21, 0.01)",
+          transitionTimingFunction: "var(--ease-rogo)",
+        }}
       >
-        <div className="flex w-full items-center justify-between border-b border-b-hairline p-4">
+        <div
+          ref={compactRowRef}
+          className="flex w-full items-center justify-between border-b border-b-hairline p-4"
+        >
           <div className="flex w-min items-center gap-10">
             <Link
               href="/"
-              className="relative block h-6 w-[60px] flex-none no-underline
-                         focus-visible:ring-2 focus-visible:ring-paper focus-visible:outline-none"
+              className={`relative block h-6 w-[60px] flex-none no-underline
+                          focus-visible:ring-2 focus-visible:outline-none
+                          ${light ? "focus-visible:ring-ink" : "focus-visible:ring-paper"}`}
               aria-label="rogo — home"
             >
-              <RogoWordmark className="absolute inset-x-0 -bottom-px h-6 text-paper" />
+              <RogoWordmark
+                className={`absolute inset-x-0 -bottom-px h-6 transition-colors duration-300
+                            ${light ? "text-ink" : "text-paper"}`}
+              />
             </Link>
           </div>
           <div className="flex w-min items-center gap-2">
@@ -228,9 +407,14 @@ export default function Nav() {
               aria-expanded={open}
               aria-controls="nav-mobile-panel"
               aria-label={open ? "Close menu" : "Open menu"}
-              className="flex h-10 w-10 flex-none cursor-pointer items-center justify-center
-                         gap-[10px] text-paper
-                         focus-visible:ring-2 focus-visible:ring-paper focus-visible:outline-none"
+              className={`flex h-10 w-10 flex-none cursor-pointer items-center justify-center
+                          gap-[10px] transition-colors duration-300
+                          focus-visible:ring-2 focus-visible:outline-none
+                          ${
+                            light
+                              ? "text-ink focus-visible:ring-ink"
+                              : "text-paper focus-visible:ring-paper"
+                          }`}
             >
               <MenuGlyph open={open} />
             </button>
@@ -263,11 +447,18 @@ export default function Nav() {
                 {l.label}
               </a>
             ))}
+            {/* The panel is `bg-ink` in every state, so its buttons keep the dark-surface
+                palette even when the header above them has gone light. */}
             <div className="mt-4 flex items-center gap-2">
-              <NavButton variant="ghost" href={LOGIN_HREF} external>
+              <NavButton
+                variant="ghost"
+                light={false}
+                href={LOGIN_HREF}
+                external
+              >
                 Log in
               </NavButton>
-              <NavButton variant="inverse" href="#request-demo">
+              <NavButton variant="inverse" light={false} href="#request-demo">
                 Request Demo
               </NavButton>
             </div>
@@ -281,18 +472,32 @@ export default function Nav() {
           the links optically centred on the page regardless of how wide the button group
           gets, which a plain space-between would not do. */}
       <div
+        ref={fullRowRef}
         className="hero-nav-blur hidden w-full flex-col items-center overflow-visible
-                   px-10 py-4 desktop:flex"
-        style={{ backgroundColor: "rgba(21, 21, 21, 0)" }}
+                   px-10 py-4 transition-[background-color] duration-300 desktop:flex"
+        style={{
+          backgroundColor:
+            theme === "light"
+              ? "var(--color-paper)"
+              : theme === "dark"
+                ? "var(--color-ink)"
+                : "rgba(21, 21, 21, 0)",
+          transitionTimingFunction: "var(--ease-rogo)",
+        }}
       >
         <div className="relative flex w-full max-w-[var(--container-max)] items-center justify-between">
           <Link
             href="/"
-            className="relative block h-7 w-[60px] flex-none cursor-pointer no-underline
-                       focus-visible:ring-2 focus-visible:ring-paper focus-visible:outline-none"
+            className={`relative block h-7 w-[60px] flex-none cursor-pointer no-underline
+                        focus-visible:ring-2 focus-visible:outline-none
+                        ${light ? "focus-visible:ring-ink" : "focus-visible:ring-paper"}`}
             aria-label="rogo — home"
           >
-            <RogoWordmark className="absolute bottom-0 left-1/2 h-6 w-[60px] -translate-x-1/2 text-paper" />
+            <RogoWordmark
+              className={`absolute bottom-0 left-1/2 h-6 w-[60px] -translate-x-1/2
+                          transition-colors duration-300
+                          ${light ? "text-ink" : "text-paper"}`}
+            />
           </Link>
 
           <nav
@@ -304,14 +509,16 @@ export default function Nav() {
               <a
                 key={l.href}
                 href={l.href}
-                className="flex h-9 w-min cursor-pointer flex-col items-center justify-center
-                           overflow-hidden px-3 py-2 whitespace-pre no-underline
-                           transition-opacity duration-300 hover:opacity-70
-                           focus-visible:ring-2 focus-visible:ring-paper focus-visible:outline-none"
+                className={`flex h-9 w-min cursor-pointer flex-col items-center justify-center
+                            overflow-hidden px-3 py-2 whitespace-pre no-underline
+                            transition-opacity duration-300 hover:opacity-70
+                            focus-visible:ring-2 focus-visible:outline-none
+                            ${light ? "focus-visible:ring-ink" : "focus-visible:ring-paper"}`}
                 style={{ transitionTimingFunction: "var(--ease-rogo)" }}
               >
                 <span
-                  className="font-sans text-[14px] font-medium text-paper"
+                  className={`font-sans text-[14px] font-medium transition-colors duration-300
+                              ${light ? "text-ink" : "text-paper"}`}
                   style={{ lineHeight: "1.5em", letterSpacing: "-0.01em" }}
                 >
                   {l.label}
@@ -321,10 +528,10 @@ export default function Nav() {
           </nav>
 
           <div className="flex w-min items-center gap-2 overflow-hidden">
-            <NavButton variant="ghost" href={LOGIN_HREF} external>
+            <NavButton variant="ghost" light={light} href={LOGIN_HREF} external>
               Log in
             </NavButton>
-            <NavButton variant="inverse" href="#request-demo">
+            <NavButton variant="inverse" light={light} href="#request-demo">
               Request Demo
             </NavButton>
           </div>

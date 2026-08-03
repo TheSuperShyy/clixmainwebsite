@@ -71,8 +71,85 @@ The banner and the header switch at **different widths**. This is real, not an e
 | Button `Inverse` | background | `paper`, label `ink` |
 | Button `Ghost` | background | transparent, label `paper` |
 
-**The nav has no opaque fill at any tier.** The `blur(5px)`, not a background colour, is what
-separates it from the video. Do not "simplify" it to a solid bar.
+**At rest the nav has no opaque fill at any tier.** The `blur(5px)`, not a background colour,
+is what separates it from the video. Do not "simplify" the *rest* state to a solid bar.
+
+#### Scrolled state — from the live site, not the capture
+
+Added 2026-08-03. The capture froze only the rest state, so none of this came out of it;
+it is read off a screenshot of rogo.ai scrolled into the testimonials block. What the
+capture *does* prove is that a second state exists: the nav component renders as
+`.framer-v-174l6nt` (`data-framer-name="Transparent Dark"`) and its CSS declares a sibling
+variant `.framer-v-yxrzsa`, whose only stylesheet delta is `overflow:visible` — every colour
+difference is applied inline from JS and is therefore absent from a static capture.
+
+**The banner and the colour swap are two independent behaviours, not one state.** Proven by
+a live screenshot of rogo.ai showing the header already light *with the banner still on
+screen* — a frame a single boolean cannot produce.
+
+**Banner — direction-aware, animated both ways.** Confirmed on the live site: scroll up
+anywhere in the page and the black bar comes back. The rule is one line, applied as
+`translateY` on the fixed header:
+
+```
+shift = (scrollingDown && scrollY > 0) ? bannerH : 0
+```
+
+- **Down** — it eases out of view.
+- **Up** — it eases back in, at any scroll depth.
+- **At the very top** — always in place, so a fresh load never starts collapsed.
+
+It is a **two-position animation, not scroll-tracking**: both directions run the same
+`300ms` `--ease-rogo` on the transform. An earlier pass had the hide follow the scrollbar
+1:1 (`min(scrollY, bannerH)`), which is the more literal reading of "a banner that isn't
+really fixed" but reads as a jerk at the top of the page.
+
+4px deadzone on the direction test so inertial jitter cannot flip it mid-scroll.
+Banner height measured: **45px** at every tier.
+
+`aria-hidden` + `inert` from the moment it starts leaving.
+
+**Colour swap — three-way, not a boolean.** Extended 2026-08-03 at the user's request, once
+`security` and `footer` landed: both are `ink`, and the white bar was sitting on top of them.
+
+| Element | `hero` | `light` | `dark` |
+|---|---|---|---|
+| Header background ≥1200 | `rgba(21,21,21,0)` | `paper` `#ffffff` | `ink` `#151515` |
+| Header background <1200 | `rgba(21,21,21,0.01)` | `paper` | `ink` |
+| Header <1200 outer border-bottom | `hairline-light` `#ffffff26` | `hairline` `#a8a29e33` | `hairline-light` |
+| Logo · nav link · `Ghost` label | `paper` | `ink` | `paper` |
+| Button `Inverse` | `paper` fill, `ink` label | `ink` fill, `paper` label | `paper` fill, `ink` label |
+| Focus ring | `paper` | `ink` | `paper` |
+
+**`dark` and `hero` share every content colour** and differ only in the bar's fill — which is
+why a single `light` boolean still drives all the text, ring and border classes, and only the
+`background-color` is a three-way. The transparency is the point of `hero`: the capture's
+at-rest bar has no opaque fill at any tier, and the `blur(5px)` is what separates it from
+the video.
+
+**Which sections are which**
+
+| `data-nav-theme` | Sections |
+|---|---|
+| `hero` | `hero` (dark video, transparent bar) |
+| `light` | `testimonials` · `why-rogo` (`canvas`) · `by-the-numbers` (`card`) |
+| `dark` | `security` · `footer` (both `ink`) |
+
+Each section carries the attribute itself, so the nav has no list of section names to keep
+in sync. Add a section, tag it, done — and an untagged one falls back to `light`.
+
+**Colour trigger — ours, not measured.** The nav reads whichever `[data-nav-theme]` element
+spans **the bottom edge of the nav row**, probed on the existing rAF-throttled scroll pass.
+That boundary is unchanged from the earlier implementation, which expressed the same line as
+`rootMargin: -<navHeight>px 0 0 0` on an `IntersectionObserver` watching `#hero`; this only
+generalises it from "is the hero still there" to "what is there". It remains the functional
+reason the original flips at all — white-on-dark is unreadable — and it reproduces both
+states we have actually observed on the live site. A plain `scrollY > n` threshold fits those
+two data points equally well but would put a white bar over the dark hero on the way down.
+Unverified against the live flip point — see open questions.
+
+Transition: `300ms` on `--ease-rogo` for the colour crossfade, by analogy with the capture's
+one authored curve. Estimated.
 
 ### Interactive states
 | Element | Hover | Focus-visible | Transition |
@@ -129,9 +206,22 @@ Library: none — CSS transitions only. Reduced-motion fallback: n/a (colour/opa
 - [ ] **Mobile menu.** Not in the capture at all. Needs a look at the live site: panel
       background, whether it's full-screen, entrance motion, whether the logo/hamburger
       swap to a close glyph.
-- [ ] **Scroll state.** The header is `position:fixed` with a Framer variant named
-      `Transparent Dark`, which implies a second scrolled state exists. Not observable —
-      does it gain a fill or a border once the hero scrolls past?
+- [ ] **Does the original's bar go dark over its dark sections?** Ours does, at the user's
+      request (2026-08-03). Not observed on the live site — the screenshot that produced the
+      light scrolled state was taken over `testimonials`, which is light. If rogo.ai keeps a
+      white bar over its own `security` and `footer`, this is a **deliberate divergence**
+      rather than a clone, and is recorded as one here.
+- [x] **Scroll state — resolved 2026-08-03 from a live screenshot.** It goes solid `paper`
+      with `ink` content and the banner slides away. Table above. Two things about it are
+      still **not** verified:
+  - [ ] **Where the colour flips.** We use "hero bottom reaches the nav's bottom edge".
+        Could be a fixed scroll offset instead. Needs a slow scroll on the live site.
+  - [x] **Does the banner come back on scroll UP?** Yes — user-confirmed on the live site,
+        implemented. What is still unmeasured is the *reveal timing* (ours: 300ms
+        `--ease-rogo`) and whether the original needs a minimum up-distance before it fires
+        (ours: a 4px deadzone, chosen to kill jitter, not measured).
+  - [ ] **Whether the scrolled header keeps a bottom border at ≥1200.** Ours has none
+        (matching the rest state, which has none). The screenshot is inconclusive.
 - [ ] **The `Indicator` element** (`.framer-5nhcxz`, 1px tall, `left:128px right:195px`,
       `opacity:0`) exists in the <1200 header. It is invisible in the capture. An
       active-route underline? Currently **not implemented**.

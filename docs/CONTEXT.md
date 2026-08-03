@@ -17,6 +17,175 @@ Line format:
 
 ## 2026-08-03
 
+- **[--:--]** `nav` — **The bar now tracks the section behind it.** User, looking at the
+  footer: *"the navbar is color white i want the bar to be black when black"*. The colour
+  flip was a boolean (over hero → transparent, past hero → white), which was fine until
+  `security` and `footer` landed — both `ink`, so a white bar sat on a black page. Now
+  three-way: `hero` / `light` / `dark`. **Each section declares its own `data-nav-theme`**,
+  so the nav holds no list of section names and cannot go stale when one is added.
+  → [detail](../features/nav/CONTEXT.md)
+  · **Open — not observed on the live site.** The screenshot that gave us the light scrolled
+    palette was taken over `testimonials`. Whether rogo.ai's own bar goes dark over its dark
+    sections is unknown; if it doesn't, this is a deliberate divergence. Flagged as one.
+  **Findings worth carrying forward:**
+  · **`dark` and `hero` share every content colour** — white logo, white links, `paper`-fill
+    button — and differ only in the bar's fill. So one boolean still drives all the text,
+    ring and border classes and only `background-color` branches three ways. Renaming
+    `scrolled` → `light` was a same-polarity swap, keeping the diff in the state machine
+    rather than spread through the markup.
+  · **The `IntersectionObserver` was replaced, not supplemented.** Its `rootMargin: -navH`
+    already encoded "is the boundary above or below the nav row's bottom edge"; the probe
+    asks the same question of every section instead of only the hero, so **the flip point is
+    unchanged**. Generalising an existing mechanism beat adding a second one.
+  · **Let the data live on the elements, not in the consumer.** A `SECTION_THEMES` map in
+    `Nav.tsx` would have been the obvious shape and would silently rot every time a section
+    was added or reordered. `data-nav-theme` on the section itself cannot.
+
+- **[--:--]** `footer` — **Section 8 built** (`Footer.tsx`, wired into `page.tsx` outside
+  `<main>`). Closing CTA + divider + 4 link columns + copyright, all on `ink`. **No new
+  tokens.** CDP-verified at 1600/1440/1024/390 including every link's rendered `href` per
+  tier. **This completes all 8 home-page sections.**
+  → [detail](../features/footer/CONTEXT.md)
+  · **Calls needed:** "Legal" ships at ≥1200 only; "Press" points at a mailto vs x.com by
+    tier; and `muted` titles/copyright are **`3.85:1` on `ink`** — the same AA failure as
+    `security`, same `#7f7f7f` fix.
+  **Findings worth carrying forward:**
+  · **A nested Framer component ships its OWN tier-gating hashes.** The page uses
+    `hidden-11hyp1n`/`9nhpe8`/`1eq4joi`/`l1t773`; the footer uses
+    `hidden-1leoyz4`/`16n7npo`/`d23fwj`/`1roolzl`. Same four media queries, different names.
+    Reusing the page's mapping would have mis-assigned every value silently.
+  · **Unrendered variants' CSS is an active trap, not just noise.** The footer ships five
+    variants and mounts three. One of the two dead ones declares
+    `grid-template-columns: repeat(2, …)` on the link row — exactly what you would attribute
+    to the tablet tier if you matched on class name alone. Third time this rule has bitten
+    (after the testimonial quote size and the nav's scrolled variant). **Check which variant
+    a rule names before recording its value.**
+  · **A second measured transition exists.** `framer-styles-preset-1twswsp` declares
+    `transition: color .3s cubic-bezier(.44,0,.56,1)` plus a hover colour on footer links.
+    Until now the nav banner's was believed to be the only authored curve in the capture —
+    it is the only one in *page* CSS; the **style presets carry more**. Worth re-grepping
+    the presets before calling any other timing an estimate.
+  · Scope a hover transition to the property that actually changes. `transition-colors`
+    expands to background, border, outline, fill and stroke as well; the capture says
+    `color`. Used `transition-[color]`.
+
+- **[--:--]** `security` — **Section 7 built** (`Security.tsx`, wired into `page.tsx`; 5
+  badge SVGs vendored to `public/badges/`, documented in `public/README.md`). Centred
+  headline over a 5→2→1 column badge grid on `ink`. **No new tokens.** CDP-verified at
+  1600/1440/1024/390 including the full 5×4 border matrix; all five SVGs validated by
+  rasterising, not grepping. → [detail](../features/security/CONTEXT.md)
+  · **Two calls needed from the user**, both inherited from the target: the grid outline is
+    left **open below 1200px** (GDPR has `border-right:0` at the 2-col and 1-col tiers), and
+    the 12px labels are **`3.85:1` on `ink`, failing AA** (`#7f7f7f` reaches 4.56:1).
+  **Findings worth carrying forward:**
+  · **Framer paints `data-border` on an `::after` overlay**, not through the box model —
+    `position:absolute; inset:0; box-sizing:border-box; pointer-events:none`. So a declared
+    `height:240px` is the full height, borders included, and adding or removing a border
+    reflows nothing. That is exactly how the original's ragged tiers went unnoticed. Expect
+    this on every `data-border` element.
+  · **A hand-authored per-tier matrix is only ever right for the tier it was written for.**
+    The border pattern here is correct at 5 columns and wrong at 2 and 1, because the
+    overrides were written without re-deriving it. When a section's CSS overrides a *set* of
+    related values per tier, check the whole set renders, not each rule.
+  · **`<use>`-sourced SVGs carry NO `xmlns`** — they inherit it from the page's root `<svg>`
+    inside the defs block. The exact mirror of the 2026-08-02 logo bug, where extraction
+    produced *two*. One rule catches both: exactly one `xmlns` on the root.
+  · **Delivery mechanism can be a fingerprint for authoring sessions.** Three badges are
+    `<use>` refs at label weight 400; two are data-URI backgrounds at weight 500. The split
+    is identical across both properties — so the "inconsistent" weight is not noise, it is a
+    second pass. Copy it, don't normalise it.
+
+- **[--:--]** `by-the-numbers` — **Section 6 built** (`ByTheNumbers.tsx`, wired into
+  `page.tsx`). Headline over three number/caption rows on a `card` panel. **No new tokens.**
+  CDP-verified at 1600/1440/1024/390 — every extracted value matches, no horizontal
+  overflow, caption bottom-alignment checked numerically. Contrast 15.62:1 numbers /
+  6.28:1 captions. → [detail](../features/by-the-numbers/CONTEXT.md)
+  **Findings worth carrying forward:**
+  · **An absent Framer line-height means `1.2em`, NOT the browser's `normal`.** Cost a real
+    bug: the phone number rendered at 72px leading instead of 57.6px — 14px per row, three
+    rows, silently, because ABC Arizona Mix's `normal` is 1.5em. Caught by the probe, not by
+    looking. **Every font-size in this repo should carry an explicit `leading-*`.**
+  · **`844 + 436 = 1280`.** The two cell caps in a stat row sum to `--container-max`, so
+    both bind at once at ≥1200 and the caption column holds its position past 1280. Framer
+    numbers that look arbitrary are often a decomposition of the container — check the sum
+    before treating one as a one-off.
+  · **An absolute line-height is a layout tool.** `128px` on the number is why the 96px and
+    108px tiers give identical 161px rows: the glyphs resize, nothing reflows.
+  · **`docs/SECTIONS.md`'s count-up guess was wrong.** It came from the visual. The capture
+    has zero `data-framer-appear-id`/`transition`/`will-change` in the subtree, so the
+    section was built static and `gsap` declined — building a counter would be inventing
+    motion, not cloning it. Third time an inventory row taken from the visual has been
+    contradicted by the capture (after `logo-carousel`'s placement and `testimonials`'
+    library choice). **Treat SECTIONS.md notes as guesses until the capture confirms them.**
+
+- **[--:--]** `why-rogo` — **Section 5 built** (`WhyRogo.tsx` + `WhyRogoIcons.tsx`, wired
+  into `page.tsx`). Two equal columns with a CSS-sticky headline at `top:96px` and five
+  items; five icons inlined from the capture's SVG defs. Added `hairline-dark` `#0000001a`
+  and `tile` `#0000000d` tokens. CDP-verified at 1600/1440/1024/390 — every extracted value
+  matches, no horizontal overflow, sticky holds at 96px through a scroll sweep. Contrast
+  6.54:1 body / 17.05:1 headings, both AA. → [detail](../features/why-rogo/CONTEXT.md)
+  **Findings worth carrying forward:**
+  · **`flex:1 0 0; width:1px` — the `width` is the load-bearing half.** Flex-basis is 0 so
+    it never sizes anything, but a flex item's automatic minimum size is capped by its
+    *specified* size, so `width:1px` is what defeats `min-width:auto` and holds the 50/50
+    split. It reads as dead CSS. It is not. Framer uses this idiom everywhere — expect it
+    in the remaining sections.
+  · **`overflow:clip` vs `overflow:hidden` is not cosmetic when anything is `sticky`.**
+    `hidden` makes the ancestor a scroll container and kills the stick; `clip` doesn't.
+    The capture writes `clip` throughout with `hidden` only inside `@supports not`.
+  · **Framer's per-tier type is not monotonic.** This section's item headings are **28px at
+    810–1199.98 and 24px at ≥1200** — the tablet tier is larger. Verified by tracing every
+    `hidden-*` gating class to its media query rather than assuming a phone→desktop ramp.
+  · **Two more near-miss colours.** `tile` `#0000000d` and `hairline-dark` `#0000001a` are
+    **pure black**; the existing `ink-wash` (ink@5%) and `hairline` (warm gray@20%) are
+    close enough to look like duplicates and are not. Four near-white/near-black pairs in
+    the system now — check the exact value before reusing a token.
+
+- **[--:--]** `nav` — **Banner hide eased too.** Now a symmetric two-position animation:
+  `shift = (down && scrollY > 0) ? bannerH : 0` with an unconditional 300ms `--ease-rogo`
+  on the transform, replacing the scroll-tracked hide — tying motion to scroll velocity read
+  as a jerk at the top of the page. The `scrollY > 0` guard stops a fresh load rendering
+  collapsed (`down` initialises `true`). Curve confirmed by sampling mid-flight: `-4.32` at
+  t+120ms is 45 × the bezier at t=0.4, not a linear fallback.
+  → [detail](../features/nav/CONTEXT.md)
+
+- **[--:--]** `nav` — **Banner now reveals on scroll up** (user-confirmed against the live
+  site). Whole rule is `shift = down ? min(scrollY, bannerH) : 0`, with the 300ms
+  `--ease-rogo` transition applied **only while revealing** — going down the shift follows
+  the scrollbar and an ease would lag it. 4px direction deadzone against inertial jitter.
+  Swept down/up/down at 1536 to confirm. → [detail](../features/nav/CONTEXT.md)
+
+- **[--:--]** `nav` — **Banner decoupled from the colour swap.** A rogo.ai screenshot showed
+  the header already light *with the banner still on screen* — a frame our build could not
+  produce, since both were welded to one boolean (swept 0→1057 at 1536 and 1920 to confirm).
+  So they are two independent behaviours on the original. The banner now tracks scroll on
+  its own — `translateY(-min(scrollY, bannerH))`, gone by 45px, untransitioned because it
+  follows the scrollbar — while the colour swap keeps firing on the hero boundary.
+  → [detail](../features/nav/CONTEXT.md)
+  · **Open:** the live frame had the banner *back* at testimonials depth, which points at a
+    direction-aware header (scroll up → banner returns). Not implemented.
+
+- **[--:--]** `nav` — **Scrolled state built** (`Nav.tsx`). Found by diffing a screenshot of
+  localhost against one of rogo.ai, both scrolled into the testimonials block: the section
+  matched, the header did not. Ours stayed at rest — banner pinned, white text on a
+  transparent bar — which over `canvas` `#f7f7f7` made the whole nav invisible. The real
+  site drops the banner and goes solid `paper` with `ink` logo/links and an inverted
+  `Request Demo`. → [detail](../features/nav/CONTEXT.md)
+  **Findings worth carrying forward:**
+  · **A Framer capture can prove a variant exists and still withhold everything in it.**
+    The nav renders `.framer-v-174l6nt` ("Transparent Dark") and the stylesheet carries a
+    sibling `.framer-v-yxrzsa` whose *entire* delta is `overflow:visible` — variant colours
+    are applied inline from JS. Expect the same for any other stateful component; the
+    capture gives structure, the live site gives state.
+  · **The banner is inside the fixed header box** (`.framer-1lcee9e`, one
+    `position:fixed; top:0; overflow:hidden` element with `will-change:transform`), so
+    "banner disappears on scroll" is a transform on the whole header. Measured: banner 45px,
+    nav row 60px at 1440 / 74px at 390.
+  · Flip point is **ours** — `IntersectionObserver` on `#hero`, `rootMargin: -<navH>px`, so
+    the swap happens as the hero's bottom edge reaches the nav's bottom edge. Unverified
+    against the live site, as are the 300ms timings.
+  · Verified via CDP at 1440 and 390 in both states; `npm run build` clean.
+
 - **[--:--]** `testimonials` — **Section 4 built** → `Testimonials.tsx` +
   `TestimonialLogos.tsx`, wired into `page.tsx`. One-open accordion; 600px three-column row
   at ≥1200, stack below. Computed values verified in-browser at all four tiers; no

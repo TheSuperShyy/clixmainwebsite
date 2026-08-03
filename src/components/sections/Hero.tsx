@@ -17,6 +17,7 @@ const TAGLINE =
 export default function Hero() {
   return (
     <section
+      data-nav-theme="hero"
       id="hero"
       /* 100vh · flex column · centred · overflow hidden.
          padding: 156/16/40 phone → 120/40/40 tablet → 120/40/56 desktop+ */

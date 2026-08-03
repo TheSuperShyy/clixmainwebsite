@@ -41,17 +41,26 @@ uses 6** — the rest belong to other pages in the same Framer project.
 | `canvas` | `#f7f7f7` | ×1 | testimonials section background |
 | `card` | `#eeedec` | ×3 | testimonial card fill (`rgb(238,237,236)`) |
 | `ink-wash` | `rgb(21 21 21 / .05)` | ×6 | ink @ 5% — plus-button fill |
+| `hairline-dark` | `#0000001a` | ×4 | **pure black** @ 10% — `why-rogo` item dividers |
+| `tile` | `#0000000d` | ×5 | **pure black** @ 5% — `why-rogo` icon tile fill |
 
 **The home page is monochrome.** No brand color appears on it. Do not introduce one.
 
 `banner` and `hairline-light` were added 2026-08-02 while building `nav`; `canvas`, `card`
-and `ink-wash` on 2026-08-03 while building `testimonials`. **None of the five is a Framer
-*token*** — all are literal values Framer inlined on the element rather than publishing as
-variables. They are tokenized here anyway because each recurs across a section's tiers and
-§7 forbids stray hex in components.
+and `ink-wash` on 2026-08-03 while building `testimonials`; `hairline-dark` and `tile` on
+2026-08-03 while building `why-rogo`. **None of the seven is a Framer *token*** — all are
+literal values Framer inlined on the element rather than publishing as variables. They are
+tokenized here anyway because each recurs across a section's tiers and §7 forbids stray hex
+in components.
 
 `canvas` `#f7f7f7` is **not** `surface` `#f5f5f5`. Two different near-whites, two
 different uses; do not collapse them.
+
+> **`tile` `#0000000d` is not `ink-wash` `rgb(21 21 21 / .05)`.** Both are "a 5% wash", but
+> one is pure black and the other is `ink`. Over `canvas` they resolve to `#eaeaea` and
+> `#eaebeb` — a hair apart, and genuinely two different values in the capture. Same trap
+> with `hairline-dark` `#0000001a` (pure black @10%) versus `hairline` `#a8a29e33` (warm
+> gray @20%). Do not collapse either pair.
 
 > **`hairline` is exactly `rgba(168,162,158,0.2)`.** The nav's inner header border is
 > written that way in the capture; `0x33` = 51/255 = 0.2, so it is the same value and
@@ -180,6 +189,14 @@ color .3s cubic-bezier(.44, 0, .56, 1)
 
 That easing — `cubic-bezier(.44, 0, .56, 1)`, a symmetric ease-in-out — is the only
 authored curve visible, and is the best available default for hover/color transitions.
+
+> **Correction, 2026-08-03.** It is the only authored transition in the page's *own* CSS.
+> The **style presets carry a second one**: `framer-styles-preset-1twswsp`, used by the
+> footer links, declares `transition: color .3s cubic-bezier(.44,0,.56,1)` plus
+> `--framer-link-hover-text-color: #f5f5f5`. Same curve, same duration — which is decent
+> evidence that `.3s`/`--ease-rogo` is the house default rather than a one-off, and makes
+> the estimates elsewhere better founded than they were. Grep the presets before declaring
+> any other timing unmeasurable.
 
 Everything else (scroll reveals, the logo carousel, testimonial open/close, any stat
 count-up) must be measured **by observation** — record trigger, duration, easing, stagger

@@ -21,6 +21,8 @@
   --color-canvas: #f7f7f7; /* x1   — testimonials section bg */
   --color-card: #eeedec; /* x3   — testimonial card fill, rgb(238,237,236) */
   --color-ink-wash: rgb(21 21 21 / 0.05); /* x6 — ink @5%, plus-button fill */
+  --color-hairline-dark: #0000001a; /* x4 — pure black @10%, why-rogo item dividers */
+  --color-tile: #0000000d; /* x5 — pure black @5%, why-rogo icon tile fill */
 
   /* Type */
   --font-display: "ABC Arizona Mix Regular", serif;

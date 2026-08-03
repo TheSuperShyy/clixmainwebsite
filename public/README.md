@@ -150,3 +150,32 @@ logos by height and relies on their intrinsic aspect ratios.
 | hcw | jefferies | lazard | leerink |
 | moelis | nomura | raymond-james | rothschild |
 | tigerglobal | truist | | |
+
+## `badges/` — 5 files, 83 KB
+
+Compliance marks for `#security`, extracted 2026-08-03. All five are `#6D6D6D` /
+`rgb(109,109,109)` line art on the section's `ink` background.
+
+| File | Source in the capture | Bytes | viewBox |
+|---|---|---|---|
+| `soc2.svg` | `<use href="#svg785812565_46827">` | 46,926 | `0 0 120 120` |
+| `ccpa.svg` | `<use href="#svg-1130630889_6001">` | 6,025 | `0 0 121 120` |
+| `iso-27001.svg` | `<use href="#svg-229124054_6985">` | 7,046 | `0 0 121 120` |
+| `gdpr.svg` | inline `background-image:url('data:image/svg+xml,…')` | 10,997 | `0 0 102 102` |
+| `eu-ai-act.svg` | inline `background-image:url('data:image/svg+xml,…')` | 12,314 | `0 0 102 102` |
+
+> **Two delivery mechanisms in one row of five.** The first three are `<use>` references into
+> the defs block; the last two are data-URI CSS backgrounds. The same split shows up in the
+> labels — GDPR and EU AI Act declare `font-weight:500`, the other three don't. Almost
+> certainly two authoring sessions. Both are normalised to plain files here.
+
+`soc2.svg` is 46 KB because it is the real AICPA seal, with every glyph of
+"AICPA Service Organization Control Reports" and "Formerly SAS 70 Reports" as outlined
+curved text. It is not a redraw and should not be simplified.
+
+The three `<use>`-sourced files carried **no `xmlns`** (the defs block inherits it from the
+page's root `<svg>`). One was added to each — the mirror image of the logo bug above, where
+extraction produced *two*. Same rule either way: **exactly one `xmlns` on the root.**
+
+All five were validated by rasterising through `sharp` at density 300 and eyeballing a
+contact sheet, per the rules above — not by grepping.

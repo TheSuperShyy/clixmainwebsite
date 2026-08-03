@@ -218,6 +218,7 @@ export default function Testimonials() {
 
   return (
     <section
+      data-nav-theme="light"
       id="testimonials"
       /* padding 128/16 phone → 164/40/128 tablet → 196/40/80 desktop+ */
       className="relative flex w-full flex-col items-center justify-center overflow-hidden
