@@ -54,6 +54,11 @@ Container's 48px, not Title Container's 40px. Title Container has exactly one ch
 | h1 max-width | `600px` | `600px` | `370px` (+`width:100%`) | `300px` |
 | Tagline max-width | `350px` | `350px` | `350px` | `300px` |
 
+> ⚠️ **The h1 max-widths above are the target's and are no longer what ships.** They were
+> sized around the target's headline; ours is longer, so the row is superseded by
+> `648 / 648 / 568 / 344` — see "h1 max-width widened for clix copy" under Documented
+> deviations. The tagline row is unchanged.
+
 Section is `display:flex; flex-flow:column; place-content:center; align-items:center;
 position:relative; overflow:hidden`.
 
@@ -134,6 +139,37 @@ for the CTA border) · `--font-display` · `--font-sans` · `--container-max` `1
 | `.hero-scrim` layer | — | original has **no** scrim; only the bottom `Darken` gradient | Requested 2026-08-02 ("*add a bit of bg color so its not text directly above image*"). Forced by the deviation above: the original's bottom-only gradient suffices because its NYC footage is dark through the copy band, whereas our montage puts near-white sky behind white 64px type on the aerial-flare segment. Added as a **separate** element so `.hero-darken` stays byte-faithful. |
 | Section padding, gaps | 4pt scale | `156px`, `120px`, `44px`, `248px` | One-offs in the original; not tokenized — see DESIGN-SYSTEM.md §Spacing. |
 | `prefers-reduced-motion` | — | original has none | Our a11y floor. Video pauses; poster remains. |
+| Headline + tagline copy | target's finance-AI copy | **clix's own**, 2026-08-04 | User picked it from five candidates. Headline is the English rendering of the real company site's closing CTA (*אתם מביאים את העסק. אנחנו מביאים את הבינה.*) — see `docs/reference/clixsolutions/`. |
+| h1 max-width widened for clix copy | `600 / 600 / 370 / 300` | **`648 / 648 / 568 / 344`** | Measured, not guessed — see below. |
+| Authored `<br>` between the two sentences | original wraps freely | explicit break | See below. |
+
+### h1 max-width widened for clix copy (2026-08-04)
+
+The target's caps were sized around *its* headline. Ours is two sentences and longer, so the
+old caps forced bad breaks. Measured unwrapped in-browser against the real `ABC Arizona Mix`
+at `-0.05em`, the longest sentence — "We bring the intelligence." — needs:
+
+| Tier | font-size | sentence needs | old cap | new cap |
+|---|---|---|---|---|
+| Desktop / XL | 64px | **637px** | 600 | **648** |
+| Tablet | 56px | **558px** | 370 | **568** |
+| Phone | 48px | **478px** | 300 | **344** |
+
+Desktop and tablet now fit one sentence per line. **Phone cannot and no cap will fix it** — a
+390px viewport less the 32px of side padding leaves 358px of usable width against a 478px
+sentence, so phone wraps to two lines per sentence by arithmetic. Its 344 only improves the
+rag; it is not an attempt to reach 478.
+
+Left as-is deliberately: the **tagline** caps (`350 / 350 / 350 / 300`) are untouched, so that
+row of the layout table still stands.
+
+### Authored `<br>` between the two sentences
+
+Allowed to wrap freely, the shaper breaks the second sentence between article and noun
+("We bring the / intelligence.") at 1440, and at 390 it puts the sentence boundary *mid-line*
+("business. We") — the worst break on offer. The break is therefore authored, not left to the
+shaper, and it is unconditional: it is what makes the phone tier read as two clean sentence
+blocks rather than four arbitrary lines.
 
 ## Acceptance checklist
 

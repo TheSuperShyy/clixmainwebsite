@@ -10,6 +10,10 @@ with no code scanning.
 
 ## Current state
 
+> **The headline and tagline are clix's own as of 2026-08-04, not the target's.** The h1
+> max-widths in `FEATURE.md`'s layout table are consequently superseded — see the log entry
+> below and the deviations section.
+
 Built and rendering at all four tiers. Every measured value was verified against the
 capture via Chrome DevTools Protocol at exact viewports — evidence in
 `assets/measurements.json` and `assets/render-*.png`. No horizontal overflow at any width;
@@ -36,6 +40,56 @@ animation. Both need a look at the live site.
 ---
 
 ## Log
+
+### 2026-08-04 — headline + tagline replaced with clix's own copy
+
+**Trigger:** user — *"ok now lets start editing the tagline"*, then, from five candidate
+pairs, *"i want the 3 but all should be english first"*.
+
+**Shipped**
+
+```
+HEADLINE_A  You bring the business.
+HEADLINE_B  We bring the intelligence.
+TAGLINE     AI agents, automations and custom software, built around how your
+            team already works.
+```
+
+Both lines are English renderings of what the real company site already says in Hebrew —
+the headline is its closing CTA, *אתם מביאים את העסק. אנחנו מביאים את הבינה.* Source:
+`docs/reference/clixsolutions/`, captured 2026-08-04.
+
+**"English first" is a decision, not a default.** The real site is Hebrew-only, `dir="rtl"`.
+The user chose English as the primary language for this build. A Hebrew variant is a separate
+job and **is not served by translating these two strings in place** — it needs `dir="rtl"`,
+logical properties throughout, and a sign flip on the carousel's `xPercent` (positive `x`
+still moves right under RTL; GSAP does not auto-flip).
+
+**Measurements — why the h1 box grew**
+
+The copy is two sentences, and left to the shaper it broke badly at both ends: at 1440 the
+second sentence split between article and noun ("We bring the / intelligence."), and at 390
+the sentence boundary landed *mid-line* ("business. We"). Fixed with an authored `<br>` plus
+wider caps. Measured unwrapped in-browser at the real face and `-0.05em`:
+
+| Tier | size | "We bring the intelligence." | old cap | new cap | result |
+|---|---|---|---|---|---|
+| Desktop/XL | 64px | **637px** | 600 | **648** | 3 lines → **2** |
+| Tablet | 56px | **558px** | 370 | **568** | one sentence per line |
+| Phone | 48px | **478px** | 300 | **344** | 4 lines, but 2 per sentence |
+
+**Phone cannot fit a sentence per line at any cap** — 390 viewport − 32px side padding =
+358px usable against a 478px sentence. Its 344 buys better ragging only; recording this so
+nobody later "fixes" the phone tier by widening the box further and wonders why nothing
+changes. Tagline caps (`350/350/350/300`) untouched.
+
+**Verified:** rendered at 1440 and 390 and looked at both; line counts read from Range rects,
+not estimated from character counts. `tsc --noEmit` clean, `eslint` clean on `Hero.tsx`.
+`npm run build` **not** run — the dev server holds `.next`; nothing structural changed.
+
+**Open:** the tagline is 84 chars and sets to 3 lines in the 350px box at every tier. It fits
+and it reads, but it is a denser block than the target's two-liner. Worth a look if the user
+wants the hero lighter.
 
 ### 2026-08-02 (latest) — Darken tier bug fixed; Logo Carousel wired in
 

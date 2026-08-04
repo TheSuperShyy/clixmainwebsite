@@ -10,11 +10,23 @@
 
 import LogoCarousel from "@/components/sections/LogoCarousel";
 
-const HEADLINE = "For the most ambitious firms in finance";
-/* "Clix", capitalised — the logo is a lowercase-set wordmark but prose treats the name as
-   an ordinary proper noun, which is also how the target handles its own. */
+/* Copy is clix's own as of 2026-08-04, no longer the target's. Both lines are English
+   renderings of what the real company site (docs/reference/clixsolutions/) already says in
+   Hebrew — the headline is its closing CTA, "אתם מביאים את העסק. אנחנו מביאים את הבינה."
+   English is the primary language by decision, not by default; a Hebrew/RTL variant is a
+   separate job and is NOT served by translating these strings in place. */
+/* Two sentences, so the break between them is authored rather than left to the shaper.
+   Measured at 1440 with the real face and -0.05em tracking: allowed to wrap freely, the
+   second sentence splits between article and noun ("We bring the / intelligence."), and at
+   390 the sentence boundary lands mid-line ("business. We") — the worst break available. */
+const HEADLINE_A = "You bring the business.";
+const HEADLINE_B = "We bring the intelligence.";
+/* Names the services, not the company — the brand is already the wordmark two rows up, and
+   naming it again here spent one of only three lines saying nothing. (The prose-capitalised
+   "Clix" convention this comment used to document still holds; it lives on in WhyRogo.tsx
+   and ByTheNumbers.tsx, which do say the name.) */
 const TAGLINE =
-  "Clix is the trusted AI partner to the world’s leading financial institutions.";
+  "AI agents, automations and custom software, built around how your team already works.";
 
 export default function Hero() {
   return (
@@ -75,14 +87,25 @@ export default function Hero() {
         <div className="flex w-full flex-col items-start gap-10">
           {/* Headline Container — gap 24 between h1 and tagline */}
           <div className="flex w-full flex-col items-center gap-6">
-            {/* h1 wrapper — max-w 300 / 370 / 600 by tier */}
-            <div className="relative w-full max-w-[300px] tablet:max-w-[370px] desktop:max-w-[600px]">
+            {/* h1 wrapper. The target's caps were 300 / 370 / 600, sized around ITS headline;
+                ours is longer, so they are widened to the measured width of the longest
+                sentence + a rounding margin. Measured unwrapped at the real face and
+                tracking: "We bring the intelligence." is 478px @48 · 558px @56 · 637px @64.
+                · desktop 600 -> 648  — 637 fits, so each sentence gets its own line
+                · tablet  370 -> 568  — 558 fits, same
+                · phone   300 -> 344  — 478 does NOT fit and cannot: a 390 viewport less the
+                  32px of side padding leaves 358px, so phone wraps to two lines per
+                  sentence no matter how wide this box is. 344 just buys better ragging.
+                Deviation logged in features/hero/FEATURE.md. */}
+            <div className="relative w-full max-w-[344px] tablet:max-w-[568px] desktop:max-w-[648px]">
               <h1
                 className="text-center font-display text-paper
                            text-[48px] tablet:text-[56px] desktop:text-[64px]"
                 style={{ lineHeight: "95%", letterSpacing: "-0.05em" }}
               >
-                {HEADLINE}
+                {HEADLINE_A}
+                <br />
+                {HEADLINE_B}
               </h1>
             </div>
 

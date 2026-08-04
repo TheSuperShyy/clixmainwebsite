@@ -15,6 +15,66 @@ Line format:
 
 ---
 
+## 2026-08-04
+
+- **[--:--]** `hero` — **Headline + tagline replaced with clix's own copy.** User picked from
+  five candidate pairs: *"i want the 3 but all should be english first"*.
+  · **Shipped:** "You bring the business. / We bring the intelligence." + "AI agents,
+    automations and custom software, built around how your team already works." Both are
+    English renderings of the real company site's own Hebrew — the headline is its closing
+    CTA (*אתם מביאים את העסק. אנחנו מביאים את הבינה.*), from the capture taken the same day.
+  · **English is a decision, not a default.** A Hebrew variant is a separate job and is *not*
+    served by translating these strings in place — it needs `dir="rtl"`, logical properties,
+    and a sign flip on the carousel's `xPercent`.
+  · **h1 max-widths widened `600/600/370/300` → `648/648/568/344`**, measured not guessed:
+    "We bring the intelligence." needs 637px @64 · 558px @56 · 478px @48. Desktop went 3
+    lines → 2. **Phone cannot fit a sentence per line at any cap** — 390 viewport − 32px
+    padding = 358px usable vs a 478px sentence. Plus an authored `<br>` between the
+    sentences, because free wrapping put the sentence boundary mid-line ("business. We") at
+    390. → [detail](../features/hero/CONTEXT.md)
+  · `tsc` + `eslint` clean; rendered and inspected at 1440 and 390. `npm run build` not run
+    (dev server holds `.next`; nothing structural changed).
+
+- **[--:--]** `docs` — **Captured the real company site, clixsolutions.info, as reference
+  material.** User: *"i want you to scrape this as well save the info but dont integrate on
+  the current web we have"* — so it is saved and **explicitly not wired into `src/`**.
+  · **Where:** `docs/reference/clixsolutions/` — `README.md` (digest), `content.json`
+    (structured extraction), `pages/*.html` (11 raw SSR captures, ~1 MB). Sits beside
+    `docs/reference/target/` (rogo's capture, 808 KB) on the same "frozen capture" convention.
+  · **Method:** `fetch` each route in Node, then walk the DOM from `file://` in headless
+    Chrome. Node has network egress here and headless Chrome does **not** — the same
+    constraint hit on 2026-08-03, so a direct navigation would have returned an empty page.
+    The markup is fully server-rendered, so `file://` loses only `_next` assets, not text.
+  · **What it is:** Israeli AI-engineering studio, Tel Aviv. Hebrew, `lang="he"`,
+    `dir="rtl"`, no English version. Ten routes, all 200. AI agents · WhatsApp automations ·
+    CRM · integrations · web · mobile · custom software · AI strategy.
+  · **Brand tokens are declared, not inferred** — read out of the compiled CSS. Palette is
+    **blue on cool white** (`--accent` `#3b7bf5`, `--bg` `#f7f9fc`, `--fg` `#1a2238`), which
+    is a *different system* from rogo's warm neutral (`#f7f7f7`/`#eeedec`) the clone uses.
+    Adopting the real identity means re-tokenising `DESIGN-SYSTEM.md`, not swapping a wordmark.
+  · **The Fontshok Discovery question is settled — do not buy it.** The site declares a
+    `--font-discovery` variable, but it resolves to **Rubik → Space Grotesk → Bricolage
+    Grotesque**, all free Google fonts. Body face is **Rubik**, second Hebrew face **Heebo**.
+    The ₪708 face was never in use; the variable name is aspirational.
+    `src/app/fonts-discovery.css` stays staged and inert.
+  · **Real testimonials exist and are video, not quotes.** Four 9:16 clips behind play
+    buttons — Asaf Peretz (SalesIQ), Adir Peretz, Nevo Yahaloman, Noam Tovi — with posters at
+    `/testimonials/<slug>.jpg` and **no quote text anywhere in the markup**. This answers
+    option (b) in the testimonials question: real Clix endorsements already exist, from four
+    named people already on camera. Still the user's call.
+    → [detail](../features/testimonials/CONTEXT.md)
+  · **Defects found while reading the markup** (recorded, not acted on): `og:image` and
+    `twitter:image` point at `clix-solution.com`, which **does not resolve** — so every
+    WhatsApp/LinkedIn/X link preview renders imageless, while the file is fine at
+    `clixsolutions.info/clix-logo.png`. Three inconsistent brand domains in play. Team `alt`
+    text machine-translated and mis-paired — `team-yarin.jpeg` says "Shahar Apote" and
+    `team-shahar.jpeg` says "Yarin Yitzhak", and two alts are translated nouns rather than
+    names (`alt="giving"` for מתן, `alt="Luzon Spring"` for אביב).
+  · **No files under `src/` touched.** No build run, because nothing the build compiles
+    changed.
+
+---
+
 ## 2026-08-03
 
 - **[--:--]** `docs` — **Brand name changed Rogo → Clix in all product copy.** User:

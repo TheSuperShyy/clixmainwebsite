@@ -26,6 +26,35 @@ say "Rogo" on purpose — see the log entry below before changing them.
 
 ## Log
 
+### 2026-08-04 — option (b) turns out to already exist
+
+Captured the real company site (`docs/reference/clixsolutions/`) and it **has testimonials** —
+which resolves the research half of the question left open below. It does not resolve the
+decision half; that is still the user's.
+
+**They are video, not pull-quotes.** Four 9:16 portrait clips behind play buttons
+(`aria-label="הפעלת עדות של <name>"`), posters at `/testimonials/<slug>.jpg`:
+
+| Name | Attribution |
+|---|---|
+| אסף פרץ — Asaf Peretz | מייסד · SalesIQ |
+| אדיר פרץ — Adir Peretz | בעלים · סטודיו וידאו וצילום |
+| נבו יהלומן — Nevo Yahaloman | מייסד |
+| נועם תובי — Noam Tovi | בעלים · השקעות |
+
+**There is no quote text anywhere in the markup** — the endorsement lives entirely in the
+video. So there is nothing to lift as a written quote, and this section's three-card
+accordion has no direct content equivalent. Using these means either pulling written quotes
+from the clips (needs the people's sign-off on the wording) or rebuilding the section as a
+video row.
+
+What this changes: option (b) — *real clix testimonials with permission* — is no longer
+hypothetical. Four named people have already gone on camera for Clix. The blocker was never
+"do endorsements exist"; it is which of the three options the user wants.
+
+**Unchanged:** the three Rogo quotes stay exactly as they are until the user picks. Nothing
+in `src/` was touched.
+
 ### 2026-08-03 — excluded from the brand rename, and why
 
 Every other "Rogo" on the site became "Clix" when the user asked to change the brand name.
