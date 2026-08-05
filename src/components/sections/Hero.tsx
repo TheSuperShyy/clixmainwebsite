@@ -46,15 +46,22 @@ export default function Hero() {
           original does not do) a still frame remains rather than bare #737373. */}
       <div
         className="hero-media absolute inset-0 bg-cover"
-        style={{ backgroundImage: "url(/video/hero-tel-aviv-poster.jpg)" }}
+        style={{ backgroundImage: "url(/video/hero-clix-poster.jpg)" }}
       >
         {/* Original attributes: loop muted playsinline preload="none".
-            autoPlay added because the original starts playback via JS on mount. */}
+            autoPlay added because the original starts playback via JS on mount.
+
+            Replaced the four-clip montage with a single user-supplied clip on 2026-08-05
+            ("use only that clip"). The slowdown is BAKED INTO THE FILE, not applied with
+            `playbackRate` — the source is 24fps, and playing it at 0.7x in the browser
+            would drop the effective rate to ~17fps and judder. Encoded to 30fps instead,
+            so it is smooth without any JS touching the element. Recipe and the loop-seal
+            are in features/hero/CONTEXT.md. */}
         <video
           className="hero-video h-full w-full object-cover"
           style={{ borderRadius: 0 }}
-          src="/video/hero-tel-aviv.mp4"
-          poster="/video/hero-tel-aviv-poster.jpg"
+          src="/video/hero-clix.mp4"
+          poster="/video/hero-clix-poster.jpg"
           autoPlay
           loop
           muted

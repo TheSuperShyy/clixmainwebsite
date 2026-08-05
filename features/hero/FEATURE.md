@@ -135,13 +135,33 @@ for the CTA border) · `--font-display` · `--font-sans` · `--container-max` `1
 
 | Property | Token would give | Original actually is | Why |
 |---|---|---|---|
-| Hero video content | US flag / NYC skyline | **Israeli sunset montage** (no flag) | Requested 2026-08-02. The single deliberate content deviation; layout, type, video attributes and crop anchor all unchanged. See [public/README.md](../../public/README.md). |
+| Hero video content | US flag / NYC skyline | **single Tel Aviv dusk clip, flag present** | Superseded the four-clip montage on 2026-08-05 — user supplied the clip and said *"use only that clip"*. Slowdown baked into the file, loop-sealed. **The flag is back**, which reopens the crop-anchor question the montage had closed — see below. |
+| ~~Hero video content~~ | ~~US flag / NYC skyline~~ | ~~Israeli sunset montage (no flag)~~ | *Superseded 2026-08-05, row above.* Requested 2026-08-02; layout, type, video attributes and crop anchor all unchanged. See [public/README.md](../../public/README.md). |
 | `.hero-scrim` layer | — | original has **no** scrim; only the bottom `Darken` gradient | Requested 2026-08-02 ("*add a bit of bg color so its not text directly above image*"). Forced by the deviation above: the original's bottom-only gradient suffices because its NYC footage is dark through the copy band, whereas our montage puts near-white sky behind white 64px type on the aerial-flare segment. Added as a **separate** element so `.hero-darken` stays byte-faithful. |
 | Section padding, gaps | 4pt scale | `156px`, `120px`, `44px`, `248px` | One-offs in the original; not tokenized — see DESIGN-SYSTEM.md §Spacing. |
 | `prefers-reduced-motion` | — | original has none | Our a11y floor. Video pauses; poster remains. |
 | Headline + tagline copy | target's finance-AI copy | **clix's own**, 2026-08-04 | User picked it from five candidates. Headline is the English rendering of the real company site's closing CTA (*אתם מביאים את העסק. אנחנו מביאים את הבינה.*) — see `docs/reference/clixsolutions/`. |
 | h1 max-width widened for clix copy | `600 / 600 / 370 / 300` | **`648 / 648 / 568 / 344`** | Measured, not guessed — see below. |
 | Authored `<br>` between the two sentences | original wraps freely | explicit break | See below. |
+
+### Crop anchor is live again (2026-08-05) — OPEN
+
+The montage had no flag, so `object-position: 50% 50%` was safe at every tier and the hero
+carried no crop-anchor deviation. The replacement clip puts the flag hard against the **right
+edge**, and `object-fit: cover` on a 1920×1080 source keeps only the centre:
+
+| Tier | video box | frame width kept | flag |
+|---|---|---|---|
+| 1600 | 1600×900 | **100%** | full |
+| 1440 | 1440×900 | **90%** | full |
+| 1024 | 1024×768 | **75%** | partly cut |
+| 390 | 390×844 | **26%** | **gone entirely** |
+
+Measured in-browser, not estimated. Nothing is wrong with the rendering — this is `50% 50%`
+doing exactly what it is told. **The open question is whether the flag is load-bearing.** If
+it is, the fix is a per-tier `object-position` pushed right on the narrow tiers (roughly
+`78% 50%` at phone); if it is only scenery, leave it centred, because pushing right also
+swings the skyline out of frame. Needs the user.
 
 ### h1 max-width widened for clix copy (2026-08-04)
 

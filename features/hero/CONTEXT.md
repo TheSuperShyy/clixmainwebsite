@@ -41,6 +41,54 @@ animation. Both need a look at the live site.
 
 ## Log
 
+### 2026-08-05 — background replaced with a single user-supplied clip, slowed
+
+**Trigger:** user — *"i added the replacement video for the bg make the speed of it a bit
+dramatic but use only that clip"*.
+
+**Source:** `hf_20260805_142105_…mp4`, dropped at the repo root. Tel Aviv skyline at dusk
+from the water, Israeli flag in the right foreground. 1920×**1076**, 24fps, 8.04s, 12.2 MB
+at 12.2 Mbps, **with an AAC audio track**. Moved to `features/hero/assets/hero-clix-source.mp4`
+— gitignored by `features/*/assets/*.mp4`, so the master stays on disk and out of the repo.
+
+**Shipped:** `public/video/hero-clix.mp4` + `hero-clix-poster.jpg`.
+1920×1080, 30fps, **10.47s, 3.2 MB** — less than half the 6.8 MB montage it replaces.
+
+**Recipe** (two passes, both plain ffmpeg — no analysis scripts):
+
+1. `crop=1912:1076:4:0, scale=1920:1080:lanczos, setpts=1.428571*PTS`, `-r 30`, `-an`, crf 21.
+   The crop is aspect maths, not taste: 1076 × 16/9 = 1913, so trimming 8px of width and
+   scaling to 1080 preserves the framing instead of stretching it 0.37%.
+2. Loop seal — `trim` into head/mid/tail, `blend=all_expr='A*(1-T)+B*T'` the 1s tail over the
+   1s head, `concat` mid+blend. Output is `D − t`. Verified by tiling frame 0 against frame
+   313: identical flag position, so the loop does not jump.
+
+**Decisions**
+
+- **The slowdown is baked into the file, not `playbackRate`.** Source is 24fps; playing it
+  at 0.7× in the browser drops the effective rate to ~17fps and judders. Re-encoding to
+  30fps makes it smooth and keeps JS out of the element entirely. 0.7× → 8.04s becomes
+  11.47s before the seal.
+- **Audio stripped** (`-an`). The element is `muted` anyway, so the AAC track was pure weight.
+- **No motion interpolation.** `minterpolate=mci` was tried first and abandoned: it is slow,
+  and the fast complex motion of a waving flag is exactly what motion compensation artifacts
+  on. The content is otherwise gentle (water, distant skyline), so plain `setpts` at 30fps
+  holds up.
+
+**⚠️ The flag is back, and it reopens the crop anchor.** The montage had none, which is why
+`object-position` went back to the target's `50% 50%` at every tier on 2026-08-02. Measured
+in-browser, `object-fit:cover` now keeps **100% / 90% / 75% / 26%** of the frame width at
+1600 / 1440 / 1024 / 390 — so the flag is **cropped out entirely on phone** and partly cut at
+1024. Not a bug; `50% 50%` doing as told. Whether to push `object-position` right on the
+narrow tiers depends on whether the flag is load-bearing or scenery — **the user's call**,
+logged as open in `FEATURE.md`.
+
+**Superseded:** `public/video/hero-tel-aviv.mp4` + poster are now unreferenced (6.9 MB still
+tracked). Left in place deliberately — removing them is a separate call.
+
+**Verified:** rendered and inspected at 1600 / 1440 / 1024 / 390; video reports
+`paused:false`, `dur:10.47`, `currentSrc: hero-clix.mp4` at every tier.
+
 ### 2026-08-04 — headline + tagline replaced with clix's own copy
 
 **Trigger:** user — *"ok now lets start editing the tagline"*, then, from five candidate

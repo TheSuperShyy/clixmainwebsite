@@ -15,6 +15,31 @@ Line format:
 
 ---
 
+## 2026-08-05
+
+- **[--:--]** `hero` — **Background is now a single user-supplied clip, slowed for drama.**
+  User: *"i added the replacement video for the bg make the speed of it a bit dramatic but
+  use only that clip"*.
+  · **Source:** Tel Aviv dusk from the water, Israeli flag in the right foreground.
+    1920×1076, 24fps, 8.04s, 12.2 MB, with an AAC track. Parked at
+    `features/hero/assets/hero-clix-source.mp4` (gitignored) — master on disk, out of the repo.
+  · **Shipped:** `public/video/hero-clix.mp4` — 1920×1080, 30fps, **10.47s, 3.2 MB**, less
+    than half the 6.8 MB montage it replaces. Audio stripped; the element is muted anyway.
+  · **0.7× slowdown is baked into the file, not `playbackRate`** — the source is 24fps, so
+    playing it slow in the browser would drop it to ~17fps and judder. Re-encoded to 30fps
+    instead, which keeps JS off the element entirely.
+  · **Loop-sealed** with a 1s tail-over-head `blend`, matching what the montage did; a raw
+    single clip cuts visibly every loop. Verified frame 0 against frame 313 — identical.
+  · **`minterpolate` tried and abandoned** — slow, and a waving flag is precisely what motion
+    compensation artifacts on.
+  · ⚠️ **The flag is back, which reopens the crop anchor the montage had closed.** Measured:
+    `object-fit:cover` keeps **100 / 90 / 75 / 26 %** of the frame width at 1600/1440/1024/390,
+    so the flag is **gone entirely on phone**. Not a bug — `50% 50%` as instructed. Whether to
+    push `object-position` right on narrow tiers is the user's call.
+    → [detail](../features/hero/CONTEXT.md)
+  · Rendered and inspected at all four tiers. `hero-tel-aviv.mp4` + poster now unreferenced
+    (6.9 MB, still tracked) — left in place; removing them is a separate call.
+
 ## 2026-08-04
 
 - **[--:--]** `hero` — **Headline + tagline replaced with clix's own copy.** User picked from
