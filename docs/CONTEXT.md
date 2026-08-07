@@ -15,6 +15,34 @@ Line format:
 
 ---
 
+## 2026-08-07
+
+- **[--:--]** `logo-carousel` — **rogo's 14 investment banks replaced with clix's own tool
+  stack (13 lockups).** User: *"change the logo to the tools clix use like vapi, elevenlabs,
+  n8n, etc."* — unblocks the item open since 08-05. Twelve are the live site's own stack list
+  (`docs/reference/clixsolutions/README.md` §02) verbatim; **ElevenLabs is the user's
+  addition and has no published backing — flagged**. Treatment: **glyph + name in Inter 500**,
+  because simple-icons (CC0) has 11 of the 13 but only as 24×24 *glyphs*, and this row was
+  built for wordmarks 45–226px wide; the lockup lands at **40–188 × 24**, back inside that
+  band. **Vapi and monday.com have no mark in simple-icons — they render as text alone**
+  rather than as a redrawn trademark. Bug found and fixed in the process: the cycle used to be
+  measurable on frame 1 from `<img>` intrinsics, but text measured before the webfont swap
+  bakes in a wrong `cycle` and the loop tears every repeat — now gated on
+  `document.fonts.ready`. Measured cycle **2243px ≥ 1600 viewport**, so the doubled track
+  still covers the widest tier. → [detail](../features/logo-carousel/CONTEXT.md)
+
+- **[--:--]** `nav` — **Banner split back into two runs: "Clix AI News" + underlined
+  "Coming soon".** User: *"instead of clix ai make it clix ai news then coming soon with
+  underline so its like a link"*. Restores the target's own headline + trailing-CTA shape,
+  which the 08-05 rewrite had collapsed into one string. **Still a `<span>`, not an `<a>`** —
+  it looks like a link but isn't, because there is no Clix AI News page and `href="#"` would
+  jump to the top of the page. Measured after the change: strip stays **45px / one line at
+  every tier including 390**, gap between the runs is **10px** at 810+ (matches the original's
+  headline↔"Learn more" gap), headline is **not clipped** at 390, underline is 1px at a 3px
+  offset. → [detail](../features/nav/CONTEXT.md)
+
+---
+
 ## 2026-08-05
 
 - **[--:--]** `nav` — **Nav links scroll in-page or go inert; no route 404s left.** User:

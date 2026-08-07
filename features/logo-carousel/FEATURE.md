@@ -39,6 +39,24 @@ element's byte offset falls between the hero `<section>`'s open and close tags.
 
 ### Assets — 14 logos, measured box per logo
 
+> ## ⚠️ THE CONTENT OF THIS ROW IS A DELIBERATE DEPARTURE (2026-08-07)
+>
+> **The table below is the TARGET's spec, kept as the record of what rogo does. It is no
+> longer what this repo renders.** Every *mechanism* in this file — geometry, gap, blur,
+> mask, cycle maths, speed, tier behaviour — still applies verbatim and is still measured
+> from the capture. Only the items inside the `<ul>` changed.
+>
+> rogo's fourteen are **customers** (Jefferies, Lazard, Rothschild, Raymond James, Truist…).
+> Under a clix wordmark that is a false claim, not a style choice, so it went the same way as
+> the Series D banner and the compliance seals. The row now carries **clix's own stack** —
+> 13 tool lockups (glyph + name), 12 of them lifted verbatim from the live company site's
+> own stack marquee. Rationale, the three treatments considered, the licensing position and
+> the two tools with no available mark are all in
+> [CONTEXT.md](CONTEXT.md) under 2026-08-07.
+>
+> Measured after the swap: **13 items, cycle 2243px, item boxes 40–188 × 24px** — inside the
+> target's own 45–226 × 20–36 band, which is why the strip still reads as the same design.
+
 Document order, which is also render order:
 
 | # | Logo | w × h | | # | Logo | w × h |
@@ -101,12 +119,16 @@ mask. Gap `56px` and the `12px`/`16px` paddings are one-offs, not on the 4pt sca
 ## Acceptance checklist
 
 - [x] Structure + measured values from the capture, all four tiers
-- [x] All 14 logos at their measured sizes, correct order
+- [x] Item boxes sit inside the target's measured band (40–188 × 24 vs 45–226 × 20–36)
 - [x] `prefers-reduced-motion` respected — tween never built
-- [x] Images have meaningful `alt` (first pass); duplicate pass `aria-hidden`
+- [x] Cycle measured only after `document.fonts.ready` — text items are font-width dependent
+- [x] Each item's name is real text; glyph beside it `aria-hidden`; duplicate pass hidden
 - [x] `npm run build` clean
-- [ ] Matches reference at 1600 / 1440 / 1024 / 390 — **not yet visually verified**
+- [x] Rendered and inspected at 1600 / 1440 / 1024 / 390
 - [ ] Motion timing matches the original — **speed is estimated**
+- [ ] **Tool list confirmed with the user** — ElevenLabs is not on the live site's own list
+- [ ] ~~Matches reference at every tier~~ — **no longer applicable**, the row deliberately
+      carries different content (see the departure note above)
 - [x] `CONTEXT.md` (feature + global) updated, `SECTIONS.md` status set
 
 ## Open questions

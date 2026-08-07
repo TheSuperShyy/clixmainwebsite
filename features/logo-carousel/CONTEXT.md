@@ -10,21 +10,114 @@ with no code scanning.
 
 ## Current state
 
-Built and building clean. 14 logos at measured sizes, doubled track, GSAP infinite loop with
-a measured cycle width, 8-layer progressive blur, edge-fade mask, reduced-motion fallback.
+Built and building clean. **13 tool lockups** (glyph + name), doubled track, GSAP infinite
+loop with a measured cycle width, 8-layer progressive blur, edge-fade mask, reduced-motion
+fallback.
+
+**The content is no longer the target's.** This was rogo's row of 14 investment banks — a
+*customer* row. It is now clix's *stack* row: the tools clix builds with. Every mechanism
+(blur, mask, cycle maths, speed, geometry) is unchanged and still the target's; only the
+items inside the `<ul>` were replaced. See the 2026-08-07 entry.
 
 Rendered **inside** `Hero.tsx`, not as a sibling section — that is what the original does.
 
-Not yet visually verified at any tier, and the **marquee speed is a guess** (50 px/s) because
-a static capture cannot encode a rate.
+The **marquee speed is still a guess** (50 px/s) because a static capture cannot encode a
+rate. The strip has now been rendered and eyeballed at 1600 / 1440 / 1024 / 390, but *not*
+diffed against the reference — and a like-for-like diff is no longer meaningful here, since
+the row deliberately holds different content.
 
 **Status:** `review`
-**Next action:** compare against the reference at all four tiers; confirm speed, direction
-and pause-on-hover against the live site.
+**Next action:** confirm speed, direction and pause-on-hover against the live site. Confirm
+the tool list with the user (ElevenLabs in particular — see below).
 
 ---
 
 ## Log
+
+### 2026-08-07 — banks out, clix's own stack in
+
+**Trigger:** user — *"change the logo to the tools clix use like vapi, elevenlabs, n8n,
+etc."*. This closes the item that had been **BLOCKED** since 2026-08-05 for want of a
+decision on treatment.
+
+**Why this row had to change and could not just be re-skinned.** The target's fourteen items
+are Jefferies, Lazard, Rothschild, BNP Paribas, Raymond James, Truist and friends — i.e.
+*rogo's customers*. Under a clix wordmark that is not a stylistic mismatch, it is a false
+claim, and it was the last one left on the page after the 08-05 pass took out the Series D
+banner, the compliance seals and the executive quotes.
+
+**The replacement is not invented.** The live company site already runs structurally the same
+block — section 02, `הסטאק` / "the stack", *"Every tool you use feeds one brain"* — with a
+12-item marquee. Those twelve are used verbatim: Vapi, n8n, Make, OpenAI, Gemini, monday.com,
+WhatsApp, Claude, Google Docs, Google Sheets, Google Calendar, Hostinger. Recorded in
+`docs/reference/clixsolutions/README.md` lines 148-151.
+
+**ElevenLabs is the thirteenth and is the user's addition, not the site's.** Flagged rather
+than silently absorbed: if the live site's list is the source of truth, this is the one entry
+with no published backing. Same class of open question as Achituv's name in `testimonials`.
+
+#### The treatment decision (the thing that was blocked)
+
+simple-icons publishes brand marks under **CC0**, and carries 11 of the 13. But they are
+**glyphs** — square, 24x24 — and this row was built for **wordmarks 45-226px wide**. Three
+options were on the table; the choice was *glyph + name lockup*:
+
+| option | why not / why |
+|---|---|
+| bare glyphs | 13 squares at 56px gaps reads as an icon tray, not a logo row. The strip's visual job is a run of *wide* marks under a headline; squares leave it looking sparse and unrelated to the design it sits in. |
+| official wordmark SVGs | not freely redistributable for most of these vendors, and would mean scraping 13 separate brand pages — well past the effort ceiling in CLAUDE.md §7. |
+| **glyph + name in Inter 500** ✅ | lands each item at 40-188px wide × 24px tall, i.e. inside the target's own 45-226 × 20-36 band, so the row keeps its proportions. One source, CC0, no scraping. |
+
+Measured after the change (13 items, identical at all four tiers because the track is
+`w-max` and viewport-independent):
+
+```
+count 13 · cycle 2243px · item widths 40-188 · max item height 24 · font Inter (loaded)
+Vapi 40 · ElevenLabs 139 · n8n 69 · OpenAI 103 · Claude 99 · Gemini 98 · Make 85
+WhatsApp 131 · monday.com 119 · Google Sheets 168 · Google Docs 152 · Google Calendar 188
+Hostinger 124
+```
+
+Only **Vapi (40px)** falls below the target's 45px minimum, and only because it is four
+characters with no glyph. `cycle 2243 >= viewport` at 1600, so the doubled track still covers
+the widest tier with no gap — the condition the loop depends on.
+
+#### Two tools have no mark, and that is deliberate
+
+simple-icons 404s on **Vapi** and **monday.com**. Both render as **text alone**. Redrawing a
+trademark from memory is how you ship a subtly wrong logo, so it was not done. This is not a
+degraded fallback: the row this replaces was wordmarks end to end, so a name set in type is
+the *native* form of the strip. Two among thirteen reads as brand variety, not as breakage.
+
+Labels use each vendor's own casing — `n8n` and `monday.com` really are lowercase, `OpenAI`
+really is camel-cased. Do not sentence-case them.
+
+#### One real bug this introduced, and the fix
+
+The old items were `<img width height>`, so the cycle was measurable on the first frame. The
+new ones are **text**, and text in the fallback sans is a different width from the same text
+in Inter. Measuring before the font swap bakes in a wrong `cycle`, and the loop then tears by
+exactly the reflow delta on *every* repeat. Fixed by gating the measurement on
+`document.fonts.ready`, which resolves immediately on a warm load and so costs nothing.
+
+#### Smaller consequences
+
+- Accessible name of the `<section>`: `"Our customers"` → `"Tools we build with"`. The old
+  one would have been an outright lie about the new contents.
+- Per-item `alt` handling is gone — the name is now real text, and the glyph beside it is
+  `aria-hidden` inside `ToolGlyph`. The first-pass/duplicate-pass split is unchanged.
+- New file `src/components/ui/ToolGlyphs.tsx` holds the 11 paths. Inlined rather than shipped
+  to `public/logos/` because they must take colour from the row (`currentColor`, which an
+  `<img>` cannot do) and because each is half of a lockup, not a standalone asset.
+- **The 14 bank SVGs in `public/logos/` are now orphaned** (~114 KB). Left in place, not
+  deleted: this is a clone repo and they are the target's own extracted assets, i.e.
+  reference material. Delete them only on a deliberate call.
+
+**Licensing note.** simple-icons files are CC0; the trademarks remain each vendor's property.
+Naming tools you actually use is nominative use, not endorsement. If a vendor objects, drop
+that entry — the row already tolerates missing marks by design.
+
+---
 
 ### 2026-08-02 (latest) — five broken logo SVGs re-extracted
 

@@ -73,10 +73,17 @@ type NavTheme = "hero" | "light" | "dark";
    round, which under a clix wordmark read as a first-person claim clix cannot make.
    Replaced 2026-08-05 at the user's direction.
 
-   There is deliberately no href and no "Learn more": the announcement has no page behind it
-   yet, and a banner that links nowhere is the fastest-rotting copy on a site. Text only
-   until there is something real to point at. */
-const BANNER_TEXT = "Clix AI — launching soon";
+   Split into two runs 2026-08-07 (user: "instead of clix ai make it clix ai news then coming
+   soon with underline so its like a link"). This restores the target's own two-part banner
+   shape — headline + trailing call to action — which the 08-05 pass had collapsed to a
+   single string.
+
+   `BANNER_CTA` is UNDERLINED BUT NOT A LINK. Still a <span>, still no href: the announcement
+   has no page behind it, and an <a href="#"> would jump to the top of the page and read as
+   broken. It looks like a link because the user asked for that affordance; the moment there
+   is a Clix AI News page, this becomes an <a> and the styling already fits. */
+const BANNER_TEXT = "Clix AI News";
+const BANNER_CTA = "Coming soon";
 
 /* Button — padding 8/16, inner row 20px tall with a 1px top nudge, radius 6.
    The border is 1px and transparent in both variants; it exists so the box does not
@@ -309,9 +316,10 @@ export default function Nav() {
       }}
     >
       {/* ---------------------------------------------------------------- Banner
-          >=810: centred row, padding 12/40, gap 10 between the dot group and "Learn more".
-          <810 : padding 12/16, left-aligned, headline truncates to one line so the
-                 "Learn more" link is never pushed off the edge.
+          >=810: centred row, padding 12/40, gap 10 between the dot group and the trailing
+                 call to action (the target's "Learn more" slot; ours is "Coming soon").
+          <810 : padding 12/16, left-aligned, headline truncates to one line so the trailing
+                 run is never pushed off the edge.
 
           Eases out on the way down and back in on the way up, even though it sits in the
           fixed block — see the `bannerShift` effect above. `aria-hidden` + `inert` whenever
@@ -352,6 +360,17 @@ export default function Nav() {
                     {BANNER_TEXT}
                   </span>
                 </div>
+                {/* `flex-none` beside a `min-w-0 flex-1` headline is the whole reason this
+                    is a separate element rather than more text in the span above: on phone
+                    the headline is what ellipsises, and this stays legible. Same reason the
+                    original kept "Learn more" out of its headline run. */}
+                <span
+                  className="flex-none whitespace-nowrap font-sans text-[14px] text-paper
+                             underline decoration-1 underline-offset-[3px]"
+                  style={{ lineHeight: "1.5em", letterSpacing: "-0.02em" }}
+                >
+                  {BANNER_CTA}
+                </span>
               </div>
             </div>
           </div>

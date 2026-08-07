@@ -32,6 +32,56 @@ live site for the mobile menu, the scroll flip point, and the `Indicator` elemen
 
 ## Log
 
+### 2026-08-07 — banner split into headline + underlined trailing run
+
+**Trigger:** user — *"instead of clix ai make it clix ai news then coming soon with underline
+so its like a link"*.
+
+`BANNER_TEXT` went from the single string `"Clix AI — launching soon"` to two constants:
+`BANNER_TEXT = "Clix AI News"` and `BANNER_CTA = "Coming soon"`.
+
+**This restores the target's structure rather than departing from it.** The original banner
+is a headline plus a trailing "Learn more" in a separate element at a 10px gap; the 08-05
+copy rewrite had dropped the second element and folded everything into the headline run. It
+is now back in its measured slot, with different words in it.
+
+**Why it is a `<span>` and not an `<a>`, despite looking like one.** There is no Clix AI News
+page. `href="#"` would scroll to the top of the page and read as broken; a link to a 404 is
+worse. The underline is the affordance the user asked for and it will be honest the moment
+the page exists — at that point this becomes an `<a>` and the styling already fits.
+Accessibility note: nothing here is announced as a link or lands in the tab order, so the
+underline is a *visual* promise only. If the page does not ship soon, this is the copy to
+revisit.
+
+**Why two elements rather than one longer string.** The phone banner truncates. The headline
+carries `min-w-0 flex-1 truncate`; the new run is `flex-none whitespace-nowrap`. That
+combination is what makes the *headline* ellipsise while "Coming soon" survives — the same
+reason the original kept "Learn more" out of its headline run. One string would have
+ellipsised the announcement itself away.
+
+**Measured after the change** (headless Chrome, `.bg-banner` box + both runs' client rects):
+
+| width | strip height | headline x/w | CTA x/w | gap | headline clipped? |
+|---|---|---|---|---|---|
+| 1600 | 45 | 722 / 80 | 812 / 84 | 10 | no |
+| 1440 | 45 | 642 / 80 | 732 / 84 | 10 | no |
+| 1024 | 45 | 434 / 80 | 524 / 84 | 10 | no |
+| 810 | 45 | 327 / 80 | 417 / 84 | 10 | no |
+| 390 | 45 | 34 / 80 | 290 / 84 | 176 | no |
+
+The **10px gap at 810+ is the original's own** dot-group↔"Learn more" gap, unchanged. At 390
+the two runs push to opposite edges (the row is left-aligned there, headline `flex-1`), which
+is the target's phone behaviour. **Strip stays 45px — one line — at every tier**, so the
+`bannerH` measurement the hide-on-scroll transform depends on is unaffected.
+
+Underline computed as `underline / 3px offset / 1px thickness`. The 3px offset is ours, not
+measured — the target's "Learn more" is not in the capture in a state that exposes its
+decoration. Chosen so the rule clears the descender on the "g" of "Coming".
+
+**Still open:** the announcement has no page behind it (see above).
+
+---
+
 ### 2026-08-05 — nav links scroll in-page or go inert; no more 404 routes
 
 **Trigger:** user — *"ok make the navbar do nothing for now or just scroll to each
