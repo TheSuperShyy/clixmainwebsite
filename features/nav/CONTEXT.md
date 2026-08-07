@@ -32,6 +32,52 @@ live site for the mobile menu, the scroll flip point, and the `Indicator` elemen
 
 ## Log
 
+### 2026-08-05 — nav links scroll in-page or go inert; no more 404 routes
+
+**Trigger:** user — *"ok make the navbar do nothing for now or just scroll to each
+sections"*.
+
+**The seven labels stay; only their destinations changed.** Two of the seven have something
+on this page to reach, so those scroll. The other five render as **plain text, not links**:
+
+| label | href | why |
+|---|---|---|
+| Services | `#services` | the services block (`WhyRogo`) — id added |
+| Industries · Work · Insights · Playground · About | `null` | no section and no page exists |
+| Contact | `#contact` | the footer — the closing CTA lives inside it in the original |
+
+**Why inert rather than `#` or a dead route.** `/services`-style hrefs 404. A bare `#` jumps
+to the top, which reads as a broken link. An element with no href is also **not focusable**,
+which is the correct answer for something that cannot be activated — a keyboard user should
+not land on it at all. Rendered as `<span aria-disabled="true">` at 50% opacity, so an item
+that does nothing does not look identical to one that works. Give a slug an `href` the moment
+its target exists.
+
+**The inert items keep the link's exact box** (`h-9 px-3 py-2`). The ≥1200 row is absolutely
+centred on the header (`left:50% + translateX(-50%)`), so it is sized by its contents —
+swapping one item for a narrower element would shift the whole row off centre.
+
+**Anchors added:** `id="services"` on the `WhyRogo` section, `id="contact"` on the `footer`.
+Both carry `scroll-mt-24` (96px) to clear the sticky 72px header — without it the target's
+heading lands underneath the bar. Verified: clicking Services leaves the section top at
+**exactly 96px**.
+
+**Every CTA moved from `/contact` to `#contact`** — hero, both nav buttons, the footer button
+and the footer's "Let's start" link. Five buttons that used to 404 now land on the closing
+CTA.
+
+**`scroll-behavior: smooth` added to `html`** in `globals.css`. Safe to declare
+unconditionally: the existing `prefers-reduced-motion` block already forces
+`scroll-behavior: auto !important`, so it never overrides a user asking for less movement.
+
+**Measurement note for whoever tests this next.** Clicking Contact lands at scrollY **5286**,
+not at a position that puts the footer top at 96px. That is correct, not a bug: 5286 IS the
+document maximum (`scrollHeight 6186 − innerHeight 900`), and the footer is the last element,
+so the page cannot scroll further. A first test run also showed Contact "not scrolling" —
+that was a test artifact, not the site: the harness called `scrollTo(0, 0)` between clicks,
+and with smooth scrolling now on `html` that reset was still animating when the click fired.
+Reload between anchor tests rather than scrolling to top.
+
 ### 2026-08-03 — the logo's face identified as Inter Bold; tracking corrected
 
 **Trigger:** user sent their CLIX lockup — *"i want this font"*.

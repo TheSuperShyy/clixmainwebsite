@@ -58,60 +58,69 @@ type Tenant = {
   containerClass: string;
 };
 
+/* Rewritten 2026-08-05 from the target's five finance differentiators to clix's five core
+   services, per the user's call. Content only — every layout prop below is the measured
+   value and is unchanged.
+   · `containerClass`, `titleMax` and `bodyTracking` are POSITION-bound (item 1 is the only
+     one with top padding, item 5 the only one without a rule), so they stayed put.
+   · `iconBox` and `frameOpacity` are ICON-bound — each icon has its own optical inset and
+     opacity — so where an icon moved position, those two moved with it.
+   All five original icons are still used, none added: AgentTree reads as agents, ChartBoard
+   as a CRM dashboard, Integration as the stack, DollarCircle as the ROI call. Deployment
+   carries WhatsApp, which is the one loose fit. */
 const TENANTS: Tenant[] = [
-  {
-    id: "by-finance",
-    Icon: DollarCircleIcon,
-    iconBox: "absolute top-[5px] left-[5px] h-[30px] w-[30px]",
-    frameOpacity: "opacity-60",
-    title: "By finance, for finance",
-    titleMax: "max-w-[844px]",
-    body: "Domain expertise is in Clix’s DNA. Our team of former bankers and investors understands the nuance and complexity of high-finance workflows — and why generic AI chatbots break down. That’s why our platform and model are built explicitly for finance.",
-    bodyTracking: "-0.1px",
-    containerClass: "gap-7 py-[72px] border-b border-hairline-dark",
-  },
   {
     id: "agents",
     Icon: AgentTreeIcon,
     iconBox: "absolute top-[6px] left-[6px] h-[29px] w-[29px]",
     frameOpacity: "opacity-70",
-    title: "Agents that understand, and act",
+    title: "AI agents that do the work",
+    titleMax: "max-w-[844px]",
+    body: "Autonomous agents for sales, support, research and operations — in your brand’s voice, on your data, following your processes. Multi-agent orchestration with memory and tool use, voice agents for inbound and outbound calls, and human approval wherever it matters.",
+    bodyTracking: "-0.1px",
+    containerClass: "gap-7 py-[72px] border-b border-hairline-dark",
+  },
+  {
+    id: "whatsapp",
+    Icon: DeploymentIcon,
+    iconBox: "absolute top-[5px] left-[5px] h-[30px] w-[30px]",
+    frameOpacity: "opacity-70",
+    title: "The channel they already use",
     titleMax: "max-w-[500px]",
-    body: "Clix agents don’t just answer questions. They understand financial workflows and execute end-to-end work across deals and investments — the same way your team does.",
+    body: "Assistants on WhatsApp Business that book, sell, support and follow up — connected to your CRM, payments, calendar and catalogue, and handing off to a person the moment one is needed.",
     bodyTracking: "-0.1px",
     containerClass: "gap-7 pb-[72px] border-b border-hairline-dark",
   },
   {
-    id: "integrated",
-    Icon: IntegrationIcon,
-    iconBox: "absolute top-[7px] left-[7px] h-[27px] w-[27px]",
-    frameOpacity: "opacity-70",
-    title: "Integrated into your firm & the financial data universe",
+    id: "crm",
+    Icon: ChartBoardIcon,
+    iconBox: "absolute top-[7px] left-[5px] h-[29px] w-[30px]",
+    frameOpacity: "opacity-100",
+    title: "One true picture of every customer",
     titleMax: "max-w-[300px]",
-    /* En dash before "market data", not the em dash the other items use. The capture's. */
-    body: "Clix is embedded directly into your firm’s systems and data, from SharePoint and CRM to the financial data platforms your team relies on – market data, filings, research, and proprietary sources.",
+    body: "Modern CRM installed, configured and wired into the tools your team actually opens. Data modelling and migration, pipeline and reporting, AI enrichment and lead scoring — and the training that makes it survive contact with the team.",
     bodyTracking: "-0.01em",
     containerClass: "gap-7 pb-[72px] border-b border-hairline-dark",
   },
   {
-    id: "outputs",
-    Icon: ChartBoardIcon,
-    iconBox: "absolute top-[7px] left-[5px] h-[29px] w-[30px]",
-    frameOpacity: "opacity-100",
-    title: "Institutional-grade outputs",
+    id: "integrations",
+    Icon: IntegrationIcon,
+    iconBox: "absolute top-[7px] left-[7px] h-[27px] w-[27px]",
+    frameOpacity: "opacity-70",
+    title: "Every tool you use, feeding one brain",
     titleMax: "max-w-[844px]",
-    body: "Clix produces real institutional outputs: auditable Excel models, investment memos, diligence materials, and slide decks — built to the same standards your best people hold themselves to.",
+    body: "We wire the whole stack together — payments, accounting, marketing, support — with n8n, Make and custom code. End-to-end workflow design, webhooks and middleware, internal dashboards, and the monitoring and retries for when something upstream breaks.",
     bodyTracking: "-0.1px",
     containerClass: "gap-8 pb-[72px] border-b border-hairline-dark",
   },
   {
-    id: "deployment",
-    Icon: DeploymentIcon,
+    id: "strategy",
+    Icon: DollarCircleIcon,
     iconBox: "absolute top-[5px] left-[5px] h-[30px] w-[30px]",
-    frameOpacity: "opacity-70",
-    title: "Custom deployed + partnership-minded",
+    frameOpacity: "opacity-60",
+    title: "Not every problem needs AI",
     titleMax: "max-w-[844px]",
-    body: "Every firm is different. That’s why every Clix deployment is bespoke. Our operating model pairs enterprise-grade security with white-glove partnership, led by ex-finance professionals who act as true change-management partners.",
+    body: "The ones that do need the right AI. We audit, prioritise, and decide what to build, what to buy and what to leave alone — weighing return, security and whether the choice still holds up two years from now.",
     bodyTracking: "-0.01em",
     containerClass: "gap-8 pb-[72px]",
   },
@@ -168,9 +177,12 @@ export default function WhyRogo() {
   return (
     <section
       data-nav-theme="light"
+      /* Anchor for the nav's "Services" link (2026-08-05). `scroll-mt-24` clears the
+         sticky header, which is 72px tall — without it the heading lands underneath. */
+      id="services"
       /* padding 80/16/40 phone → 96/40/128 tablet → 96/40/164 desktop+ */
-      className="relative flex w-full flex-col items-center justify-center overflow-clip
-                 bg-canvas px-4 pt-20 pb-10
+      className="relative flex w-full scroll-mt-24 flex-col items-center justify-center
+                 overflow-clip bg-canvas px-4 pt-20 pb-10
                  tablet:px-10 tablet:pt-24 tablet:pb-32
                  desktop:pb-[164px]"
     >
@@ -195,8 +207,8 @@ export default function WhyRogo() {
           >
             {/* The hard break is in the capture at every tier, and it survives the 400px
                 measure at all of them — it is the author's line break, not a fallback. */}
-            Why financial institutions <br />
-            choose Clix
+            The quiet mechanisms <br />
+            behind modern business
           </h2>
         </div>
 

@@ -17,6 +17,92 @@ Line format:
 
 ## 2026-08-05
 
+- **[--:--]** `nav` — **Nav links scroll in-page or go inert; no route 404s left.** User:
+  *"make the navbar do nothing for now or just scroll to each sections"*.
+  · **Services → `#services`** (id added to the `WhyRogo` section) and **Contact →
+    `#contact`** (id added to the `footer`; the closing CTA lives inside it). The other five
+    — Industries, Work, Insights, Playground, About — render as `<span aria-disabled>` at
+    50% opacity: **not links**, so not focusable, which is right for something that cannot
+    be activated. A bare `#` would have jumped to the top and read as broken.
+  · Inert items keep the link's exact `h-9 px-3 py-2` box — the ≥1200 row is absolutely
+    centred and sized by its contents, so a narrower element would shift it off centre.
+  · **All five CTAs moved `/contact` → `#contact`** (hero, both nav buttons, footer button,
+    footer link). Anchors carry `scroll-mt-24` to clear the 72px sticky header; verified the
+    Services target lands at **exactly 96px**.
+  · `scroll-behavior: smooth` on `html` — safe unconditionally, since the existing
+    `prefers-reduced-motion` block already forces `scroll-behavior: auto !important`.
+  · **Contact lands at scrollY 5286, and that is correct** — 5286 is the document maximum
+    (6186 − 900) and the footer is the last element. A first test showed it "not scrolling";
+    that was the harness calling a now-smooth `scrollTo(0,0)` between clicks, not a bug.
+    Reload between anchor tests. → [detail](../features/nav/CONTEXT.md)
+  · Footer's Overview/Company/Legal columns still point at `/services`, `/terms` etc. and
+    still 404 — out of scope for this change, flagged.
+
+- **[--:--]** `testimonials` — **Rebuilt as a five-up video row; rogo's customer material is
+  gone.** User: *"just make the testimonials video"*, then *"make the cards 5 i uploaded the
+  video"*.
+  · **Closes the question open since 2026-08-03.** The three Truist/Nomura/Baird quotes,
+    names, roles and logo marks are removed. Nothing on the site now implies an endorsement
+    clix does not have.
+  · **A rebuild because no honest copy swap existed** — the real site carries no written
+    quote text at all, so writing quotes for real named people would have been fabrication.
+    The user accepted that this one section breaks "don't change the design".
+  · **312 MB of masters → 21 MB.** 720px wide, crf 26, AAC 96k mono, `preload="none"` so
+    nothing is fetched until a card is clicked. Audio kept, never autoplays.
+  · **The crop finding worth remembering:** three masters are story-style exports with the
+    speaker inset in a **light grey** frame, and `cropdetect` returned `1080:1920:0:0` for
+    all five because **it only detects dark borders**. `negate,cropdetect` found the real
+    boxes and fixed a visibly letterboxed first pass.
+  · Section shell, padding, container, gap and h2 type all unchanged; heading is now "In our
+    clients' own words".
+  · **The target's accordion drives the videos** (user: *"i want the testimonials to be the
+    same animation the collapsable"*). Timings read back out of git, not re-estimated: width
+    500ms, collapse 500ms, plus opacity 300ms, all `var(--ease-rogo)`. Verified in-browser —
+    computed duration `0.5s`, easing `cubic-bezier(.44,0,.56,1)`.
+  · **Geometry extends the target's trick from 3 cards to 5.** rogo ran `17/17/calc(66%-24px)`
+    where 24px was its two gaps. Five cards: four closed at **16%** = 64%, open **36%**, and
+    the 48px given back is exactly 4 × 12px. Sums verified at 1440 (413+4×205+48 = 1280),
+    1024 and 810. **36% not 66%** — the target expanded to reveal text; this reveals a 9:16
+    video, and at 66% the open card is a letterbox with a head in it.
+  · **Two axes, one per tier:** height below 810 (96→440px), width from 810 up at a fixed
+    600px. Both ends explicit in both cases — the same reason the target wrote two explicit
+    widths rather than `flex:1 0 0`.
+  · Switch is at **810, not the target's 1200** — the user asked for five visible on narrow
+    screens *before* asking for the accordion, and the horizontal row satisfies both.
+    Attribution type steps down below 1200 (`p-3` + 14/12px): at 810 a closed card is 117px
+    and the desktop values rendered "Asaf…", and truncating a **name** is worse than
+    truncating a role.
+  · Scrim is load-bearing, not decorative — the attribution sits over frames ranging from a
+    dark car interior to a blown-out white wall. Closing a card pauses it, via an effect on
+    `openId` so keyboard activation is covered too.
+  · **Open:** `achituv`'s name/role come from the uploaded filename, not a published source
+    — confirm before shipping. Asaf's burned-in caption clips at the sides. All five carry
+    Hebrew captions on an English-first site.
+    → [detail](../features/testimonials/CONTEXT.md)
+
+- **[--:--]** `docs` — **Site-wide copy rewritten from rogo's product pitch to clix's
+  services**, after an 11-question interrogation the user asked for. Decisions: audience is
+  Israeli *and* international · all four CTAs → "Let's start" → `/contact`, `Log in` removed
+  · nav remapped to 7 real routes · banner → "Clix AI — launching soon", text only, no href.
+  · **Security section: all five certification badges removed.** SOC 2 and ISO 27001 are
+    audited certifications and clix holds none of the five, so the seals were replaced with
+    five practices and five new icons drawn on the same 102×102 viewBox. Grid, cell
+    geometry, 104px frame and the whole per-tier border matrix unchanged.
+  · **`by-the-numbers` uses figures clix already publishes** — 200+ automations, 2× support
+    capacity, 24/7 coverage, all from the live site's own `/work` page. Provenance recorded
+    in the component so a future edit can check rather than guess.
+  · **`why-rogo` restructured** from 5 finance differentiators to 5 services, closing on
+    "Not every problem needs AI". All five original icons reused, none added. Retitled to
+    "The quiet mechanisms behind modern business".
+  · **All five `#` placeholders are gone** — footer now points at clix's real email,
+    Instagram and WhatsApp. In the Legal column the desktop-only gate moved off the
+    accessibility statement onto Terms: hiding an accessibility page from phone users turns
+    an inherited layout quirk into a real barrier.
+  · **Still open:** the logo marquee. simple-icons has 10 of the 12 tools under CC0 but they
+    are *glyphs*, and the row is built for wordmarks 45–226px wide; monday.com and Vapi are
+    absent entirely. Needs a call on treatment before it can be swapped.
+  · `npm run build` clean; rendered and inspected at 1440 and 390.
+
 - **[--:--]** `hero` — **Background is now a single user-supplied clip, slowed for drama.**
   User: *"i added the replacement video for the bg make the speed of it a bit dramatic but
   use only that clip"*.

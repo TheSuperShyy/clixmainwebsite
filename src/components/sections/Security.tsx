@@ -35,51 +35,66 @@ type Badge = {
   border: string;
 };
 
+/* ⚠️ REPLACED 2026-08-05, AND THE REASON MATTERS. These five cells used to show SOC2, CCPA,
+   ISO 27001, GDPR and EU AI Act. SOC 2 and ISO 27001 are AUDITED CERTIFICATIONS — showing
+   the seal without holding the report is misrepresentation, not marketing, and clix holds
+   none of the five. So the cells now state practices clix actually follows.
+
+   Do not put certification seals back here unless clix has been audited and can produce the
+   report on request. Enterprise buyers do ask.
+
+   The grid, the cell geometry, the 104px graphic frame, the label position and the entire
+   per-tier border matrix are UNCHANGED — only the artwork and the labels moved.
+
+   `art` is now uniform across all five. It varied before only because the vendored seals
+   had three different intrinsic aspect ratios (square, 1.00833, and a flat 102x102); the
+   replacements are all drawn on one 102x102 viewBox, so per-badge offsets would describe a
+   difference that no longer exists. */
 const BADGES: Badge[] = [
   {
-    id: "soc2",
-    file: "soc2.svg",
-    label: "SOC2",
+    id: "your-cloud",
+    file: "practice-cloud.svg",
+    label: "Your cloud, your accounts",
     labelWidth: "w-[137px]",
     labelWeight: "font-normal",
-    art: "absolute top-0 right-0 left-0 aspect-square h-auto",
+    art: "absolute top-[1px] left-[1px] h-[102px] w-[102px]",
     border: "border tablet:border-r-0",
   },
   {
-    id: "ccpa",
-    file: "ccpa.svg",
-    label: "CCPA",
+    id: "your-data",
+    file: "practice-shield.svg",
+    label: "Your data stays yours",
     labelWidth: "w-[137px]",
     labelWeight: "font-normal",
-    art: "absolute top-0 right-0 left-0 aspect-[1.00833] h-auto",
+    art: "absolute top-[1px] left-[1px] h-[102px] w-[102px]",
     border: "border border-t-0 tablet:border-t desktop:border-r-0",
   },
   {
-    id: "iso",
-    file: "iso-27001.svg",
-    label: "ISO 27001",
+    id: "least-privilege",
+    file: "practice-key.svg",
+    label: "Least-privilege access",
     labelWidth: "w-[137px]",
     labelWeight: "font-normal",
-    art: "absolute top-0 right-0 left-0 aspect-[1.00833] h-auto",
+    art: "absolute top-[1px] left-[1px] h-[102px] w-[102px]",
     border:
       "border border-t-0 border-b-0 tablet:border-b tablet:border-r-0 desktop:border-t",
   },
   {
-    id: "gdpr",
-    file: "gdpr.svg",
-    label: "GDPR",
+    id: "encrypted",
+    file: "practice-lock.svg",
+    label: "Encrypted in transit and at rest",
     labelWidth: "w-[137px]",
     labelWeight: "font-medium",
     art: "absolute top-[1px] left-[1px] h-[102px] w-[102px]",
     border: "border border-r-0 tablet:border-t-0 desktop:border-t",
   },
   {
-    id: "eu-ai-act",
-    file: "eu-ai-act.svg",
-    label: "EU AI Act",
+    id: "ownership",
+    file: "practice-code.svg",
+    label: "You own the code",
     labelWidth: "w-[188px]",
     labelWeight: "font-medium",
-    art: "absolute top-0 left-[1px] h-[102px] w-[102px]",
+    art: "absolute top-[1px] left-[1px] h-[102px] w-[102px]",
     border: "border tablet:border-t-0 desktop:border-t",
   },
 ];
@@ -145,7 +160,7 @@ export default function Security() {
                          leading-[105%] tracking-[-0.05em] text-paper
                          tablet:text-[44px] desktop:text-[48px]"
             >
-              Built for enterprise, secure by design
+              Your systems, your data, your control
             </h2>
           </div>
 

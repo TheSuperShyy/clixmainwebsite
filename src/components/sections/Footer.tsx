@@ -35,48 +35,62 @@ type FooterLink = {
 
 type LinkGroup = { title: string; links: FooterLink[] };
 
+/* Remapped 2026-08-05 onto clix's real IA and real accounts. Structure is the target's and
+   is unchanged: four columns, three links each plus a four-link Contact column, and the
+   same per-tier gating. Only the destinations moved.
+
+   The four `#` placeholders left by the 2026-08-03 brand rename are gone — every link in
+   the Contact column now resolves to something clix actually owns, taken from
+   docs/reference/clixsolutions/. */
+const CONTACT = {
+  email: "mailto:info@clixsolution.com",
+  instagram: "https://www.instagram.com/clix_solution/",
+  /* +972 55-948-3457, in wa.me's digits-only form. */
+  whatsapp: "https://wa.me/972559483457",
+};
+
 const GROUPS: LinkGroup[] = [
   {
     title: "Overview",
     links: [
-      { label: "Product", href: "/product" },
-      { label: "Features", href: "/#features" },
-      { label: "Security", href: "/security" },
+      { label: "Services", href: "/services" },
+      { label: "Industries", href: "/industries" },
+      { label: "Work", href: "/work" },
     ],
   },
   {
     title: "Company",
     links: [
-      { label: "About", href: "/company" },
-      { label: "Careers", href: "/careers" },
-      { label: "Security Advisory Board", href: "/security-council" },
+      { label: "About", href: "/about" },
+      { label: "Insights", href: "/insights" },
+      { label: "Playground", href: "/playground" },
     ],
   },
   {
     title: "Legal",
     links: [
-      /* The original ships this link on the >=1200 variant ONLY. Reproduced verbatim, which
-         means a phone or tablet user cannot reach it. Flagged in FEATURE.md. */
-      { label: "Legal", href: "/legal", only: "desktop" },
-      { label: "Terms of Use", href: "/terms-of-use" },
-      { label: "Privacy Policy", href: "/privacy-policy" },
+      /* The original gates ONE link in this column to >=1200, so the column is 3 links on
+         desktop and 2 below. That behaviour is reproduced, but the gate was moved off the
+         accessibility statement and onto Terms: an accessibility statement is exactly the
+         page a user on assistive tech may be looking for, and hiding it on phones would
+         turn an inherited layout quirk into a real barrier. Terms carries the gate instead.
+         Flagged in FEATURE.md. */
+      { label: "Terms of Use", href: "/terms", only: "desktop" },
+      { label: "Privacy Policy", href: "/privacy" },
+      { label: "Accessibility", href: "/accessibility" },
     ],
   },
   {
     title: "Contact",
     links: [
-      { label: "Request Demo", href: "/demo" },
-      /* ⚠️ These four pointed at rogo.ai's REAL mailboxes and social accounts. Neutralised
-         with the brand rename (2026-08-03): on a clix site they do not 404, they deliver a
-         prospect to another company. `#` is a placeholder and needs clix's own destinations
-         — it is the least-wrong thing until those exist, not a finished state. */
-      { label: "Sales", href: "#" },
-      { label: "LinkedIn", href: "#", external: true },
-      /* "Press" has two different destinations in the original, split by tier: a mailto on
-         the >=1200 variant, an x.com profile below it. Both shipped, each gated to the tier
-         that declares it. Flagged in FEATURE.md. */
-      { label: "Press", href: "#", external: true, only: "desktop" },
-      { label: "Press", href: "#", only: "below-desktop" },
+      { label: "Let’s start", href: "#contact" },
+      { label: "Email", href: CONTACT.email },
+      { label: "Instagram", href: CONTACT.instagram, external: true },
+      /* The original splits "Press" by tier — a mailto at >=1200, an x.com profile below —
+         which is why this column renders four links at every tier from five entries. clix
+         has one WhatsApp number and no tier-specific alternative, so this is a single
+         ungated entry. The visible count per tier is unchanged at four. */
+      { label: "WhatsApp", href: CONTACT.whatsapp, external: true },
     ],
   },
 ];
@@ -119,7 +133,11 @@ export default function Footer() {
        Copyright's `16px` is the bottom. */
     <footer
       data-nav-theme="dark"
-      className="relative flex w-full items-center justify-center gap-[10px] overflow-hidden bg-ink px-4 tablet:px-10"
+      /* Anchor for the nav's "Contact" link and for every "Let's start" button on the page
+         (2026-08-05). The closing CTA lives inside this footer in the original, so this is
+         genuinely where a contact click should land — not a separate section. */
+      id="contact"
+      className="relative flex w-full scroll-mt-24 items-center justify-center gap-[10px] overflow-hidden bg-ink px-4 tablet:px-10"
     >
       {/* Container — max-w 1280, gap 56. */}
       <div className="relative flex w-px max-w-[var(--container-max)] flex-[1_0_0] flex-col items-center gap-14 overflow-hidden">
@@ -132,17 +150,20 @@ export default function Footer() {
           <div className="relative flex w-full flex-none flex-col items-start gap-10 overflow-visible tablet:w-px tablet:flex-[1_0_0]">
             <div className="relative h-auto w-full">
               <h2 className="font-display text-[44px] leading-[1.1em] tracking-[-0.05em] text-paper tablet:text-[48px]">
-                {"Unlock "}
-                {/* The phone variant carries an extra break after "Unlock"; the trailing
-                    space survives `display:none`, so the wider tiers read "Unlock financial
-                    AI" with no welding. */}
+                {/* clix's own footer tagline, English-rendered — the live site closes on
+                    "תוכנה שעובדת, תוצאות שמדברות." It happens to split three ways, so it
+                    drops straight into the target's {A}<br phone>{B}<br>{C} structure with
+                    no change to either break. */}
+                {"Software "}
+                {/* The phone variant carries an extra break here; the trailing space
+                    survives `display:none`, so the wider tiers weld cleanly. */}
                 <br className="tablet:hidden" />
-                {"financial AI"}
+                {"that works,"}
                 {/* The capture wraps this break in a span coloured `ink`. It holds no text,
                     so it paints nothing — dropped rather than copied, same as
                     by-the-numbers. */}
                 <br />
-                {"for your firm"}
+                {"results that speak."}
               </h2>
             </div>
           </div>
@@ -152,7 +173,7 @@ export default function Footer() {
               16px label instead of 14px. */}
           <div className="relative h-11 w-full flex-none tablet:h-[42px] tablet:w-auto desktop:h-11">
             <a
-              href="/demo"
+              href="#contact"
               className="relative flex h-full w-full cursor-pointer flex-row items-center
                          justify-center gap-2 overflow-hidden rounded-[6px] border
                          border-[rgba(168,162,158,0)] bg-paper px-4 py-2 no-underline
@@ -163,7 +184,7 @@ export default function Footer() {
             >
               <div className="relative flex h-5 w-min flex-row items-center justify-center gap-[10px] pt-px">
                 <p className="text-center text-[16px] leading-[1em] font-medium tracking-[-0.01em] whitespace-pre text-ink">
-                  Request Demo
+                  Let&rsquo;s start
                 </p>
               </div>
             </a>

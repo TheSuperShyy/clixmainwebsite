@@ -35,28 +35,38 @@ type Stat = {
   labelPhone: string;
 };
 
+/* ⚠️ THESE ARE CLAIMS, NOT DECORATION. Replaced 2026-08-05; every one is a figure clix
+   already publishes on clixsolutions.info's own /work page, not a number invented to fill
+   the slot. Provenance, so a future edit can check rather than guess:
+     200+  ← "200+ אוטומציות שמאחדות מערך מקוטע"
+     2×    ← "Copilot מבוסס AI שהכפיל את קיבולת צוות התמיכה"
+     24/7  ← "סוכן מכירות AI שמטפל בהזמנות משלוחים 24/7"
+   The target's three were parallel `N+` counts; these are a count, a multiple and a
+   duration. That is deliberate — they say what changed for clients rather than how big the
+   company is, which is the stronger claim for a studio. Do not "fix" the inconsistency by
+   inventing two more counts. */
 const STATS: Stat[] = [
   {
-    id: "users",
-    value: "40,000+",
-    lead: "Bankers and investors using Clix",
+    id: "automations",
+    value: "200+",
+    lead: "Automations running in production",
     tail: null,
     numberCellPhone: "",
     labelPhone: "max-w-none whitespace-pre",
   },
   {
-    id: "queries",
-    value: "50,000+",
-    lead: "Daily queries sent ",
-    tail: "by users",
+    id: "capacity",
+    value: "2×",
+    lead: "Support capacity, ",
+    tail: "without new hires",
     numberCellPhone: "",
     labelPhone: "max-w-none whitespace-pre",
   },
   {
-    id: "institutions",
-    value: "300+",
-    lead: "Institutions ",
-    tail: "served",
+    id: "coverage",
+    value: "24/7",
+    lead: "Sales coverage ",
+    tail: "that never sleeps",
     numberCellPhone: "pt-[2px]",
     labelPhone: "w-full max-w-none",
   },

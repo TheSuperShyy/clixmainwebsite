@@ -131,7 +131,7 @@ export default function Hero() {
         {/* CTA — container is height 44; the anchor fills it */}
         <div className="relative h-11">
           <a
-            href="#request-demo"
+            href="#contact"
             className="group flex h-full w-min cursor-pointer items-center justify-center gap-2
                        overflow-hidden rounded-[6px] border border-transparent bg-paper
                        px-4 py-2 whitespace-nowrap no-underline
@@ -145,7 +145,7 @@ export default function Hero() {
                 className="font-sans text-[16px] font-medium text-ink"
                 style={{ lineHeight: "1em", letterSpacing: "-0.01em" }}
               >
-                Request Demo
+                Let&rsquo;s start
               </span>
             </span>
           </a>

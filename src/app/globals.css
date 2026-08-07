@@ -122,6 +122,15 @@ body {
   object-position: 50% 50%;
 }
 
+/* In-page nav scrolling (2026-08-05). The nav's links point at sections on this
+   page rather than at routes, because those routes do not exist yet — see the
+   note on LINKS in Nav.tsx. Safe to declare unconditionally: the reduced-motion
+   block below already forces `scroll-behavior: auto`, so this never overrides a
+   user who has asked for less movement. */
+html {
+  scroll-behavior: smooth;
+}
+
 /* Accessibility floor — a deliberate divergence from the target, which ships
    no reduced-motion handling. Documented in docs/DESIGN-SYSTEM.md so it is
    never logged as a fidelity defect. */

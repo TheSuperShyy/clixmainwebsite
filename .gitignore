@@ -54,3 +54,10 @@ features/*/assets/*.mp4
 features/*/assets/render-*.png
 public/video/hero-original.mp4
 public/video/hero-poster-original.jpg
+
+# Client testimonial MASTERS as supplied (2026-08-05) — 312 MB of 1080x1920 h264 and one
+# 4K HEVC .MOV. The web encodes in public/testimonials/ are 21 MB and ARE tracked, because
+# the running site loads them. These masters are the re-encode source and nothing more;
+# keep them on disk, out of the repo. Crop boxes needed to reproduce the encode are in
+# features/testimonials/CONTEXT.md, so this folder is replaceable, not load-bearing.
+Client testimonials/

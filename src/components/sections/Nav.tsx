@@ -44,26 +44,39 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import ClixWordmark from "@/components/ui/ClixWordmark";
 
-const LINKS = [
-  { label: "Felix", href: "/felix" },
-  { label: "Product", href: "/product" },
-  { label: "Security", href: "/security" },
-  { label: "Company", href: "/company" },
-  { label: "Customers", href: "/customers" },
-  { label: "News", href: "/news" },
-  { label: "Careers", href: "/careers" },
-] as const;
+/* Seven slots, deliberately — the row's spacing and its 1200px collapse were measured
+   against seven items, so the count is layout, not content. The IA is the one the real
+   company site already uses (docs/reference/clixsolutions/).
+
+   `href: null` means INERT, and that is the point (2026-08-05, user: "make the navbar do
+   nothing for now or just scroll to each sections"). Only two of these seven have anything
+   on this page to go to, so those two scroll and the rest render as plain text — not as
+   links to routes that would 404, and not as `#` which would jump to the top and look
+   broken. An inert item is also not focusable, which is correct: there is nothing to
+   activate. Give a slug an `href` the moment its page or section exists. */
+const LINKS: { label: string; href: string | null }[] = [
+  { label: "Services", href: "#services" },
+  { label: "Industries", href: null },
+  { label: "Work", href: null },
+  { label: "Insights", href: null },
+  { label: "Playground", href: null },
+  { label: "About", href: null },
+  /* The closing CTA lives inside the footer in the original, so #contact IS the footer. */
+  { label: "Contact", href: "#contact" },
+];
 
 /* Each page section declares which of these it is, via `data-nav-theme`. Anything the nav
    cannot classify falls back to `light`, which is the majority of the page. */
 type NavTheme = "hero" | "light" | "dark";
 
-const BANNER_TEXT = "Announcing our $160M Series D led by Kleiner Perkins";
-const BANNER_HREF = "/news/series-d";
-/* Was `https://tryrogo.com` — the target's real product login. Neutralised with the brand
-   rename (2026-08-03) for the same reason as the footer's contact links: it would send a
-   clix user to another company's app. Placeholder until clix has its own. */
-const LOGIN_HREF = "#";
+/* Was "Announcing our $160M Series D led by Kleiner Perkins" — the TARGET's real funding
+   round, which under a clix wordmark read as a first-person claim clix cannot make.
+   Replaced 2026-08-05 at the user's direction.
+
+   There is deliberately no href and no "Learn more": the announcement has no page behind it
+   yet, and a banner that links nowhere is the fastest-rotting copy on a site. Text only
+   until there is something real to point at. */
+const BANNER_TEXT = "Clix AI — launching soon";
 
 /* Button — padding 8/16, inner row 20px tall with a 1px top nudge, radius 6.
    The border is 1px and transparent in both variants; it exists so the box does not
@@ -324,38 +337,21 @@ export default function Nav() {
                     className="h-2 w-2 flex-none rounded-full"
                     aria-hidden="true"
                   />
-                  <a
-                    href={BANNER_HREF}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="min-w-0 truncate font-sans text-[14px] text-paper no-underline
-                               transition-colors duration-300 hover:text-surface
-                               focus-visible:ring-2 focus-visible:ring-paper
-                               focus-visible:outline-none tablet:overflow-visible
-                               tablet:whitespace-pre"
+                  {/* A <span>, not an <a>. Every type value the anchor carried is kept so
+                      the strip measures identically; only the interactivity is gone, since
+                      there is nowhere to go. `truncate` still matters — this is the element
+                      that ellipsises on phone. */}
+                  <span
+                    className="min-w-0 truncate font-sans text-[14px] text-paper
+                               tablet:overflow-visible tablet:whitespace-pre"
                     style={{
                       lineHeight: "1.5em",
                       letterSpacing: "-0.02em",
-                      transitionTimingFunction: "var(--ease-rogo)",
                     }}
                   >
                     {BANNER_TEXT}
-                  </a>
+                  </span>
                 </div>
-                <a
-                  href={BANNER_HREF}
-                  className="flex-none font-sans text-[14px] whitespace-pre text-paper underline
-                             transition-colors duration-300 hover:text-surface
-                             focus-visible:ring-2 focus-visible:ring-paper
-                             focus-visible:outline-none"
-                  style={{
-                    lineHeight: "1.5em",
-                    letterSpacing: "-0.02em",
-                    transitionTimingFunction: "var(--ease-rogo)",
-                  }}
-                >
-                  Learn more
-                </a>
               </div>
             </div>
           </div>
@@ -435,36 +431,49 @@ export default function Nav() {
             className="flex w-full flex-col gap-1 bg-ink px-4 pt-2 pb-6"
             aria-label="Main"
           >
-            {LINKS.map((l) => (
-              <a
-                key={l.href}
-                href={l.href}
-                onClick={() => setOpen(false)}
-                className="flex h-9 items-center font-sans text-[14px] font-medium text-paper
-                           no-underline transition-opacity duration-300 hover:opacity-70
-                           focus-visible:ring-2 focus-visible:ring-paper focus-visible:outline-none"
-                style={{
-                  lineHeight: "1.5em",
-                  letterSpacing: "-0.01em",
-                  transitionTimingFunction: "var(--ease-rogo)",
-                }}
-              >
-                {l.label}
-              </a>
-            ))}
+            {/* Keyed on label, not href — five of the seven now share a null href. */}
+            {LINKS.map((l) => {
+              const style = {
+                lineHeight: "1.5em",
+                letterSpacing: "-0.01em",
+                transitionTimingFunction: "var(--ease-rogo)",
+              };
+              const base =
+                "flex h-9 items-center font-sans text-[14px] font-medium text-paper";
+              return l.href ? (
+                <a
+                  key={l.label}
+                  href={l.href}
+                  onClick={() => setOpen(false)}
+                  className={`${base} no-underline transition-opacity duration-300
+                              hover:opacity-70 focus-visible:ring-2 focus-visible:ring-paper
+                              focus-visible:outline-none`}
+                  style={style}
+                >
+                  {l.label}
+                </a>
+              ) : (
+                /* Dimmed to 50% rather than rendered at full strength: an item that cannot
+                   be activated should not look identical to one that can. */
+                <span
+                  key={l.label}
+                  aria-disabled="true"
+                  className={`${base} cursor-default opacity-50`}
+                  style={style}
+                >
+                  {l.label}
+                </span>
+              );
+            })}
             {/* The panel is `bg-ink` in every state, so its buttons keep the dark-surface
                 palette even when the header above them has gone light. */}
+            {/* "Log in" removed 2026-08-05: clix sells engagements, not a product with
+                accounts, so there was nothing to log into. The ghost variant is now unused
+                here but kept in NavButton — the >=1200 header still has no second button
+                either, and re-adding one should not mean re-deriving the variant. */}
             <div className="mt-4 flex items-center gap-2">
-              <NavButton
-                variant="ghost"
-                light={false}
-                href={LOGIN_HREF}
-                external
-              >
-                Log in
-              </NavButton>
-              <NavButton variant="inverse" light={false} href="#request-demo">
-                Request Demo
+              <NavButton variant="inverse" light={false} href="#contact">
+                Let&rsquo;s start
               </NavButton>
             </div>
           </nav>
@@ -509,34 +518,57 @@ export default function Nav() {
                        items-center justify-center gap-3 overflow-hidden"
             aria-label="Main"
           >
-            {LINKS.map((l) => (
-              <a
-                key={l.href}
-                href={l.href}
-                className={`flex h-9 w-min cursor-pointer flex-col items-center justify-center
-                            overflow-hidden px-3 py-2 whitespace-pre no-underline
-                            transition-opacity duration-300 hover:opacity-70
-                            focus-visible:ring-2 focus-visible:outline-none
-                            ${light ? "focus-visible:ring-ink" : "focus-visible:ring-paper"}`}
-                style={{ transitionTimingFunction: "var(--ease-rogo)" }}
-              >
-                <span
-                  className={`font-sans text-[14px] font-medium transition-colors duration-300
-                              ${light ? "text-ink" : "text-paper"}`}
-                  style={{ lineHeight: "1.5em", letterSpacing: "-0.01em" }}
+            {/* Keyed on label, not href — five of the seven now share a null href.
+                The inert ones render the SAME box (`h-9 px-3 py-2`) as the links, because
+                the row's spacing was measured against seven equal items; swapping one for a
+                narrower element would shift the whole centred row. */}
+            {LINKS.map((l) => {
+              const box =
+                "flex h-9 w-min flex-col items-center justify-center overflow-hidden px-3 py-2 whitespace-pre";
+              const text = `font-sans text-[14px] font-medium transition-colors duration-300 ${
+                light ? "text-ink" : "text-paper"
+              }`;
+              return l.href ? (
+                <a
+                  key={l.label}
+                  href={l.href}
+                  className={`${box} cursor-pointer no-underline transition-opacity
+                              duration-300 hover:opacity-70 focus-visible:ring-2
+                              focus-visible:outline-none
+                              ${light ? "focus-visible:ring-ink" : "focus-visible:ring-paper"}`}
+                  style={{ transitionTimingFunction: "var(--ease-rogo)" }}
                 >
-                  {l.label}
+                  <span
+                    className={text}
+                    style={{ lineHeight: "1.5em", letterSpacing: "-0.01em" }}
+                  >
+                    {l.label}
+                  </span>
+                </a>
+              ) : (
+                /* Dimmed to 50% rather than rendered at full strength: an item that cannot
+                   be activated should not look identical to one that can. */
+                <span
+                  key={l.label}
+                  aria-disabled="true"
+                  className={`${box} cursor-default opacity-50`}
+                >
+                  <span
+                    className={text}
+                    style={{ lineHeight: "1.5em", letterSpacing: "-0.01em" }}
+                  >
+                    {l.label}
+                  </span>
                 </span>
-              </a>
-            ))}
+              );
+            })}
           </nav>
 
+          {/* One button, not two — see the note on the mobile panel. The wrapper keeps its
+              `gap-2` so re-adding a second button needs no layout work. */}
           <div className="flex w-min items-center gap-2 overflow-hidden">
-            <NavButton variant="ghost" light={light} href={LOGIN_HREF} external>
-              Log in
-            </NavButton>
-            <NavButton variant="inverse" light={light} href="#request-demo">
-              Request Demo
+            <NavButton variant="inverse" light={light} href="#contact">
+              Let&rsquo;s start
             </NavButton>
           </div>
         </div>
