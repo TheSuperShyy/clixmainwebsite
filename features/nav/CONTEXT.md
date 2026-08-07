@@ -32,6 +32,79 @@ live site for the mobile menu, the scroll flip point, and the `Indicator` elemen
 
 ## Log
 
+### 2026-08-07 — logo mark added left of the wordmark
+
+**Trigger:** user — *"add clix logo in the left of the clix word on the navbar"*.
+
+Both nav rows (the `<1200` compact header and the `>=1200` full header) now render
+`<ClixMark>` + `<ClixWordmark>` inside the existing home `<Link>`, `gap-2`.
+
+**There is no vector of this logo — anywhere.** Checked the reference capture before
+assuming: the live company site declares `rel="shortcut icon"`, `rel="icon"`,
+`apple-touch-icon` and `og:image` and **all four point at the same `/clix-logo.png`**. No
+inline SVG of the mark exists in any of the 11 captured pages. So the raster is the brand
+asset; the repo already had it at `src/app/icon.png` (512x512) from the 08-03 favicon work.
+
+#### Why a CSS mask rather than an `<img>` or a trace
+
+The nav's palette is three-way — paper content over `hero` and over `dark` sections, ink over
+`light` ones. A PNG is a fixed `#303641` silhouette and would go **invisible against the two
+dark sections**, which is most of the page's lower half. The alternative, tracing the bitmap
+to SVG, means redrawing a logo by eye.
+
+Decoded the PNG to a canvas first (all 262,144 px) rather than guessing:
+
+| measurement | value |
+|---|---|
+| background | fully transparent — 160,060 px at alpha 0; all four corners `0,0,0,0` |
+| ink colour | **one flat colour** — 89,197 of ~89,310 opaque px are `#303641` |
+| partial alpha | 12,774 px, i.e. edge antialiasing and nothing else |
+| ink bounding box | 480 x 440 inside the 512 square (16px sides, 36px top/bottom) |
+
+A flat single-colour silhouette on transparent is precisely the case `mask-image` handles
+losslessly: the mask reads **only the alpha channel**, so `background-color: currentColor`
+paints the true shape — antialiasing included — in whatever colour the nav currently is. No
+redraw, no fidelity loss, and it inherits the colour transition for free.
+
+#### The asset
+
+`public/clix-mark.png`, 96x88, **4.6 KB**. Cropped to the 480x440 ink box so the element's box
+*is* the mark with no baked-in padding to align around, then downscaled 4x over the 24px it
+renders at (covers 3x DPR). RGB flattened to white via `geq` since only alpha is read —
+that alone took it from 9.8 KB to 4.6 KB. Regenerate with:
+
+```
+ffmpeg -i src/app/icon.png -vf "crop=480:440:16:36,scale=96:88:flags=lanczos,\
+  format=rgba,geq=r=255:g=255:b=255:a='alpha(X,Y)'" -pix_fmt rgba public/clix-mark.png
+```
+
+#### Lockup geometry
+
+Mark is **20px tall**, width 21.8 from the asset's 96:88 aspect. That is ~1.33x the
+wordmark's 15.0px cap height (22px Inter Bold) — the usual range for a mark beside a
+wordmark, and it still fits the 24px box the compact row allots. Gap **8px** (`gap-2`), the
+same step the nav's button row uses.
+
+**Colour and `transition-colors` moved from each child onto the `<a>`.** Both children read
+`currentColor` — the wordmark as text, the mark as a mask fill — so they cannot drift out of
+step mid-flip. Verified that the mask fill really does follow the flip rather than latching:
+
+```
+1440 hero   mark fill rgb(255,255,255)  word rgb(255,255,255)  gap 8  centreDelta 0
+1440 light  mark fill rgb(21,21,21)     word rgb(21,21,21)     gap 8  centreDelta 0
+1440 dark   mark fill rgb(255,255,255)  word rgb(255,255,255)  gap 8  centreDelta 0
+```
+
+Identical at 810 and 390. **`centreDelta 0`** — mark and wordmark share a vertical centre
+exactly, which is the real alignment test. Anchor box grows to 80px wide (was ~50).
+
+`aria-hidden` on the mark: the `<Link>` already carries `aria-label="clix — home"` and the
+wordmark is the visible name, so a third label would only be noise.
+
+Rendered and inspected in all three themes at 1440 / 810 / 390.
+
+---
+
 ### 2026-08-07 — banner split into headline + underlined trailing run
 
 **Trigger:** user — *"instead of clix ai make it clix ai news then coming soon with underline

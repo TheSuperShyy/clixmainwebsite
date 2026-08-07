@@ -43,6 +43,14 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import ClixWordmark from "@/components/ui/ClixWordmark";
+import ClixMark from "@/components/ui/ClixMark";
+
+/* Logo lockup geometry (2026-08-07). The wordmark is 22px Inter Bold, i.e. a 15.0px cap
+   height; the mark is set to 20px tall — about 1.33x the caps, which is the usual range for
+   a mark beside a wordmark and keeps it inside the 24px box the compact row allots. Width
+   follows the asset's 96:88 aspect, so 21.8px. The 8px gap is `gap-2`, the same step the
+   nav's own button row uses. */
+const MARK_SIZE = 20;
 
 /* Seven slots, deliberately — the row's spacing and its 1200px collapse were measured
    against seven items, so the count is layout, not content. The IA is the one the real
@@ -407,16 +415,19 @@ export default function Nav() {
             <Link
               href="/"
               /* Width was a fixed 60px while this box held the target's SVG logotype. The
-                 clix mark is set in type, so it sizes itself and the box follows it. */
-              className={`flex h-6 flex-none items-center no-underline
+                 clix mark is set in type, so it sizes itself and the box follows it.
+
+                 Colour and its transition live HERE rather than on each child, so the mark
+                 and the wordmark can never drift out of step mid-flip. Both read
+                 `currentColor` — the wordmark as text, the mark as a mask fill. */
+              className={`flex h-6 flex-none items-center gap-2 no-underline
+                          transition-colors duration-300
                           focus-visible:ring-2 focus-visible:outline-none
-                          ${light ? "focus-visible:ring-ink" : "focus-visible:ring-paper"}`}
+                          ${light ? "text-ink focus-visible:ring-ink" : "text-paper focus-visible:ring-paper"}`}
               aria-label="clix — home"
             >
-              <ClixWordmark
-                className={`transition-colors duration-300
-                            ${light ? "text-ink" : "text-paper"}`}
-              />
+              <ClixMark size={MARK_SIZE} />
+              <ClixWordmark />
             </Link>
           </div>
           <div className="flex w-min items-center gap-2">
@@ -521,15 +532,15 @@ export default function Nav() {
         <div className="relative flex w-full max-w-[var(--container-max)] items-center justify-between">
           <Link
             href="/"
-            className={`flex h-7 flex-none cursor-pointer items-center no-underline
+            /* Colour + transition on the anchor, not per child — see the compact row. */
+            className={`flex h-7 flex-none cursor-pointer items-center gap-2 no-underline
+                        transition-colors duration-300
                         focus-visible:ring-2 focus-visible:outline-none
-                        ${light ? "focus-visible:ring-ink" : "focus-visible:ring-paper"}`}
+                        ${light ? "text-ink focus-visible:ring-ink" : "text-paper focus-visible:ring-paper"}`}
             aria-label="clix — home"
           >
-            <ClixWordmark
-              className={`transition-colors duration-300
-                          ${light ? "text-ink" : "text-paper"}`}
-            />
+            <ClixMark size={MARK_SIZE} />
+            <ClixWordmark />
           </Link>
 
           <nav

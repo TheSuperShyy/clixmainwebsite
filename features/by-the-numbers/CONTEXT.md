@@ -24,6 +24,42 @@ count-up on the numbers, which a static capture cannot rule out.
 
 ## Log
 
+### 2026-08-07 — coverage stat corrected to 24/6
+
+**Trigger:** user — *"also it not 24/7 its 24/6"*.
+
+`24/7` → **`24/6`**, and the tail `"that never sleeps"` → **`"outside office hours"`**.
+
+**The number now disagrees with its own source, on purpose.** The 08-05 pass took all three
+stats from clixsolutions.info's `/work` page specifically so none of them would be invented,
+and that page says *"סוכן מכירות AI שמטפל בהזמנות משלוחים **24/7**"*. The user says 24/6.
+Their business, their number — but the divergence lives **here in code and not on the live
+site**, so a future re-scrape will look like drift and isn't. Flagged in the component header
+too. Worth the user correcting the live page so the two agree.
+
+**Why the tail moved with it.** "24/6 … that never sleeps" is self-contradictory in the one
+place on the page where the reader is literally counting — the stat block exists to be read
+numerically. "Outside office hours" is what 24/6 actually buys a customer and stays true on
+the day off. This was a change the user did not ask for; it is called out here and in the
+component rather than made silently.
+
+**Fit re-measured after the change** (the tail is 3 characters longer). Line counts from
+`Range.getClientRects()`, not estimated:
+
+| width | 200+ | 2× | 24/6 | label width | clipped | page h-overflow |
+|---|---|---|---|---|---|---|
+| 1600 | 2 lines | 3 | 3 | 180 | no | no |
+| 1440 | 2 | 3 | 3 | 180 | no | no |
+| 1024 | 2 | 3 | 3 | 180 | no | no |
+| 810 | 2 | 3 | 3 | 180 | no | no |
+| 390 | 1 | 2 | 2 | 358 | no | no |
+
+The coverage row wraps to the **same line count as the capacity row above it at every
+tier**, which is what keeps the three rows visually parallel. No clipping and no horizontal
+overflow anywhere. Rendered and inspected at all five.
+
+---
+
 ### 2026-08-03 — built
 
 **Trigger:** user — a rogo.ai screenshot of the section, *"this also"*.

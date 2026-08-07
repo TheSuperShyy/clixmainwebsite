@@ -17,6 +17,31 @@ Line format:
 
 ## 2026-08-07
 
+- **[--:--]** `by-the-numbers` — **coverage stat corrected 24/7 → 24/6.** User: *"also it not
+  24/7 its 24/6"*. Tail moved with it, `"that never sleeps"` → `"outside office hours"`, since
+  "24/6 … never sleeps" contradicts itself in the one block on the page a reader counts.
+  ⚠️ **The number now disagrees with its source on purpose** — clixsolutions.info's `/work`
+  page still publishes 24/7, so a future re-scrape will read as drift and isn't; flagged in
+  the component header. Worth correcting the live page. Re-measured for fit (the tail is 3
+  chars longer): coverage wraps to **the same line count as the capacity row above it at all
+  five tiers** (3 lines at 1600–810, 2 at 390), no clipping, no page overflow.
+  → [detail](../features/by-the-numbers/CONTEXT.md)
+
+- **[--:--]** `nav` — **clix logo mark added left of the wordmark, in both header rows.**
+  User: *"add clix logo in the left of the clix word on the navbar"*. **No vector of this
+  logo exists** — the live site points `rel="icon"`, `apple-touch-icon` and `og:image` all at
+  one `/clix-logo.png`, and no inline SVG of the mark appears in any of the 11 captured pages,
+  so the raster is the brand asset. Shipped as a **CSS mask, not an `<img>`**: the nav's
+  palette is three-way and a fixed `#303641` PNG would go invisible over the two dark
+  sections. Decoded the source first — background fully transparent (160,060 px at alpha 0),
+  and **89,197 of ~89,310 opaque px are a single flat colour**, so `mask-image` +
+  `background-color: currentColor` reproduces it exactly, antialiasing included, with no
+  redraw. New asset `public/clix-mark.png` (96×88, **4.6 KB**), cropped to the 480×440 ink box
+  and RGB-flattened since a mask reads only alpha. Mark 20px tall (~1.33× the wordmark's
+  15.0px cap height), 8px gap; colour + transition moved onto the `<a>` so the two can't drift
+  apart mid-flip. Verified the fill tracks all three themes at 1440/810/390, **centreDelta 0**.
+  → [detail](../features/nav/CONTEXT.md)
+
 - **[--:--]** `logo-carousel` — **rogo's 14 investment banks replaced with clix's own tool
   stack (13 lockups).** User: *"change the logo to the tools clix use like vapi, elevenlabs,
   n8n, etc."* — unblocks the item open since 08-05. Twelve are the live site's own stack list

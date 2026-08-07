@@ -40,7 +40,17 @@ type Stat = {
    the slot. Provenance, so a future edit can check rather than guess:
      200+  ← "200+ אוטומציות שמאחדות מערך מקוטע"
      2×    ← "Copilot מבוסס AI שהכפיל את קיבולת צוות התמיכה"
-     24/7  ← "סוכן מכירות AI שמטפל בהזמנות משלוחים 24/7"
+     24/6  ← "סוכן מכירות AI שמטפל בהזמנות משלוחים 24/7"  ⚠️ see below
+
+   ⚠️ THE THIRD ONE NO LONGER MATCHES ITS SOURCE, DELIBERATELY. The live site says **24/7**;
+   the user corrected it to **24/6** on 2026-08-07. Their business, their number — but note
+   the divergence is now here in code and NOT on clixsolutions.info, which still publishes
+   24/7. If that page is ever re-scraped, this will look like drift. It isn't.
+
+   The tail moved with it. "that never sleeps" beside a `/6` is self-contradictory in the
+   one place on the page where a reader is counting, so it became "outside office hours" —
+   which is what 24/6 actually buys a customer and stays true on the day off.
+
    The target's three were parallel `N+` counts; these are a count, a multiple and a
    duration. That is deliberate — they say what changed for clients rather than how big the
    company is, which is the stronger claim for a studio. Do not "fix" the inconsistency by
@@ -64,9 +74,9 @@ const STATS: Stat[] = [
   },
   {
     id: "coverage",
-    value: "24/7",
+    value: "24/6",
     lead: "Sales coverage ",
-    tail: "that never sleeps",
+    tail: "outside office hours",
     numberCellPhone: "pt-[2px]",
     labelPhone: "w-full max-w-none",
   },
