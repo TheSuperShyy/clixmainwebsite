@@ -28,6 +28,52 @@ the two inherited contrast failures (role text 2.50:1, logo marks 1.92:1).
 
 ## Log
 
+### 2026-08-08 — the sixth clip is attributed: Elyashiv Engineering
+
+**Trigger:** user — *"אלישיב הנדסה / this is the name for the pending one"*, closing the
+placeholder that had stood since 2026-08-07.
+
+**It is a company, not a person.** `הנדסה` is the Hebrew word for *engineering*, so the
+string is a firm's name, not a personal one. Rendered **"Elyashiv Engineering"** in Latin
+script to match the other five, which the header comment already establishes are
+English-rendered. The speaker's own name is still unknown — the user supplied the client,
+not the individual, and was not asked to.
+
+⚠️ **Transliteration is a judgement call, not a measurement.** `אלישיב` maps to Elyashiv /
+Eliashiv / Elishiv / Elyashib depending on convention; Elyashiv is the most common. This is
+a real client's name on a public page, so if they spell it differently on their own material
+that spelling wins over this one.
+
+**Files renamed with it** — `testimonial-06.{mp4,jpg}` → `elyashiv-engineering.{mp4,jpg}`,
+because `clip.id` IS the asset path (`/testimonials/${id}.mp4`). Used `git mv` so the rename
+is tracked rather than showing as a delete plus an add. Verified both resolve 200 afterwards
+(jpg 14,601 B image/jpeg; mp4 903,843 B video/mp4) — worth doing because `preload="none"`
+means the page never requests the mp4 on its own, so a broken path would show up only as a
+card that silently fails to play.
+
+**An empty `role` is not free, and the first fix was wrong.** With no job title for a firm,
+the obvious move was to drop the `<p>`. Measured result: the bottom block is bottom-anchored,
+so removing a child pulled the plus button **~48px down** — its own line box plus the
+`gap-6` — and it visibly sat lower than the other five. Rendering the `<p>` empty instead
+still left the gap, i.e. ~19px low. The fix that actually holds the geometry is to render it
+always with a **non-breaking space**, which occupies exactly one line box, plus `aria-hidden`
+in that case so a screen reader is not handed a blank paragraph. Confirmed by screenshot:
+all six plus buttons land on the same baseline.
+
+**The three-line wrap "ELYASHIV / ENGINEE / RING" is left alone**, deliberately. It is the
+same mid-word break the 2026-08-07 entry accepted for "NEVO / YAHALOM / AN": the collapsed
+card is ~70px wide and fits about seven characters at 13px with 0.1em tracking, shrinking the
+type does not fix it (11px still overruns at the 810 tier), and breaking a name beats
+truncating one. Changing it now would make this card inconsistent with that decision.
+
+**Verified:** `npm run build`, `tsc --noEmit`, `eslint src` all clean; no stale reference to
+`testimonial-06` anywhere in `src/`; six `Play …'s testimonial` labels present, the sixth
+reading "Play Elyashiv Engineering's testimonial".
+
+**Still open:** `achituv` remains the one unsourced entry — name and role both read off the
+filename `Achituv-Vtechezena.MOV`, not published anywhere.
+
+
 ### 2026-08-07 — sixth clip added; row re-proportioned; names no longer clip
 
 **Trigger:** user — *"I ADDED A NEW VIDEO IN THE ROOT INCLUDE THAT AS WELL JSUT TRANSCRIBE

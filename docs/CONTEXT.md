@@ -17,6 +17,18 @@ Line format:
 
 ## 2026-08-08
 
+- **[--:--]** `testimonials` — **the sixth clip is attributed at last: "Elyashiv Engineering"**
+  (user: *"אלישיב הנדסה"*). `הנדסה` is the word *engineering*, so it is a COMPANY, not a
+  person — the speaker's own name is still unknown. Latin-rendered to match the other five;
+  ⚠️ the transliteration is a judgement call (Elyashiv / Eliashiv / Elishiv) and the client's
+  own spelling should win. Assets `git mv`'d `testimonial-06.*` → `elyashiv-engineering.*`
+  since `clip.id` IS the asset path; both verified 200 afterwards, which matters because
+  `preload="none"` means a broken path would surface only as a card that fails to play.
+  **An empty `role` needed care:** dropping the `<p>` pulled the plus button ~48px down
+  (bottom-anchored block losing a child + its `gap-6`), rendering it empty still left ~19px;
+  holding the slot with a non-breaking space plus `aria-hidden` is what actually aligns all
+  six. The three-line "ELYASHIV / ENGINEE / RING" wrap is left as-is, consistent with the
+  accepted "NEVO / YAHALOM / AN". → [detail](../features/testimonials/CONTEXT.md)
 - **[--:--]** `nav` — **logo lockup scaled 24/26 → 28/30** (mark / wordmark), the third step
   after 20/22 and 24/26. User: *"make this a bit more bigger"*. Both moved by the same ~1.15x
   so the mark-to-cap-height ratio holds; Link boxes grew `h-7→h-8` compact and `h-8→h-9` full

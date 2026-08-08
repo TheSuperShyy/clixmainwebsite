@@ -41,27 +41,28 @@ type Clip = {
 
 /* Names and roles are as published on clixsolutions.info, English-rendered.
 
-   ⚠️ TWO OF THE SIX ARE UNSOURCED. Both need the user before this is public:
+   ⚠️ ONE OF THE SIX IS STILL UNSOURCED:
 
    · `achituv` — came from the uploaded filename ("Achituv-Vtechezena.MOV") and is NOT on the
      live site, so the role is a reading of that filename, not a sourced fact.
 
-   · `testimonial-06` — added 2026-08-07 from "WhatsApp Video 2026-08-07 at 18.00.03.mp4".
-     The user asked to "just transcribe the name and company or whatsoever", but there is
-     **nothing to transcribe from**: the clip carries no burned-in caption, no name card and
-     no title overlay (checked ten frames across its 19.9s), and its container metadata holds
-     only `major_brand`/`language=und`. The speaker presumably says his name in the audio,
-     and there is no speech-to-text available in this environment. So the two strings below
-     are PLACEHOLDERS, deliberately obvious ones — they are not a guess dressed up as a fact.
-     Replace both, and rename the two files in public/testimonials/, the moment the user
-     supplies the name. */
+   `elyashiv-engineering` was the other and is now resolved. It arrived 2026-08-07 as
+   "WhatsApp Video 2026-08-07 at 18.00.03.mp4" with nothing to identify the speaker from —
+   no burned-in caption, no name card, no title overlay across ten frames of its 19.9s, and
+   container metadata holding only `major_brand`/`language=und`. The user supplied the
+   attribution on 2026-08-08 as **אלישיב הנדסה**, rendered here as "Elyashiv Engineering" to
+   match the English treatment of the other five (הנדסה is the word *engineering*).
+
+   ⚠️ That is a COMPANY, not a person, which is why it is the one entry with an empty
+   `role` — the card drops its second line rather than invent a job title for a firm. The
+   speaker's own name is still unknown; the user gave the company and nothing more. */
 const CLIPS: Clip[] = [
   { id: "asaf-peretz", name: "Asaf Peretz", role: "Founder, SalesIQ" },
   { id: "adir-peretz", name: "Adir Peretz", role: "Owner, video & photography studio" },
   { id: "nevo-yahaloman", name: "Nevo Yahaloman", role: "Founder" },
   { id: "noam-tovi", name: "Noam Tovi", role: "Owner, investments" },
   { id: "achituv", name: "Achituv", role: "Vtechezena" },
-  { id: "testimonial-06", name: "Name pending", role: "Company pending" },
+  { id: "elyashiv-engineering", name: "Elyashiv Engineering", role: "" },
 ];
 
 /* The capture draws this as a CSS mask on a 20px box; the path is an 18px plus glyph
@@ -276,13 +277,28 @@ function Card({
         <PlusButton open={open} className="hidden tablet:flex" />
         {/* ink@60%, not the 40% the cloned card used. That 40% measured 2.50:1 on this
             panel and was carried over from the target as a known inherited failure. This
-            content is ours, so there is nothing to be faithful to — 60% clears AA. */}
+            content is ours, so there is nothing to be faithful to — 60% clears AA.
+
+            ALWAYS RENDERED, even when there is no role — `elyashiv-engineering` is a
+            company rather than a person and carries none. Two wrong ways to handle that,
+            both measured rather than reasoned about:
+
+              · omit the <p> — the block is bottom-anchored, so losing a child pulls the
+                plus button DOWN ~48px (its own line box plus the gap-6) and it visibly
+                sits lower than the other five.
+              · render it empty — a zero-height <p> still leaves the gap, so the button is
+                ~19px low instead. Better, still wrong.
+
+            So the slot is held open with a non-breaking space, which occupies exactly one
+            line box and makes the geometry identical to a one-line role. `aria-hidden` in
+            that case so a screen reader is not handed a blank paragraph. */}
         <p
           className="w-full font-sans text-[12px] text-ink/60 tablet:line-clamp-1
                      desktop:text-[16px]"
           style={{ lineHeight: "1.5em", letterSpacing: "-0.02em" }}
+          {...(clip.role ? null : { "aria-hidden": true })}
         >
-          {clip.role}
+          {clip.role || " "}
         </p>
       </div>
     </div>
