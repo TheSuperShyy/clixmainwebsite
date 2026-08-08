@@ -12,17 +12,82 @@ with no code scanning.
 
 Built and building clean. Headline over three number/caption rows on a `card` panel; every
 value extracted from the capture and verified by CDP at all four tiers. No new tokens.
-No animation of any kind — see the decision below about the count-up.
 
-**Not yet visually diffed against the live site.** The most likely divergence is a scroll
-count-up on the numbers, which a static capture cannot rule out.
+**The numbers now count up on scroll** (2026-08-08, user request) — see the newest log entry.
+This is invented motion and a deliberate divergence from the target, which has none.
+
+**Not yet visually diffed against the live site.**
 
 **Status:** `review`
-**Next action:** watch the live site scroll into this section once, to settle the count-up.
+**Next action:** user's call on the `24/6` mid-count reading — see the newest entry.
 
 ---
 
 ## Log
+
+### 2026-08-08 — count-up added (reverses the 2026-08-03 decision)
+
+**Trigger:** user, with a screenshot of the three rows — *"add counting animations in this
+one"*.
+
+**This reverses a documented decision, on purpose.** The 2026-08-03 build explicitly declined
+to build a count-up: the capture has no `data-framer-appear-id` and no transition anywhere in
+the subtree, so the target's numbers are static text, and a counter would be invented motion.
+That finding is still correct — the section simply no longer clones the target here. Both
+ByTheNumbers.tsx and CountUp.tsx carry the warning so a future fidelity pass does not "fix"
+it back. (Footnote: `docs/SECTIONS.md` guessed at a scroll counter from the visual and was
+wrong about rogo.ai, but has accidentally ended up describing what we ship.)
+
+**New file:** `src/components/ui/CountUp.tsx`, a `"use client"` leaf. The section itself stays
+a server component — only the number needs a ref, so scoping the client boundary to the leaf
+keeps headings, labels and layout server-rendered.
+
+**The three values are not numbers**, which drove the design: `200+`, `2×`, `24/6`. Parsed
+with `/^(\d+)(.*)$/` into a leading integer plus a literal suffix, so 200/`+`, 2/`×`,
+24/`/6`. Anything with no leading digit renders static.
+
+**Decisions worth keeping**
+
+- **SSR ships the real value; the zeroing happens in a layout effect.** `useGSAP` runs at
+  `useLayoutEffect` timing, so `0+` is written before paint and the swap is never visible.
+  This is what keeps the number correct with JS off, correct for a crawler, and correct
+  under reduced motion — all three verified, see below.
+- **`textContent` is written directly, not held in React state.** A `setState` per frame
+  would re-render for a string ~60x/sec. Safe because the component takes one prop, holds no
+  state, and therefore never re-renders to reclaim the text.
+- **`aria-label` on the `<h3>` pins the accessible name to the final value.** Without it a
+  screen reader landing mid-count announces the frame it caught ("137+"). `aria-label` on a
+  heading overrides descendant text for name computation, so the visible number animates
+  freely underneath.
+- **Ease-out, NOT the site's `--ease-rogo`.** That token is an in-out curve
+  (`cubic-bezier(.44,0,.56,1)`); a counter that starts slow reads as lag. Since this motion
+  is ours rather than the target's there is no fidelity argument for reusing it. `power2.out`.
+- **One trigger per number, not one shared timeline.** The rows are 161px apart, so scrolling
+  produces a natural cascade for free — visible in the trace below, where `200+` is ~300ms
+  ahead of `24/6`. A shared stagger would fire all three at once on a tall viewport.
+- **Uniform 1.4s for all three.** A target of 2 spends most of it already arrived, which is
+  preferable to three different speeds in one list.
+- **`ScrollTrigger.refresh()` on `document.fonts.ready`.** Trigger positions are computed from
+  layout and Discovery is `font-display: swap`, so without it the start line is measured
+  against fallback metrics and the count can fire early.
+
+**Verified** (CDP, sampled every 150ms through the tween)
+
+| | server HTML | before view | mid | settled | reduced motion |
+|---|---|---|---|---|---|
+| 200+ | `200+` | `0+` | 46 → 98 → 137 → 181 → 198 | `200+` | `200+` |
+| 2× | `2×` | `0×` | 1 → 2 | `2×` | `2×` |
+| 24/6 | `24/6` | `0/6` | 8 → 13 → 17 → 22 | `24/6` | `24/6` |
+
+All three land **exactly** on the authored string (`onComplete` assigns `value` rather than
+reconstructing it). Under `prefers-reduced-motion: reduce` the tween is never built and the
+text is never zeroed — `matchMedia` gates both. `npm run build`, `tsc`, `eslint` clean.
+
+⚠️ **OPEN — `24/6` reads as a nonsense fraction mid-count.** The trace shows `8/6`, `13/6`,
+`17/6`. It is a duration, not a ratio, but for ~1s it looks like one. Flagged to the user
+with three options: leave it, exclude that row from the animation, or animate only the `24`
+after a brief hold. Not decided.
+
 
 ### 2026-08-07 — coverage stat corrected to 24/6
 

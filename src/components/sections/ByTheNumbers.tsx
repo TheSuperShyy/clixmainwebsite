@@ -13,11 +13,16 @@
  * `justify-content:flex-end` on a column, then 36px of bottom padding. That is what sits
  * the caption on the number's baseline rather than its cap-height.
  *
- * No animation library, and no count-up. `docs/SECTIONS.md` guessed at a scroll counter
- * from the visual; the capture disagrees — the numbers are static text with no
- * `data-framer-appear-id` and no transition in the subtree. Building a count-up would be
- * inventing motion, not cloning it. See FEATURE.md.
+ * ⚠️ THERE IS NOW A COUNT-UP, AND IT IS A DELIBERATE DIVERGENCE (2026-08-08, user: "add
+ * counting animations in this one"). This file previously argued the opposite and declined
+ * to build one, on the grounds that the capture has no such motion — the numbers are static
+ * text with no `data-framer-appear-id` and no transition anywhere in the subtree. That
+ * finding still stands; the section simply no longer clones the target here. `docs/SECTIONS.md`
+ * had guessed at a scroll counter from the visual and was wrong about the target, but has
+ * accidentally ended up describing what we ship. See src/components/ui/CountUp.tsx.
  */
+
+import CountUp from "@/components/ui/CountUp";
 
 type Stat = {
   id: string;
@@ -110,8 +115,13 @@ function StatRow({ item }: { item: Stat }) {
                      leading-[1.2em] tracking-[-0.04em] text-ink
                      tablet:text-[96px] tablet:leading-[128px]
                      xl:text-[108px]"
+          /* Pins the accessible name to the FINAL value. Without it a screen reader landing
+             on the heading mid-count would announce whatever frame it caught ("137+"), and
+             `aria-label` on a heading overrides its descendant text for name computation.
+             The visible number is free to animate underneath. */
+          aria-label={item.value}
         >
-          {item.value}
+          <CountUp value={item.value} />
         </h3>
       </div>
 
