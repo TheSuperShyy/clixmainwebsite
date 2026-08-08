@@ -44,8 +44,8 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import ClixWordmark from "@/components/ui/ClixWordmark";
 import ClixMark from "@/components/ui/ClixMark";
-import StockTicker from "@/components/ui/StockTicker";
-import type { Quote } from "@/lib/quotes";
+import ModelTicker from "@/components/ui/ModelTicker";
+import type { ModelPrice } from "@/lib/models";
 
 /* Logo lockup geometry (2026-08-07). Scaled up 1.18x later the same day at the user's
    request ("make clix a bit bigger and the logo") — wordmark 22 -> 26px, mark 20 -> 24px.
@@ -86,20 +86,23 @@ const LINKS: { label: string; href: string | null }[] = [
    cannot classify falls back to `light`, which is the majority of the page. */
 type NavTheme = "hero" | "light" | "dark";
 
-/* THE BANNER IS NOW A LIVE MARKET TICKER (2026-08-08, user: "put ai graph stocks here
-   instead", then picking "Live ticker, real quotes" over a decorative graph).
+/* THE BANNER IS A LIVE FRONTIER-MODEL PRICE TICKER (2026-08-08, user: "make it LLM models
+   not company stocks").
 
-   Its history, because the slot has turned over three times and each change had a reason:
+   Its history, because the slot has turned over four times and each change had a reason:
      · target's original — "Announcing our $160M Series D led by Kleiner Perkins", removed
        2026-08-05 because under a clix wordmark it read as a first-person claim clix cannot
        make;
      · "Clix AI — launching soon", then split 2026-08-07 into "Clix AI News" + an underlined
        "Coming soon" to restore the target's headline + trailing-CTA shape;
-     · now eight real AI-stock quotes with sparklines.
+     · 2026-08-08 morning — eight AI-adjacent stock quotes with sparklines;
+     · now nine LLMs and their live per-million-token list prices. Same idea, correct subject:
+       an automation studio's banner should show what it builds on, not what its suppliers'
+       shares did today.
 
    The strings are gone rather than kept as a fallback ON PURPOSE. A ticker that silently
-   degrades to marketing copy would hide an outage; with no quotes the strip renders nothing
-   and collapses to zero height, which is visible and honest. See src/lib/quotes.ts. */
+   degrades to marketing copy would hide an outage; with no data the strip renders nothing
+   and collapses to zero height, which is visible and honest. See src/lib/models.ts. */
 
 /* Button — padding 8/16, inner row 20px tall with a 1px top nudge, radius 6.
    The border is 1px and transparent in both variants; it exists so the box does not
@@ -187,13 +190,11 @@ function MenuGlyph({ open }: { open: boolean }) {
   );
 }
 
-/* `quotes` is fetched in page.tsx (a server component) and passed down rather than fetched
-   here. Two reasons: Yahoo sends no CORS header so the browser cannot call it at all, and
-   server-rendering the strip means the first paint already has real numbers — a ticker that
-   appeared after hydration would shove the whole fixed header down 45px in front of the
-   visitor. Defaults to `[]` so a caller that has no data still type-checks and simply gets
-   no banner. */
-export default function Nav({ quotes = [] }: { quotes?: Quote[] }) {
+/* `models` is fetched in page.tsx (a server component) and passed down rather than fetched
+   here, so the first paint already has real numbers — a ticker that appeared after hydration
+   would shove the whole fixed header down 45px in front of the visitor. Defaults to `[]` so a
+   caller that has no data still type-checks and simply gets no banner. */
+export default function Nav({ models = [] }: { models?: ModelPrice[] }) {
   const [open, setOpen] = useState(false);
   const toggleRef = useRef<HTMLButtonElement>(null);
 
@@ -348,16 +349,16 @@ export default function Nav({ quotes = [] }: { quotes?: Quote[] }) {
           fixed block — see the `bannerShift` effect above. `aria-hidden` + `inert` whenever
           it is on its way out, so it never sits in the tab order invisibly.
 
-          Renders NOTHING when `quotes` is empty, collapsing the strip to zero height. That
+          Renders NOTHING when `models` is empty, collapsing the strip to zero height. That
           is the outage story: no band rather than a band of stale or invented numbers. */}
       <div
         ref={bannerRef}
-        className={quotes.length ? "w-full bg-banner" : "hidden"}
+        className={models.length ? "w-full bg-banner" : "hidden"}
         aria-hidden={bannerGone}
         {...(bannerGone ? { inert: true } : null)}
       >
         <div className="flex w-full items-center px-4 py-3 tablet:px-10">
-          <StockTicker initial={quotes} />
+          <ModelTicker initial={models} />
         </div>
       </div>
 

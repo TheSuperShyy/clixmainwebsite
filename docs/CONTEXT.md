@@ -17,6 +17,39 @@ Line format:
 
 ## 2026-08-08
 
+- **[--:--]** `nav` `infra` — **the banner ticker switched from AI stocks to LLM list prices.**
+  User: *"make it LLM models not company stocks"*. Nine frontier models with live
+  per-million-token pricing (Claude Opus 5, GPT-5.6 Sol, Gemini 3.6 Flash, Grok 4.5, DeepSeek
+  V4 Pro, Llama 4 Maverick, Mistral Large 3, Qwen3.8 Max, Kimi K3). Renamed via `git mv`:
+  `lib/quotes.ts` → `models.ts`, `StockTicker` → `ModelTicker`, `api/quotes` → `api/models`.
+  **Provider probed, not assumed** — OpenRouter `/api/v1/models` **200** (no key, 400 models,
+  live pricing) vs OpenRouter frontend-ranking 404, LMArena 403, HuggingFace 200-but-no-pricing.
+  **This closes both risks the stock feed had open**: Yahoo v8 `/chart` was undocumented, and
+  Yahoo's terms don't licence redistribution on a commercial site — OpenRouter's endpoint is
+  public API surface carrying vendor list prices, so there is no key to leak and nothing to
+  relicense. ⚠️ **Sparkline and ±% deleted deliberately** — both need a per-row time series and
+  a list price has none; drawing one would be the invented-figure failure the data layer exists
+  to prevent. `--color-quote-up`/`-down` deleted with them (values preserved in a comment).
+  Formatting rules that are measurements: context unit follows the provider's own counting
+  (multiple of 1024 → binary, so 262,144 is **256K** not 262K; 500,000 stays **500K** not 488K),
+  fractions of a million **truncate** so 1,050,000 reads **1M** not 1.1M, and `text-paper/50`
+  not `/45` because white@45% on `#211e1e` is 4.40:1 and misses AA. Verified at 1600/1440/390:
+  banner still **45px**, cycle 2471px ≥ viewport, no overflow, tween advancing, and **all nine
+  prices cross-checked against a fresh call to the live endpoint**.
+  ⚠️ Open: the banner is monochrome now — user's call on a real signal.
+  → [detail](../features/nav/CONTEXT.md)
+- **[--:--]** `by-the-numbers` — **count-up added on scroll**, reversing the 2026-08-03
+  decision not to build one. User: *"add counting animations in this one"*. The finding that
+  the target has no such motion still stands — this is invented motion and a deliberate
+  divergence, warned about in both files so a fidelity pass does not undo it. New
+  `src/components/ui/CountUp.tsx`, a `"use client"` leaf so the section stays server-rendered.
+  Values are parsed `/^(\d+)(.*)$/` because none of the three is a plain number (200/`+`,
+  2/`×`, 24/`/6`). Real value ships in the SSR HTML and the zeroing happens pre-paint in a
+  layout effect, so it is correct with JS off, for crawlers, and under reduced motion — all
+  three verified. `aria-label` on the `<h3>` pins the accessible name so a screen reader never
+  announces a mid-count frame. Ease-out rather than `--ease-rogo` (an in-out curve reads as
+  lag on a counter); one trigger per row gives a natural 161px cascade.
+  ⚠️ Open: `24/6` reads as `13/6` mid-count. → [detail](../features/by-the-numbers/CONTEXT.md)
 - **[--:--]** `testimonials` — **the sixth clip is attributed at last: "Elyashiv Engineering"**
   (user: *"אלישיב הנדסה"*). `הנדסה` is the word *engineering*, so it is a COMPANY, not a
   person — the speaker's own name is still unknown. Latin-rendered to match the other five;

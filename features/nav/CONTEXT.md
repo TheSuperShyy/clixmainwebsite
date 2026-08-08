@@ -19,6 +19,10 @@ The mobile menu panel is invented, because the original never renders it in the 
 The banner is direction-aware (off on the way down, back on the way up) and independent of
 the colour swap — both user-confirmed against the live site.
 
+The banner slot is a **live frontier-LLM price ticker** as of 2026-08-08 (it was an AI-stock
+ticker for a few hours earlier the same day) — nine models, per-million-token list prices from
+OpenRouter, no sparkline. See the newest log entry.
+
 The bar's palette **tracks the section behind it** (`hero` / `light` / `dark`), driven by a
 `data-nav-theme` attribute each section carries. The `light` palette is observed on the live
 site; the `dark` one is a user request and **has not been observed** — see the newest log
@@ -31,6 +35,107 @@ live site for the mobile menu, the scroll flip point, and the `Indicator` elemen
 ---
 
 ## Log
+
+### 2026-08-08 — banner ticker switched from stocks to LLM list prices
+
+**Trigger:** user — *"make it LLM models not company stocks"*, hours after the stock ticker
+itself went in.
+
+**What the strip shows now:** nine frontier models and their live per-million-token list
+prices — `Claude Opus 5 · in $5 · out $25 /M · 1M ctx`, and so on for GPT-5.6 Sol, Gemini 3.6
+Flash, Grok 4.5, DeepSeek V4 Pro, Llama 4 Maverick, Mistral Large 3, Qwen3.8 Max, Kimi K3.
+
+**Renamed, not rewritten** — `git mv` so history follows: `src/lib/quotes.ts` → `models.ts`,
+`StockTicker.tsx` → `ModelTicker.tsx`, `api/quotes/` → `api/models/`. `Quote` → `ModelPrice`,
+`Nav`'s `quotes` prop → `models`.
+
+**Provider probed, not assumed** (four, same discipline as the stock pass):
+
+| | | |
+|---|---|---|
+| OpenRouter `/api/v1/models` | **200** | no key, no signup, 400 models, live pricing — **used** |
+| OpenRouter `/api/frontend/models/find` | 404 | the usage-ranking endpoint is not public |
+| LMArena `/api/leaderboard` | 403 | `"Route not allowed"` |
+| HuggingFace `/api/models` | 200 | download counts, but no pricing and no hosted API |
+
+**This closes both risks the stock feed carried, which is worth recording because they were
+logged as open.** Yahoo's v8 `/chart` was **undocumented** (v7 had already been closed off
+mid-build), and **Yahoo's terms do not licence redistribution of market data on a commercial
+site**. OpenRouter publishes this endpoint as public API surface and the content is vendor
+list pricing — public by nature. No key to leak, nothing to relicense. The banner is now
+contractually clean where it was not.
+
+**⚠️ THE SPARKLINE AND THE ±% ARE GONE, DELIBERATELY.** Both need a time series per row and
+none exists: a list price is a constant until the lab changes it. Drawing a trend line under
+a flat number, or a `+1.2%` against a baseline never recorded, is precisely the invented-figure
+failure `src/lib/models.ts` exists to prevent. So the strip is monochrome now. **Flagged to
+the user** — if a signal is wanted back in that slot it has to be real (cheapest-in-set, or
+price-changed-since-last-poll with stored history), not a shape.
+
+Consequently `--color-quote-up` / `--color-quote-down` were **deleted** from `globals.css` —
+their only consumer was the day change. Both cleared AA on `--color-banner` (10.6:1 and
+6.4:1) and the note in the file records the values so they can be reinstated verbatim.
+
+**Decisions worth keeping**
+
+- **One request, not nine.** The catalogue endpoint returns everything (~650 KB); the stock
+  version made one HTTP call per symbol. Cached by `next: { revalidate: 300 }`, so it is one
+  upstream fetch per five minutes for all visitors regardless of traffic.
+- **`/api/models` kept even though its original reason evaporated.** It existed because Yahoo
+  sent no CORS header, so the browser *could not* call upstream. OpenRouter does send them.
+  Kept anyway: one cached server fetch beats every browser pulling 650 KB for nine rows, and
+  the provider stays swappable without touching the component.
+- **Display names come from the provider, not from us.** Only the `"Lab: "` prefix is
+  stripped, and inconsistently present upstream — `claude-opus-5` returns plain
+  `"Claude Opus 5"` while `claude-sonnet-5` returns `"Anthropic: Claude Sonnet 5"`. The cost
+  of this rule is `"Mistral Large 3 2512"` reading slightly raw; the benefit is that nothing
+  on the strip is our editorial. Left as-is rather than prettified.
+- **`in $5 · out $25` spelled out rather than `$5 / $25`.** The two prices differ by 5x on
+  some models and not at all on others, so an unlabelled pair is genuinely ambiguous — and
+  the input price alone is the one people misread as the whole cost.
+- **⚠️ `MODEL_IDS` rots and that is handled, not guarded.** Labs retire slugs; `fetchModels`
+  skips any id it cannot find, so a retired model quietly leaves the strip. **If the banner
+  ever looks short, this list is stale — check it against the endpoint before assuming an
+  outage.**
+
+**Two formatting rules that are measurements, not taste**
+
+- **Context unit follows the provider's own counting.** Anthropic reports 1,000,000 (decimal);
+  Google reports 1,048,576 (binary) for the window both market as "1M". So an exact multiple
+  of 1024 renders binary, anything else decimal. That is what turns 262,144 into **256K**
+  rather than 262K, and leaves 500,000 as **500K** rather than 488K.
+- **Fractions of a million truncate, never round**, so a label cannot overstate a window:
+  OpenAI's 1,050,000 reads **1M**, not 1.1M.
+- **`text-paper/50`, not `/45`.** White at 45% over the banner's `#211e1e` computes to
+  **4.40:1** and misses AA for 13px body text; 50% is **5.10:1** and still reads as the third
+  tier. Computed, not eyeballed.
+
+**Verified** (CDP at 1600 / 1440 / 390, plus a cross-check against the live endpoint)
+
+| | 1600 | 1440 | 390 |
+|---|---|---|---|
+| banner height | **45px** | 45px | 45px |
+| row height | 21px | 21px | 21px |
+| items / unique | 27 / 9 | 27 / 9 | 27 / 9 |
+| measured cycle | 2471px | 2471px | 2471px |
+| `cycle >= viewport` | ✅ | ✅ | ✅ |
+| horizontal overflow | none | none | none |
+| tween advancing | ✅ | ✅ | ✅ |
+
+**45px is the number that mattered** — the header's hide-on-scroll transform travels exactly
+one banner height, and the strip lost its 14px sparkline (previously the tallest child). The
+21px pin on the row holds it. `cycle >= viewport` is the guard that caught the stock version's
+27px hole at 1600; the wider rows clear it comfortably at every tier.
+
+**All nine prices matched the provider field-for-field**, checked by re-fetching
+`openrouter.ai/api/v1/models` inside the probe and comparing against the rendered `<li>` text
+rather than against our own formatter. Server HTML carries the full sr-only list (JS-off /
+crawler). Under `prefers-reduced-motion: reduce` the transform is `none` and stays `none`.
+`npm run build`, `tsc`, `eslint` clean.
+
+**Open**
+- The banner has no colour at all now. User's call whether to bring a real signal back.
+
 
 ### 2026-08-08 — logo lockup scaled again, 24/26 → 28/30
 
