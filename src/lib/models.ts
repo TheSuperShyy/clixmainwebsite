@@ -47,7 +47,7 @@
  * a retired model quietly leaves the strip instead of breaking it. If the banner looks short,
  * this list is stale — check it against the endpoint rather than assuming an outage.
  *
- * Display names are NOT stored here. They come from the provider's own `name`, minus the
+ * Model names are NOT stored here. They come from the provider's own `name`, split from the
  * `"Lab: "` prefix it sometimes carries, so nothing on the strip is our editorial.
  */
 export const MODEL_IDS = [
@@ -65,7 +65,9 @@ export const MODEL_IDS = [
 export type ModelPrice = {
   /** OpenRouter slug — stable identity, never rendered. */
   id: string;
-  /** Provider's display name with any `"Lab: "` prefix stripped. */
+  /** Who makes it — `"Anthropic"`, `"OpenAI"`. Empty only if it cannot be determined. */
+  lab: string;
+  /** Provider's display name with any `"Lab: "` prefix split off into `lab`. */
   name: string;
   /** USD per million input tokens. */
   inputPerM: number;
@@ -79,16 +81,54 @@ export type ModelPrice = {
 export const REVALIDATE_SECONDS = 300;
 
 /**
- * `"Anthropic: Claude Sonnet 5"` -> `"Claude Sonnet 5"`.
+ * Fallback lab names, keyed on the id namespace.
  *
- * The prefix is inconsistent upstream — `claude-opus-5` comes back as plain `"Claude Opus 5"`
- * while `claude-sonnet-5` carries `"Anthropic: "` — so this normalises rather than assuming
- * either shape. Split on the FIRST `": "` only, because a model name may legitimately contain
- * a colon later on.
+ * Only consulted when the provider's `name` carries no `"Lab: "` prefix, which it does
+ * inconsistently — `claude-sonnet-5` comes back as `"Anthropic: Claude Sonnet 5"` while
+ * `claude-opus-5` is plain `"Claude Opus 5"`. Without this the strip would credit some models
+ * and not others.
+ *
+ * These few strings ARE our editorial, and the only such strings on the ticker. They are
+ * facts rather than opinions (a namespace maps to exactly one company) but they are still
+ * typed by hand, so: a namespace missing from this map renders with no lab rather than a
+ * guessed one. Silence beats a wrong attribution.
  */
-function stripLab(name: string): string {
+const LAB_BY_NAMESPACE: Record<string, string> = {
+  anthropic: "Anthropic",
+  openai: "OpenAI",
+  google: "Google",
+  "x-ai": "xAI",
+  deepseek: "DeepSeek",
+  "meta-llama": "Meta",
+  mistralai: "Mistral",
+  qwen: "Qwen",
+  moonshotai: "Moonshot",
+};
+
+/**
+ * `"Anthropic: Claude Sonnet 5"` -> `{ lab: "Anthropic", name: "Claude Sonnet 5" }`.
+ *
+ * The provider's own prefix WINS over the map above when it is present, because it is the
+ * more current of the two: OpenRouter currently labels `x-ai/*` as `"SpaceXAI"`, and a
+ * hand-typed `"xAI"` overriding that would be us asserting something about a company we are
+ * not tracking. The map only fills the gap where the provider says nothing.
+ *
+ * Split on the FIRST `": "` only, since a model name may legitimately contain a later colon.
+ *
+ * ⚠️ A LAB THAT ALREADY OPENS THE MODEL NAME IS DROPPED. Some labs brand the model after
+ * themselves and some do not, so pairing them blindly stutters: "DeepSeek DeepSeek V4 Pro",
+ * "Mistral Mistral Large 3", "Qwen Qwen3.8 Max" — against "Anthropic Claude Opus 5" and
+ * "Moonshot Kimi K3", which read correctly. Only visible once rendered; the data looks fine.
+ * A plain `startsWith` is deliberate rather than a word-boundary test, because "Qwen3.8 Max"
+ * carries the lab with no boundary after it and still needs suppressing.
+ */
+function splitLab(id: string, name: string): { lab: string; name: string } {
   const i = name.indexOf(": ");
-  return i === -1 ? name : name.slice(i + 2);
+  const lab = i !== -1 ? name.slice(0, i) : (LAB_BY_NAMESPACE[id.split("/")[0]] ?? "");
+  const model = i !== -1 ? name.slice(i + 2) : name;
+  const redundant =
+    lab !== "" && model.toLowerCase().startsWith(lab.toLowerCase());
+  return { lab: redundant ? "" : lab, name: model };
 }
 
 async function loadFromOpenRouter(): Promise<ModelPrice[]> {
@@ -132,7 +172,7 @@ async function loadFromOpenRouter(): Promise<ModelPrice[]> {
 
     out.push({
       id,
-      name: stripLab(m.name ?? id),
+      ...splitLab(id, m.name ?? id),
       inputPerM,
       outputPerM,
       context: typeof m.context_length === "number" ? m.context_length : 0,

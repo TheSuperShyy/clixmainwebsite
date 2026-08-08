@@ -98,10 +98,17 @@ function Item({ m }: { m: ModelPrice }) {
       className="flex flex-none items-center gap-2 whitespace-nowrap"
       style={{ height: ROW_H }}
     >
+      {/* Lab and model share ONE span, separated by a plain space rather than by the flex
+          `gap`. The gap is 8px and sits between every other field, so putting the lab in its
+          own flex child would space "Anthropic" as far from "Claude Opus 5" as the price is
+          from the context — three loose fields instead of a named thing and its maker. A
+          space is ~4px, which reads as one unit. (2026-08-08, user asked for the lab to show:
+          "i want it to be LLM not stocks of the company like anthropic, GEMINI, OPENAI".) */}
       <span
         className="font-sans text-[13px] font-medium text-paper"
         style={{ letterSpacing: "0.02em" }}
       >
+        {m.lab && <span className="font-normal text-paper/70">{m.lab} </span>}
         {m.name}
       </span>
       {/* `in`/`out` are spelled out rather than shown as "$5 / $25". The two prices differ by
@@ -242,8 +249,8 @@ export default function ModelTicker({ initial }: { initial: ModelPrice[] }) {
         {models
           .map(
             (m) =>
-              `${m.name}, ${formatUsd(m.inputPerM)} input and ` +
-              `${formatUsd(m.outputPerM)} output` +
+              `${m.lab ? `${m.lab} ` : ""}${m.name}, ` +
+              `${formatUsd(m.inputPerM)} input and ${formatUsd(m.outputPerM)} output` +
               (m.context ? `, ${formatContext(m.context)} context` : ""),
           )
           .join("; ")}

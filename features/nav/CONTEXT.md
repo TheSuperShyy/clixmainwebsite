@@ -36,6 +36,44 @@ live site for the mobile menu, the scroll flip point, and the `Indicator` elemen
 
 ## Log
 
+### 2026-08-08 — ticker rows now credit the lab
+
+**Trigger:** user — *"i want it to be LLM not stocks of the company like anthropic, GEMINI,
+OPENAI, GROK, etc"*, chosen from four readings via AskUserQuestion. The strip already had no
+stocks in it; what was missing was that **Anthropic and OpenAI were only visible as "Claude"
+and "GPT"**, while Gemini and Grok happened to carry their brand in the model name. So the
+maker is now printed in front of every model: `Anthropic Claude Opus 5`.
+
+**Where the lab comes from, in priority order.** The provider's own `"Lab: "` prefix wins when
+present, and `LAB_BY_NAMESPACE` (nine hand-typed strings, the only editorial on the ticker)
+fills the gap when it is not. Both are needed because the prefix is inconsistent upstream —
+`claude-sonnet-5` returns `"Anthropic: Claude Sonnet 5"` but `claude-opus-5` returns plain
+`"Claude Opus 5"`. A namespace missing from the map renders with **no** lab rather than a
+guessed one.
+
+**⚠️ The strip says "SpaceXAI Grok 4.5", and it is not a typo.** That is OpenRouter's current
+label for the `x-ai/*` namespace. The map holds `"xAI"` but never fires here, because the
+provider's prefix wins — overriding it would mean asserting something about a company we are
+not tracking. Flagged to the user; forcing `"xAI"` is a one-line change if they want it.
+
+**⚠️ THREE ROWS STUTTERED, AND ONLY RENDERING SHOWED IT.** The data looked correct:
+`DeepSeek DeepSeek V4 Pro`, `Mistral Mistral Large 3 2512`, `Qwen Qwen3.8 Max`. Some labs
+brand the model after themselves and some do not, so pairing blindly doubles the word for
+exactly those. A lab that already opens the model name is now dropped. **`startsWith` and not
+a word-boundary test, deliberately** — `Qwen3.8 Max` carries the lab with no boundary after it
+and still needs suppressing.
+
+Lab and model share **one flex child**, separated by a space rather than by the row's 8px
+`gap`. In its own child the lab would sit as far from its model as the price sits from the
+context — three loose fields instead of a thing and its maker.
+
+**Re-verified**, 1600 / 1440 / 390: banner still **45px**, row 21px, no horizontal overflow,
+tween advancing, static under reduced motion, all nine prices still matching a fresh call to
+the live endpoint. **Cycle grew 2471px → 2781px** (+310px, ~12%) — the loop now takes 70s
+rather than 62s at 40 px/s, and `cycle >= viewport` still holds at every tier, which is the
+guard that matters. `npm run build`, `tsc`, `eslint` clean.
+
+
 ### 2026-08-08 — banner ticker switched from stocks to LLM list prices
 
 **Trigger:** user — *"make it LLM models not company stocks"*, hours after the stock ticker

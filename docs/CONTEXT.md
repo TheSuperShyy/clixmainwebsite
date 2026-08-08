@@ -17,6 +17,20 @@ Line format:
 
 ## 2026-08-08
 
+- **[--:--]** `nav` — **ticker rows now credit the lab**: `Anthropic Claude Opus 5`,
+  `OpenAI GPT-5.6 Sol`, `Google Gemini 3.6 Flash`. User: *"i want it to be LLM not stocks of
+  the company like anthropic, GEMINI, OPENAI, GROK, etc"* — the strip already had no stocks,
+  but **Anthropic and OpenAI were only visible as "Claude" and "GPT"** while Gemini and Grok
+  happened to carry their brand. Lab comes from the provider's own `"Lab: "` prefix where
+  present (inconsistent upstream) and a nine-entry namespace map where not; an unknown
+  namespace renders with no lab rather than a guess. ⚠️ **Three rows stuttered and only
+  rendering showed it** — `DeepSeek DeepSeek V4 Pro`, `Mistral Mistral Large 3`,
+  `Qwen Qwen3.8 Max`; a lab that already opens the model name is now dropped, by `startsWith`
+  rather than a word-boundary test because `Qwen3.8 Max` has no boundary after the lab.
+  ⚠️ **"SpaceXAI Grok 4.5" is not a typo** — it is OpenRouter's current label for `x-ai/*`, and
+  the provider's prefix deliberately outranks our map. Re-verified 1600/1440/390: banner still
+  45px, cycle 2471 → **2781px** and still ≥ viewport, no overflow, prices still matching the
+  live endpoint. → [detail](../features/nav/CONTEXT.md)
 - **[--:--]** `nav` `infra` — **the banner ticker switched from AI stocks to LLM list prices.**
   User: *"make it LLM models not company stocks"*. Nine frontier models with live
   per-million-token pricing (Claude Opus 5, GPT-5.6 Sol, Gemini 3.6 Flash, Grok 4.5, DeepSeek
