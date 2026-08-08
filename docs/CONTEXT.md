@@ -17,6 +17,18 @@ Line format:
 
 ## 2026-08-08
 
+- **[--:--]** `why-rogo` `nav` — **em dashes removed from all visitor-facing copy.** User:
+  *"Remove emdashes on the website"*. Swept the **rendered DOM** rather than grepping source,
+  since a grep hits code comments which are not the website: 12 matches collapsing to 7 real
+  strings — the five service paragraphs plus two nav `aria-label`s. **Rewritten, not
+  deleted**: every dash was setting off an appositive or parenthetical, so removing the
+  character alone would have left run-ons. Two became sentence splits, two became commas, and
+  `integrations` was recast entirely because its dashes were a *paired* parenthetical around
+  a list that already used commas. Verified zero two ways: the DOM sweep returns 0, and a
+  comment-stripped pass over `src/` finds none in any reachable string. ⚠️ The ticker's
+  `−0.96%` is **U+2212 MINUS**, not a dash — correct for a negative number, left alone.
+  → [detail](../features/why-rogo/CONTEXT.md)
+
 - **[--:--]** `nav` `infra` — **the announcement banner became a live AI-stock ticker.** User:
   *"put ai graph stocks here instead"*; asked which of three readings they meant and they
   chose **live real quotes** over a decorative graph and over hard-coded numbers. Eight

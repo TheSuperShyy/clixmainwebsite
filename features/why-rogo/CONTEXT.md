@@ -26,6 +26,45 @@ three-line heading break.
 
 ## Log
 
+### 2026-08-08 — em dashes removed from the body copy
+
+**Trigger:** user — *"Remove emdashes on the website"*.
+
+All five service paragraphs carried one; this section held **every rendered em dash on the
+page** except two `aria-label`s in the nav.
+
+**Found by sweeping the rendered DOM, not by grepping source.** A source grep hits code
+comments, which are not "the website" — this file alone has dozens. The sweep walked every
+text node plus `alt` / `aria-label` / `title` / `placeholder` and found 12 matches, which
+collapse to 7 real strings (the other 5 were the same copy echoed inside the RSC payload in
+`<script>`).
+
+**Rewritten, not just deleted.** Every one of these dashes was doing grammatical work —
+setting off an appositive or a parenthetical — so removing the character alone would have
+left run-on sentences:
+
+| slot | before | after |
+|---|---|---|
+| agents | `…research and operations — in your brand's voice…` | split into two sentences: `…operations. They work in your brand's voice…` |
+| whatsapp | `…book, sell, support and follow up — connected to your CRM…` | split: `…follow up. Connected to your CRM…` |
+| crm | `…AI enrichment and lead scoring — and the training…` | `…lead scoring, plus the training…` |
+| integrations | `We wire the whole stack together — payments, accounting, marketing, support — with n8n…` | recast: `We wire payments, accounting, marketing and support into one stack, with n8n…` |
+| strategy | `…what to leave alone — weighing return, security…` | `…what to leave alone, weighing return, security…` |
+
+The `integrations` one was the only one a comma could not fix: the dashes were a **paired**
+parenthetical wrapping a list that already used commas, so a comma swap would have produced
+seven commas in a row with no structure. Recast instead.
+
+Also `aria-label="clix — home"` → `"clix home"` on both nav rows (see features/nav).
+
+**Verified zero afterwards**, two ways: the DOM sweep returns 0, and a second pass over
+`src/` that blanks comments before matching finds no em or en dash in any string that can
+reach a visitor. The only two survivors are trailing `//` comments on code lines.
+
+⚠️ Note the ticker's `−0.96%` uses **U+2212 MINUS**, not a dash, and is untouched — that is
+the correct character for a negative number and is not what the user was asking about.
+
+
 ### 2026-08-03 — built
 
 **Trigger:** user — a rogo.ai screenshot of the section, *"add this new section"*.

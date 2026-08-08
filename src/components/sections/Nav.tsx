@@ -399,7 +399,7 @@ export default function Nav({ quotes = [] }: { quotes?: Quote[] }) {
                           transition-colors duration-300
                           focus-visible:ring-2 focus-visible:outline-none
                           ${light ? "text-ink focus-visible:ring-ink" : "text-paper focus-visible:ring-paper"}`}
-              aria-label="clix — home"
+              aria-label="clix home"
             >
               <ClixMark size={MARK_SIZE} />
               <ClixWordmark />
@@ -512,7 +512,7 @@ export default function Nav({ quotes = [] }: { quotes?: Quote[] }) {
                         transition-colors duration-300
                         focus-visible:ring-2 focus-visible:outline-none
                         ${light ? "text-ink focus-visible:ring-ink" : "text-paper focus-visible:ring-paper"}`}
-            aria-label="clix — home"
+            aria-label="clix home"
           >
             <ClixMark size={MARK_SIZE} />
             <ClixWordmark />

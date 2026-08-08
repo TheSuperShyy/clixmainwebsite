@@ -33,7 +33,7 @@
  *   ffmpeg -i src/app/icon.png -vf "crop=480:440:16:36,scale=96:88:flags=lanczos,\
  *     format=rgba,geq=r=255:g=255:b=255:a='alpha(X,Y)'" -pix_fmt rgba public/clix-mark.png
  *
- * `aria-hidden` always: the <Link> wrapping this already carries `aria-label="clix — home"`,
+ * `aria-hidden` always: the <Link> wrapping this already carries `aria-label="clix home"`,
  * and the wordmark beside it is the visible name. A third label would just be noise.
  */
 
