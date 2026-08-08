@@ -43,12 +43,27 @@ export default function ClixWordmark({ className = "" }: { className?: string })
       aria-label="clix"
       /* `leading-none` matters: the default line-height would pad the box past the 24px
          the nav row allots and push the mark off its baseline. */
-      className={`inline-block font-sans text-[22px] leading-none font-bold uppercase
+      /* 26px as of 2026-08-07 (user: "make clix a bit bigger and the logo"), up from 22.
+         `ClixMark` was scaled by the SAME 1.18x factor in Nav.tsx (20 -> 24), so the
+         mark-to-cap-height ratio the lockup was built on is unchanged — scaling one without
+         the other is what makes a lockup look wrong. */
+      className={`inline-block text-[26px] leading-none font-bold uppercase
                   ${className}`}
       /* Letter-spacing is painted after the final X too, so the box carries a trailing
          gap the glyphs do not fill. `marginRight: -letterSpacing` cancels it. Negligible
-         at this tracking, kept because it is only correct with it. */
-      style={{ letterSpacing: "-0.015em", marginRight: "0.015em" }}
+         at this tracking, kept because it is only correct with it.
+
+         `--font-wordmark`, NOT `font-sans`. The site sans became Discovery on 2026-08-07;
+         the logo is still Inter 700 because the same ink-width test that picked Inter was
+         re-run against all seven Discovery weights and not one of them won (best was
+         Discovery Medium at err 0.0331 vs Inter's 0.0209). Pinning it here means a future
+         change of site face cannot silently re-cut the logo. Full table in
+         src/app/fonts-discovery.css. */
+      style={{
+        fontFamily: "var(--font-wordmark)",
+        letterSpacing: "-0.015em",
+        marginRight: "0.015em",
+      }}
     >
       clix
     </span>

@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "./fonts.css";
+@import "./fonts-discovery.css";
 
 /* ---------------------------------------------------------------------------
  * Design tokens — extracted from the rogo.ai capture (2026-08-02).
@@ -24,9 +25,25 @@
   --color-hairline-dark: #0000001a; /* x4 — pure black @10%, why-rogo item dividers */
   --color-tile: #0000000d; /* x5 — pure black @5%, why-rogo icon tile fill */
 
+  /* Market ticker (2026-08-08). NOT from the capture — the target has no ticker; these are
+     ours, and they are the first two colours on the site that carry meaning rather than
+     style, so they are tokens rather than inline values.
+     Both are measured against `--color-banner` (#211e1e), the only surface they ever sit on:
+     up 10.6:1, down 6.4:1 — both clear AA at the 12px they render at, and AAA for the up. */
+  --color-quote-up: #4ade80;
+  --color-quote-down: #f87171;
+
   /* Type */
   --font-display: "ABC Arizona Mix Regular", serif;
-  --font-sans: "Inter", sans-serif;
+  /* Discovery is clix's own face and became the site sans on 2026-08-07. Inter stays in the
+     stack deliberately: every spacing and wrap on this page was measured against Inter, so
+     if a Discovery file ever 404s the layout falls back to the metrics it was built on
+     rather than to whatever system sans the OS offers. See fonts-discovery.css. */
+  --font-sans: "Discovery", "Inter", sans-serif;
+  /* The logo lockup is NOT Discovery — measured, see fonts-discovery.css. It is Inter 700,
+     and `ClixWordmark` uses this token so switching the site sans can never silently
+     re-cut the logo. */
+  --font-wordmark: "Inter", sans-serif;
   --font-mono: "Fragment Mono", monospace;
 
   /* Breakpoints — Framer's real tiers, NOT Tailwind defaults.

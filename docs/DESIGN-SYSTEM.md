@@ -113,10 +113,36 @@ color:          #ffffff
 Only **two families are actually applied to text on the home page**. The Framer project
 declares fourteen; the rest belong to other pages and must not be used here.
 
-| Family | Role | Uses | Source |
-|---|---|---|---|
-| **ABC Arizona Mix Regular** | all display type / headings | ×33 | vendored `.woff2` |
-| **Inter** / Inter Medium | body + UI, 14px default | rest of page | vendored `.woff2` |
+| Family | Role | Token | Uses | Source |
+|---|---|---|---|---|
+| **ABC Arizona Mix Regular** | all display type / headings | `--font-display` | ×33 | vendored `.woff2` |
+| **Discovery** | body + UI, 14px default | `--font-sans` | rest of page | vendored variable `.woff2` |
+| **Inter** | the logo lockup, and *only* that | `--font-wordmark` | ×1 | vendored `.woff2` |
+
+> ### ⚠️ The sans changed on 2026-08-07: Inter → Discovery
+>
+> Discovery (Fontshok / Shoki Dayan) is clix's own face and is now `--font-sans`. Inter stays
+> in the stack behind it (`"Discovery", "Inter", sans-serif`) deliberately: every spacing and
+> wrap on this page was measured against Inter, so a failed font load falls back to the
+> metrics the layout was built on rather than to a system sans.
+>
+> **One file, not nine.** The user supplied 8 statics plus a variable font; the site serves
+> only `public/fonts/discovery/discovery-var.woff2` (90.5 KB, `wght` 100–800). Measured
+> against the alternative: the three statics the site uses come to 127.7 KB over three
+> requests. The licensed `.ttf` originals live in `assets/fonts/discovery/`, **outside the
+> web root**, so desktop files are not publicly downloadable.
+>
+> **The wordmark is NOT Discovery, and that is measured.** The 2026-08-03 pass identified the
+> clix logo as Inter 700 by matching 16 faces on ink-width-over-cap-height of C, L, I, X.
+> Discovery was not a candidate then; the test was re-run against all seven of its weights on
+> 2026-08-07 and **none beat Inter** (best: Discovery Medium err 0.0331 vs Inter 0.0209).
+> Hence the separate `--font-wordmark` token — so changing the site face can never silently
+> re-cut the logo. Full table in [src/app/fonts-discovery.css](../src/app/fonts-discovery.css).
+>
+> ⚠️ **Licence unverified.** The supplied files are DESKTOP `.ttf`s. Desktop EULAs typically
+> exclude web embedding, which normally needs a separate webfont licence. This is the user's
+> relationship with the foundry and their call, but it is the one thing here that may need
+> undoing.
 
 `.woff2` files live in [public/fonts/](../public/fonts/); the declarations are in
 [src/app/fonts.css](../src/app/fonts.css) (imported by `globals.css`), which
@@ -125,6 +151,7 @@ reproduces all 57 `@font-face` declarations verbatim from the capture (weight, s
 
 **Do not route these through `next/font/google`.** Inter from Google is not byte-identical
 to the subset Framer serves, and swapping it would break 1:1. Self-host the vendored files.
+(Discovery is not on Google Fonts at all — it is a commercial Fontshok release.)
 
 Also vendored but **not applied on this page** — available for later pages, not for home:
 Fragment Mono, Inter Display Medium/SemiBold. Declared in the original but never applied

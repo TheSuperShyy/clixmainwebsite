@@ -28,6 +28,82 @@ the two inherited contrast failures (role text 2.50:1, logo marks 1.92:1).
 
 ## Log
 
+### 2026-08-07 — sixth clip added; row re-proportioned; names no longer clip
+
+**Trigger:** user — *"I ADDED A NEW VIDEO IN THE ROOT INCLUDE THAT AS WELL JSUT TRANSCRIBE
+THE NAME AND COMPANY OR WHATSOEVER"*.
+
+Source: `WhatsApp Video 2026-08-07 at 18.00.03.mp4` in the repo root. 464×704, 19.9s, h264 +
+aac, 2.4 MB.
+
+#### ⚠️ There was nothing to transcribe
+
+The clip carries **no burned-in caption, no name card and no title overlay** — checked by
+tiling ten frames across its full 19.9s. `cropdetect` with `negate` confirms a full-bleed
+464×704 frame with no letterbox, unlike three of the five existing masters. Container
+metadata holds only `major_brand` and `language=und`; no title, no artist.
+
+The speaker presumably says his name in the audio. **There is no speech-to-text available in
+this environment**, so the name cannot be recovered from the file. `name` and `role` are
+therefore obvious placeholders — `"Name pending"` / `"Company pending"` — rather than a guess
+dressed as a fact. Files are `testimonial-06.{mp4,jpg}` so renaming is a three-line change
+once the user supplies it.
+
+#### Encode
+
+Kept at **native 464×704** rather than upscaled to the 720 the other five share. The card
+paints the video ~186 CSS px wide, so 464 already exceeds 3× DPR; upscaling would only add
+softness and bytes. crf 26 / preset slow / faststart, aac 96k mono: **2.4 MB → 904 KB**.
+Poster pulled at t=1.5s.
+
+#### Six cards in a row built for five
+
+The row must still sum to the container plus the gaps it swallows:
+
+```
+5 closed × 14%  +  (30% − 60px)  +  5 gaps × 12px   =  70% + 30%  =  100%
+```
+
+The `−60px` cancels the five gaps, the same trick the five-card version used with `−48px`
+for four. Verified — cards + gaps land within 1px of the row at every tier that uses the row
+layout:
+
+| width | row | cards | gaps | total | open card | closed cards |
+|---|---|---|---|---|---|---|
+| 1600 | 1280 | 1219 | 60 | 1279 | 324 | 179 |
+| 1440 | 1280 | 1219 | 60 | 1279 | 324 | 179 |
+| 1024 | 944 | 883 | 60 | 943 | 223 | 132 |
+| 810 | 730 | 669 | 60 | 729 | 159 | 102 |
+
+**The OPEN card gave up the 6 points (36% → 30%), not the closed ones.** It has slack they
+do not: it holds a 9:16 video that is *height*-bound by the 600px row, so it paints ~186px
+wide inside a 324px card either way. Taking the width off the closed cards instead would
+have cost name legibility, which is the only job a closed card has.
+
+#### The bug this surfaced: `break-words`
+
+Narrowing closed cards from 16% to 14% broke a name. **"Yahaloman" is a nine-letter single
+word** — 113px at the ≥1200 size, 87px at 13px — and a single word does not wrap, so
+`overflow-hidden` was cutting it mid-name. The sweep reported `*** CLIPPED ***` on that row
+at 1600, 1440 and 810.
+
+Fixed with `break-words` on the name. Shrinking the type does **not** solve it — at the 810
+tier even 11px still overruns the 70px box — and it would undo the sizing the user asked for
+when they wanted the names set as logo marks. Breaking a name across lines is not pretty
+under that treatment, but it beats truncating one: the reader gets the whole name, and there
+is vertical room (the card is 600px tall, the name block sits at the top). "NEVO YAHALOM /
+AN" now takes three lines at ≥1200. Re-measured: **no clipping at any tier.**
+
+#### Also this day
+
+The site sans became **Discovery**, so every name and role in this section is now set in it.
+No geometry changed as a result — see the global log.
+
+**Still open:** the sixth speaker's name and role; Achituv's name and role; all six clips
+carry Hebrew burned-in captions on an English-first site.
+
+---
+
 ### 2026-08-05 — rebuilt as a five-up video row; the rogo quotes are gone
 
 **Trigger:** user — *"yes dont change the design at all just make the testimonials video"*,

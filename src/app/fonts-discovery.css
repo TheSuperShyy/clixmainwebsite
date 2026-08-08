@@ -1,54 +1,78 @@
 /* Discovery (Fontshok / Shoki Dayan) — https://fontshok.co.il/font/discovery/
  *
- * NOT IMPORTED YET. This file is staged and inert until the licensed files exist; it is
- * kept separate from fonts.css because that one is a verbatim dump of the target's own
- * @font-face rules and is meant to be regenerated from the capture, not hand-edited.
+ * ACTIVE as of 2026-08-07 (user: "also use this font put it in a single folder as well the
+ * discovery font i want to use that"). It is now the site's sans, replacing Inter in the
+ * `--font-sans` token. Kept separate from fonts.css because that one is a verbatim dump of
+ * the target's own @font-face rules and is meant to be regenerated from the capture, not
+ * hand-edited.
+ *
+ * ⚠️ LICENCE — READ BEFORE SHIPPING. The user supplied DESKTOP .ttf files. A desktop licence
+ * usually does NOT cover web embedding; that is normally a separate webfont licence from the
+ * foundry. Converting them to woff2 and serving them from /fonts/ is exactly the use a
+ * desktop EULA tends to exclude. This is the user's relationship with Fontshok and their
+ * call — but it has not been verified, and it is the one thing here that could need undoing.
  *
  * ---------------------------------------------------------------------------------
- * TO ACTIVATE (two steps, both required)
+ * ONE FILE, NOT NINE. The user dropped 8 statics plus a variable font in the repo root.
+ * The site serves ONLY the variable font, converted to woff2:
  *
- *   1. Drop the licensed files in, named exactly:
- *        public/fonts/discovery/discovery-400.woff2
- *        public/fonts/discovery/discovery-500.woff2
+ *      public/fonts/discovery/discovery-var.woff2      90.5 KB
  *
- *   2. In globals.css:
- *        · add `@import "./fonts-discovery.css";` under the fonts.css import
- *        · change the token to `--font-sans: "Discovery", "Inter", sans-serif;`
+ * Measured against the alternative rather than assumed — the three statics the site actually
+ * uses (400 body, 500 nav/buttons, 700) come to 127.7 KB across THREE requests:
  *
- * Leaving Inter in the stack is deliberate: if a Discovery file ever fails to load the
- * page falls back to the metrics it was built against rather than to a system sans.
+ *      Discovery_Fs-VF.ttf        301.8 KB  ->   90.5 KB woff2   <- shipped
+ *      Discovery_Fs-Regular.ttf   157.1 KB  ->   41.8 KB woff2
+ *      Discovery_Fs-Medium.ttf    157.2 KB  ->   42.9 KB woff2
+ *      Discovery_Fs-Bold.ttf      157.1 KB  ->   43.0 KB woff2
+ *
+ * So the VF is 37.2 KB smaller AND one request instead of three, while covering every weight
+ * from 100 to 800 rather than just the three. The licensed originals live outside the web
+ * root in `assets/fonts/discovery/` so the desktop .ttf files are not publicly downloadable.
+ * Regenerate with fontTools:
+ *
+ *      python -c "from fontTools.ttLib import TTFont; \
+ *        f=TTFont(r'assets/fonts/discovery/Discovery_Fs-VF.ttf'); f.flavor='woff2'; \
+ *        f.save(r'public/fonts/discovery/discovery-var.woff2')"
+ *
  * ---------------------------------------------------------------------------------
+ * THE FACE, measured from the files (fontTools), not from the foundry's blurb:
+ *   · axes    — `wght` 100-800, and a second `XPRN` axis 0-2000 (left at its 0 default;
+ *               nothing on the site drives it)
+ *   · glyphs  — 723, cmap 490: 340 Latin, 51 Hebrew
+ *   · default instance is wght 100 (Thin), so `font-weight` must ALWAYS be stated
  *
- * WHY ONLY TWO WEIGHTS. Measured, not assumed — a CDP sweep of every element that paints
- * text, at 1600/1440/1024/390, found exactly three (family, weight) pairs in the sans role:
- *   · Inter 400 — 28 elements (body copy, banner, security labels)
- *   · Inter 500 — 31 elements (nav links, buttons, names, footer titles)
- *   · Inter 700 —  1 element  (ClixWordmark, and nothing else)
- * At ₪354 a weight, buying 700 for a single word is the difference between ₪708 and
- * ₪1,062. Setting the wordmark at 500 removes the need entirely.
+ * The old note in this file guessed 1447 glyphs and "Hebrew + Yiddish + Latin"; the real
+ * files are less than half that, so no `unicode-range` split is warranted. If a Hebrew page
+ * happens, revisit — but at 90 KB total this is not the place to optimise.
  *
- * If 700 is NOT licensed, the wordmark must be changed to a weight that is — otherwise the
- * browser synthesises a fake bold by smearing the 500 outlines, which looks worse on a
- * logotype than any real weight would.
+ * ---------------------------------------------------------------------------------
+ * ⚠️ THE WORDMARK DOES NOT USE THIS FACE, AND THAT IS MEASURED.
  *
- * NOTE ON HEBREW. Discovery ships Hebrew + Yiddish + Latin (1447 glyphs), so the full face
- * is large. No `unicode-range` split is declared here because the site is Latin-only today;
- * if a Hebrew version happens, subset per script and split these rules, or every English
- * page will pull the Hebrew glyphs it never draws.
+ * The 2026-08-03 pass identified the clix logo lockup as Inter 700 by matching 16 candidate
+ * faces on ink-width-over-cap-height of C, L, I and X. Discovery could not be a candidate
+ * then — the files did not exist. It is now, and the same test was re-run against all seven
+ * Discovery weights:
+ *
+ *      REFERENCE (logo)    C 0.862  L 0.655  I 0.207  X 0.897
+ *      Inter 700           C 0.880  L 0.633  I 0.213  X 0.927   err 0.0209  <- still best
+ *      Discovery Medium    C 0.795  L 0.672  I 0.199  X 0.937   err 0.0331
+ *      Discovery Regular   C 0.783  L 0.646  I 0.156  X 0.896   err 0.0353
+ *      Discovery Bold      C 0.820  L 0.721  I 0.282  X 1.017   err 0.0757
+ *
+ * Not one Discovery weight beats Inter. The logo is not set in Discovery, so `ClixWordmark`
+ * pins Inter explicitly instead of inheriting `--font-sans`. If the brand book says
+ * otherwise, that is a real conflict worth resolving with the source file — but the outlines
+ * say what they say.
  */
 
 @font-face {
   font-family: "Discovery";
-  src: url("/fonts/discovery/discovery-400.woff2") format("woff2");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Discovery";
-  src: url("/fonts/discovery/discovery-500.woff2") format("woff2");
-  font-weight: 500;
+  src: url("/fonts/discovery/discovery-var.woff2") format("woff2-variations"),
+    url("/fonts/discovery/discovery-var.woff2") format("woff2");
+  /* The range the `wght` axis actually spans. Declaring it is what lets the browser pick a
+     real instance for 400/500/700 instead of synthesising a fake bold from the 100 default. */
+  font-weight: 100 800;
   font-style: normal;
   font-display: swap;
 }

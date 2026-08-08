@@ -32,6 +32,124 @@ live site for the mobile menu, the scroll flip point, and the `Indicator` elemen
 
 ## Log
 
+### 2026-08-08 — the banner became a live AI-stock ticker
+
+**Trigger:** user, with a screenshot of the banner — *"put ai graph stocks here instead"*.
+Asked which of three readings they meant; they chose **"Live ticker, real quotes"** over a
+decorative graph and over hard-coded sample numbers.
+
+The slot has now turned over three times, each for a reason: the target's *"$160M Series D
+led by Kleiner Perkins"* (removed 08-05, a first-person claim clix cannot make) → *"Clix AI
+News"* + underlined *"Coming soon"* (08-07) → eight real quotes with sparklines.
+
+#### Provider — probed, not chosen from a docs page
+
+| source | result |
+|---|---|
+| Stooq CSV | **404** — the documented CSV path no longer resolves |
+| Yahoo v7 `/quote` | **401** — now gated, *"User is unable to access this feature"* |
+| **Yahoo v8 `/chart`** | **200** — no key, and returns an intraday series ✅ |
+| Finnhub | 401 — needs a key |
+| Twelve Data | 401 — needs a key |
+
+So this needs **no API key and no signup**, which is better than what the user accepted. Two
+real caveats, both told to them: v8 is **undocumented** (Yahoo has already closed v7 and can
+close this without notice), and **Yahoo's terms do not licence redistribution** of their data
+on a commercial site — the contractually clean answer is a free-tier key from a provider that
+does licence it. Swapping is one function (`loadQuotes` in `src/lib/quotes.ts`); only the
+Yahoo path is implemented, because it is the only one verifiable from here.
+
+#### Shape
+
+- `src/lib/quotes.ts` — fetch + normalise. Returns `[]` on failure; **never invented numbers**.
+- `src/app/api/quotes/route.ts` — re-serves the same payload for the client's 5-min refresh.
+  Needed because **Yahoo sends no CORS header**, so the browser cannot call it directly.
+- `src/components/ui/StockTicker.tsx` — marquee + sparklines.
+- Quotes are fetched in `page.tsx` (a server component) and passed to `Nav` as a prop, so the
+  **first paint already has real numbers**. Fetching client-side would have popped the strip
+  in after hydration and shoved the fixed header down 45px in front of the visitor.
+
+⚠️ **First route handler in the project.** Every page stays prerendered, but this one path
+needs a Node runtime — that rules out a pure `output: "export"` static export (which this
+project does not use). On Vercel it is a serverless function, no configuration.
+
+⚠️ `export const revalidate` **must be a literal.** Next statically analyses segment configs
+and rejects an imported binding with *"Invalid segment configuration export detected"* — so
+it is `300` in both files, kept in step with `REVALIDATE_SECONDS` by hand. Build failure, not
+a warning.
+
+#### Two bugs found by measuring, not by looking
+
+**1. The strip lost a pixel: 45 → 44.** The old text was 14px on a 1.5em line box = 21px;
+ticker items are 13px beside a 14px sparkline = 19.5px. That matters because `bannerH` is
+what the header's hide-on-scroll transform travels. Pinned the row to 21px; the header's
+transform is back to exactly `-45`.
+
+**2. The marquee would have shown a hole at 1600.** Eight quotes measure a **1573px cycle**.
+The tween slides one cycle then snaps, so the copies *behind* the start point —
+`(passes - 1) × cycle` — must still cover the viewport at that instant. Two passes leave
+1573px against a 1600px viewport: a **27px gap at the right edge, once per loop**. This is
+the same class of error as the half-gap drift in `LogoCarousel` and equally invisible until
+measured. Fixed by making the pass count dynamic: 3 by default (covers 3146px), widened by
+the effect and on resize if the viewport is bigger — a 4K panel at 1× is 3840 CSS px and
+would otherwise show the same hole.
+
+#### Sparkline scale — a correction
+
+Per-series normalisation initially looked wrong: MSFT at **+0.03%** drew as violent a line as
+PLTR at **+10.32%**. It is not wrong. Measured the real ranges: MSFT swung **498.95–504.66
+intraday, a genuine 1.14% range**, and closed flat. The sparkline shows the day's *path*; the
+percentage shows the *close-to-close change*. Two different facts that can legitimately
+disagree.
+
+A 1%-of-price floor on the band was kept anyway, for the case per-series scaling really does
+misrepresent — a series that barely moved would otherwise stretch 0.1% of drift into a crash.
+On live data the ranges ran 1.08% (GOOGL) to 5.20% (PLTR), so **the floor does not bind on a
+normal trading day**; it guards thin trading, holidays and halted names.
+
+#### Verified
+
+`stripH 45` · `passes 3` · `cycle 1573` · `coverAfterSnap 3146 ≥ viewport` at 1600 / 1440 /
+1024 / 810 / 390. Header transform `-45` on scroll-down, `none` on scroll-up — the
+direction-aware banner behaviour is intact. No horizontal overflow at any tier; the ≥1200
+link row is unmoved at `w=574`. A 213-character `sr-only` list carries the quotes as static
+text, so a screen reader gets them once, in order, without the marquee's duplicate passes.
+
+**Colours:** `--color-quote-up` `#4ade80` and `--color-quote-down` `#f87171`, both new tokens
+in `globals.css` — the first two colours on the site that carry meaning rather than style.
+Contrast on `--color-banner` (#211e1e): **10.6:1 up, 6.4:1 down**.
+
+---
+
+### 2026-08-07 (later) — logo lockup scaled up 1.18x
+
+**Trigger:** user, with a screenshot of the live nav — *"make clix a bit bigger and the
+logo"*.
+
+Wordmark **22 → 26px**, mark **20 → 24px**. **Both moved, by the same factor.** The mark sits
+at ~1.3x the wordmark's cap height and that ratio is what makes the pair read as one lockup;
+growing either alone is precisely what makes a logo look off. Lockup width 80 → **93.4px**.
+
+The two `<Link>` boxes grew with it — `h-6 → h-7` compact, `h-7 → h-8` full. **Neither changes
+the nav's own height**, because both rows are sized by their CTA button (40px compact, ~38px
+full), which is still taller than the 32px logo box. Confirmed rather than assumed: the >=1200
+link row is unmoved at `w=574`, and `gapLinksToCta` is 261 at 1440 and 181 at 1200 — identical
+to before the change. No horizontal overflow at any of 1600/1440/1200/1024/810/390, and the
+banner is untouched (45px, one line, unclipped, 10px gap).
+
+Colour tracking re-verified at the new size across all three themes:
+
+```
+1440 hero   mark 26.2x24 fill rgb(255,255,255)   word 58.9x26   gap 8   centreDelta 0
+1440 light  mark 26.2x24 fill rgb(21,21,21)      word 58.9x26   gap 8   centreDelta 0
+1440 dark   mark 26.2x24 fill rgb(255,255,255)   word 58.9x26   gap 8   centreDelta 0
+```
+
+Identical at 810 and 390. `centreDelta 0` still holds — mark and wordmark share a vertical
+centre exactly.
+
+---
+
 ### 2026-08-07 — logo mark added left of the wordmark
 
 **Trigger:** user — *"add clix logo in the left of the clix word on the navbar"*.

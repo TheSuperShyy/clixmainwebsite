@@ -44,13 +44,21 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import ClixWordmark from "@/components/ui/ClixWordmark";
 import ClixMark from "@/components/ui/ClixMark";
+import StockTicker from "@/components/ui/StockTicker";
+import type { Quote } from "@/lib/quotes";
 
-/* Logo lockup geometry (2026-08-07). The wordmark is 22px Inter Bold, i.e. a 15.0px cap
-   height; the mark is set to 20px tall — about 1.33x the caps, which is the usual range for
-   a mark beside a wordmark and keeps it inside the 24px box the compact row allots. Width
-   follows the asset's 96:88 aspect, so 21.8px. The 8px gap is `gap-2`, the same step the
-   nav's own button row uses. */
-const MARK_SIZE = 20;
+/* Logo lockup geometry (2026-08-07). Scaled up 1.18x later the same day at the user's
+   request ("make clix a bit bigger and the logo") — wordmark 22 -> 26px, mark 20 -> 24px.
+   BOTH moved together on purpose: the mark sits at ~1.3x the wordmark's cap height, and
+   growing one without the other is exactly what makes a lockup look off.
+
+   Mark width follows the asset's 96:88 aspect, so 24px tall renders 26.2px wide. The 8px
+   gap is `gap-2`, the same step the nav's own button row uses.
+
+   The Link boxes grew with it (h-6 -> h-7 compact, h-7 -> h-8 full). Neither changes the
+   nav's own height: both rows are sized by their CTA button (40px compact, ~38px full),
+   which is still taller than the 32px logo. */
+const MARK_SIZE = 24;
 
 /* Seven slots, deliberately — the row's spacing and its 1200px collapse were measured
    against seven items, so the count is layout, not content. The IA is the one the real
@@ -77,21 +85,20 @@ const LINKS: { label: string; href: string | null }[] = [
    cannot classify falls back to `light`, which is the majority of the page. */
 type NavTheme = "hero" | "light" | "dark";
 
-/* Was "Announcing our $160M Series D led by Kleiner Perkins" — the TARGET's real funding
-   round, which under a clix wordmark read as a first-person claim clix cannot make.
-   Replaced 2026-08-05 at the user's direction.
+/* THE BANNER IS NOW A LIVE MARKET TICKER (2026-08-08, user: "put ai graph stocks here
+   instead", then picking "Live ticker, real quotes" over a decorative graph).
 
-   Split into two runs 2026-08-07 (user: "instead of clix ai make it clix ai news then coming
-   soon with underline so its like a link"). This restores the target's own two-part banner
-   shape — headline + trailing call to action — which the 08-05 pass had collapsed to a
-   single string.
+   Its history, because the slot has turned over three times and each change had a reason:
+     · target's original — "Announcing our $160M Series D led by Kleiner Perkins", removed
+       2026-08-05 because under a clix wordmark it read as a first-person claim clix cannot
+       make;
+     · "Clix AI — launching soon", then split 2026-08-07 into "Clix AI News" + an underlined
+       "Coming soon" to restore the target's headline + trailing-CTA shape;
+     · now eight real AI-stock quotes with sparklines.
 
-   `BANNER_CTA` is UNDERLINED BUT NOT A LINK. Still a <span>, still no href: the announcement
-   has no page behind it, and an <a href="#"> would jump to the top of the page and read as
-   broken. It looks like a link because the user asked for that affordance; the moment there
-   is a Clix AI News page, this becomes an <a> and the styling already fits. */
-const BANNER_TEXT = "Clix AI News";
-const BANNER_CTA = "Coming soon";
+   The strings are gone rather than kept as a fallback ON PURPOSE. A ticker that silently
+   degrades to marketing copy would hide an outage; with no quotes the strip renders nothing
+   and collapses to zero height, which is visible and honest. See src/lib/quotes.ts. */
 
 /* Button — padding 8/16, inner row 20px tall with a 1px top nudge, radius 6.
    The border is 1px and transparent in both variants; it exists so the box does not
@@ -179,7 +186,13 @@ function MenuGlyph({ open }: { open: boolean }) {
   );
 }
 
-export default function Nav() {
+/* `quotes` is fetched in page.tsx (a server component) and passed down rather than fetched
+   here. Two reasons: Yahoo sends no CORS header so the browser cannot call it at all, and
+   server-rendering the strip means the first paint already has real numbers — a ticker that
+   appeared after hydration would shove the whole fixed header down 45px in front of the
+   visitor. Defaults to `[]` so a caller that has no data still type-checks and simply gets
+   no banner. */
+export default function Nav({ quotes = [] }: { quotes?: Quote[] }) {
   const [open, setOpen] = useState(false);
   const toggleRef = useRef<HTMLButtonElement>(null);
 
@@ -324,64 +337,26 @@ export default function Nav() {
       }}
     >
       {/* ---------------------------------------------------------------- Banner
-          >=810: centred row, padding 12/40, gap 10 between the dot group and the trailing
-                 call to action (the target's "Learn more" slot; ours is "Coming soon").
-          <810 : padding 12/16, left-aligned, headline truncates to one line so the trailing
-                 run is never pushed off the edge.
+          The strip keeps the target's own box — `padding: 12px 16px` on phone, `12px 40px`
+          from 810 up — so its height is unchanged at 45px and the `bannerShift` transform
+          below still travels the same distance. Only the CONTENTS changed: the centred text
+          pair became a full-width scrolling ticker, so the inner wrappers that existed to
+          centre a short headline are gone with it.
 
           Eases out on the way down and back in on the way up, even though it sits in the
           fixed block — see the `bannerShift` effect above. `aria-hidden` + `inert` whenever
-          it is on its way out, so it never sits in the tab order invisibly. */}
+          it is on its way out, so it never sits in the tab order invisibly.
+
+          Renders NOTHING when `quotes` is empty, collapsing the strip to zero height. That
+          is the outage story: no band rather than a band of stale or invented numbers. */}
       <div
         ref={bannerRef}
-        className="w-full bg-banner"
+        className={quotes.length ? "w-full bg-banner" : "hidden"}
         aria-hidden={bannerGone}
         {...(bannerGone ? { inert: true } : null)}
       >
-        <div
-          className="flex w-full items-center gap-6
-                     px-4 py-3 tablet:justify-center tablet:px-10"
-        >
-          <div className="flex min-w-0 flex-1 items-center gap-2 tablet:justify-center">
-            <div className="flex min-w-0 flex-1 items-center gap-[10px] tablet:w-min tablet:flex-none">
-              <div className="flex min-w-0 flex-1 items-center gap-2 tablet:w-min tablet:flex-none tablet:gap-[10px]">
-                {/* Container — the 8px dot is present in the original but has no fill
-                    declared, so it renders as pure spacing. Kept because removing it
-                    would close up 18px (8 + the 10px gap) on every tier. */}
-                <div className="flex min-w-0 flex-1 items-center gap-[10px] tablet:w-min tablet:flex-none">
-                  <div
-                    className="h-2 w-2 flex-none rounded-full"
-                    aria-hidden="true"
-                  />
-                  {/* A <span>, not an <a>. Every type value the anchor carried is kept so
-                      the strip measures identically; only the interactivity is gone, since
-                      there is nowhere to go. `truncate` still matters — this is the element
-                      that ellipsises on phone. */}
-                  <span
-                    className="min-w-0 truncate font-sans text-[14px] text-paper
-                               tablet:overflow-visible tablet:whitespace-pre"
-                    style={{
-                      lineHeight: "1.5em",
-                      letterSpacing: "-0.02em",
-                    }}
-                  >
-                    {BANNER_TEXT}
-                  </span>
-                </div>
-                {/* `flex-none` beside a `min-w-0 flex-1` headline is the whole reason this
-                    is a separate element rather than more text in the span above: on phone
-                    the headline is what ellipsises, and this stays legible. Same reason the
-                    original kept "Learn more" out of its headline run. */}
-                <span
-                  className="flex-none whitespace-nowrap font-sans text-[14px] text-paper
-                             underline decoration-1 underline-offset-[3px]"
-                  style={{ lineHeight: "1.5em", letterSpacing: "-0.02em" }}
-                >
-                  {BANNER_CTA}
-                </span>
-              </div>
-            </div>
-          </div>
+        <div className="flex w-full items-center px-4 py-3 tablet:px-10">
+          <StockTicker initial={quotes} />
         </div>
       </div>
 
@@ -420,7 +395,7 @@ export default function Nav() {
                  Colour and its transition live HERE rather than on each child, so the mark
                  and the wordmark can never drift out of step mid-flip. Both read
                  `currentColor` — the wordmark as text, the mark as a mask fill. */
-              className={`flex h-6 flex-none items-center gap-2 no-underline
+              className={`flex h-7 flex-none items-center gap-2 no-underline
                           transition-colors duration-300
                           focus-visible:ring-2 focus-visible:outline-none
                           ${light ? "text-ink focus-visible:ring-ink" : "text-paper focus-visible:ring-paper"}`}
@@ -533,7 +508,7 @@ export default function Nav() {
           <Link
             href="/"
             /* Colour + transition on the anchor, not per child — see the compact row. */
-            className={`flex h-7 flex-none cursor-pointer items-center gap-2 no-underline
+            className={`flex h-8 flex-none cursor-pointer items-center gap-2 no-underline
                         transition-colors duration-300
                         focus-visible:ring-2 focus-visible:outline-none
                         ${light ? "text-ink focus-visible:ring-ink" : "text-paper focus-visible:ring-paper"}`}

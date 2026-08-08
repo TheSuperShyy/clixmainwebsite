@@ -15,7 +15,73 @@ Line format:
 
 ---
 
+## 2026-08-08
+
+- **[--:--]** `nav` `infra` — **the announcement banner became a live AI-stock ticker.** User:
+  *"put ai graph stocks here instead"*; asked which of three readings they meant and they
+  chose **live real quotes** over a decorative graph and over hard-coded numbers. Eight
+  symbols (NVDA, MSFT, GOOGL, AMZN, META, AVGO, AMD, PLTR) with sparklines, scrolling.
+  **Provider probed, not assumed**: Stooq 404, Yahoo v7 401 (gated), **Yahoo v8 `/chart` 200
+  with no key**, Finnhub/Twelve Data 401. So it needs **no key and no signup** — better than
+  what the user accepted — but v8 is **undocumented** and **Yahoo's terms don't licence
+  redistribution on a commercial site**; the swap point is one function. New:
+  `src/lib/quotes.ts`, `src/app/api/quotes/route.ts` (needed because **Yahoo sends no CORS
+  header**), `src/components/ui/StockTicker.tsx`. Quotes are awaited in `page.tsx` and passed
+  to `Nav`, so **the first paint has real numbers** rather than popping in and shoving the
+  fixed header down. ⚠️ **First route handler in the project** — pages stay prerendered but
+  this path needs a Node runtime. ⚠️ `export const revalidate` **must be a literal**; an
+  imported binding is a hard build failure. **Two bugs caught by measuring**: the strip lost a
+  pixel (45→44, and `bannerH` is what the hide-on-scroll transform travels — repinned, header
+  back to `-45`), and the marquee **would have shown a 27px hole at 1600** because 8 quotes
+  measure a 1573px cycle and two passes don't cover the viewport at the snap — pass count is
+  now dynamic (3 default, widened on resize for 4K). **Correction**: per-series sparkline
+  scaling looked wrong (MSFT +0.03% drawing like PLTR +10.32%) but isn't — MSFT genuinely
+  swung 1.14% intraday and closed flat. New tokens `--color-quote-up` / `--color-quote-down`,
+  10.6:1 and 6.4:1 on the banner. → [detail](../features/nav/CONTEXT.md)
+
+---
+
 ## 2026-08-07
+
+- **[--:--]** `nav` — **logo lockup scaled up 1.18×** (wordmark 22→26px, mark 20→24px). User:
+  *"make clix a bit bigger and the logo"*. Both moved by the same factor deliberately — the
+  mark sits at ~1.3× the wordmark's cap height, and growing either alone is what makes a
+  lockup look off. Lockup 80 → 93.4px wide. Link boxes `h-6→h-7` / `h-7→h-8`, but **the nav's
+  own height is unchanged** because both rows are sized by their CTA button (40px / ~38px),
+  still taller than the 32px logo — confirmed, not assumed: the ≥1200 link row is unmoved at
+  `w=574` and `gapLinksToCta` is identical at 261/181. No overflow at any tier; colour
+  tracking and `centreDelta 0` re-verified in all three themes.
+  → [detail](../features/nav/CONTEXT.md)
+
+- **[--:--]** `docs` `design-system` — **Discovery replaced Inter as the site sans.** User:
+  *"also use this font put it in a single folder as well the discovery font i want to use
+  that"*. User dropped 8 statics + a variable font loose in the repo root. **Ships ONE file**:
+  `public/fonts/discovery/discovery-var.woff2`, 90.5 KB, `wght` 100–800 — measured against the
+  alternative, the three statics the site uses come to 127.7 KB over three requests. Licensed
+  `.ttf` originals moved to `assets/fonts/discovery/`, **outside the web root**, so desktop
+  files are not publicly downloadable. ⚠️ **The wordmark stays Inter, and that is measured** —
+  the 08-03 ink-width test was re-run against all seven Discovery weights and **none beat
+  Inter** (best Discovery Medium err 0.0331 vs Inter 0.0209), so a new `--font-wordmark` token
+  pins it. ⚠️ **Licence unverified**: these are DESKTOP `.ttf`s and desktop EULAs typically
+  exclude web embedding. Swept every place a width change becomes a layout bug — nav row,
+  banner truncation, marquee cycle, stat wraps — at 1600/1440/1200/1024/810/390: **no
+  horizontal overflow anywhere**, banner still one line and unclipped, marquee cycle 2243 →
+  **2122, still ≥ the 1600 viewport**. → [detail](DESIGN-SYSTEM.md)
+
+- **[--:--]** `testimonials` — **sixth clip added; row re-proportioned; a name-clipping bug
+  found and fixed.** User: *"I ADDED A NEW VIDEO IN THE ROOT INCLUDE THAT AS WELL JSUT
+  TRANSCRIBE THE NAME AND COMPANY OR WHATSOEVER"*. ⚠️ **There was nothing to transcribe** —
+  no burned-in caption, no name card, no title overlay (ten frames checked across 19.9s), and
+  container metadata holds only `language=und`; the name is only in the audio and there is no
+  speech-to-text here. Shipped as obvious placeholders (`"Name pending"`), files named
+  `testimonial-06.*` so renaming is a three-line change. Encoded at **native 464×704** rather
+  than upscaled to the others' 720 — the card paints it ~186 CSS px wide, so native already
+  clears 3× DPR: **2.4 MB → 904 KB**. Row re-proportioned 5 closed × 14% + (30% − 60px);
+  the **open** card gave up the 6 points because its 9:16 video is height-bound and had slack
+  the closed ones didn't. That narrowing surfaced a real bug: **"Yahaloman" is a nine-letter
+  single word that cannot wrap** and was being cut mid-name at 1600/1440/810 — fixed with
+  `break-words`, since shrinking the type doesn't solve it (even 11px overruns the 810-tier
+  box). → [detail](../features/testimonials/CONTEXT.md)
 
 - **[--:--]** `by-the-numbers` — **coverage stat corrected 24/7 → 24/6.** User: *"also it not
   24/7 its 24/6"*. Tail moved with it, `"that never sleeps"` → `"outside office hours"`, since

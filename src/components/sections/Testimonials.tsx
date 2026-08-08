@@ -40,15 +40,28 @@ type Clip = {
 };
 
 /* Names and roles are as published on clixsolutions.info, English-rendered.
-   ⚠️ `achituv` is the exception — it came from the uploaded filename
-   ("Achituv-Vtechezena.MOV") and is NOT on the live site, so the role below is a reading of
-   that filename, not a sourced fact. Confirm before this ships. */
+
+   ⚠️ TWO OF THE SIX ARE UNSOURCED. Both need the user before this is public:
+
+   · `achituv` — came from the uploaded filename ("Achituv-Vtechezena.MOV") and is NOT on the
+     live site, so the role is a reading of that filename, not a sourced fact.
+
+   · `testimonial-06` — added 2026-08-07 from "WhatsApp Video 2026-08-07 at 18.00.03.mp4".
+     The user asked to "just transcribe the name and company or whatsoever", but there is
+     **nothing to transcribe from**: the clip carries no burned-in caption, no name card and
+     no title overlay (checked ten frames across its 19.9s), and its container metadata holds
+     only `major_brand`/`language=und`. The speaker presumably says his name in the audio,
+     and there is no speech-to-text available in this environment. So the two strings below
+     are PLACEHOLDERS, deliberately obvious ones — they are not a guess dressed up as a fact.
+     Replace both, and rename the two files in public/testimonials/, the moment the user
+     supplies the name. */
 const CLIPS: Clip[] = [
   { id: "asaf-peretz", name: "Asaf Peretz", role: "Founder, SalesIQ" },
   { id: "adir-peretz", name: "Adir Peretz", role: "Owner, video & photography studio" },
   { id: "nevo-yahaloman", name: "Nevo Yahaloman", role: "Founder" },
   { id: "noam-tovi", name: "Noam Tovi", role: "Owner, investments" },
   { id: "achituv", name: "Achituv", role: "Vtechezena" },
+  { id: "testimonial-06", name: "Name pending", role: "Company pending" },
 ];
 
 /* The capture draws this as a CSS mask on a 20px box; the path is an 18px plus glyph
@@ -116,7 +129,18 @@ function Card({
       /* Padding is the target's `p-8` / `py-8 pr-14 pl-8`, EXCEPT between 810 and 1200
          where it drops to `p-4`. Five closed cards at that tier are 117px wide, and 32px of
          padding each side leaves 53px — not enough to render a name. The target never hit
-         this because it only ever laid three cards in a row, and only above 1200. */
+         this because it only ever laid three cards in a row, and only above 1200.
+
+         SIX cards as of 2026-08-07, was five. The row must still sum to exactly 100% plus
+         the gaps it swallows: 5 closed x 14% + (30% - 60px) + 5 gaps x 12px = 70% + 30% =
+         100%. The -60px is what cancels the five gaps, the same trick the five-card version
+         used with -48px for four.
+
+         The OPEN card gave up the 6 points (36 -> 30), not the closed ones, because it has
+         slack they do not: it holds a 9:16 video that is HEIGHT-bound by the 600px row, so
+         it paints ~186px wide inside a 324px card either way. Taking the width off the
+         closed cards instead would have cost name legibility, which is the one job a closed
+         card has. */
       className={`relative flex cursor-pointer flex-col items-start justify-center gap-6
                   overflow-hidden rounded-[6px] bg-card p-8
                   transition-[width] duration-500
@@ -124,7 +148,7 @@ function Card({
                   focus-visible:ring-offset-canvas focus-visible:outline-none
                   tablet:h-full tablet:justify-between tablet:gap-0 tablet:p-4
                   desktop:py-8 desktop:pr-14 desktop:pl-8
-                  ${open ? "tablet:w-[calc(36%-48px)]" : "tablet:w-[16%]"}`}
+                  ${open ? "tablet:w-[calc(30%-60px)]" : "tablet:w-[14%]"}`}
       style={{ transitionTimingFunction: "var(--ease-rogo)" }}
     >
       {/* Top block — the name, where the target put the customer's logo mark. */}
@@ -153,8 +177,22 @@ function Card({
                  from the capture — but this slot now holds a person's NAME, which is
                  content a visitor has to be able to read. 60% clears AA on `card` and still
                  reads as the muted grey label the design wants. */
-              className="w-full font-sans text-[13px] font-bold text-ink/60 uppercase
-                         desktop:text-[17px]"
+              /* `break-words` added 2026-08-07 with the sixth card, and it is load-bearing
+                 rather than defensive. Six closed cards are 179px at >=1200 and 102px at
+                 810, leaving the name 91px and 70px of box. "Yahaloman" is a NINE-LETTER
+                 SINGLE WORD — 113px at 17px, 87px at 13px — and a single word does not
+                 wrap, so it was being clipped mid-name by the card's `overflow-hidden`.
+                 Measured, not guessed: the sweep reported *** CLIPPED *** on that row at
+                 1600, 1440 and 810.
+
+                 Breaking a name across lines is not pretty under a logo-mark treatment. It
+                 is still strictly better than truncating one: the reader gets the whole
+                 name. Shrinking the type instead does not actually solve it — at the 810
+                 tier even 11px still overruns the 70px box — and it would undo the
+                 sizing the user asked for. There is vertical room: the card is 600px tall
+                 and this block sits at the top of it. */
+              className="w-full font-sans text-[13px] font-bold break-words text-ink/60
+                         uppercase desktop:text-[17px]"
               style={{ lineHeight: "1.3em", letterSpacing: "0.1em" }}
             >
               {clip.name}

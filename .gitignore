@@ -61,3 +61,22 @@ public/video/hero-poster-original.jpg
 # keep them on disk, out of the repo. Crop boxes needed to reproduce the encode are in
 # features/testimonials/CONTEXT.md, so this folder is replaceable, not load-bearing.
 Client testimonials/
+
+# Discovery font SOURCES (2026-08-07). ⚠️ THIS REPO IS PUBLIC — verified with
+# `gh repo view --json visibility` before writing this rule.
+#
+# Discovery is a COMMERCIAL Fontshok release and the user supplied DESKTOP .ttf files
+# (8 statics + a variable font, ~1.5 MB). Committing those to a public repo redistributes a
+# paid font to anyone who clones it, which is a different and much larger problem than a
+# website serving its own webfont.
+#
+# So: the sources stay on disk in assets/fonts/discovery/, and the ONLY font byte in the
+# repo is public/fonts/discovery/discovery-var.woff2 — the one file the running site has to
+# fetch to render at all. Same reasoning as the testimonial masters above: keep them local,
+# out of the repo, and document how to regenerate. The fontTools one-liner that rebuilds the
+# woff2 from the .ttf is in src/app/fonts-discovery.css.
+#
+# ⚠️ SEPARATE, UNRESOLVED: whether a desktop licence permits web embedding AT ALL. It
+# usually does not — that is normally a separate webfont licence. This rule limits the
+# exposure; it does not settle the question. See docs/DESIGN-SYSTEM.md.
+assets/fonts/
