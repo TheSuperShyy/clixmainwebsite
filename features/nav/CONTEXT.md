@@ -32,6 +32,50 @@ live site for the mobile menu, the scroll flip point, and the `Indicator` elemen
 
 ## Log
 
+### 2026-08-08 — nav link type raised 14px → 16px → 18px
+
+**Trigger:** user, with a screenshot of the link row — *"make the font of this bigger"*, then
+*"a bit bigger"* on seeing 16px. **18px is the shipped value**; 16px was one round.
+
+Raised in all three places the nav sets its label size, so the three rows do not drift apart:
+the desktop link row, the `NavButton` label ("Let's start"), and the mobile panel's links.
+Everything else is untouched — weight stays 500, `line-height` 1.5em, `letter-spacing`
+-0.01em, and the item box stays `h-9 px-3 py-2` with `gap-3` between items.
+
+⚠️ **This is a deliberate divergence from the target.** rogo.ai sets this row at 14px and
+that value was measured, not guessed. Recorded here so a later reference pass does not
+"correct" it back. Same class of divergence as the 24/6 stat.
+
+**Measured after, because the row is `absolute left-1/2 -translate-x-1/2 w-min`** — it grows
+from its own centre, so a size bump eats the clearance on *both* sides at once, and the CTA
+is the side that runs out first:
+
+| width | row w @16 | row w @18 | clearance to "Let's start" @18 | clipped | doc overflow |
+|---|---|---|---|---|---|
+| 1600 | 622px | 670px | 196px | none | no |
+| 1440 | 622px | 670px | 196px | none | no |
+| 1200 | 622px | 670px | **116px** | none | no |
+| 1024 / 390 | — | — | compact row, nav not rendered | — | — |
+
+1200 is the binding tier (the full row's lower bound). Each 2px step costs **48px of row
+width, so 24px of clearance per side**; at 18px the tightest gap is 116px, which is still
+comfortable but is the number to watch. Extrapolating that slope, ~24px is where the row
+would touch the CTA at 1200 — so 20px is safe and anything past that needs the row's `gap-3`
+or the item `px-3` to come down with it.
+
+No item overflows its own `overflow:hidden` box — checked with `scrollWidth > clientWidth` on
+every label, not by eye, since the boxes are `whitespace-pre` and would clip silently rather
+than wrap.
+
+Also confirmed in the same probe that **Discovery is the face actually painting these
+links** — `font-family` resolves to `Discovery, Inter, sans-serif` and
+`document.fonts.check('500 16px Discovery')` is `true` at all five widths, i.e. the webfont
+loaded and is not silently falling through to Inter. The user asked for that verification
+explicitly, and in the same breath **closed the licence question: they bought the font**
+(*"the font is verified i bought it"*). The warning block in `fonts-discovery.css` is
+replaced with that fact; the `.ttf` originals still stay out of the web root regardless.
+
+
 ### 2026-08-08 — the banner became a live AI-stock ticker
 
 **Trigger:** user, with a screenshot of the banner — *"put ai graph stocks here instead"*.

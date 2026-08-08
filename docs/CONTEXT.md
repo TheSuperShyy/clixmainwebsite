@@ -17,6 +17,22 @@ Line format:
 
 ## 2026-08-08
 
+- **[--:--]** `nav` `docs` — **Discovery licence question closed.** User: *"the font is
+  verified i bought it"*. The ⚠️ block in `src/app/fonts-discovery.css` warning that desktop
+  `.ttf` EULAs usually exclude web embedding is replaced with the purchase confirmation; the
+  face is cleared to ship. The licensed `.ttf` originals stay outside the web root anyway.
+  → [detail](../features/nav/CONTEXT.md)
+- **[--:--]** `nav` — **link type raised 14px → 18px** (via 16px, one round with the user),
+  in all three places the nav sets a label size (desktop row, `NavButton`, mobile panel) so
+  the rows cannot drift. User: *"make the font of this bigger"* → *"a bit bigger"*. ⚠️ A
+  **deliberate divergence** — rogo.ai's measured value is 14px. Measured the fit after,
+  because the row is `absolute left-1/2 w-min` and grows from its own centre: 670px wide,
+  clearing the CTA by 196px at 1600/1440 and **116px at 1200**, the binding tier. Each 2px
+  step costs 48px of row width, i.e. 24px of clearance per side, so ~20px is the last safe
+  step before `gap-3`/`px-3` have to come down with it. No label overflows its
+  `overflow:hidden` box, no doc overflow at any width. Same probe confirmed Discovery is the
+  face actually painting the links (`document.fonts.check` true at all five widths).
+  → [detail](../features/nav/CONTEXT.md)
 - **[--:--]** `why-rogo` `nav` — **em dashes removed from all visitor-facing copy.** User:
   *"Remove emdashes on the website"*. Swept the **rendered DOM** rather than grepping source,
   since a grep hits code comments which are not the website: 12 matches collapsing to 7 real

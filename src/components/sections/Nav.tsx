@@ -142,7 +142,7 @@ function NavButton({
       <span className="flex h-5 items-center justify-center gap-[10px] pt-px">
         <span
           className={[
-            "font-sans text-[14px] font-medium transition-colors duration-300",
+            "font-sans text-[18px] font-medium transition-colors duration-300",
             variant === "inverse"
               ? light
                 ? "text-paper"
@@ -444,7 +444,7 @@ export default function Nav({ quotes = [] }: { quotes?: Quote[] }) {
                 transitionTimingFunction: "var(--ease-rogo)",
               };
               const base =
-                "flex h-9 items-center font-sans text-[14px] font-medium text-paper";
+                "flex h-9 items-center font-sans text-[18px] font-medium text-paper";
               return l.href ? (
                 <a
                   key={l.label}
@@ -530,7 +530,7 @@ export default function Nav({ quotes = [] }: { quotes?: Quote[] }) {
             {LINKS.map((l) => {
               const box =
                 "flex h-9 w-min flex-col items-center justify-center overflow-hidden px-3 py-2 whitespace-pre";
-              const text = `font-sans text-[14px] font-medium transition-colors duration-300 ${
+              const text = `font-sans text-[18px] font-medium transition-colors duration-300 ${
                 light ? "text-ink" : "text-paper"
               }`;
               return l.href ? (

@@ -6,11 +6,12 @@
  * the target's own @font-face rules and is meant to be regenerated from the capture, not
  * hand-edited.
  *
- * ⚠️ LICENCE — READ BEFORE SHIPPING. The user supplied DESKTOP .ttf files. A desktop licence
- * usually does NOT cover web embedding; that is normally a separate webfont licence from the
- * foundry. Converting them to woff2 and serving them from /fonts/ is exactly the use a
- * desktop EULA tends to exclude. This is the user's relationship with Fontshok and their
- * call — but it has not been verified, and it is the one thing here that could need undoing.
+ * LICENCE — SETTLED. The user confirmed on 2026-08-08 that they bought the font: "the font
+ * is verified i bought it". The earlier warning in this slot flagged that the supplied files
+ * were DESKTOP .ttf and that desktop EULAs commonly exclude web embedding; that concern is
+ * closed by the purchase and this face is cleared to ship. The licensed .ttf originals still
+ * stay outside the web root (see below) — a paid font should not be publicly downloadable
+ * from the repo just because the licence is in order.
  *
  * ---------------------------------------------------------------------------------
  * ONE FILE, NOT NINE. The user dropped 8 statics plus a variable font in the repo root.
