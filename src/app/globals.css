@@ -33,17 +33,28 @@
   --color-quote-up: #4ade80;
   --color-quote-down: #f87171;
 
-  /* Type */
-  --font-display: "ABC Arizona Mix Regular", serif;
+  /* Type — ONE face sitewide as of 2026-08-08. All three tokens now resolve to Discovery.
+
+     They stay three separate tokens rather than collapsing into one, because they answer
+     three different questions: what the body is set in, what a display headline is set in,
+     and what the logo is cut from. Those can diverge again (a display cut, a brand refresh)
+     and the call sites should not have to change when they do. */
+
+  /* Was "ABC Arizona Mix Regular", serif — rogo's display face, inherited from the clone.
+     Dropped 2026-08-08: the user owns Discovery and asked for it everywhere, and Arizona Mix
+     was a licensed Dinamo face lifted from the target's capture that we had no right to
+     serve. Its @font-face and its woff2 are both deleted, not just unreferenced. */
+  --font-display: "Discovery", "Inter", sans-serif;
   /* Discovery is clix's own face and became the site sans on 2026-08-07. Inter stays in the
      stack deliberately: every spacing and wrap on this page was measured against Inter, so
      if a Discovery file ever 404s the layout falls back to the metrics it was built on
      rather than to whatever system sans the OS offers. See fonts-discovery.css. */
   --font-sans: "Discovery", "Inter", sans-serif;
-  /* The logo lockup is NOT Discovery — measured, see fonts-discovery.css. It is Inter 700,
-     and `ClixWordmark` uses this token so switching the site sans can never silently
-     re-cut the logo. */
-  --font-wordmark: "Inter", sans-serif;
+  /* The wordmark was Inter 700 until 2026-08-08 — an outline match against the real logo
+     put Inter closer than any Discovery weight (err 0.021 vs 0.033). The user chose
+     Discovery anyway, for one face with no exceptions. ⚠️ This means the rendered wordmark
+     no longer matches the logo in `src/app/icon.png`; see ClixWordmark.tsx. */
+  --font-wordmark: "Discovery", sans-serif;
   --font-mono: "Fragment Mono", monospace;
 
   /* Breakpoints — Framer's real tiers, NOT Tailwind defaults.

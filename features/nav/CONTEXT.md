@@ -32,6 +32,87 @@ live site for the mobile menu, the scroll flip point, and the `Indicator` elemen
 
 ## Log
 
+### 2026-08-08 — logo lockup scaled again, 24/26 → 28/30
+
+**Trigger:** user, with a crop of the lockup — *"make this a bit more bigger"*. Third step in
+the sequence: 20/22 → 24/26 (2026-08-07) → **28/30**.
+
+Mark and wordmark moved together by the same ~1.15x, per the rule this lockup was built on:
+scaling one without the other breaks the mark-to-cap-height relationship. Ratio drifts ~1%
+(28/30 vs 24/26) purely from rounding to whole pixels.
+
+The two Link boxes grew with it — `h-7 → h-8` compact, `h-8 → h-9` full — because they clip
+their contents otherwise.
+
+**The bar's own height did NOT change, which is the thing worth checking here:**
+
+| width | lockup | row | header |
+|---|---|---|---|
+| 1600 / 1440 / 1200 | 98×36 | 38px | **115px** |
+| 810 / 390 | 98×32 | 32px | **119px** |
+
+Both rows are still sized by their CTA button (~38px full, 40px compact), which is taller
+than the 36px the lockup now occupies. **That gap is the whole remaining budget: past ~38px
+the button stops being the tallest thing and the bar itself starts growing.** One more step
+of this size is the last one that is free.
+
+Clearance from the lockup to the centred nav row is 207px at 1600/1440 and **127px at 1200**
+— the lockup grew rightward by 11px, so it costs the link row about as much as a 0.5px type
+step would. Not the binding constraint; the CTA still is.
+
+Mark renders 31×28 (the asset's 96:88 aspect), wordmark 59×30. No doc overflow at any tier.
+
+
+### 2026-08-08 — sitewide: Discovery everywhere, Arizona Mix deleted
+
+**Trigger:** user — *"verified that all of the font in the whole website is the font i want
+which is the one i purchase"*. A verification request, and it **failed**.
+
+**Method matters here.** `getComputedStyle().fontFamily` returns the declared *stack*, so it
+reports `Discovery, Inter, sans-serif` whether Discovery loaded or silently fell back. The
+only answer worth anything is CDP **`CSS.getPlatformFontsForNode`**, which reports the faces
+the renderer actually used plus a glyph count per face. Tagged every element owning its own
+visible text, at 1440 and 390, after a full scroll pass.
+
+**Result before: 9 of 169 elements were not Discovery.**
+
+| face | count | where |
+|---|---|---|
+| Discovery | 160 | everything else |
+| **ABC Arizona Mix** | **8** | hero h1, 4 section h2s, 3 stat h3s — i.e. the most prominent type on the site |
+| **Inter** | **1** | the `clix` wordmark |
+
+Both were known and deliberate; neither was what the user wanted. They chose Discovery for
+both after being shown the trade-offs.
+
+**The fix was two token flips, not nine edits** — `--font-display` and `--font-wordmark` in
+globals.css. Every call site already read the tokens rather than naming a family, which is
+exactly why that indirection was there. The three type tokens stay separate even though all
+three now resolve to Discovery: they answer three different questions (body / display / logo)
+and can diverge again.
+
+⚠️ **Arizona Mix's `@font-face` and its woff2 are both DELETED**, not merely unreferenced.
+It is a commercial Dinamo face that only ever entered this repo because it was in the
+target's capture, and `public/fonts/ZF7ZgjonljJPpiLVhd1HLFeHnQ.woff2` was serving it from a
+public URL. Left in place it would have been the only unlicensed font on the site now that
+Discovery's own licence is settled. `fonts.css` is normally a verbatim re-dumpable copy of
+the capture's rules; a comment in it marks this as the one deliberate deviation so a re-dump
+does not resurrect the file.
+
+⚠️ **The wordmark change is against the measurement, by explicit user choice.** The ink-width
+test still says Inter 700 fits the real logo better than any Discovery weight (err 0.021 vs
+0.033), so the rendered wordmark no longer matches `src/app/icon.png`. Recorded in
+ClixWordmark.tsx at the call site as well, since that is where someone would question it.
+
+**Verified after:** 169/169 Discovery at 1440, 160/160 at 390. Separately confirmed the
+`wght` axis is genuinely live — the same 64px string measures 8 distinct advance widths
+across weights 100→800 (401.75 → 450.55px), monotonic. So "Discovery_Fs Thin" in the CDP
+output is just the VF's default instance name and not evidence of everything painting Thin.
+
+**Open:** the headline sizes and `-0.05em` / `-0.04em` tracking were tuned for a serif and
+are so far unchanged. They render acceptably, but they have not been re-tuned for a sans.
+
+
 ### 2026-08-08 — nav link type raised 14px → 16px → 18px
 
 **Trigger:** user, with a screenshot of the link row — *"make the font of this bigger"*, then

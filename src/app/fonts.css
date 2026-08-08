@@ -26,13 +26,14 @@
   font-display: swap;
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
-@font-face {
-  font-family: "ABC Arizona Mix Regular";
-  src: url("/fonts/ZF7ZgjonljJPpiLVhd1HLFeHnQ.woff2") format("woff2");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
+/* ABC Arizona Mix Regular was declared here and served from
+   /fonts/ZF7ZgjonljJPpiLVhd1HLFeHnQ.woff2. REMOVED 2026-08-08 along with the woff2 itself.
+
+   It is a commercial Dinamo face that arrived in this repo only because it was in the
+   target's capture, and this file is a verbatim dump of that capture. Discovery now drives
+   `--font-display`, so nothing referenced it — but leaving the rule and the file in place
+   would have kept an unlicensed font on a public URL. This is the one deliberate deviation
+   from "regenerate this file from the capture": a re-dump must not bring it back. */
 @font-face {
   font-family: "Inter Regular";
   src: url("/fonts/t6C2vEDrKbds8TXEt75QuYG0s.woff2") format("woff2");

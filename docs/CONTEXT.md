@@ -17,6 +17,27 @@ Line format:
 
 ## 2026-08-08
 
+- **[--:--]** `nav` — **logo lockup scaled 24/26 → 28/30** (mark / wordmark), the third step
+  after 20/22 and 24/26. User: *"make this a bit more bigger"*. Both moved by the same ~1.15x
+  so the mark-to-cap-height ratio holds; Link boxes grew `h-7→h-8` compact and `h-8→h-9` full
+  to stop clipping. **Header height unchanged at 115px desktop / 119px compact** — both rows
+  are still sized by their CTA button, and the ~2px between the 36px lockup and the 38px
+  button is the entire remaining budget before the bar itself starts growing.
+  → [detail](../features/nav/CONTEXT.md)
+- **[--:--]** `global` — **the whole site is now one typeface: Discovery.** User asked to
+  *verify* every font was the one they purchased; it was not. Audited what **actually paints**
+  via CDP `CSS.getPlatformFontsForNode` (not `getComputedStyle().fontFamily`, which reports
+  the declared stack and cannot see a silent fallback): **9 of 169 elements were not
+  Discovery** — 8 headlines in `ABC Arizona Mix` (hero h1, four section h2s, the three stat
+  h3s) and the `clix` wordmark in Inter. User chose Discovery for both. One token flip each
+  (`--font-display`, `--font-wordmark`) covered all 9, since every call site already read the
+  tokens. ⚠️ **Arizona Mix's `@font-face` AND its woff2 are deleted, not just unreferenced** —
+  it is a commercial Dinamo face that entered the repo only via the target's capture, so
+  leaving it in `public/fonts/` would have kept an unlicensed font on a public URL. Re-audit:
+  **169/169 at 1440, 160/160 at 390.** Also confirmed the `wght` axis is genuinely live
+  (8 distinct advance widths across 100–800), so "Discovery_Fs Thin" in the CDP output is
+  just the VF's default instance name, not everything rendering at 100.
+  → [detail](../features/nav/CONTEXT.md)
 - **[--:--]** `nav` `docs` — **Discovery licence question closed.** User: *"the font is
   verified i bought it"*. The ⚠️ block in `src/app/fonts-discovery.css` warning that desktop
   `.ttf` EULAs usually exclude web embedding is replaced with the purchase confirmation; the

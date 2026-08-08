@@ -52,13 +52,14 @@ import type { Quote } from "@/lib/quotes";
    BOTH moved together on purpose: the mark sits at ~1.3x the wordmark's cap height, and
    growing one without the other is exactly what makes a lockup look off.
 
-   Mark width follows the asset's 96:88 aspect, so 24px tall renders 26.2px wide. The 8px
+   Mark width follows the asset's 96:88 aspect, so 28px tall renders 30.5px wide. The 8px
    gap is `gap-2`, the same step the nav's own button row uses.
 
-   The Link boxes grew with it (h-6 -> h-7 compact, h-7 -> h-8 full). Neither changes the
-   nav's own height: both rows are sized by their CTA button (40px compact, ~38px full),
-   which is still taller than the 32px logo. */
-const MARK_SIZE = 24;
+   The Link boxes grew with it (h-6 -> h-7 -> h-8 compact, h-7 -> h-8 -> h-9 full). Neither
+   changes the nav's own height: both rows are sized by their CTA button (40px compact,
+   ~38px full), which is still taller than the 36px the lockup now occupies. That headroom
+   is the budget for any further growth — past ~38px the bar itself starts moving. */
+const MARK_SIZE = 28;
 
 /* Seven slots, deliberately — the row's spacing and its 1200px collapse were measured
    against seven items, so the count is layout, not content. The IA is the one the real
@@ -395,7 +396,7 @@ export default function Nav({ quotes = [] }: { quotes?: Quote[] }) {
                  Colour and its transition live HERE rather than on each child, so the mark
                  and the wordmark can never drift out of step mid-flip. Both read
                  `currentColor` — the wordmark as text, the mark as a mask fill. */
-              className={`flex h-7 flex-none items-center gap-2 no-underline
+              className={`flex h-8 flex-none items-center gap-2 no-underline
                           transition-colors duration-300
                           focus-visible:ring-2 focus-visible:outline-none
                           ${light ? "text-ink focus-visible:ring-ink" : "text-paper focus-visible:ring-paper"}`}
@@ -508,7 +509,7 @@ export default function Nav({ quotes = [] }: { quotes?: Quote[] }) {
           <Link
             href="/"
             /* Colour + transition on the anchor, not per child — see the compact row. */
-            className={`flex h-8 flex-none cursor-pointer items-center gap-2 no-underline
+            className={`flex h-9 flex-none cursor-pointer items-center gap-2 no-underline
                         transition-colors duration-300
                         focus-visible:ring-2 focus-visible:outline-none
                         ${light ? "text-ink focus-visible:ring-ink" : "text-paper focus-visible:ring-paper"}`}

@@ -43,22 +43,28 @@ export default function ClixWordmark({ className = "" }: { className?: string })
       aria-label="clix"
       /* `leading-none` matters: the default line-height would pad the box past the 24px
          the nav row allots and push the mark off its baseline. */
-      /* 26px as of 2026-08-07 (user: "make clix a bit bigger and the logo"), up from 22.
-         `ClixMark` was scaled by the SAME 1.18x factor in Nav.tsx (20 -> 24), so the
-         mark-to-cap-height ratio the lockup was built on is unchanged — scaling one without
-         the other is what makes a lockup look wrong. */
-      className={`inline-block text-[26px] leading-none font-bold uppercase
+      /* 30px as of 2026-08-08 (user: "make this a bit more bigger"), via 26 on 2026-08-07
+         and 22 originally. `ClixMark` is scaled by the SAME factor in Nav.tsx each time
+         (20 -> 24 -> 28), so the mark-to-cap-height ratio the lockup was built on holds —
+         scaling one without the other is what makes a lockup look wrong. The ratio drifts
+         by ~1% at this step (28/30 vs 24/26) purely from rounding to whole pixels. */
+      className={`inline-block text-[30px] leading-none font-bold uppercase
                   ${className}`}
       /* Letter-spacing is painted after the final X too, so the box carries a trailing
          gap the glyphs do not fill. `marginRight: -letterSpacing` cancels it. Negligible
          at this tracking, kept because it is only correct with it.
 
-         `--font-wordmark`, NOT `font-sans`. The site sans became Discovery on 2026-08-07;
-         the logo is still Inter 700 because the same ink-width test that picked Inter was
-         re-run against all seven Discovery weights and not one of them won (best was
-         Discovery Medium at err 0.0331 vs Inter's 0.0209). Pinning it here means a future
-         change of site face cannot silently re-cut the logo. Full table in
-         src/app/fonts-discovery.css. */
+         `--font-wordmark`, NOT `font-sans` — still a separate token even though both now
+         resolve to Discovery, so a brand change can re-cut the logo without touching body
+         copy, or vice versa.
+
+         ⚠️ This is Discovery as of 2026-08-08 BY EXPLICIT USER CHOICE, against the
+         measurement. The ink-width test that originally identified this lockup as Inter 700
+         was re-run across all seven Discovery weights and none of them won — best was
+         Discovery Medium at err 0.0331 vs Inter's 0.0209. So the wordmark as rendered no
+         longer matches the logo in `src/app/icon.png`, which is genuinely Inter-like. The
+         user was shown that table and chose one face with no exceptions anyway. Full table
+         in src/app/fonts-discovery.css. */
       style={{
         fontFamily: "var(--font-wordmark)",
         letterSpacing: "-0.015em",
