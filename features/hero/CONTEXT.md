@@ -19,11 +19,15 @@ capture via Chrome DevTools Protocol at exact viewports — evidence in
 `assets/measurements.json` and `assets/render-*.png`. No horizontal overflow at any width;
 `npm run build` clean.
 
-Background is a **four-clip Israeli sunset montage** — Tel Aviv skyline silhouette, Jaffa
-port, aerial sun, residential towers — crossfaded and loop-sealed to 15.015s. Sources were
-chosen by the user. It replaced the Tel-Aviv-skyline-plus-flag composite on 2026-08-02;
-**there is no flag any more**, so `object-position` is back to the target's own `50% 50%`
-at every tier and the hero carries no crop-anchor deviation. See the latest log entry.
+Background is **three clips in one file** as of 2026-08-09 — Tel Aviv at dusk with the
+Israeli flag, dissolving to Jerusalem at sunset, dissolving to Jerusalem at dusk, then sealed
+back to the start. 0.6x, 26.5s, 5.2 MB, `public/video/hero-israel.mp4`. All three sources
+were supplied by the user. It replaced the two-clip Jerusalem cut of the same day, which had
+replaced the single Tel Aviv clip of 2026-08-05, which had replaced a four-clip montage.
+
+**The flag is back**, so the crop-anchor question is open again: `object-position` is still
+the target's own `50% 50%` at every tier, and at 390 the flag is cropped out entirely. See
+the 2026-08-05 entry, which measured it. Unresolved, and the user's call.
 
 > **Assets referenced in older log entries below are now local-only.** As of 2026-08-02 the
 > raw source clips (`assets/*.mp4`), our render screenshots (`assets/render-*.png`) and the
@@ -40,6 +44,143 @@ animation. Both need a look at the live site.
 ---
 
 ## Log
+
+### 2026-08-09 (later) — the flag clip joins; three clips in one file
+
+**Trigger:** user — *"I want all the videos including the clip that has a Israeli flag on it
+on the hero section as well. So it's three videos in total."*
+
+**Shipped:** `public/video/hero-israel.mp4` + `hero-israel-poster.jpg`. 1920×1080, 30fps,
+**26.5s, 5.2 MB**. Renamed from `hero-jerusalem.*` because the name stopped being true —
+those files were minutes old and never committed, so they were deleted rather than left as
+a second stale asset. `hero-clix.mp4` is untouched and still serves `/clix`.
+
+**The third clip is the 2026-08-05 master, re-encoded from source** —
+`features/hero/assets/hero-clix-source.mp4`, 1920×1076, 24fps, mean luma **70–75**. NOT the
+shipped `hero-clix.mp4`, which is already slowed to 0.7× and loop-sealed; running that
+through a second slowdown and seal would have compounded both.
+
+**Order is `flag → Jerusalem sunset → Jerusalem dusk`, and it is deliberately NOT
+chronological** (that would be sunset → dusk → night). Two concrete reasons beat the
+chronology:
+1. **The poster is frame 0.** It is what holds the white 64px headline until the video
+   streams in, and a dark Tel Aviv silhouette carries that type; clip A's bright sunset sky
+   does not.
+2. **It puts the gentlest luma step at the wrap** — the one seam that repeats forever.
+   Measured final curve, per second:
+   `71 72 75 71 73 73 71 72 | 87 97 96 95 94 94 93 92 | 88 81 77 78 78 79 80 81 81 79 74`
+   The wrap is 81 → 74 → 71. The one big lift (72 → 97) is mid-file, inside a 2s dissolve,
+   where it reads as the light coming up rather than as a jump.
+
+Chronological order was the alternative and loses on both counts: a bright poster, and a
+night → sunset wrap.
+
+**The Jerusalem-to-Jerusalem dissolve is still the best thing in the cut** — same landmark at
+two distances, so the domes overlap and it plays as a match dissolve. Keeping those two
+adjacent was a constraint on the ordering, not an accident.
+
+**Recipe** (two passes, plain ffmpeg — no analysis scripts). Sources trimmed to a 6.5s window
+`trim=0.6:7.1` each; then per clip:
+
+| clip | pre-scale | grade |
+|---|---|---|
+| flag | `crop=1912:1076:4:0` | — |
+| Jer. sunset | — | `eq=brightness=-0.08:contrast=1.05:saturation=1.08` |
+| Jer. dusk | `crop=1904:1071:0:8` | — |
+
+then all three `scale=1920:1080:lanczos, setpts=1.6666667*PTS, fps=30`, two
+`xfade=fade:duration=2` at offsets `8.8333` and `17.6667` → 28.5s at crf 16; then the loop
+seal (`trim` 2:28.5 and 0:2, `xfade=fade:duration=2:offset=24.5`) → **26.5s**, crf 25,
+`-preset slow`, `-movflags +faststart`, `-an`.
+
+**Decisions**
+
+- **Sources trimmed to 6.5s of 8.04s.** Three full clips at 0.6× is 34s and ~8.5 MB, which
+  is too much for a background. The windows drop only near-static drift; nothing in the
+  content is lost.
+- **crf 25, up from 23.** 23 gave 7.1 MB. 25 gives **5.2 MB / 1.58 Mbps** — lighter than the
+  two-clip cut it replaces (5.6 MB) despite being 4s longer and carrying a third clip, and
+  the hero paints a scrim and a darken gradient over all of it. The flag is why the bitrate
+  matters at all: waving fabric is the only fast motion in the file and it is what the
+  encoder spends on.
+- **Grade on clip 2 pushed from -0.06 to -0.08.** With the flag clip (luma ~72) now leading
+  into it, the ungraded sunset opened a 45-point step. This is the second and final grade
+  iteration on this asset.
+
+**Verified:** loop seal measured — frame 0 against frame 794 differ by a mean luma of
+**3.70/255**. Higher than the two-clip cut's 1.44, and the reason is knowable rather than
+mysterious: the sealed frames now contain a *waving flag*, which cannot align across a
+crossfade the way a static skyline does. Still ~1.5% of range and inside a 2s blend, so it
+does not read as a cut. Build clean; the served home page carries `hero-israel.mp4` and no
+longer references `hero-jerusalem.*` or `hero-clix.mp4`; the file serves 200 at 5,229,103
+bytes. **Not verified:** not looked at across the four tiers, and the flag's phone-tier crop
+is unaddressed.
+
+
+### 2026-08-09 — background is two Jerusalem clips, dissolved and loop-sealed
+
+**Trigger:** user — *"i uploaded 2 new videos, for the hero section i want good transition
+and dramatic for it specially the speed"*.
+
+**Sources:** `hf_20260809_154758_….mp4` and `hf_20260809_160828_….mp4`, dropped at the repo
+root. Both Jerusalem Old City, both 24fps, both exactly 8.041667s, both with an AAC track:
+- **A** — sunset, distant and wide, Dome of the Rock small and centre-right. 1920×1080.
+  Mean luma **121 → 111** across the clip.
+- **B** — dusk, closer, city lights on, Dome large and centre-left. 1904×**1088**.
+  Mean luma **76 → 82**.
+
+Moved to `features/hero/assets/hero-jerusalem-{a,b}-source.mp4` — gitignored by
+`features/*/assets/*.mp4`, so the masters stay on disk and out of the repo.
+
+**Shipped:** `public/video/hero-jerusalem.mp4` + `hero-jerusalem-poster.jpg`.
+1920×1080, 30fps, **22.8s, 5.6 MB**. A NEW filename, not an overwrite of `hero-clix.mp4` —
+that file is still the source for `/clix`'s Video block, and overwriting it would have
+silently changed a second page. The old hero clip and poster are now referenced only there.
+
+**Recipe** (two passes, plain ffmpeg — no analysis scripts):
+
+1. `[A] scale=1920:1080:lanczos, eq=brightness=-0.06:contrast=1.05:saturation=1.08`
+   `[B] crop=1904:1071:0:8, scale=1920:1080:lanczos`
+   both `setpts=1.6666667*PTS, fps=30`, then
+   `xfade=transition=fade:duration=2:offset=11.4` → 24.8s, crf 16 intermediate.
+2. Loop seal — `trim` 2:24.8 and 0:2, `xfade=fade:duration=2:offset=20.8` → **22.8s**,
+   crf 23, `-preset slow`, `-movflags +faststart`, `-an`.
+
+**Decisions**
+
+- **0.6x, slower than the 0.7x of 2026-08-05.** "Dramatic, specially the speed" on clips
+  that already barely move: the drift has to be slow enough to read as deliberate rather
+  than as a still that failed to load. Baked into the file at 30fps for the same reason as
+  last time — 24fps × 0.6 in the browser is 14.4fps and judders.
+- **A 2s cross-dissolve, and NO dip to black.** `fadeblack` is the more obviously "dramatic"
+  transition and it is wrong here: two seconds of black behind the headline is a dead hero.
+  The dissolve earns it a different way — the two shots are the same landmark at different
+  distances, so it reads as a **match dissolve**, one Dome resolving into the other, and the
+  luma falls 95 → 77 across it. Sunset becoming night IS the drama.
+- **B's crop is aspect maths, not taste.** 1904/1088 = 1.750, not 1.778, so the frame is
+  slightly tall; `crop=1904:1071:0:8` takes 17px off the height centred rather than
+  stretching the framing by 1.6%.
+- **A is graded down, B is not.** Ungraded, A sits ~40 luma above B: the dissolve would swing
+  hard, and the loop wrap (B's end → A's start) would pulse brighter on every cycle. The
+  grade closes the gap to ~20 and keeps white type legible through A's bright sky. Measured
+  final curve, per second: `103 102 101 100 100 99 98 97 96 95 89 80 77 78 78 79 79 80 81 82
+  82 84 94` — one intended fall, no jumps.
+- **crf 23, not 21.** 21 gave 7.7 MB. At 23 it is 5.6 MB / 1.98 Mbps — *below* the old clip's
+  2.47 Mbps despite being 2.2× longer, and the hero paints a scrim and a darken gradient over
+  all of it. 5.6 MB is still the heaviest thing the site serves; that is the price of two
+  clips at this speed and it is worth knowing before a third is added.
+- **Audio stripped** (`-an`) — the element is `muted`, so the AAC tracks were pure weight.
+- **No motion interpolation.** Not tried, and deliberately: `minterpolate` was already
+  abandoned once here (2026-08-05), and slow cloud drift is exactly the content plain
+  `setpts` handles well.
+
+**Verified:** loop seal measured, not assumed — frame 0 against frame 683 differences to a
+mean luma of **1.44/255**, i.e. compression noise, so `loop` does not jump. Build clean; the
+served home page carries `hero-jerusalem.mp4` and no longer references `hero-clix.mp4`; the
+file serves 200 at 5,633,747 bytes. **Not verified:** not yet looked at across the four
+tiers, and the crop keeps the full frame width only at 1600 — the phone tier will crop hard,
+same as every previous clip.
+
 
 ### 2026-08-05 — background replaced with a single user-supplied clip, slowed
 
