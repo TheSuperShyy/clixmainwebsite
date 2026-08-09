@@ -184,7 +184,12 @@ Library: none — CSS transitions only. Reduced-motion fallback: n/a (colour/opa
 
 | Property | Original | Ours | Why |
 |---|---|---|---|
-| Mobile menu panel | never rendered in the capture | our own dark panel: the 7 links + both buttons | The original mounts it only on interaction, so **nothing about its real appearance is observable**. Built to be functional and accessible; expect to redo it once the live site is checked. |
+| Link slot 1 | `Felix` → `./felix` | `Clix`, inert | 2026-08-09, user. Slots 2–7 (`Product` `Security` `Company` `Customers` `News` `Careers`) are the target's verbatim and in order; `Felix` is rogo's named AI-analyst product, which a clix build cannot claim, so slot 1 carries the brand. |
+| Link hrefs | seven real routes | `Security` → `#security`, `Customers` → `#testimonials`, the other five inert | Only two of the seven labels have a section on this one-page build. An inert item renders as dimmed text and is not focusable — preferred over a 404 or a `#` that jumps to the top. |
+| Logo | rogo logotype, `60×24` | clix mark + wordmark, `28px` mark | Brand. Confirmed to stay when the labels were swapped on 2026-08-09 — do not revert it as part of "matching the nav to rogo". |
+| Banner content | "Announcing our $160M Series D led by Kleiner Perkins" + underlined `Learn more` → `./news/series-d` | live LLM price ticker | 2026-08-08. The target's box (`45px`, `12px 40px`) is unchanged; only the contents differ. Also confirmed to stay on 2026-08-09. |
+| Link / button type | `14px` | `18px` | 2026-08-05 user request (commit `311dce5`). Confirmed to stay on 2026-08-09. |
+| Mobile menu panel | never rendered in the capture | our own dark panel: the 7 links + one button | The original mounts it only on interaction, so **nothing about its real appearance is observable**. Built to be functional and accessible; expect to redo it once the live site is checked. |
 | Carousel `aria-hidden` | n/a | n/a | *(see logo-carousel)* |
 | `Request Demo` href | **no `href` at all** | `#request-demo` | The original's nav button is an `<a>` with no href — presumably a JS modal. A link with no destination is not keyboard-operable, so ours points at the hero CTA anchor. |
 | Escape / scroll-lock | unknown | implemented | Standard menu behaviour; not observable. |

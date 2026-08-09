@@ -25,6 +25,15 @@
   --color-hairline-dark: #0000001a; /* x4 — pure black @10%, why-rogo item dividers */
   --color-tile: #0000000d; /* x5 — pure black @5%, why-rogo icon tile fill */
 
+  /* ADDED 2026-08-09 for the /clix page (clone of rogo.com/felix).
+     The ONLY colour that page introduces: x19 across it, and the one brand colour anywhere
+     in this build — the home page is monochrome and must stay that way (DESIGN-SYSTEM.md).
+     It fills exactly two roles there, display headlines and the primary button, which is why
+     it is one token and not two. Framer publishes it as `--token-71f2f7e0`. Counted from the
+     capture rather than assumed: the other five greens the Framer project declares
+     (#135b45 #19a26c #0f2822 #f5f2eb and the blue/terracotta) have ZERO uses on that page. */
+  --color-forest: #1a2a25; /* x19 — /clix display type + primary button fill */
+
   /* REMOVED 2026-08-08: `--color-quote-up` (#4ade80) and `--color-quote-down` (#f87171).
      They existed for the banner's stock ticker's green/red day change; the banner now lists
      LLM list prices, which have no up or down — a list price is a constant until the lab
@@ -109,6 +118,30 @@ body {
   }
 }
 
+/* Height of the nav's ROW — the banner strip is NOT included. Used by `<Nav spacer>` to
+   reserve the header's height in the document flow on pages whose target keeps the nav in
+   flow rather than over the content (`/clix`; see Nav.tsx).
+
+   DERIVED, not eyeballed, and it holds because every box in the row is a fixed height:
+     <1200  16 (p-4) + 40 (h-10 burger, taller than the h-8 logo) + 16 + 1 + 1 (the two
+            coincident bottom borders) = 74px
+     >=1200 16 (py-4) + 38 (NavButton: 1 border + 8 + h-5 + 8 + 1, taller than the h-9
+            logo and link row) + 16 = 70px
+   Nothing here depends on a font metric, so it cannot drift with the typeface — but it WILL
+   drift if a row's padding or a child's height changes. Change both together.
+
+   It is not in `@theme` because a Tailwind v4 theme block cannot carry a media query, and
+   the value genuinely differs per tier. */
+:root {
+  --nav-row-h: 74px;
+}
+
+@media (min-width: 1200px) {
+  :root {
+    --nav-row-h: 70px;
+  }
+}
+
 /* Nav header backdrop blur. Both header tiers carry `backdrop-filter: blur(5px)` in the
    capture, over a background that is very nearly transparent — `rgba(21,21,21,0)` on the
    >=1200 header and `rgba(21,21,21,0.01)` below it. The blur, not the fill, is what
@@ -157,6 +190,32 @@ body {
    user who has asked for less movement. */
 html {
   scroll-behavior: smooth;
+}
+
+/* Marquee for the /clix Testimonial block's two opposed ticker rows (2026-08-09).
+
+   -50% IS EXACT HERE, which it is not for the home page's logo-carousel. That row spaces its
+   items with `gap`, so a doubled track of 2n items has only 2n-1 gaps and half its width is
+   one gap short of a cycle — which is why the carousel had to measure its real cycle in JS.
+   The cards here carry their own `margin-right` instead, so n items measure exactly
+   n x (card + 20) and the doubled track is exactly twice that. No measuring pass needed.
+
+   The reduced-motion block below already neutralises this via `animation-duration: 0.01ms`,
+   so the rows come to rest rather than needing their own opt-out. */
+@keyframes clix-marquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.clix-marquee {
+  animation-name: clix-marquee;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform;
 }
 
 /* Accessibility floor — a deliberate divergence from the target, which ships

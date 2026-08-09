@@ -28,6 +28,15 @@ The bar's palette **tracks the section behind it** (`hero` / `light` / `dark`), 
 site; the `dark` one is a user request and **has not been observed** — see the newest log
 entry. The colour *trigger point* and all timings are still ours.
 
+The **link labels went back to the target's own set on 2026-08-09** — `Clix` · `Product` ·
+`Security` · `Company` · `Customers` · `News` · `Careers`, i.e. rogo's seven with `Felix`
+replaced by the brand. Labels only: the lockup is still clix, the banner is still the ticker,
+and the type is still 18px. See the newest log entry before changing any of those.
+
+The component takes **two per-route props** as of 2026-08-09 — `banner` and `spacer`. Both
+are off on `/` and both are on-ish on `/clix` (`banner={false} spacer`), because that page's
+target has no strip above its bar and keeps the bar in flow. Neither changes the home page.
+
 **Status:** `review`
 **Next action:** compare against the reference at 1600 / 1440 / 1024 / 390; then observe the
 live site for the mobile menu, the scroll flip point, and the `Indicator` element.
@@ -35,6 +44,105 @@ live site for the mobile menu, the scroll flip point, and the `Indicator` elemen
 ---
 
 ## Log
+
+### 2026-08-09 (later) — two per-route props: `banner` and `spacer`
+
+**Trigger:** user, on `/clix` — *"match the spacing on top … also remove the black banner on
+top, only on this page."* Both are properties of that page's template, so they became props
+rather than a fork of the component.
+
+**`banner={false}`** drops the ticker strip. With no strip there is no `bannerH`, so
+`bannerShift` is always 0 and the header never travels — the hide-on-scroll behaviour turns
+itself off without a second flag.
+
+⚠️ **This is NOT the same as passing no `models`, and the distinction is on purpose.** An
+empty `models` array is the *outage* path: the strip collapses so a fault is visible rather
+than papered over with stale numbers. `banner={false}` is a *template* decision. Identical
+rendering, opposite meaning — collapsing them would make a real outage on `/` indistinguishable
+from a design choice.
+
+**`spacer`** renders a `--nav-row-h`-tall block after the header, reserving the row's height
+in the document flow. It exists because `rogo.com/felix` puts its nav in a
+`position: sticky` container (`.framer-1jwqerv-container`), i.e. in flow, while rogo.ai's home
+nav overlays a video and is fixed. Two pages, two templates.
+
+**Why a spacer and not `position: sticky` on our header.** Sticky is the literal translation
+and it breaks the mobile menu: the panel is a child of the header, so in flow it would push
+the whole page down ~400px every time someone taps the burger. The fixed header does not have
+that problem, and a spacer gets the same layout without inheriting it.
+
+**`--nav-row-h` (globals.css): `74px` <1200, `70px` ≥1200.** Derived, not eyeballed —
+every box in the row is a fixed height, so the sum is exact and no font metric can move it:
+  - `<1200` — `p-4` 16 + `h-10` burger 40 (taller than the `h-8` logo) + 16 + the two
+    coincident 1px bottom borders = 74
+  - `≥1200` — `py-4` 16 + NavButton 38 (`1 + 8 + h-5 + 8 + 1`, taller than the `h-9` logo and
+    link row) + 16 = 70
+
+It **will** drift if a row's padding or a child's height changes, which is why the derivation
+is written out next to the value. Not in `@theme` — a Tailwind v4 theme block cannot carry a
+media query, and this genuinely differs per tier.
+
+**Verified:** build clean; served HTML has `bg-banner` on `/` and not on `/clix`, and the
+spacer on `/clix` and not on `/`. **Not verified:** no pixel diff at any tier.
+
+
+### 2026-08-09 — link labels reverted to the target's, with `Felix` → `Clix`
+
+**Trigger:** user, with two crops stacked for comparison — rogo's link row above ours —
+*"I want the navigation bar of this landing page to be matched on Rogo … So only replace the
+text that are on current version of ours, follow the version of Rogo, which has the Felix
+product security company, customers, news, and careers. But instead of Felix, put clix."*
+
+**What changed: the seven strings, and two of the seven hrefs. Nothing else.**
+
+| | Before (clix IA) | After (target's) |
+|---|---|---|
+| 1 | Services → `#services` | **Clix** → inert |
+| 2 | Industries → inert | **Product** → inert |
+| 3 | Work → inert | **Security** → `#security` |
+| 4 | Insights → inert | **Company** → inert |
+| 5 | Playground → inert | **Customers** → `#testimonials` |
+| 6 | About → inert | **News** → inert |
+| 7 | Contact → `#contact` | **Careers** → inert |
+
+Labels and order are verbatim from the capture (`./felix ./product ./security ./company
+./customers ./news ./careers`, extracted by walking back from the banner's byte offset to the
+nearest preceding `href`). **Slot 1 is the one deliberate departure:** `Felix` is rogo's named
+AI-analyst product and a clix build cannot claim it, so the slot carries the brand instead —
+the user's own instruction, not an inference.
+
+**The hrefs were re-derived from the new labels, not carried across by slot position.**
+Position-mapping would have made `Clix` scroll to `#services` and `Careers` to `#contact` —
+a wrong destination wearing a working link's clothes, which is worse than an inert item.
+`Security` and `Customers` are the only two labels this page has a real section for
+(`#security`; `#testimonials` *is* the customer-quote block). So the live/inert split stays
+2-of-7 as before, and the row's dimmed-item rhythm is unchanged. `#services` (WhyRogo) and
+`#contact` (Footer) are now unreferenced from the link row — `#contact` is still the
+`Let's start` button's target, `#services` currently has no nav entry at all.
+
+**Three things were explicitly ruled out of scope**, asked and answered before touching the
+file, because each would have reverted an earlier deliberate decision:
+
+- **Logo** — stays the clix mark + wordmark, *not* rogo's 60×24 logotype. (`RogoWordmark.tsx`
+  is still in `src/components/ui/` if this is ever revisited.)
+- **Banner** — stays the live LLM price ticker, *not* "Announcing our $160M Series D led by
+  Kleiner Perkins" + underlined `Learn more` → `./news/series-d`.
+- **Type and lockup size** — stay at 18px links / 28px mark, *not* the capture's 14px / 60×24.
+
+Recorded here because "match the nav to Rogo" reads, in isolation, like a mandate to finish
+all three. It is not one. The capture values for each are in `FEATURE.md` and above.
+
+**Row is strictly narrower than what it replaced** — 46 label characters against 52 — so the
+absolutely-centred `w-min` nav cannot newly collide with the logo or the button group at the
+1200px collapse point. No spacing, box or breakpoint value was touched.
+
+**Verified:** `npm run build` clean (TS included); served HTML at `localhost:3000` carries
+each of the seven exactly once, and none of the old seven. `Services` / `Industries` /
+`Insights` / `Playground` still appear in the page — those are the **footer's** own link
+columns (`Footer.tsx:57,65,66`), a separate IA that this request did not cover.
+
+**Not done:** no pixel diff against the reference at any tier. The section's standing gap
+(never visually verified) is unchanged by this.
 
 ### 2026-08-08 — ticker cut from five fields to two, for legibility
 

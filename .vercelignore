@@ -1,0 +1,11 @@
+# Only the app deploys. Everything below is project memory or raw source material,
+# not runtime — the served copies of all media live in public/.
+#
+# The file that forced this to exist: Client testimonials/Achituv-Vtechezena.MOV is
+# 211 MB of raw phone footage, and Vercel rejects any single file over 100 MB. The
+# compressed cuts the site actually plays are in public/testimonials/.
+
+Client testimonials/
+features/
+docs/
+CLAUDE.md

@@ -80,3 +80,5 @@ Client testimonials/
 # usually does not — that is normally a separate webfont licence. This rule limits the
 # exposure; it does not settle the question. See docs/DESIGN-SYSTEM.md.
 assets/fonts/
+
+.vercel

@@ -15,6 +15,80 @@ Line format:
 
 ---
 
+## 2026-08-09
+
+- **[--:--]** `infra` / `felix-page` — **pushed to `main`; `/clix` ships `noindex`.** The route still carries the target's verbatim copy, including ten real testimonials naming Felix and Rogo, so `robots: { index: false, follow: false }` sits in its metadata — reachable for review, not indexable under a clix wordmark. **Delete that block with the copy pass.** The felix capture went into the public repo alongside the existing `rogo-home-2026-08-02.*`; `docs/` is `.vercelignore`d so it is never served. → [detail](../features/felix-page/CONTEXT.md)
+
+- **[--:--]** `felix-page` / `nav` — **`/clix` top spacing matched; ticker removed on that route only.** The gap was structural: rogo.com/felix keeps its nav in a `position:sticky` container (in flow), so its hero's 128px starts below the bar; ours is fixed and started at the document top. Reproduced with a `spacer` prop rather than by making the header sticky (sticky would push the page down on every mobile-menu tap). New `--nav-row-h` in globals.css — 74px <1200 / 70px ≥1200, derived from fixed-height boxes. Also: `banner={false}` prop, kept distinct from the empty-`models` outage path, and the hero's `Request Access` repointed to the now-existing `#clix-contact`. → [detail](../features/felix-page/CONTEXT.md)
+
+- **[--:--]** `felix-page` — **six more blocks built; `/clix` is 7 of 8.** User: *"building the
+  clicks. Felix Page."* — read as proceed, and make the asset calls rather than wait, per
+  CLAUDE.md's ceiling for decorative content. Added `ClixVideo`, `ClixLogoProof`,
+  `ClixManifesto`, `ClixTestimonial`, `ClixCTA`, `ClixFelixFooter`. **All three asset calls
+  reuse what the repo already owns and download nothing of rogo's** — video is the home hero's
+  own clip; **all 12 institutions the target names were already vendored**, rendered as CSS
+  masks with an `ink/70` fill because the vendored SVGs are white-cut for the dark hero; the
+  footer's 2008×859 PNG wordmark is **set in type** at the same 2.3376 aspect. Precedent is
+  the deleted `hero-original.mp4`. ⚠️ **One real fidelity compromise: the Manifesto paints its
+  own `forest` ground** instead of the original's scroll-crossfaded shared backdrop, which is
+  unobservable in a static capture — the visible difference is a hard edge where the original
+  fades. ⚠️ **The marquee sidesteps the drift bug logo-carousel had to solve in JS**: cards
+  carry their own `margin-right` rather than a `gap`, so `-50%` is exactly one cycle and no
+  measuring pass is needed — cheaper than measuring, worth reusing. Backdrop moved out of
+  `ClixHero` into `page.tsx`, where the original has it. **Estimated, flagged:** testimonial
+  card box (quote type IS measured) and the 90s cycle. Build clean, all seven blocks in the
+  served HTML. **Block 5 `Product Visuals` still unbuilt** — three 4000×2667 rogo photos, no
+  substitute. Nothing pixel-diffed at any tier. → [detail](../features/felix-page/CONTEXT.md)
+- **[--:--]** `felix-page` — **`rogo.com/felix` captured and measured end to end; `Hero` built
+  at `/clix`.** User: *"clone this page … should be clix"*, then two scoping calls — copy is
+  **"clone verbatim now, rewrite after"**, route is **`/clix` with the nav wired**. Capture
+  (404 KB HTML + 129 KB CSS) is dated and sits beside the home one; **note the host is
+  `rogo.com`, not `rogo.ai`**. Eight blocks inventoried with real padding/gap. **Tier map
+  collapses to three** — XL and desktop share every value, so the headline is 92/72/56 and
+  there is no ≥1600 art. **Palette costs one token**: `forest` `#1a2a25` ×19, counted not
+  eyeballed; the four other greens the Framer project declares have zero uses and stay in
+  DESIGN-SYSTEM's unused list. ⚠️ **Biggest finding is an unanswerable one** — the Manifesto is
+  white-on-dark, and the only dark thing available is the page's fixed 110vh backdrop whose SSR
+  fill is `#f7f7f7`, so that layer's colour is JS-animated on scroll and the sequence is
+  **unobservable in a static capture**. Recorded before building anything that sits on it.
+  Hero's headline is three boxes with a **fixed-width** rotating word (270/306px) — the fixed
+  width is what holds the row's centre still. Enter state measured exactly
+  (`blur(8px)/opacity:0/translateY(-24px)`); hold, swap and the downward exit are estimates.
+  ⚠️ **Word list is 2 of an unknown number** — it lives in a lazily-fetched code component; the
+  146 KB bundle has none of the strings and six cache-busted fetches all returned `investor`.
+  Nothing invented to pad it. CSS transitions, no library. ⚠️ **The nav became shared today and
+  that broke its own links** — bare `#security`/`#testimonials`/`#contact` point at nothing on
+  `/clix`, so all are now root-relative. Build clean, `/clix` prerendered. **7 of 8 blocks
+  unbuilt**, and two are blocked: the backdrop colour (needs live observation) and assets
+  (video/photos/logos are all rogo's). → [detail](../features/felix-page/CONTEXT.md)
+- **[--:--]** `nav` — **link labels reverted to the target's set, `Felix` → `Clix`.** User,
+  with rogo's link row and ours stacked as crops: *"follow the version of Rogo, which has the
+  Felix product security company, customers, news, and careers. But instead of Felix, put
+  clix"*. So `Services/Industries/Work/Insights/Playground/About/Contact` →
+  **`Clix/Product/Security/Company/Customers/News/Careers`**, verbatim from the capture and in
+  its order, slot 1 excepted — Felix is rogo's named product and a clix build cannot claim it.
+  **Hrefs re-derived from the labels, not carried across by slot**: position-mapping would
+  have pointed `Clix` at `#services` and `Careers` at `#contact`, a wrong destination dressed
+  as a working link. Only `Security` → `#security` and `Customers` → `#testimonials` have a
+  real section here, so the live/inert split stays 2-of-7 and the row's dimming is unchanged.
+  ⚠️ **Three things were asked about and deliberately kept** — the clix lockup (not rogo's
+  60×24 logotype), the live LLM ticker (not the Series D banner), and 18px type (not the
+  capture's 14px). "Match the nav to Rogo" reads like a mandate to do all three; it was scoped
+  to the labels. Row is 46 label chars against 52, so the centred `w-min` nav cannot newly
+  collide at the 1200px collapse. Build clean; served HTML carries each label exactly once.
+  `Services`/`Industries`/`Insights`/`Playground` still appear on the page — that is the
+  **footer's** separate IA, out of scope. → [detail](../features/nav/CONTEXT.md)
+- **[--:--]** `infra` — **first deploy to Vercel.** User: *"upload to vercel and send me the
+  link"*. Live at **https://clix-version3.vercel.app** (project `clix-version3`, account
+  `thesupershyy`, CLI-linked to the GitHub repo so pushes to `main` now auto-deploy). The
+  first attempt failed at Vercel's **100 MB per-file limit** — the 359 MB upload included
+  `Client testimonials/Achituv-Vtechezena.MOV` (211 MB of raw phone footage). Fix: new
+  **`.vercelignore`** excluding `Client testimonials/`, `features/`, `docs/`, `CLAUDE.md` —
+  project memory and raw sources, not runtime; everything the site plays lives in `public/`.
+  Verified live: page 200, `/api/models` 200 returning real OpenRouter prices, ticker
+  sr-only text present in the served HTML. ⚠️ clix's real content aside, the deploy also
+  publishes whatever `main` holds — the repo is the deploy unit now.
+
 ## 2026-08-08
 
 - **[--:--]** `nav` — **ticker cut from five fields to two.** User: *"this is a bit hard to

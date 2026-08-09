@@ -45,6 +45,36 @@ uses 6** — the rest belong to other pages in the same Framer project.
 | `tile` | `#0000000d` | ×5 | **pure black** @ 5% — `why-rogo` icon tile fill |
 
 **The home page is monochrome.** No brand color appears on it. Do not introduce one.
+*(Still true. The `/clix` page below does have one — that is a per-page fact, not a licence
+to carry it onto home.)*
+
+### Added 2026-08-09 — `/clix` (clone of `rogo.com/felix`)
+
+| Token | Value | Uses | Role |
+|---|---|---|---|
+| `forest` | `#1a2a25` | ×19 | display headlines + primary button fill on `/clix` |
+
+**That page adds exactly one colour.** Everything else on it resolves to tokens already
+here: `ink` ×194, `muted` ×48, `hairline` ×19, `paper` ×17, and `canvas` `#f7f7f7` inlined
+as the fixed backdrop behind the hero. Counted from the capture, not assumed — the other
+greens the Framer project declares (`#135b45` `#19a26c` `#0f2822` `#f5f2eb`) have **zero**
+uses on it, so they stay in the unused list below.
+
+**One layout constant was added the same day, and it is not in `@theme`:**
+
+| Variable | Value | Where |
+|---|---|---|
+| `--nav-row-h` | `74px` <1200, `70px` ≥1200 | `:root` in `globals.css` (plain, not `@theme`) |
+
+It is the height of the nav's row *excluding* the banner, used by `<Nav spacer>` to reserve
+the header's height in flow on `/clix`. It sits outside `@theme` because a Tailwind v4 theme
+block cannot carry a media query and the value genuinely differs per tier. **Derived from
+fixed-height boxes, not measured off the target** — the derivation is written out beside the
+declaration, because it will drift if a row's padding or a child's height changes.
+
+One value is deliberately **not** tokenized: `#8b8b8b` appears ×2 and nowhere else in the
+build. Two uses is a one-off, not a scale step — it gets a documented deviation in
+`features/felix-page/FEATURE.md` if it lands in a section we build.
 
 `banner` and `hairline-light` were added 2026-08-02 while building `nav`; `canvas`, `card`
 and `ink-wash` on 2026-08-03 while building `testimonials`; `hairline-dark` and `tile` on
