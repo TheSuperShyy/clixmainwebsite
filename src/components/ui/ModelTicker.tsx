@@ -44,7 +44,10 @@ import type { ModelPrice } from "@/lib/models";
 
 gsap.registerPlugin(useGSAP);
 
-const GAP = 40; // px between ticker items
+/* 56px, up from 40 (2026-08-08, user: "this is a bit hard to read"). With five fields per row
+   at a 40px gap, the space *between* two models was barely wider than the space between a
+   model and its own price, so the strip read as one long sentence rather than nine items. */
+const GAP = 56;
 const SPEED_PX_PER_SEC = 40; // slower than the logo row's 50 — this one has to be readable
 const REFRESH_MS = 5 * 60 * 1000;
 
@@ -82,44 +85,57 @@ function formatContext(n: number) {
 /**
  * Row height. The banner measured 45px with the old text (14px on a 1.5em line box = 21px,
  * plus 12px padding each side) and the header's hide-on-scroll transform travels exactly that
- * far. Items are 13px text, which lands at 19.5px and shrinks the strip to 44 — so the line
- * box is pinned back to 21px. Not cosmetic pedantry: `bannerH` is what the transform uses, and
- * it is the number recorded in the nav's spec.
+ * far. `bannerH` is what the transform uses and it is the number recorded in the nav's spec,
+ * so the line box is pinned rather than left to the type.
  *
- * This mattered more in the stock version, where a 14px sparkline was the tallest child. It is
- * kept because the arithmetic above is unchanged, not out of inheritance.
+ * The pin is what makes the 13px -> 14px bump below FREE: 14 x 1.5 is exactly 21, so the
+ * strip goes back to the banner's own original type size without moving the header a pixel.
  */
 const ROW_H = 21;
 
+/**
+ * TWO FIELDS, NOT FOUR (2026-08-08, user: "this is a bit hard to read... i want easy to
+ * understand like the market graph").
+ *
+ * The stock ticker was scannable because a symbol is four characters and there was one price.
+ * `Anthropic Claude Opus 5 in $5 · out $25 /M 1M ctx` is 45 characters across five fields, and
+ * at 13px it reads as prose. What went, and why:
+ *
+ *   · the CONTEXT WINDOW — the least load-bearing number on the row. `formatContext` is kept
+ *     because the sr-only text still announces it and restoring the field is one line;
+ *   · the words `in` and `out` — replaced by an arrow. Input-to-output is the near-universal
+ *     convention in model pricing, so the arrow carries it in one glyph instead of six;
+ *   · 13px -> 14px, the banner's own original size, free because of the ROW_H pin above.
+ *
+ * BOTH PRICES STAY. Dropping one was the obvious further cut and it is the wrong one: the two
+ * differ by 5x on some models and not at all on others, so a single figure would misrepresent
+ * whichever it omitted. The arrow is what buys the room to keep them.
+ */
 function Item({ m }: { m: ModelPrice }) {
-  const ctx = formatContext(m.context);
   return (
     <li
-      className="flex flex-none items-center gap-2 whitespace-nowrap"
+      className="flex flex-none items-center gap-3 whitespace-nowrap"
       style={{ height: ROW_H }}
     >
       {/* Lab and model share ONE span, separated by a plain space rather than by the flex
-          `gap`. The gap is 8px and sits between every other field, so putting the lab in its
-          own flex child would space "Anthropic" as far from "Claude Opus 5" as the price is
-          from the context — three loose fields instead of a named thing and its maker. A
-          space is ~4px, which reads as one unit. (2026-08-08, user asked for the lab to show:
-          "i want it to be LLM not stocks of the company like anthropic, GEMINI, OPENAI".) */}
+          `gap`. The gap sits between every other field, so putting the lab in its own flex
+          child would space "Anthropic" as far from "Claude Opus 5" as the price is — loose
+          fields instead of a named thing and its maker. A space is ~4px, which reads as one
+          unit. (2026-08-08, user asked for the lab to show: "i want it to be LLM not stocks
+          of the company like anthropic, GEMINI, OPENAI".) */}
       <span
-        className="font-sans text-[13px] font-medium text-paper"
+        className="font-sans text-[14px] font-medium text-paper"
         style={{ letterSpacing: "0.02em" }}
       >
-        {m.lab && <span className="font-normal text-paper/70">{m.lab} </span>}
+        {m.lab && <span className="font-normal text-paper/60">{m.lab} </span>}
         {m.name}
       </span>
-      {/* `in`/`out` are spelled out rather than shown as "$5 / $25". The two prices differ by
-          5x on some models and by nothing on others, so an unlabelled pair is genuinely
-          ambiguous — and the input price alone is the one people misread as the whole cost. */}
-      <span className="font-sans text-[13px] text-paper/70">
-        in {formatUsd(m.inputPerM)} · out {formatUsd(m.outputPerM)} /M
+      {/* U+2192, not "->" — and not the "·" it replaced, which read as a separator between two
+          equal things rather than as a direction. */}
+      <span className="font-sans text-[14px] text-paper/75">
+        {formatUsd(m.inputPerM)} → {formatUsd(m.outputPerM)}
+        <span className="text-paper/55"> /M</span>
       </span>
-      {/* 50% and not lower: white at 45% over the banner's #211e1e computes to 4.40:1, which
-          misses AA for 13px body text. 50% is 5.10:1 and still reads as the third tier. */}
-      {ctx && <span className="font-sans text-[13px] text-paper/50">{ctx} ctx</span>}
     </li>
   );
 }

@@ -17,6 +17,23 @@ Line format:
 
 ## 2026-08-08
 
+- **[--:--]** `nav` — **ticker cut from five fields to two.** User: *"this is a bit hard to
+  read at i want easy to understand like the market graph"*. Diagnosis is not "small font":
+  the stock row was `NVDA 182.31 ▁▂▃ +2.4%` (4-char symbol, one price) and it had become
+  `Anthropic Claude Opus 5 in $5 · out $25 /M 1M ctx` — 48 characters across five fields. Now
+  `Anthropic Claude Opus 5  $5 → $25 /M`. Dropped the context window (`formatContext` kept,
+  sr-only still announces it, one line to restore) and replaced the words `in`/`out` with
+  **U+2192** — input-to-output is the convention in model pricing, so one glyph does the work
+  of six; not the `·` it replaced, which reads as a separator between equals rather than a
+  direction. **Both prices stay** — they differ by 5x on some models and not at all on others,
+  so a single figure would misrepresent whichever it omitted. **13px → 14px is free**: `ROW_H`
+  is pinned at 21 because the header's hide-on-scroll transform travels one banner height, and
+  14 × 1.5 = 21 exactly, so the strip returns to the banner's own original size with the header
+  unmoved. Gap 40 → 56px, because at 40 the space between two models barely exceeded the space
+  between a model and its own price. New opacities all clear AA at 14px on `#211e1e` (lab
+  6.74:1, prices 9.78:1, `/M` 5.90:1). Cycle **shrank** 2781 → 2444px. ⚠️ The CDP probe asserts
+  the rendered string, so the format change reddened all nine price checks until its expectation
+  was updated — not a data problem. → [detail](../features/nav/CONTEXT.md)
 - **[--:--]** `nav` — **ticker rows now credit the lab**: `Anthropic Claude Opus 5`,
   `OpenAI GPT-5.6 Sol`, `Google Gemini 3.6 Flash`. User: *"i want it to be LLM not stocks of
   the company like anthropic, GEMINI, OPENAI, GROK, etc"* — the strip already had no stocks,

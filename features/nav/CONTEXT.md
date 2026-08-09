@@ -36,6 +36,67 @@ live site for the mobile menu, the scroll flip point, and the `Indicator` elemen
 
 ## Log
 
+### 2026-08-08 — ticker cut from five fields to two, for legibility
+
+**Trigger:** user, with a crop of the strip — *"this is a bit hard to read at i want easy to
+understand like the market graph"*.
+
+**The diagnosis, because it is not "the font is small".** The stock ticker was scannable
+because a symbol is four characters and there was one price: `NVDA 182.31 ▁▂▃ +2.4%`. The row
+it became is **45 characters across five fields** —
+`Anthropic Claude Opus 5 in $5 · out $25 /M 1M ctx` — and at 13px that reads as prose. The
+lab names the user asked for the turn before made it worse, and correctly so; the fix had to
+come from the other three fields, not from undoing that.
+
+| | before | after |
+|---|---|---|
+| row | `Anthropic Claude Opus 5 in $5 · out $25 /M 1M ctx` | `Anthropic Claude Opus 5  $5 → $25 /M` |
+| fields | 5 | 2 |
+| characters | 48 | 35 |
+| type | 13px | **14px** |
+| gap between models | 40px | **56px** |
+| measured cycle | 2781px | **2444px** |
+
+**What went, and why**
+
+- **The context window.** The least load-bearing number on the row. `formatContext` is kept
+  and still used — the sr-only text announces it — so restoring the field is one line.
+- **The words `in` and `out`, replaced by `→`.** Input-to-output is the near-universal
+  convention in model pricing, so the arrow carries it in one glyph instead of six. U+2192,
+  not `->`, and not the `·` it replaced — a middot reads as a separator between two equal
+  things rather than as a direction.
+- **`/M` demoted to `text-paper/55`** so the two dollar figures are what the eye lands on.
+
+**BOTH PRICES STAY, and dropping one was the obvious further cut.** It is the wrong one: input
+and output differ by 5x on some models and not at all on others, so a single figure would
+misrepresent whichever it omitted. The arrow is what buys the room to keep them honest.
+
+**13px → 14px is FREE, and that is a consequence of an earlier decision.** `ROW_H` is pinned
+at 21px because the header's hide-on-scroll transform travels one banner height; 14 × 1.5 is
+exactly 21, so the strip returns to the banner's own original type size **without moving the
+header a pixel**. Confirmed: banner still 45px at all three tiers.
+
+**Gap 40 → 56px.** At 40 the space *between* two models was barely wider than the space
+between a model and its own price, so nine items read as one sentence. Now 12px within a row,
+56px between rows.
+
+New opacities, all computed against `--color-banner` `#211e1e`, all clearing AA at 14px:
+lab `/60` = 6.74:1, prices `/75` = 9.78:1, `/M` `/55` = 5.90:1.
+
+**Re-verified**, 1600 / 1440 / 390: banner **45px**, row 21px, no horizontal overflow, tween
+advancing, static under reduced motion, all nine prices still matching a fresh call to the
+live endpoint. Cycle **shrank** 2781 → 2444px, so the loop is back to ~61s and still clears
+the viewport at every tier. `npm run build`, `tsc`, `eslint` clean.
+
+⚠️ **The probe needed updating with the component.** `tickershot.js` asserts the rendered
+string, so the format change turned all nine price checks red until its expectation was
+changed too. Worth knowing before reading that failure as a data problem.
+
+**Not done, and the reason:** the user said *"like the market graph"*, which could be read as
+wanting the sparkline back. It cannot come back honestly — see the entry below — so this pass
+attacked legibility instead. Flagged to them.
+
+
 ### 2026-08-08 — ticker rows now credit the lab
 
 **Trigger:** user — *"i want it to be LLM not stocks of the company like anthropic, GEMINI,
