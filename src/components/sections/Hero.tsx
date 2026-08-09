@@ -51,17 +51,20 @@ export default function Hero() {
         {/* Original attributes: loop muted playsinline preload="none".
             autoPlay added because the original starts playback via JS on mount.
 
-            THREE CLIPS, ONE FILE (2026-08-09). Tel Aviv at dusk with the flag, dissolving
-            to Jerusalem at sunset, dissolving to Jerusalem at dusk, then sealed back to the
-            start so `loop` never cuts. Each dissolve is a 2s cross-fade; there is no dip to
-            black, because 2s of black behind the headline is a dead hero, not a dramatic
-            one.
+            FOUR CLIPS, ONE FILE (2026-08-09). Tel Aviv at dusk with the flag → Tel Aviv
+            beachfront from the air → Jerusalem at sunset → Jerusalem at dusk, then sealed
+            back to the start so `loop` never cuts. Each dissolve is a 2s cross-fade; there
+            is no dip to black, because 2s of black behind the headline is a dead hero, not
+            a dramatic one.
 
-            THE ORDER IS NOT CHRONOLOGICAL, ON PURPOSE. The darkest clip is first so the
-            POSTER — which is frame 0, and is what carries the white 64px headline until the
-            video streams in — is a dark silhouette rather than a bright sunset sky. It also
-            puts the gentlest luma step at the loop wrap, which is the one seam that repeats
-            forever.
+            THE ORDER IS TWO CITIES, NOT A CLOCK. Tel Aviv's two shots run together and then
+            Jerusalem's two, which is also what keeps the Jerusalem pair adjacent — same
+            landmark at two distances, so that dissolve reads as a match dissolve.
+
+            THE FLAG CLIP LEADS, AND THAT IS LOAD-BEARING (user's call, and it earns it): the
+            POSTER is frame 0, and it is what carries the white 64px headline until the video
+            streams in. A dark silhouette holds that type; a lit skyline does not. It also
+            puts the gentlest luma step on the loop wrap, the one seam that repeats forever.
 
             THE SPEED IS BAKED INTO THE FILE, not applied with `playbackRate` — the sources
             are 24fps, and slowing them in the browser would drop the effective rate below

@@ -17,6 +17,8 @@ Line format:
 
 ## 2026-08-09
 
+- **[--:--]** `hero` — **fourth clip added; pushed live.** Tel Aviv beachfront aerial slots in at position 2, so the order is two Tel Aviv shots then two Jerusalem shots — flag still leading (verified on frame 0, no re-cut needed). 28.7s, 6.0 MB at crf 27; the aerial's light trails and surf were expensive enough that 25 gave 7.8 MB. Best luma curve of the four cuts: junctions +27 / +3 / −12 / −8. Seal 2.91/255. → [detail](../features/hero/CONTEXT.md)
+
 - **[--:--]** `hero` — **the flag clip joins; three clips in one file.** User: *"all the videos including the clip that has a Israeli flag on it … three videos in total."* Tel Aviv w/ flag → Jerusalem sunset → Jerusalem dusk, 0.6×, two 2s dissolves, loop-sealed to 26.5s. Shipped as `hero-israel.mp4` at **5.2 MB — lighter than the 2-clip cut it replaces** (crf 25, sources trimmed to 6.5s windows). Order is not chronological on purpose: the darkest clip leads so the poster carries white type, and the gentlest luma step lands on the loop wrap. Supersedes this morning's `hero-jerusalem.*`, deleted rather than left stale. → [detail](../features/hero/CONTEXT.md)
 
 - **[--:--]** `hero` — **background is now two user-supplied Jerusalem clips in one file.** Sunset dissolving into dusk: 0.6× baked in at 30fps, a 2s match dissolve (no dip to black — that would blank the headline), loop-sealed to 22.8s / 5.6 MB. Clip A graded down ~15 luma so the dissolve and the loop wrap don't pulse. Shipped as `hero-jerusalem.mp4`, a new name rather than an overwrite — `hero-clix.mp4` is still `/clix`'s Video block. Seal verified: frame 0 vs frame 683 differ by 1.44/255. → [detail](../features/hero/CONTEXT.md)

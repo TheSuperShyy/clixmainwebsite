@@ -90,7 +90,7 @@ interpolate through rgba(0,0,0,0) and grey the fade. Kept literal.
 ### Assets
 | Asset | Detail |
 |---|---|
-| Video | `/video/hero-israel.mp4` · 1920×1080 · h264 · 30fps · 26.5s · 5.2 MB |
+| Video | `/video/hero-israel.mp4` · 1920×1080 · h264 · 30fps · 28.7s · 6.0 MB |
 | Poster | `/video/hero-israel-poster.jpg` |
 | Superseded | `hero-tel-aviv.*` (2026-08-02) → `hero-clix.*` (2026-08-05) → this, 2026-08-09. `hero-clix.mp4` is still live — it is `/clix`'s Video block. `hero-tel-aviv.*` is unreferenced. |
 | Attributes | `loop muted playsinline preload="none"` |
@@ -136,7 +136,7 @@ for the CTA border) · `--font-display` · `--font-sans` · `--container-max` `1
 
 | Property | Token would give | Original actually is | Why |
 |---|---|---|---|
-| Hero video content | US flag / NYC skyline | **three clips — Tel Aviv w/ flag → Jerusalem sunset → Jerusalem dusk** | 2026-08-09, all three user-supplied. 0.6× baked into the file, 2s cross-dissolves, loop-sealed to 26.5s. Order is deliberately not chronological — see [CONTEXT.md](CONTEXT.md) for the poster and loop-wrap reasons, the recipe, and the measured luma curve. **The flag is present**, so the crop-anchor question below is open. |
+| Hero video content | US flag / NYC skyline | **four clips — Tel Aviv w/ flag → Tel Aviv aerial → Jerusalem sunset → Jerusalem dusk** | 2026-08-09, all three user-supplied. 0.6× baked into the file, 2s cross-dissolves, loop-sealed to 26.5s. Order is deliberately not chronological — see [CONTEXT.md](CONTEXT.md) for the poster and loop-wrap reasons, the recipe, and the measured luma curve. **The flag is present**, so the crop-anchor question below is open. |
 | ~~Hero video content~~ | ~~US flag / NYC skyline~~ | ~~two Jerusalem clips, sunset to dusk~~ | *Superseded the same day, row above.* Shipped 2026-08-09 and replaced hours later when the user asked for the flag clip back as a third. |
 | ~~Hero video content~~ | ~~US flag / NYC skyline~~ | ~~single Tel Aviv dusk clip, flag present~~ | *Superseded 2026-08-09, rows above.* 2026-08-05, *"use only that clip"*. That clip is now the FIRST of the three. |
 | ~~Hero video content~~ | ~~US flag / NYC skyline~~ | ~~Israeli sunset montage (no flag)~~ | *Superseded 2026-08-05, row above.* Requested 2026-08-02; layout, type, video attributes and crop anchor all unchanged. See [public/README.md](../../public/README.md). |

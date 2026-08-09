@@ -19,11 +19,11 @@ capture via Chrome DevTools Protocol at exact viewports — evidence in
 `assets/measurements.json` and `assets/render-*.png`. No horizontal overflow at any width;
 `npm run build` clean.
 
-Background is **three clips in one file** as of 2026-08-09 — Tel Aviv at dusk with the
-Israeli flag, dissolving to Jerusalem at sunset, dissolving to Jerusalem at dusk, then sealed
-back to the start. 0.6x, 26.5s, 5.2 MB, `public/video/hero-israel.mp4`. All three sources
-were supplied by the user. It replaced the two-clip Jerusalem cut of the same day, which had
-replaced the single Tel Aviv clip of 2026-08-05, which had replaced a four-clip montage.
+Background is **four clips in one file** as of 2026-08-09 — Tel Aviv at dusk with the
+Israeli flag → Tel Aviv beachfront from the air → Jerusalem at sunset → Jerusalem at dusk,
+then sealed back to the start. 0.6x, 28.7s, 6.0 MB, `public/video/hero-israel.mp4`. All four
+sources were supplied by the user. The clip count went 4 (montage, 08-02) → 1 (08-05) → 2 → 3 → 4 over 2026-08-09 alone;
+only the last of those is live.
 
 **The flag is back**, so the crop-anchor question is open again: `object-position` is still
 the target's own `50% 50%` at every tier, and at 390 the flag is cropped out entirely. See
@@ -44,6 +44,52 @@ animation. Both need a look at the live site.
 ---
 
 ## Log
+
+### 2026-08-09 (later still) — a fourth clip; Tel Aviv pair, then Jerusalem pair
+
+**Trigger:** user — *"add the new one i send and push live"*, after *"make the 1st clip the
+main one is the one with the flag"* (which needed no change: the flag clip was already first,
+verified on frame 0 rather than assumed).
+
+**New source:** `hf_20260809_163705_….mp4` → `features/hero/assets/hero-telaviv-aerial-source.mp4`
+(gitignored). Tel Aviv beachfront from the air at dusk — Opera Tower, the coast road, traffic
+light trails. 1928×**1076**, 24fps, 8.041667s, 21.3 Mbps. Mean luma **107 → 83**.
+`crop=1912:1076:8:0` before the scale: 1928/1076 = 1.792, not 1.778.
+
+**Shipped:** same filename, `public/video/hero-israel.mp4` — still accurate with four clips,
+so no rename. 1920×1080, 30fps, **28.7s, 6.0 MB**.
+
+**Order: `flag → TA aerial → Jer sunset → Jer dusk`.** Two cities, two clips each, not a
+clock. It satisfies every constraint at once: the flag leads (the user's call, and the poster
+argument that already justified it), the Jerusalem pair stays adjacent for the match
+dissolve, and the two Tel Aviv shots now sit together too.
+
+The luma curve is the best of the four cuts so far — measured, per second:
+`72 71 72 72 71 70 | 84 97 98 97 95 94 92 | 93 95 96 95 94 94 93 | 88 81 78 78 79 80 81 80 | 74`
+Junctions: **+27** (flag → aerial), **+3** (aerial → sunset, near-seamless), **−12**
+(sunset → dusk), **−8** at the wrap. One notable step, at the first dissolve, and it is the
+city lighting up.
+
+**Decisions**
+
+- **The new clip is NOT graded.** It falls 107 → 83 on its own, which lands it right on the
+  graded sunset's 95 — hence the +3 junction. Grading it down would have flattened that and
+  pushed the step somewhere else. The one big lift is better left in one place.
+- **Windows trimmed 6.5s → 5.5s** (`trim=1.0:6.5`). Four clips at the old window is 35.3s;
+  this holds the file to 28.7s while still giving each clip 9.2s on screen.
+- **crf 27, up from 25.** The aerial is the most expensive clip in the set — traffic light
+  trails, surf and window detail — and at 25 the file was **7.8 MB**. 27 gives 6.0 MB.
+  Checked for the failure mode that matters rather than assumed: a 1:1 crop of the dusk sky
+  at t=9 shows no banding, which is what a dusk gradient at a high crf would show first.
+- **Sky banding is now the ceiling on crf, not blockiness.** Worth knowing before a fifth
+  clip pushes this further.
+
+**Verified:** loop seal 2.91/255 between frame 0 and frame 860 — better than the three-clip
+cut's 3.70, because the shorter window puts a calmer stretch of flag at the seam. Frame 0
+confirmed to be the flag clip by eye, not by arithmetic. Build clean; served at 5,987,676
+bytes. **Not verified:** still not looked at across the four tiers, and the flag's phone-tier
+crop is still unaddressed.
+
 
 ### 2026-08-09 (later) — the flag clip joins; three clips in one file
 
