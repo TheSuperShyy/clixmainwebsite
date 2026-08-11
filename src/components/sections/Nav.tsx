@@ -102,7 +102,8 @@ const LINKS: { label: string; href: string | null }[] = [
   { label: "Security", href: "/#security" },
   { label: "Company", href: null },
   { label: "Customers", href: "/#testimonials" },
-  { label: "News", href: null },
+  /* Live since 2026-08-11 — /news is the rogo.com/news clone carrying the AI digest. */
+  { label: "News", href: "/news" },
   { label: "Careers", href: null },
 ];
 

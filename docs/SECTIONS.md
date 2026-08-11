@@ -40,11 +40,20 @@ Spec + all measured values: [features/felix-page/](../features/felix-page/).
 | 7 | `CTA` | **`review`** | Boxes measured (`96px 40px`, gap 80; inner panel `400px` tall, radius 6, gap 32; title 80/72/56px). "Staff Felix today." + `Request Access`. |
 | 8 | `Felix Footer` | **`review`** | Boxes measured (`96px 40px 80px`, tablet `64px 40px`, phone `128px 16px 40px`, gap 108). Slim — "by Rogo". |
 
+## Page: `/news` (clone of `rogo.com/news`)
+
+One-section page. Spec + memory in [features/news-page/](../features/news-page/).
+
+| # | Section | Status | Notes |
+|---|---|---|---|
+| 1 | `Articles` | **`review`** | Built 2026-08-11 from a live fetch (no frozen capture). Hero (h1 88/72/64, subtitle 16 @ 540px balance, mailto button) + 5 filter pills (h-40, radius 28) + 3/2/1-col grid, gap 32. Content is a real 12-story AI digest (`newsItems.ts`) — cards link out to sources; tiles stand in for rogo's art. Never pixel-diffed. |
+
 ## Other pages
 
 Still **not scoped** — see the open question in [PROJECT.md](PROJECT.md).
 
-`Product` · `Security` · `Company` · `Customers` · `News` · `Careers` · `Log in`
+`Product` · `Security` · `Company` · `Customers` · `Careers` · `Log in`
+(`News` left this list 2026-08-11 — built above.)
 
 ## Order of work
 
