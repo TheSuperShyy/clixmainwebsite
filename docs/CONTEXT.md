@@ -15,7 +15,98 @@ Line format:
 
 ---
 
+## 2026-08-11
+
+- **[--:--]** `news-page` — **/news built: rogo.com/news cloned, carrying a real 12-story AI digest.** Measured from a live fetch (no frozen capture exists); nav is FIXED on this page like home's, not in-flow like /clix's — measured, three pages now split two nav treatments. Hero 88/72/64 + 540px balanced subtitle + mailto button; five pills (h-40/r-28, inactive border `rgba(24,24,24,0.1)`); 3/2/1 grid, board gap 32 (not the section's 64). Cards link OUT to sources; token-ground tiles stand in for rogo's art. All 12 stories genuine (2026-08-10/11), so no robots block. Nav `News` wired to `/news`. → [detail](../features/news-page/CONTEXT.md)
+- **[--:--]** `felix-page` — **DM Serif Display shipped as the footer wordmark's face** (user picked it from the trial). Four-glyph 2.9 KB subset + OFL vendored at `public/fonts/dmserif/`; `@font-face "DM Serif CLIX"` locked to `unicode-range` C/I/L/X so it cannot leak; new token `--font-emboss` (the one sanctioned exception to one-face-sitewide); footer SVG re-cut to DM's outlines (viewBox 2034×696, weight 400, zero tracking). Nav wordmark untouched. → [detail](../features/felix-page/CONTEXT.md)
+- **[--:--]** `felix-page` — **wordmark type trial published as an artifact** (user: the footer's lettering should match rogo's, and ours is a different font). Rogo's Felix is ABC Arizona Mix, deleted 2026-08-08 for licensing — so the sheet shows five OFL serifs in its territory (DM Serif Display, Instrument Serif, Playfair 600, Marcellus, Young Serif) plus today's Discovery Bold, every one carrying the deboss recipe measured from rogo's PNG, subset to the four glyphs (1–3 KB each). Awaiting the user's pick; it goes into the footer wordmark ONLY, Discovery stays sitewide. Artifact: https://claude.ai/code/artifact/f0615cb2-e57e-4677-91fe-42456d49995c → [detail](../features/felix-page/CONTEXT.md)
+- **[--:--]** `felix-page` — **footer emboss measured from rogo's actual PNG and rebuilt as an SVG inner shadow.** The artwork was fetched to the scratchpad and sampled (never vendored): face is FLAT `#ececec`, with a `#dedede` rim inside the TOP of each stroke easing out over ~18px — an inner shadow from above, which neither `text-shadow` (paints outside the glyph) nor a gradient face (shades the word, not each stroke) can produce. Now SVG `<text>` + `feOffset/feGaussianBlur/feComposite out` filter; every number derived from the samples (flood 0.06 = 14/236, dy 10 / σ 3 = the PNG's 13px/8px × 0.743). New token `--color-emboss-face`. → [detail](../features/felix-page/CONTEXT.md)
+- **[--:--]** `felix-page` — **footer wordmark set to `CLIX` and re-cut from the font's real outlines.** The previous emboss was invisible for an arithmetic reason: a `text-shadow` paints outside the glyph and the page is `#ffffff`, so a white lip on white is zero contrast. On a white ground the light edge has to be inside the letterform, which no shadow can reach — so the face is now a `background-clip: text` gradient (`#e0e0e0` top → `#f7f7f7` bottom, the form shading of a groove lit from above) and the remaining shadow moved to `filter: drop-shadow` because `text-shadow` paints above the element background, i.e. above the face. Sizing is now measured, not guessed: Discovery Bold's outlines give `CLIX` 1.9264em of ink over 0.6287em, so `51cqw` fills the column and the hard-coded 2.3376 aspect is gone — it was "Felix"'s ratio and forcing caps into it left ~130px of dead space that pushed the byline ~90px off the letters. Block is ~130px shorter than the target's as a result, on purpose. → [detail](../features/felix-page/CONTEXT.md)
+- **[--:--]** `felix-page` — **footer wordmark debossed and resized to fill its box.** Emboss reproduced as two `text-shadow`s with offsets in `em`, so it scales with the glyph instead of being a heavy bevel at 72px and invisible at 420px. Separately (not asked, flag it): the word was `clamp(…, 420px)` and filled only ~half its box, where the target's is a bitmap that fills by definition — now `container-type: inline-size` + `font-size: 56cqw`, one tier-independent number. The `56` is a taste value from comparing screenshots, not a measurement. → [detail](../features/felix-page/CONTEXT.md)
+
+## 2026-08-10
+
+- **[--:--]** `felix-page` — **copy pass: 0 "Felix" and 0 "Rogo" left in visible copy.** The Manifesto was rewritten from the real company site's eight services (`docs/reference/clixsolutions/`), no dashes of any kind per the ask; title → "The systems behind the work". CTA → "Build with Clix." (16 chars, constrained by `white-space:pre` at the 72px tablet tier). Footer → "Clix" / "by Clix Solutions". Code identifiers and capture references deliberately left alone. **⚠️ The ten testimonials were renamed, not rewritten, so they are now fabricated endorsements — `noindex` must stay until they are replaced or deleted.** → [detail](../features/felix-page/CONTEXT.md)
+
+- **[--:--]** `felix-page` — **the block below the green now fades out with it, matching the one above.** `#clix-testimonials` joins `#integrations` on `opacity: 1 - g` (same scalar), so both edges of the dark stretch behave identically. Its ink quotes were sitting invisible on dark green — a side effect of every block correctly painting nothing, not a reason to put the opaque backgrounds back. → [detail](../features/felix-page/CONTEXT.md)
+
+- **[--:--]** `felix-page` — **manifesto bottom padding raised to match its top** (`pb-16` → `pb-[164px]` at ≥810; phone was already symmetric). A deliberate departure from the measured `64px`, standing in for the unbuilt block 5: the target's post-text dark runway is `64 + 256` = 320px, ours was `64 + 128` = 192px, now 292px. Padded block 4 rather than block 6 because block 6's `pt` is measured and unrelated. **Revert when Product Visuals lands** — flagged in three places. → [detail](../features/felix-page/CONTEXT.md)
+
+- **[--:--]** `felix-page` — **the trailing sections are transparent now; the opaque `bg-paper` was mine.** Checked the capture: **all eight blocks on the target paint nothing** — the shared backdrop is the only colour on the page. Testimonial/CTA/Footer had `bg-paper`, so an opaque white block slid up over the dark ground and the post-manifesto dark runway could not exist at any threshold. Lesson: when an animation on a shared layer looks wrong, check what is painted *over* it before retuning it. Our runway is still 128px shorter than the target's — exactly block 5's extra padding. → [detail](../features/felix-page/CONTEXT.md)
+
+- **[--:--]** `felix-page` — **the crossfade's light end is plain white now, not `canvas`.** `body` and every section below the green block are `paper` `#ffffff`, but the backdrop lightened to `#f7f7f7` — so the page ran grey on top and white below, and the green section's exit landed on a visible step. `GROUND_LIGHT` and the element's own class both moved to `paper`. A documented deviation: rogo's backdrop really is `rgb(247,247,247)`. Also fixed a `ring-offset-canvas` halo on the hero button. → [detail](../features/felix-page/CONTEXT.md)
+
+- **[--:--]** `felix-page` — **backdrop unified: one trigger, one tween, one scalar** for ground colour + integrations grid + manifesto text (user: *"same trigger and everything ... so we dont need to adjust both to match"*). The beat became a keyframe range inside the single tween (ground 0→0.6, text 0.45→1) instead of a runtime delay, which deleted the `gsap.ticker.time` stamping, the second ScrollTrigger, the separate writer and `STAGGER_S`. Also fixed a latent white-on-near-white window: the text used to outlive the ground's exit. → [detail](../features/felix-page/CONTEXT.md)
+
+- **[--:--]** `felix-page` — **`FADE_S` 0.85s → 0.6s** (*"a bit more faster"*). `STAGGER_S` followed automatically, being a ratio. Half the original 1.2s and roughly the floor — below ~0.5 a colour wash reads as a switch, not a fade. → [detail](../features/felix-page/CONTEXT.md)
+
+- **[--:--]** `felix-page` — **backdrop fades sped up.** `FADE_S` 1.2s → 0.85s, which governs the ground, the integrations grid and the text reveal together. `STAGGER_S` re-expressed as `FADE_S / 2` instead of a literal 0.6 — the beat was tuned as *half a fade*, so leaving it literal would have stretched the choreography rather than just its speed. → [detail](../features/felix-page/CONTEXT.md)
+
+- **[--:--]** `felix-page` — **beat tuned to a 0.6s stagger** ("the text animatiion is super
+  delay"). Chaining made the words complete at 2.4s; the reveal now starts 0.6s after the
+  darkening STARTS (not after it lands), symmetric upward. Order still holds — at flick
+  speed the words are only ever readable on a landed ground; text fully in at 1.6s. The dial
+  is `STAGGER_S`. → [detail](../features/felix-page/CONTEXT.md)
+- **[--:--]** `felix-page` — **blank-beat fix: the fades are sequenced in time, not scroll
+  distance.** User caught it at once: *"the text and the green bg shows at the same time no
+  delay"* — the 75%/45% gap is ~270px, one flick, both toggles fired within ~100ms and the
+  fades ran concurrently; the earlier probe had only sampled between the lines, a state a
+  real scroll crosses in 0.1s. Now each fade queues behind the other's landing time
+  (`darkLandsAt`/`hideLandsAt` stamped from `gsap.ticker.time` — NOT tween `isActive()`,
+  which is false for a tween created in the same tick and silently produced zero delay).
+  Verified at flick speed, both directions: ground 0–1.2s with text pinned 0, text 1.2–2.4s;
+  reverse order going up. → [detail](../features/felix-page/CONTEXT.md)
+- **[--:--]** `felix-page` — **the manifesto enters BLANK; its text fades in on a deeper
+  line.** User watched rogo live: *"theres no text and i can see the text becoming visible
+  when i scroll down"* — observational evidence reinstating the content fade the 2026-08-09
+  correction removed as unevidenced. `#manifesto-content` gets its own toggle at top-45%
+  (ground fires at 75%), same 1.2s; down = dark then words, up = words gone then light, so
+  white type never sits on a light ground. Text never hides on the way down — it scrolls off
+  like content. SSR carries no inline opacity; zeroing is matchMedia-only. Verified: the
+  blank beat exists (ground `15,40,34`, text `0`), reveal runs 0→1 with the ground unchanged,
+  both orderings hold. Lines and duration are constructed, the sequence is observed.
+  → [detail](../features/felix-page/CONTEXT.md)
+- **[--:--]** `felix-page` — **the integrations grid fades out as the green arrives.** User:
+  *"i dont want to make the icons or the words any of the tools visible when the green is
+  actie"*. Grey wasn't enough — `#8b8b8b` on `forest-deep` is ~4.7:1, MORE legible than on
+  the light tiles. `#integrations` now runs `opacity = 1 - p` inside the backdrop's single
+  `write()` — same scalar as the colour, so the two can never disagree. Also: the `mm.add`
+  callback now returns a cleanup clearing both raw-DOM styles (a mid-session flip to
+  `reduce` would have stranded them). Verified: opacity tracks the colour sample-for-sample,
+  both restore on scroll-back. → [detail](../features/felix-page/CONTEXT.md)
+
 ## 2026-08-09
+
+- **[--:--]** `felix-page` `docs` — **the integrations grid went monochrome** ("match the
+  design with rogo", grids side by side). rogo unifies twelve different wordmark designs with
+  one grey; our per-tool brand accents were correct data making the wrong design. Everything
+  now renders `#8b8b8b` — promoted to **`--color-mark`** (x2 one-off → ~26 uses crosses the
+  tokens-before-pixels line; ~2.97:1, logotype-exempt, never prose). monday.com's own `fill`
+  attributes greyed via `[&_*]:fill-current` (presentation attributes lose to any CSS); no
+  blanket override, which would flood Vapi's stroke-drawn paths. `accent` stays in
+  toolMarks.tsx as unrendered provenance. Bonus: the coloured-glyphs-stay-bright-mid-crossfade
+  cost recorded against the backdrop is gone. Verified per-tile via CDP: 12/12 grey, zero odd
+  fills. → [detail](../features/felix-page/CONTEXT.md)
+- **[--:--]** `felix-page` — **the /clix ground fade is a toggle now, not a scrub.** User:
+  *"when hitting a certain pixel, it would activate and slowly fade in ... the green section
+  should have the toggle"*. Crossing a line (Manifesto top at 75% / bottom at 30%) fires a
+  **1.2s `power2.inOut` tween that runs on its own clock**; scroll position no longer drives
+  the colour, and stopping mid-fade no longer freezes it mid-colour. Single-writer rule kept
+  from the scrub version (`fadeTo` kills the running tween). `onRefresh` jumps instantly so a
+  mid-page reload paints dark without playing a fade. Verified with a stationary-scroll CDP
+  trace: colour moves `247,247,247 → 15,40,34` over ~1.25s while `scrollY` is constant, stays
+  light 120px short of the line, reverses on scroll-back, reduced-motion untouched.
+  ⚠️ `eslint` has two pre-existing errors in `ClixCTA.tsx`/`ClixHero.tsx` from the uncommitted
+  /clix batch — not from this change, but "lint clean" is false for the page until they're
+  fixed. → [detail](../features/felix-page/CONTEXT.md)
+
+- **[--:--]** `felix-page` / `docs` — **backdrop animation corrected against a live screenshot; supersedes the previous entry.** Four faults: wrong LAYER (the target darkens the whole viewport and lets the logo grid dissolve — reverted to animating the shared fixed backdrop, new `ClixBackdrop.tsx`); wrong COLOUR (`#0f2822`, new `forest-deep` token — its zero static uses were the *evidence* of a JS-applied colour, not a dead value; `forest` `#1a2a25` is the type colour); `scrub: true` → `scrub: 1`, which is the whole of "not smooth"; and the nav stays WHITE over the dark section, not ink. Exit timing still unobserved — the target runs it through block 5's 256px padding, which we don't build. → [detail](../features/felix-page/CONTEXT.md)
+
+- **[--:--]** `felix-page` — **block 3 is now an integrations grid; the Manifesto's ground arrives by scroll.** The twelve tools came from the REAL clix site's own `Tool · 01` strip (`docs/reference/clixsolutions/`) — exactly twelve, exactly the tile count, marks and accents included, nothing fetched or invented. Grid geometry unchanged. The green block is GSAP-scrubbed in two ordered phases (ground darkens, THEN content fades) because white type over `canvas` is invisible text; it animates the section's own box rather than the shared backdrop, since darkening the shared layer would make `Logo Proof` unreadable mid-scroll. → [detail](../features/felix-page/CONTEXT.md)
+
+- **[--:--]** `felix-page` — **hero headline is now "Meet Clix"** (visible line, `sr-only` h1, and the route `<title>`, which drops its bar: brand-then-product collapses when the brand is the product). First piece of the copy pass. 14 "Felix" references remain — and the 7 in the testimonials must NOT be find-replaced: renaming real quotes about rogo's product turns placeholder text into fabricated endorsements of clix. → [detail](../features/felix-page/CONTEXT.md)
+
+- **[--:--]** `felix-page` — **fixed the `Request Access` button wrapping to two lines.** The original's label node is `white-space: pre`, which is load-bearing under the anchor's `width: min-content` — without it the label breaks at the space. Applied to both instances (`ClixHero`, `ClixCTA`); every other box value was already correct. Audited the page's other `w-min` boxes — no further cases. → [detail](../features/felix-page/CONTEXT.md)
 
 - **[--:--]** `hero` — **fourth clip added; pushed live.** Tel Aviv beachfront aerial slots in at position 2, so the order is two Tel Aviv shots then two Jerusalem shots — flag still leading (verified on frame 0, no re-cut needed). 28.7s, 6.0 MB at crf 27; the aerial's light trails and surf were expensive enough that 25 gave 7.8 MB. Best luma curve of the four cuts: junctions +27 / +3 / −12 / −8. Seal 2.91/255. → [detail](../features/hero/CONTEXT.md)
 
