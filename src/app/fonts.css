@@ -455,3 +455,24 @@
   font-display: swap;
   unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+1EA0-1EF9, U+20AB;
 }
+
+/* --------------------------------------------------------------------------
+ * DM Serif Display — the /clix FOOTER WORDMARK's face, and nothing else.
+ * Chosen 2026-08-11 from a six-face type trial: the target's Felix wordmark is
+ * ABC Arizona Mix (licensed, deleted 2026-08-08), and DM's thin flat didone
+ * serifs are the nearest open-licence cut to it. SIL OFL 1.1 — licence vendored
+ * beside the file (public/fonts/dmserif/OFL.txt).
+ *
+ * SUBSET TO FOUR GLYPHS (pyftsubset --text="CLIX", 2.9 KB) because the word is
+ * the only thing ever set in it. The unicode-range says so: if any other text
+ * ever falls into this family the browser will not even fetch it, and the
+ * fallback serif will make the mistake visible instead of silent.
+ * Single weight — the face only ships 400. */
+@font-face {
+  font-family: "DM Serif CLIX";
+  src: url("/fonts/dmserif/dm-serif-clix.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0043, U+0049, U+004C, U+0058;
+}

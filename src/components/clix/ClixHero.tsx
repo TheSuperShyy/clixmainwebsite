@@ -8,7 +8,7 @@
  *
  * THE HEADLINE IS THREE BOXES, NOT ONE STRING. The original sets it as:
  *
- *     [        Meet Felix        ]   <- own line, text-align:center
+ *     [        Meet Clix         ]   <- own line, text-align:center
  *     [ your new ][ <rotating> ]     <- one row, gap 16px
  *
  * "your new" is right-aligned and the rotating word is a fixed-width box, so the row's
@@ -135,24 +135,32 @@ export default function ClixHero() {
                  overflow-clip px-4 pt-24 pb-0
                  tablet:gap-[108px] tablet:px-10 tablet:pt-32"
     >
-      {/* The fixed `canvas` backdrop used to live here. MOVED to src/app/clix/page.tsx on
+      {/* The fixed page backdrop used to live here. MOVED to src/app/clix/page.tsx on
           2026-08-09: in the original it is a sibling of all eight sections, not a child of
           the hero, and keeping it here meant it sat inside an `overflow-clip` ancestor for no
           reason. Behaviour is unchanged; the ownership is now correct. */}
 
       {/* Width Container */}
-      <div className="relative z-[1] flex h-min w-full max-w-[var(--container-max)] flex-col
-                      items-center justify-center gap-24 tablet:gap-[108px]">
+      <div
+        className="relative z-[1] flex h-min w-full max-w-[var(--container-max)] flex-col
+                      items-center justify-center gap-24 tablet:gap-[108px]"
+      >
         {/* Headline Container — gap 40px to the button */}
-        <div className="relative flex h-min w-full flex-col items-center justify-center gap-10
-                        overflow-visible">
+        <div
+          className="relative flex h-min w-full flex-col items-center justify-center gap-10
+                        overflow-visible"
+        >
           {/* The two headline lines. gap:0 — the 100% line-height is the whole spacing. */}
-          <div className="relative flex h-min w-full flex-col items-center justify-center
-                          overflow-visible">
+          <div
+            className="relative flex h-min w-full flex-col items-center justify-center
+                          overflow-visible"
+          >
             {/* One accessible heading for the whole lockup. The visible pieces are three
                 separate boxes with a word that changes every 2.6s; exposing that to a
                 screen reader would announce a fragment at a time, forever. */}
-            <h1 className="sr-only">Meet Felix, your new {WORDS.join(" or ")}</h1>
+            <h1 className="sr-only">
+              Meet Clix, your new {WORDS.join(" or ")}
+            </h1>
 
             <p
               aria-hidden="true"
@@ -163,13 +171,15 @@ export default function ClixHero() {
                          desktop:max-w-[var(--measure)] desktop:text-[92px]"
               style={{ letterSpacing: "-0.06em" }}
             >
-              Meet Felix
+              Meet Clix
             </p>
 
             {/* Row: "your new" + the rotating word. Phone stacks it (column, gap 0). */}
-            <div className="relative flex h-min w-full flex-col items-center justify-center
+            <div
+              className="relative flex h-min w-full flex-col items-center justify-center
                             overflow-visible
-                            tablet:flex-row tablet:gap-4">
+                            tablet:flex-row tablet:gap-4"
+            >
               <p
                 aria-hidden="true"
                 className="relative h-auto w-auto max-w-[var(--measure)] flex-none
@@ -200,14 +210,18 @@ export default function ClixHero() {
                        border border-transparent bg-forest px-4 py-2 no-underline
                        transition-opacity duration-300 hover:opacity-90
                        focus-visible:ring-2 focus-visible:ring-forest
-                       focus-visible:ring-offset-2 focus-visible:ring-offset-canvas
+                       focus-visible:ring-offset-2 focus-visible:ring-offset-paper
                        focus-visible:outline-none
                        desktop:h-12"
             style={{ transitionTimingFunction: "var(--ease-rogo)" }}
           >
             <span className="flex h-5 items-center justify-center gap-[10px] pt-px">
+              {/* `whitespace-pre` is the original's own value on this node
+                  (`.framer-qcnp6y { white-space: pre }`), and it is load-bearing rather
+                  than cosmetic: the anchor is `width: min-content`, so without it the label
+                  breaks at the space and the button renders two lines tall. */}
               <span
-                className="font-sans text-[16px] font-medium text-paper"
+                className="font-sans text-[16px] font-medium whitespace-pre text-paper"
                 style={{ lineHeight: "1em", letterSpacing: "-0.01em" }}
               >
                 Request Access

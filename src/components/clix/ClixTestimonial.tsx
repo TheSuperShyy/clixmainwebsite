@@ -18,22 +18,71 @@
  * one cycle — no measuring pass needed, unlike the carousel which had to compute its own.
  */
 
-/* All ten, verbatim from the capture with their real attributions. Rogo's, not clix's —
-   "clone verbatim now, rewrite after". ⚠️ These are the single most sensitive strings on the
-   page: they are third-party praise for a product that is not clix's, and they CANNOT ship
-   under a clix wordmark. The copy pass either replaces them with real clix references or
-   deletes the block. */
+/* ⚠️⚠️  THESE ARE NOW FABRICATED ENDORSEMENTS. READ BEFORE LAUNCH.  ⚠️⚠️
+ *
+ * The names were changed to Clix on 2026-08-10 with the rest of the page ("change all of
+ * Clix into clix"). The WORDS are still rogo's: ten real quotes from real people about a
+ * real product that is not this one, now attributed to plausible-sounding firms and pointed
+ * at clix.
+ *
+ * Before the rename they read as obvious placeholder text, which was safe. They no longer
+ * do. This block is the single reason `robots: { index: false }` must stay on the route: it
+ * is the only content on the page that is not merely unfinished but actively misleading.
+ *
+ * THE FIX IS NOT ANOTHER RENAME. It is real clix references, with permission, or deleting
+ * the block. Flagged to the user at the time of the change and left in place at their
+ * direction, on a staging URL that is not indexed and has not launched. */
 const QUOTES = [
-  { q: "Rogo may have just created the greatest AI Agent ever. Felix is incredible.", role: "Managing Director", firm: "APAC Boutique Bank" },
-  { q: "Felix completely blew past my expectations, delivering a strong output on a task I assumed it wouldn’t handle.", role: "Managing Director", firm: "APAC Boutique Bank" },
-  { q: "One of the few tools that actually fits how bankers think and structure outputs", role: "Vice President", firm: "Top 5 U.S. BB Investment Bank" },
-  { q: "This is the most helpful AI tool I’ve tried - it gets how we work", role: "Managing Director", firm: "Top 5 U.S. BB Investment Bank" },
-  { q: "Felix is stellar. Seriously impressive", role: "Associate", firm: "Top 5 U.S. BB Investment Bank" },
-  { q: "Felix can get real work 90% of the way there", role: "Vice President", firm: "Top 10 U.S. Equity Research Firm" },
-  { q: "Felix tripled my team's output with no headcount additions", role: "Group Head", firm: "Boutique TMT Investment Bank" },
-  { q: "I’ve tried all the AI tools available out there and Felix is by far the most advanced model / agent I’ve used", role: "Principal", firm: "Mega Fund Private Equity" },
-  { q: "Felix has done more than anything else we've deployed", role: "Head of AI", firm: "Top 5 Global PE Firm" },
-  { q: "10 word prompt? And it did all of that? Mind-blowing.", role: "Partner", firm: "European Growth Equity Firm" },
+  {
+    q: "Clix may have just created the greatest AI Agent ever. It is incredible.",
+    role: "Managing Director",
+    firm: "APAC Boutique Bank",
+  },
+  {
+    q: "Clix completely blew past my expectations, delivering a strong output on a task I assumed it wouldn’t handle.",
+    role: "Managing Director",
+    firm: "APAC Boutique Bank",
+  },
+  {
+    q: "One of the few tools that actually fits how bankers think and structure outputs",
+    role: "Vice President",
+    firm: "Top 5 U.S. BB Investment Bank",
+  },
+  {
+    q: "This is the most helpful AI tool I’ve tried - it gets how we work",
+    role: "Managing Director",
+    firm: "Top 5 U.S. BB Investment Bank",
+  },
+  {
+    q: "Clix is stellar. Seriously impressive",
+    role: "Associate",
+    firm: "Top 5 U.S. BB Investment Bank",
+  },
+  {
+    q: "Clix can get real work 90% of the way there",
+    role: "Vice President",
+    firm: "Top 10 U.S. Equity Research Firm",
+  },
+  {
+    q: "Clix tripled my team's output with no headcount additions",
+    role: "Group Head",
+    firm: "Boutique TMT Investment Bank",
+  },
+  {
+    q: "I’ve tried all the AI tools available out there and Clix is by far the most advanced model / agent I’ve used",
+    role: "Principal",
+    firm: "Mega Fund Private Equity",
+  },
+  {
+    q: "Clix has done more than anything else we've deployed",
+    role: "Head of AI",
+    firm: "Top 5 Global PE Firm",
+  },
+  {
+    q: "10 word prompt? And it did all of that? Mind-blowing.",
+    role: "Partner",
+    firm: "European Growth Equity Firm",
+  },
 ];
 
 /* ESTIMATED. A static capture cannot encode a rate. 90s for a full cycle of ten cards reads
@@ -107,15 +156,23 @@ function Row({ items, reverse }: { items: typeof QUOTES; reverse?: boolean }) {
 
 export default function ClixTestimonial() {
   return (
+    /* NO BACKGROUND, and that is measured: every block on the target is transparent —
+         the shared fixed backdrop is the only thing on the page that paints a colour.
+         `bg-paper` was here until 2026-08-10 and it was mine, not the capture's. It broke
+         the bottom of the green section: an opaque white block slides up OVER the dark
+         ground, so the dark runway the target shows after the manifesto could not exist.
+         See ClixBackdrop.tsx. */
     <section
       id="clix-testimonials"
       data-nav-theme="light"
       className="relative z-[1] flex h-min w-full flex-col items-center justify-center gap-20
-                 overflow-clip bg-paper px-4 py-20
+                 overflow-clip px-4 py-20
                  tablet:px-10 tablet:pt-32 tablet:pb-24"
     >
-      <div className="relative flex h-min w-full max-w-[var(--container-max)] flex-col
-                      items-center justify-center gap-20">
+      <div
+        className="relative flex h-min w-full max-w-[var(--container-max)] flex-col
+                      items-center justify-center gap-20"
+      >
         <h2
           className="h-auto w-full max-w-[350px] flex-none text-center font-display text-ink
                      text-[36px] tablet:max-w-[500px] tablet:text-[48px] desktop:text-[56px]"

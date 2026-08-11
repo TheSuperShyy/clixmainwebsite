@@ -7,6 +7,7 @@ import ClixManifesto from "@/components/clix/ClixManifesto";
 import ClixTestimonial from "@/components/clix/ClixTestimonial";
 import ClixCTA from "@/components/clix/ClixCTA";
 import ClixFelixFooter from "@/components/clix/ClixFelixFooter";
+import ClixBackdrop from "@/components/clix/ClixBackdrop";
 
 /* Clone of rogo.com/felix, captured 2026-08-09 →
    docs/reference/target/rogo-felix-2026-08-09.html. Spec: features/felix-page/FEATURE.md.
@@ -18,9 +19,10 @@ import ClixFelixFooter from "@/components/clix/ClixFelixFooter";
    `robots` block below. See the open question in FEATURE.md. */
 
 export const metadata: Metadata = {
-  /* The target's own is "Rogo | Meet Felix". Ours names the build, matching the same
-     decision already recorded for the root layout's title. */
-  title: "clix | Meet Felix",
+  /* The target's own is "Rogo | Meet Felix" — brand, then product. Renaming the product to
+     Clix collapses that pattern, because the brand IS the word now; "clix | Meet Clix" says
+     it twice. So the bar is dropped and this tracks the h1. */
+  title: "Meet Clix",
 
   /* ⚠️ TEMPORARY, AND TIED TO THE COPY PASS — 2026-08-09, user's call when this route was
      first pushed to a deploying branch. The page is reachable so it can be reviewed, but it
@@ -48,19 +50,10 @@ export default function ClixPage() {
           on the clix page." See the `banner` and `spacer` props in Nav.tsx. */}
       <Nav banner={false} spacer />
 
-      {/* The page's backdrop, and a sibling of every section — which is where the original
-          puts it. `position:fixed`, `110vh`, `canvas`: the sections scroll OVER a held colour
-          rather than dragging it with them, and 110 rather than 100 covers mobile URL-bar
-          collapse. Every section below carries `z-[1]` so it paints above this.
-
-          ⚠️ In the original this layer's colour is ANIMATED from JS on scroll — that is how
-          the Manifesto's white type becomes legible. The sequence is not in a static capture
-          and has not been observed live, so ours is a constant and the Manifesto paints its
-          own dark ground instead. See ClixManifesto.tsx. */}
-      <div
-        className="pointer-events-none fixed inset-x-0 top-0 z-0 h-[110vh] bg-canvas"
-        aria-hidden="true"
-      />
+      {/* The page's ground, and a sibling of every section — which is where the original
+          puts it. It also OWNS the scroll crossfade that darkens the whole viewport around
+          the Manifesto; see ClixBackdrop.tsx for the timing and the evidence behind it. */}
+      <ClixBackdrop />
 
       <main className="relative">
         {/* Page order is the capture's: Hero, Video, Logo Proof, Manifesto,

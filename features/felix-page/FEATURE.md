@@ -61,12 +61,18 @@ The page opens with a **`position:fixed`, `110vh`, full-width layer** (`framer-k
 absolute: the sections scroll over a held colour rather than dragging it with them. `110vh`
 rather than `100vh` covers mobile URL-bar collapse.
 
-> **⚠️ It almost certainly animates, and the capture cannot prove how.** The Manifesto block's
-> type is `#ffffff` with body at `rgba(255,255,255,0.7)` — **white text**, which is invisible on
-> `#f7f7f7`. The only element that could be dark behind it is this layer. So its colour is
-> driven from JS on scroll, and the sequence, the trigger offsets and the easing are **all
-> unobservable in a static capture**. This must be watched on the live site before the
-> Manifesto is built. It is the single biggest unknown on the page.
+> **It animates, and this is no longer a guess.** The Manifesto block's type is `#ffffff`
+> with body at `rgba(255,255,255,0.7)` — white text, invisible on `#f7f7f7` — so this layer
+> had to be the dark one, driven from JS. That was recorded here as the page's biggest unknown
+> until **2026-08-09/10, when live screenshots settled it**: the whole viewport darkens (the
+> logo grid above is left to dissolve into it), the dark is `#0f2822`, the nav stays white
+> over it, and the manifesto text arrives *after* the ground rather than with it.
+>
+> Implemented in `ClixBackdrop.tsx`, which is the single place the mechanism, the timing and
+> the remaining unknowns live. **Two things are still ours, not measured:** the exit (the
+> target runs it through block 5's 256px of padding, which we do not build) and the light
+> end's colour — we use `paper` `#ffffff`, not the target's `canvas`, so it matches our own
+> body. Both are in the deviations table.
 
 ### The nav is IN FLOW on this page, and it is not on the home page
 
@@ -98,7 +104,7 @@ height:min-content; overflow:clip`, so only the differences are listed.
 | 1 | `Hero` | `framer-1mzt05a` | 108 | `128px 40px 0` | `96px 16px 0` | ✅ `ClixHero` |
 | 2 | `Video` | `framer-2uaicm` | 80 | `128px 40px 80px` | `80px 16px 40px` | ✅ `ClixVideo` |
 | 3 | `Logo Proof` | `framer-s22g2m` | 108 | `40px 40px 164px` | `40px 16px` | ✅ `ClixLogoProof` |
-| 4 | `Manifesto` | `framer-tyl85t` | 80 | `164px 40px 64px` | `128px 16px` | ✅ `ClixManifesto` |
+| 4 | `Manifesto` | `framer-tyl85t` | 80 | `164px 40px 64px` → **ships `164px 40px 164px`** | `128px 16px` | ✅ `ClixManifesto` |
 | 5 | `Product Visuals` | `framer-19mhri2` | 80 | `256px 40px 96px` | `128px 16px 0` | ❌ **not built** |
 | 6 | `Testimonial` | `framer-h1knkl` | 80 | `128px 40px 96px` | `80px 16px` | ✅ `ClixTestimonial` |
 | 7 | `CTA` | `framer-4o5umq` | 80 | `96px 40px` | `80px 16px` | ✅ `ClixCTA` |
@@ -223,7 +229,9 @@ fact. `prefers-reduced-motion` freezes on the first word.
 | Nav / footer shell | the target's own light nav + a `by Rogo` footer | this build's shared `Nav`, **banner off**, height reserved in flow | One site, one shell — but the *placement* is now the target's. Amended 2026-08-09: the ticker strip is gone on this route only, and the nav no longer overlays the hero. See "The nav is IN FLOW on this page" above. |
 | Nav row height in flow | the target's own bar | `--nav-row-h` — `74px` <1200, `70px` ≥1200 | Ours is the clix nav, so the reserved height is ours too. Derived from fixed-height boxes, not measured off the target; the *mechanism* is the target's. |
 | Nav hash links | n/a | `#security` → `/#security`, `#testimonials` → `/#testimonials`, CTA `#contact` → `/#contact` | The nav became shared the moment a second route existed; a bare hash on `/clix` points at nothing. `/#x` still scrolls rather than reloads when already on `/`. |
-| **Manifesto background** | shared fixed backdrop, colour **animated on scroll** from JS | the section paints its own `forest` ground | The sequence/offsets/easing are not in a static capture and have not been observed live. Same legibility; the visible difference is a **hard edge where the original crossfades**. Replace once someone watches the live page. |
+| **Manifesto background** | shared fixed backdrop, colour **animated on scroll** from JS | same — the shared backdrop animates | *Row rewritten 2026-08-10.* It briefly painted its own `forest` ground while the sequence was unobserved; a live screenshot settled it and the mechanism now matches. `ClixBackdrop.tsx` holds the timing, the evidence, and what is still ours (the exit, which the target runs through block 5's padding). |
+| **Manifesto bottom padding** | `64px` at ≥810 | `164px`, matching its own top | **Deliberate, 2026-08-10, user's call** — *"a white space similar and equal to the space on top … add it on the bottom as well"*. Compensating for block 5: the target's dark runway after the last paragraph is this block's 64px **plus** `Product Visuals`' 256px top padding = 320px. Ours runs straight into `Testimonial` (`pt` 128), so 64px gave only 192px. 164px gives 292px without touching block 6's measured padding. **Revert to `pb-16` when block 5 lands** or it overshoots by 100px. Phone was already symmetric at 128px and is untouched. |
+| **Backdrop's LIGHT state** | `rgb(247,247,247)` — `canvas` | `paper` `#ffffff` | **Deliberate, 2026-08-10, user's call.** Our `body` is `paper` and every section from the Testimonial down paints an opaque `bg-paper`, so a `canvas` backdrop left the page grey above the green block and white below it — a visible step exactly where the crossfade should remove one. Matching our own body beats matching the target's near-white when they disagree. |
 | **Video clip** | rogo's Framer-hosted mp4 | `public/video/hero-clix.mp4` | Rogo's asset. This repo already deleted rogo's `hero-original.mp4` for copyright once it went public. Every box value is still the original's. |
 | **Logo fill** | 12 dark logo SVGs | the 14 vendored **white** SVGs, rendered as CSS masks with an `ink/70` fill | The vendored set was cut for the home page's dark hero. A mask reuses one asset at either polarity rather than shipping a second recoloured copy of all twelve. All 12 names the target lists were already vendored — nothing new was fetched or redrawn. |
 | **Footer wordmark** | a 2008×859 PNG on framerusercontent.com | set in type at the same `2.3376` aspect | Rogo's artwork. Box shape preserved so the block's height is the original's; only the glyphs are ours. |

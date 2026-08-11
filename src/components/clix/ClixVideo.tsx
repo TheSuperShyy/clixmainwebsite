@@ -28,8 +28,10 @@ export default function ClixVideo() {
                  tablet:px-10 tablet:pt-32 tablet:pb-20"
     >
       {/* Width Container — gap 80, tablet 48, phone 40 */}
-      <div className="relative flex h-min w-full max-w-[var(--container-max)] flex-col
-                      items-center justify-center gap-10 tablet:gap-12 desktop:gap-20">
+      <div
+        className="relative flex h-min w-full max-w-[var(--container-max)] flex-col
+                      items-center justify-center gap-10 tablet:gap-12 desktop:gap-20"
+      >
         {/* aspect-ratio 1.77778 verbatim — the container is 16:9 and the video fills it. */}
         <div
           className="relative w-full flex-none overflow-clip rounded-[6px]"

@@ -53,12 +53,24 @@ to carry it onto home.)*
 | Token | Value | Uses | Role |
 |---|---|---|---|
 | `forest` | `#1a2a25` | ×19 | display headlines + primary button fill on `/clix` |
+| `forest-deep` | `#0f2822` | ×0 static | the `/clix` scroll backdrop's dark state |
+| `emboss-face` | `#ececec` | ×1 | the `/clix` footer wordmark's face — **sampled from rogo's own 2008×859 PNG** (2026-08-11, fetched to scratchpad for measurement only, never vendored). Numerically it is `ink` at 8% over white (236.28 ≈ 236), but it ships flattened because the SVG inner-shadow filter needs an opaque alpha channel to cut the rim from. |
+
+**`forest-deep` is the exception that proves the counting method.** It is declared as a Framer
+token on the target and referenced **nowhere** in the static HTML or CSS — which is not a
+dead value, it is the fingerprint of a colour that only ever reaches the DOM from JS. The
+page's fixed backdrop crossfades to it on scroll, so it cannot appear in a capture. Confirmed
+against a live screenshot on 2026-08-09.
+
+It is emphatically **not** `forest`: that is the display-*type* colour, and using it as the
+ground was why our version read too light. Two greens, two jobs.
 
 **That page adds exactly one colour.** Everything else on it resolves to tokens already
 here: `ink` ×194, `muted` ×48, `hairline` ×19, `paper` ×17, and `canvas` `#f7f7f7` inlined
 as the fixed backdrop behind the hero. Counted from the capture, not assumed — the other
-greens the Framer project declares (`#135b45` `#19a26c` `#0f2822` `#f5f2eb`) have **zero**
-uses on it, so they stay in the unused list below.
+greens the Framer project declares (`#135b45` `#19a26c` `#f5f2eb`) have **zero** uses on it,
+so they stay in the unused list below. `#0f2822` was in that list until 2026-08-09, when its
+zero-use count turned out to be the evidence rather than the verdict — see `forest-deep`.
 
 **One layout constant was added the same day, and it is not in `@theme`:**
 
@@ -101,9 +113,12 @@ different uses; do not collapse them.
 Present in the Framer project, zero uses on the home page. Recorded so a later page
 doesn't cause them to be re-derived — **do not use them on home-page sections**.
 
-`#f5f2eb` bone · `#135b45` deep green · `#19a26c` green · `#0f2822` near-black green ·
-`#1a2a25` green-gray · `#0071c1` blue · `#d94636` terracotta · `#1c1c1c` · `#8b8b8b` ·
+`#f5f2eb` bone · `#135b45` deep green · `#19a26c` green ·
+`#0071c1` blue · `#d94636` terracotta · `#1c1c1c` · `#8b8b8b` ·
 `#ffffff00` transparent · `#ffffffcc` white 80% · `#737373` (duplicate token, same value)
+
+`#1a2a25` and `#0f2822` left this list on 2026-08-09 — they are `forest` and `forest-deep`,
+both live on `/clix`. Still zero uses on **home**, and still not to be introduced there.
 
 Dark mode: **no** `prefers-color-scheme` support in the original. Sections are individually
 light or dark by design, not theme-switched.
@@ -178,6 +193,15 @@ declares fourteen; the rest belong to other pages and must not be used here.
 [src/app/fonts.css](../src/app/fonts.css) (imported by `globals.css`), which
 reproduces all 57 `@font-face` declarations verbatim from the capture (weight, style,
 `font-display`, `unicode-range` preserved; only `url()` rewritten).
+
+**`--font-emboss` — the one sanctioned exception to "one face sitewide" (2026-08-11).**
+`"DM Serif CLIX", Georgia, serif` — DM Serif Display, used by exactly one element: the
+`/clix` footer wordmark. The target sets that wordmark as SERIF artwork (ABC Arizona Mix,
+which we deleted for licensing), so a sans CLIX could never clone it; the user picked DM
+from a six-face trial of open-licence serifs. Ships as a **four-glyph 2.9 KB subset**
+(`public/fonts/dmserif/dm-serif-clix.woff2`, `pyftsubset --text="CLIX"`) with
+`unicode-range: U+0043,U+0049,U+004C,U+0058` so no other text can ever pull it in. SIL OFL
+1.1, licence vendored beside the file. Single weight, 400 — the face ships nothing else.
 
 **Do not route these through `next/font/google`.** Inter from Google is not byte-identical
 to the subset Framer serves, and swapping it would break 1:1. Self-host the vendored files.
