@@ -6,6 +6,15 @@ Frozen copy of the target site. **This is the measurement source of record.**
 |---|---|
 | `rogo-home-2026-08-02.html` | Full served HTML of <https://rogo.ai/>, 652 KB |
 | `rogo-home-2026-08-02.css` | The five inline `<style>` blocks, concatenated — 162 KB |
+| `rogo-felix-2026-08-09.html` | Full served HTML of <https://rogo.com/felix>, 405 KB |
+| `rogo-felix-2026-08-09.css` | The five inline `<style>` blocks, concatenated — 129 KB |
+| `rogo-product-2026-08-11.html` | Full served HTML of <https://rogo.com/product>, 612 KB |
+| `rogo-product-2026-08-11.css` | The five inline `<style>` blocks, concatenated — 180 KB |
+
+**One host, not two.** `rogo.ai/product` 301s to `rogo.com/product` and serves a
+byte-identical document (612,563 bytes, 129 `data-framer-name` values, both hosts checked
+2026-08-11). The `.ai`/`.com` split in the filenames above is historical, not a real fork —
+the home page was captured before the redirect was in place.
 
 ## Why this exists
 

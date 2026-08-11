@@ -120,6 +120,43 @@ standalone files.
 > well-formedness error**, and SVG loaded through `<img>` is parsed as strict XML — so all
 > nine failed to render entirely. Fixed by dropping every root `xmlns` after the first.
 
+## `logos/product/` — 8 files (added 2026-08-11)
+
+The data-provider marks in `/product`'s `Trusted Data` block. **Three different source forms**,
+which is the part worth knowing before touching them:
+
+| Files | Source | Note |
+|---|---|---|
+| `lseg.png` `dow-jones.png` `factset.png` `capital-iq.png` `preqin.png` | framerusercontent rasters | Kept at the original's own sizes (225–400px square). Each is a full-bleed coloured square, not a transparent mark — so they render with no padding and no tile fill under them |
+| `quartr.svg` `daloopa.svg` | framerusercontent SVGs | **Both shipped without a `viewBox`** and had one added. That is rule 1 below, and it is the exact fault that made five home-page logos disappear in August |
+| `pitchbook.svg` | *no file exists* | Framer inlines it as a `data:image/svg+xml` background instead of serving a file, so it was URL-decoded out of the capture and written here |
+
+All eight verified by rasterising (see below); none is blank.
+
+The block's other five graphics are **not files** — they are line glyphs whose path data is
+inlined in `src/components/product/ProductDataPartners.tsx`, verbatim from the capture's defs
+block and one data-URI.
+
+> ⚠️ **These are eight third-party trademarks** and they assert data-provider partnerships that
+> do not exist. They ship on an explicit decision, gated behind the `robots: { index: false }`
+> on `/product`. **They must be replaced before that route is ever indexed.**
+
+## `product/` — the /product page's own assets
+
+| File | What it is |
+|---|---|
+| `features-backdrop.jpg` | **Substitute.** A graded frame from `hero-clix.mp4`, standing in for rogo's own photograph behind the 2b stepper panel |
+| `benefit-integrations.svg` | **Vendored verbatim** from the capture's defs block (`#svg2107740873_10853`, 299×194), given the `viewBox` and single root `xmlns` the rules below require |
+
+`benefit-integrations.svg` is the **only** one of Block 4's six illustrations that is vendored.
+It is a 3×2 wall of third-party product logos — Word, Excel, PowerPoint, SharePoint, Google
+Drive — which we cannot honestly redraw, and it carries no rogo branding at all. The other
+five are DOM rebuilds in `src/components/product/benefitArt.tsx`, because each carries either
+rogo's own logo mark or a photograph of an identifiable real person.
+
+> ⚠️ Those five product logos are third-party trademarks, under the same `noindex` gate as
+> Block 3's provider marks.
+
 ### Validating these files
 
 Structural checks are **not sufficient** — a file can have a `viewBox`, balanced tags and a
@@ -179,3 +216,21 @@ extraction produced *two*. Same rule either way: **exactly one `xmlns` on the ro
 
 All five were validated by rasterising through `sharp` at density 300 and eyeballing a
 contact sheet, per the rules above — not by grepping.
+
+## /product Blocks 5 and 6 — added 2026-08-11
+
+| File | What | Provenance |
+|---|---|---|
+| `badges/gdpr-product.svg` | GDPR star ring, 121×120 | /product capture's `#svg-1544788426_10435`. **Not the same asset as `badges/gdpr.svg`**, which is home's 102×102 data-URI version — different viewBox, so they cannot be shared. `xmlns` added (inline SVG in HTML has none) and the `id` stripped. Rasterised to confirm non-blank. |
+| `logos/product/nomura.svg` | Nomura wordmark, 121×22 | framerusercontent. ⚠️ Third-party trademark |
+| `testimonials/product/patrice-maffre.jpg` | portrait, 781×1024 | framerusercontent |
+| `testimonials/product/pieter-taselaar.jpg` | portrait, 781×1024 | framerusercontent |
+| `testimonials/product/sean-warneke.jpg` | portrait, 781×1024 | framerusercontent |
+
+⚠️ **The three portraits are photographs of identifiable real people** at real firms, used
+under quotes attributed to them. They exist only as a build-time scaffold behind
+`/product`'s `robots: { index: false, follow: false }`. **Delete them and swap in the repo's
+own testimonial people (`public/testimonials/*.jpg`) before that route is ever indexed.**
+
+The slideshow arrows and all of Block 5's icons are **inlined as JSX**, not vendored — each
+is under 1 KB and they need states (focus rings, token colours) a flat file cannot carry.

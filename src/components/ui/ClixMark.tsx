@@ -44,17 +44,22 @@ export default function ClixMark({
   size = 20,
   className = "",
 }: {
-  /** Rendered height in px. Width follows from the mark's aspect ratio. */
-  size?: number;
+  /**
+   * Rendered height. A number is px; a CSS length string is passed through, which is what
+   * /product's workflow mocks need — they scale with a container query, so their mark's
+   * height is `calc(...)` and cannot be resolved to a number at render time.
+   */
+  size?: number | string;
   className?: string;
 }) {
   const url = "url(/clix-mark.png)";
+  const width = typeof size === "number" ? size * ASPECT : `calc(${size} * ${ASPECT})`;
   return (
     <span
       aria-hidden="true"
       className={`inline-block flex-none ${className}`}
       style={{
-        width: size * ASPECT,
+        width,
         height: size,
         /* The paint. Everything below is the stencil. */
         backgroundColor: "currentColor",

@@ -94,7 +94,11 @@ const LINKS: { label: string; href: string | null }[] = [
      the slot got its href the moment its page did. The only ROUTE in this list — every other
      live item is a same-page hash. */
   { label: "Clix", href: "/clix" },
-  { label: "Product", href: null },
+  /* Live as of 2026-08-11: `/product` exists (clone of rogo.com/product). Same rule — the
+     slot gets its href the moment its page does. Second ROUTE in this list.
+     ⚠️ /product is `noindex` while its copy is still rogo's verbatim; that is a crawler
+     directive, not a reason to hide it from the nav — the page is reachable and real. */
+  { label: "Product", href: "/product" },
   /* ROOT-RELATIVE, not bare hashes (2026-08-09). These were `#security` / `#testimonials`
      while this was a one-page site; `/clix` made the nav shared, and a bare hash there points
      at nothing — the sections live on `/`. `/#x` still scrolls rather than reloads when you
