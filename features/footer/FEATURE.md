@@ -133,6 +133,48 @@ Nothing else in the footer animates — no `data-framer-appear-id` in the subtre
 | `<span>` wrapper on the second `<br>` | `<span style="--framer-text-color: ink">` around a bare `<br>` | dropped | Holds no text, paints nothing. |
 | `ssr-variant` duplication | three DOM copies of the whole footer | one tree, `tablet:`/`desktop:` variants — except the two links that genuinely differ, which ship twice and are gated | Consistent with the four sections before it. |
 | Focus rings | none observable | `focus-visible:ring-2` on every link and the CTA | The project's accessibility floor; the original ships nothing. |
+| **Map panel in the link row** | **no map anywhere in the footer** | a Google Maps embed of Tel Aviv-Yafo as a fifth item in the link row, right-aligned | **Additive, requested by the user 2026-08-11.** Not drift and not a measurement — see below. |
+
+### The map panel (added 2026-08-11)
+
+The one element in this footer that the target does **not** have. It is ported from clix's
+own live site, `clix-main-page.vercel.app`, whose footer carries the same embed; the user
+asked for it explicitly and placed it, by annotated screenshot, at the top-right of the
+link row.
+
+Source markup, read off the live DOM:
+
+```html
+<iframe src="https://maps.google.com/maps?q=Tel+Aviv-Yafo&hl=iw&z=12&output=embed"
+        title="המשרד שלנו על המפה — תל אביב" loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade"
+        class="h-[210px] w-full rounded-[18px] border border-white/10 saturate-[0.85]
+               lg:h-[230px] lg:max-w-[430px]">
+```
+
+| Property | Source | Ours | Why |
+|---|---|---|---|
+| URL, `z=12`, `output=embed` | as above | same | Keyless — no Maps JS API key, no billing account. `z=12` frames the city. |
+| `hl` | `iw` | `en` | This build renders in English. |
+| radius | `18px` | `6px` | This site's radius language is `6px` (14 uses). `18px` would be the only one of its kind. |
+| border | `white/10` | `paper/10` | Same value, expressed as a token. |
+| filter | `saturate(.85)` | `saturate(.65) brightness(.82) contrast(1.04)`, → full colour on hover | At `.85` a raw Google map is the **brightest object in the footer** — brighter than the headline and the CTA, which inverts the hierarchy. |
+| width | `100%`, max `430px` | `100%` · `280px` @810 · `430px` @1200 | It shares a row with four link columns here; the source's sits alone. At 810 the container is 730px, so 430 would crush the columns to ~59px each and wrap "Privacy Policy" (~95px at 14px). 280 leaves ~96px. |
+| height | `210px` → `230px` @lg | `200px`, `h-full` from 810 | `self-stretch` lets it match the row's height instead of fixing a second number. |
+
+**No street address is shown, and none exists.** `docs/reference/clixsolutions/content.json`
+carries only "תל אביב · שירות גלובלי" and "א׳–ה׳ · 09:00–18:00". The pin is therefore the
+city, exactly as the source's is.
+
+**First build was different and was cut back.** The map originally shipped with an "Office"
+text column beside it — address, hours, an explicit "Open in Google Maps" link — sitting in
+its own row below the link columns. The user directed the map up into the link row and the
+text column out. The embed's own "Open in Maps" button now carries the click-through.
+
+**Open:** the embed is third-party and sets Google cookies on load. There is no consent
+gate on this site yet. clix's own accessibility statement already discloses that embedded
+third-party content "is subject to that provider's accessibility level" — the privacy side
+is not disclosed anywhere and should be, before this ships to production.
 
 ## Acceptance checklist
 
