@@ -7,23 +7,32 @@ Real assets taken from the target, per the **1:1 fidelity policy** in
 
 | File | What | Provenance |
 |---|---|---|
-| `tel-aviv-band.jpg` | 1920×758, 199 KB. Block 5's full-bleed band on `/company` | A frame at t=4.5s from `video/hero-tel-aviv.mp4`, cropped `1920x758` and graded once (`saturation 0.55, contrast 1.04, brightness 0.02`) |
+| `company-bg.jpg` | 2400×1200, 164 KB. Block 5's full-bleed band on `/company` | Stock photograph supplied by the user 2026-08-12. Cropped to 2:1 from a 5917×3950 original and re-encoded |
 
-> ⚠️ **This is a PLACEHOLDER for a team photograph, and it is not one.** It is Old Jaffa, a
-> landmark. The original's slot holds a photograph of rogo's own staff; **no photograph of
-> clix's team exists anywhere in this repo**, and the seven team images on clixsolutions.info
-> were never fetched. Both stock sources refused automated download (Pexels 403, Unsplash 401),
-> so per CLAUDE.md §7's two-source ceiling the work stopped and the user was asked. It is named
-> for what it is rather than what it stands in for. **Replace it when a real photo exists**; it
-> is a one-line swap in `src/components/company/CompanyCareers.tsx`.
->
-> The ungraded frame is a hot pink-orange sunset, far too saturated for a page that is
-> otherwise white, bone and grey. Hence the single grade pass.
+> ⚠️ **Provenance is UNVERIFIED and that matters before this route is indexed.** The file
+> arrived as `company bg.jpg` with no licence recorded. **Confirm the licence permits commercial
+> use.** The uncropped original is preserved outside the web root at
+> `features/company-page/assets/company-bg-source.jpg` so the crop can be redone; it is
+> deliberately NOT in `public/`, because everything under `public/` is served and shipped
+> whether or not any code references it, and it is 2.3 MB.
 
-**This also corrects a stale note below.** `video/hero-tel-aviv.mp4` and its poster were
-documented as "in use" but had been **unreferenced since 2026-08-09**, when `Hero.tsx` moved to
-`hero-israel.mp4` — 6.9 MB of dead weight. `/company` now uses the mp4 for Block 1's video and
-this frame for Block 5, so the claim is true again, for different reasons.
+> ⚠️ **It is stock, not clix's team**, and it sits under a heading about joining that team.
+> Ordinary practice for a careers block, and a far weaker claim than a quote put in a named
+> person's mouth (which is what got three photographs deleted from `/product`), but it is not
+> the real thing.
+
+Cropped to **2:1 on purpose**, which is neither of the band's own ratios: the band is 2.69 at
+1600 and 1.30 at 390, so 2:1 is the midpoint that survives `object-fit: cover` at both ends.
+Cropping to either extreme would gut the other.
+
+**Replaced `tel-aviv-band.jpg`, now deleted.** That was a graded frame of Old Jaffa standing in
+while both stock sources refused an automated fetch (Pexels 403, Unsplash 401). It was a
+landmark rather than people at work. Its replacement also fixed a real defect: the nav marks
+this band `light`, and the dusk frame had the bar painting dark glyphs over a dark image. The
+new photograph is bright, so the marker is now correct rather than merely specified.
+
+⚠️ **`video/hero-tel-aviv.mp4` is still in use** — `/company` Block 1's video is that clip, so
+the file is not orphaned by this deletion. Its poster is used there too.
 
 ## `fonts/` — 57 files, 1.0 MB
 

@@ -41,13 +41,19 @@
  * other destination would be "a wrong destination dressed up as a working link", which is
  * worse than a 404. Leave it.
  *
- * ⚠️ THE PHOTOGRAPH IS A PLACEHOLDER. The original's slot holds a photograph of rogo's own
- * staff at work. No photograph of clix's team exists anywhere in this repo, and both stock
- * sources refused an automated fetch (Pexels 403, Unsplash 401), so per CLAUDE.md §7's
- * two-candidate ceiling the search stopped there and the user was asked. What ships is a
- * graded frame from `public/video/hero-tel-aviv.mp4`: Old Jaffa at dusk. It is a landmark,
- * not people at work, and it reads oddly under a heading about joining a team. Replace it
- * the moment a real photograph exists; nothing else in this file needs to change.
+ * ⚠️ THE PHOTOGRAPH IS STOCK, NOT CLIX'S TEAM. Supplied by the user on 2026-08-12, replacing
+ * the Old Jaffa placeholder that shipped in 7cd0e05 (both stock sources had refused an
+ * automated fetch, Pexels 403 and Unsplash 401, so per CLAUDE.md §7's two-candidate ceiling
+ * the search stopped and the user was asked).
+ *
+ * It is the right SUBJECT now, people at work rather than a landmark, which the previous one
+ * was not. But it is still not clix's team, and it sits under a heading about joining that
+ * team. That is ordinary practice for a careers block and is a far weaker claim than a quote
+ * put in a named person's mouth, which is what got three photographs deleted from /product.
+ * It is recorded here rather than waved through because the gap it fills is real.
+ *
+ * Provenance is UNVERIFIED in this repo: the file arrived as `company bg.jpg` with no licence
+ * recorded. Confirm the licence permits commercial use before this route is indexed.
  *
  * ⚠️ FEATURE.md's "The CTA" section says both of this page's CTAs carry /product's animated
  * corner brackets. That holds for the Hero's, not for this one: `.framer-kh28y4` in the
@@ -74,14 +80,16 @@ export default function CompanyCareers() {
     /* `Reiteration` — column, gap 0, NO padding of its own, overflow hidden. The absent
        padding is what lets the photograph run edge to edge while `Top` keeps the gutter.
 
-       ⚠️ The theme marker is `light`, which is right for `Top` (a `paper` ground) and is what
-       the band-level spec calls for. The photograph inherits it, and the placeholder is a dusk
-       shot, so while those 596px sit under the bar the nav paints dark glyphs over a dark
-       image. Marking the image `dark` from inside this file would not help: Nav.tsx:322-330
-       walks `[data-nav-theme]` in document order and breaks on the first box spanning the bar,
-       so this ancestor always shadows a nested marker. Splitting the band into two sibling
-       sections would fix it, and is the right move only if the dusk placeholder becomes
-       permanent — which it should not. */
+       The theme marker is `light`, which is right for `Top` (a `paper` ground) and is what the
+       band-level spec calls for. The photograph inherits it. That WAS a defect while the dusk
+       placeholder was in place — the nav painted dark glyphs over a dark image — and the
+       2026-08-12 photograph fixed it by being bright: a white wall and a lit display under the
+       bar. So it is now correct rather than merely specified.
+
+       If a dark image is ever used here, marking it `dark` from inside this file will NOT
+       work: Nav.tsx:322-330 walks `[data-nav-theme]` in document order and breaks on the first
+       box spanning the bar, so this ancestor always shadows a nested marker. The fix would be
+       splitting the band into two sibling sections. */
     <section
       id="reiteration"
       data-nav-theme="light"
@@ -206,15 +214,16 @@ export default function CompanyCareers() {
       <div className="relative h-[300px] w-full shrink-0 tablet:h-[596px]">
         {/* Plain <img> with the same inline disable ProductStepper.tsx and Security.tsx use —
             a static asset already sized to its box gains nothing from next/image's loader.
-            `object-position: 50% 50%` is the capture's value; at 390 the 1920×758 frame covers
-            to 760 wide and the centre crop keeps the tower in the box.
-            THE ASSET IS A PLACEHOLDER — see the file header. */}
+            `object-position: 50% 50%` is the capture's value. The source is cropped to 2:1
+            deliberately, not to the band's own ratio: the band is 2.69 at 1600 and 1.30 at 390,
+            so 2:1 is the midpoint that survives `cover` at both ends. Cropping it to either
+            extreme would gut the other. THE ASSET IS STOCK — see the file header. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/company/tel-aviv-band.jpg"
-          alt="Aerial view of Old Jaffa in Tel Aviv at dusk, with the lit clock tower above the harbour and the sea beyond."
-          width={1920}
-          height={758}
+          src="/company/company-bg.jpg"
+          alt="Three colleagues working in an office, two seated at a wide monitor showing code while a third writes on a wall mounted display."
+          width={2400}
+          height={1200}
           loading="lazy"
           decoding="async"
           className="absolute inset-0 block h-full w-full object-cover object-center"
