@@ -245,12 +245,32 @@ export default function CompanyHero() {
               needs no special case here — nothing moves until someone asks it to. Worth
               stating: globals.css does carry a reduced-motion rule, but it targets
               `.hero-video` only and would not have covered this element.
-              Source is Pexels licensed footage already in the repo (see CONTEXT.md). */}
+
+              ⚠️ THE CLIP IS 9:16 PORTRAIT IN A 16:9 BOX, and that is a real compromise, not an
+              oversight. Swapped in on 2026-08-12 at the user's request, replacing the Pexels
+              Tel Aviv footage. `boss-lecture.mp4` reports 1024x576 to ffprobe but carries
+              `rotation=-90` in its display matrix, so it actually presents as 576x1024.
+              Against this measured `aspect-[1.78344]` box, `object-fit: cover` locks to width
+              and shows roughly 32% of the frame: a horizontal band across the middle. Checked
+              rather than assumed — the speaker's head and the seated listener both survive at
+              `50% 50%`, which is why the position is unchanged.
+
+              Two consequences to know before touching this:
+                · there is NO horizontal slack. Cover locks to width, so `objectPosition`'s
+                  first value does nothing here. Only the vertical value can reframe it.
+                · 576px upscales 2.2x to fill the 1280px box, so it renders soft. That is the
+                  source, not the markup, and no CSS fixes it.
+              The alternatives, if the crop is ever judged too tight, are letterboxing with
+              `object-contain` (leaves ~877px of empty ground either side) or giving the band
+              its own aspect ratio, which breaks the clone and moves every band below it.
+
+              Still no audio track on this clip (verified), so leaving it unmuted, faithful to
+              the original which sets neither `muted` nor `autoplay`, cannot surprise anyone. */}
           <video
             ref={videoRef}
-            src="/video/hero-tel-aviv.mp4"
-            poster="/video/hero-tel-aviv-poster.jpg"
-            aria-label="Aerial footage of the Tel Aviv skyline at dusk"
+            src="/company/boss-lecture.mp4"
+            poster="/company/boss-lecture-poster.jpg"
+            aria-label="Footage of a Clix talk, a speaker addressing a seated audience in a studio space"
             preload="none"
             loop
             playsInline

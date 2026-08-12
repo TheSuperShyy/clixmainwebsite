@@ -3,11 +3,27 @@
 Real assets taken from the target, per the **1:1 fidelity policy** in
 [docs/PROJECT.md](../docs/PROJECT.md). Nothing here is a substitute, a trace, or a redraw.
 
-## `company/` — 1 file (added 2026-08-12)
+## `company/` — 3 files (added 2026-08-12)
 
 | File | What | Provenance |
 |---|---|---|
+| `boss-lecture.mp4` | 1.3 MB, 6.4s, no audio track. Block 1's video on `/company` | Supplied by the user 2026-08-12 |
+| `boss-lecture-poster.jpg` | 576×1024, 36 KB | Frame at t=2s of the above |
 | `company-bg.jpg` | 2400×1200, 164 KB. Block 5's full-bleed band on `/company` | Stock photograph supplied by the user 2026-08-12. Cropped to 2:1 from a 5917×3950 original and re-encoded |
+
+> ⚠️ **`boss-lecture.mp4` is 9:16 PORTRAIT in a 16:9 slot.** `ffprobe` reports `1024x576`,
+> but the stream carries `rotation=-90` in its display matrix, so it presents as **576x1024**.
+> Block 1's box is a measured `aspect-[1.78344]`, so `object-fit: cover` locks to width and
+> shows roughly **32% of the frame**, a horizontal band across the middle. Checked rather than
+> assumed: the speaker's head and the seated listener both survive at `50% 50%`.
+>
+> Two consequences. **There is no horizontal slack** — cover locks to width, so
+> `objectPosition`'s first value does nothing and only the vertical value can reframe it. And
+> **576px upscales 2.2x** to fill the 1280px box, so it renders visibly soft. That is the
+> source, not the markup, and no CSS fixes it. A wider or higher resolution capture would.
+>
+> It has **no audio track** (verified), like the clip it replaced, so leaving it unmuted —
+> faithful to the original, which sets neither `muted` nor `autoplay` — cannot surprise anyone.
 
 > ⚠️ **Provenance is UNVERIFIED and that matters before this route is indexed.** The file
 > arrived as `company bg.jpg` with no licence recorded. **Confirm the licence permits commercial
@@ -31,8 +47,11 @@ landmark rather than people at work. Its replacement also fixed a real defect: t
 this band `light`, and the dusk frame had the bar painting dark glyphs over a dark image. The
 new photograph is bright, so the marker is now correct rather than merely specified.
 
-⚠️ **`video/hero-tel-aviv.mp4` is still in use** — `/company` Block 1's video is that clip, so
-the file is not orphaned by this deletion. Its poster is used there too.
+⚠️ **`video/hero-tel-aviv.mp4` and its poster are UNREFERENCED AGAIN** as of 2026-08-12.
+`/company` Block 1 used the clip for part of a day; `boss-lecture.mp4` replaced it. That is
+6.9 MB served and shipped for nothing. It was already dead weight from 2026-08-09 (when
+`Hero.tsx` moved to `hero-israel.mp4`) until this page briefly revived it. **Delete both unless
+a route claims them.**
 
 ## `fonts/` — 57 files, 1.0 MB
 

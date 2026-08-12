@@ -27,6 +27,58 @@ clean; `npx tsc --noEmit` clean across the project.
 
 ---
 
+## 2026-08-12 — Both media slots replaced with the user's own assets
+
+### Block 5: stock photograph in, Old Jaffa placeholder out
+
+Right subject at last, people at work rather than a landmark. It also **fixed a real defect**:
+the band is `data-nav-theme="light"` per the measured spec, and the dusk placeholder had the nav
+painting dark glyphs over a dark image. The new photograph is bright, so the marker is now
+correct rather than merely specified.
+
+Preparation, none of it cosmetic: renamed off `company bg.jpg` (a space means percent encoding
+in every URL), **2.3 MB at 5917x3950 down to 164 KB at 2400x1200**, and cropped to **2:1 on
+purpose** — neither of the band's own ratios. The band is 2.69 at 1600 and 1.30 at 390, so 2:1
+is the midpoint that survives `cover` at both ends; cropping to either extreme guts the other.
+The uncropped original is preserved **outside the web root** at `assets/company-bg-source.jpg`,
+because everything under `public/` is served and shipped whether or not code references it.
+
+⚠️ **Licence unverified.** The file arrived with no provenance. Confirm commercial use is
+permitted before this route is indexed. And it is **stock, not clix's team**, sitting under a
+heading about joining that team — ordinary for a careers block, much weaker than a quote put in
+a named person's mouth, but not the real thing.
+
+### ⚠️ Block 1: `boss-lecture.mp4` is 9:16 portrait in a 16:9 slot
+
+`ffprobe` reports `1024x576`. The stream carries **`rotation=-90`**, so it actually presents as
+**576x1024**. Reading the reported dimensions and wiring it up would have looked like a clean
+16:9 match and been wrong.
+
+Against the measured `aspect-[1.78344]` box, `object-fit: cover` locks to width and shows about
+**32% of the frame**. Simulated the exact crop before touching the component rather than
+swapping and eyeballing: the speaker's head and the seated listener both survive at `50% 50%`,
+so the position is unchanged.
+
+Two things that cannot be fixed in CSS, both recorded in the component:
+- **No horizontal slack.** Cover locks to width, so `objectPosition`'s first value does nothing
+  here. Only the vertical value reframes it.
+- **576px upscales 2.2x** into the 1280px box, so it renders visibly soft. That is the source.
+  A wider capture is the only fix.
+
+The alternatives, if the crop is ever judged too tight: `object-contain` letterboxing (leaves
+~877px of empty ground either side) or giving the band its own aspect ratio, which breaks the
+clone and moves every band below it. Neither taken.
+
+Still no audio track, like the clip it replaced, so unmuted stays safe.
+
+**Geometry re-verified after both swaps: every band still matches the target to 0.00px at all
+four tiers.**
+
+⚠️ `video/hero-tel-aviv.mp4` and its poster are **unreferenced again**, 6.9 MB of dead weight.
+Candidates for deletion.
+
+---
+
 ## 2026-08-12 — The wave. Five agents, and every one of my errors was caught by an agent
 
 Five agents, one file each, exclusive ownership, launched in one message. All five landed
