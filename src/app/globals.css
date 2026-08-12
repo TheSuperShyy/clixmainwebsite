@@ -82,6 +82,25 @@
      `brand-green` and `forest-deep` before it. */
   --color-bone: #f5f2eb; /* x2 — /product testimonial card fill */
 
+  /* ---- /careers, added 2026-08-12 -------------------------------------------------------
+     Three colours the careers clone needs that no existing token covers. All measured off
+     the live page, not sampled from a screenshot. */
+
+  /* The "N open positions" status dot, 8x8 at radius 20. This value was ALREADY recorded in
+     DESIGN-SYSTEM.md as one of the target's declared-but-unused greens; /careers is the page
+     that uses it. Same shape of correction as `brand-green`, `forest-deep` and `bone`.
+     Decorative only — it carries no meaning the adjacent text does not already state, so it
+     is exempt from the contrast floor. */
+  --color-signal-green: #19a26c;
+  /* The 24x24 corner-turn arrow at the head of each role row. Icon-only, 8.25:1 on `ink`.
+     Deliberately NOT `mark` (#8b8b8b): the original paints the glyph two steps lighter than
+     the label beside it, and collapsing them flattens the row's hierarchy. */
+  --color-glyph: #afafaf;
+  /* The scrim behind the carousel's 40x40 Prev/Next buttons. In practice invisible — the
+     button's SVG is an opaque white circle that covers it — but it is what the original
+     paints, and it is what shows if that SVG ever fails to load. */
+  --color-control-scrim: #00000033;
+
   /* REMOVED 2026-08-08: `--color-quote-up` (#4ade80) and `--color-quote-down` (#f87171).
      They existed for the banner's stock ticker's green/red day change; the banner now lists
      LLM list prices, which have no up or down — a list price is a constant until the lab

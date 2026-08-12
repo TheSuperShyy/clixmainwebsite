@@ -148,14 +148,43 @@ this site's palette, and tokenizing them would imply they were.
 Present in the Framer project, zero uses on the home page. Recorded so a later page
 doesn't cause them to be re-derived — **do not use them on home-page sections**.
 
-`#f5f2eb` bone · `#19a26c` green ·
 `#0071c1` blue · `#d94636` terracotta · `#1c1c1c` ·
 `#ffffff00` transparent · `#ffffffcc` white 80% · `#737373` (duplicate token, same value)
+
+`#19a26c` left this list on 2026-08-12 — it is `signal-green`, the "N open positions" status
+dot on `/careers`. Zero uses on home, and not to be introduced there.
 
 `#1a2a25` and `#0f2822` left this list on 2026-08-09 — they are `forest` and `forest-deep`,
 both live on `/clix`. Still zero uses on **home**, and still not to be introduced there.
 
 `#8b8b8b` left this list on 2026-08-09 — it is `mark`; see the note above the unused list.
+
+---
+
+## Added 2026-08-12 — `/careers`
+
+Three colours the careers clone needs that nothing here covered. Measured off the live page
+over CDP, not sampled from a screenshot. All three are wired into the `@theme` block of
+`src/app/globals.css`.
+
+| Token | Value | Where it is used | Contrast |
+|---|---|---|---|
+| `signal-green` | `#19a26c` | the 8×8 r20 status dot in `N open positions` | decorative; the adjacent text carries the meaning, so exempt |
+| `glyph` | `#afafaf` | the 24×24 corner-turn arrow at the head of each role row | 8.33:1 on `ink`, and it is an icon |
+| `control-scrim` | `#00000033` | behind the carousel's two 40×40 Prev/Next buttons | n/a — covered by an opaque white SVG circle |
+
+`glyph` is deliberately not `mark` (`#8b8b8b`): the original paints the arrow two steps
+lighter than the label beside it, and collapsing the pair flattens the row's hierarchy.
+
+**Everything else on `/careers` resolved to existing tokens** — `ink` (page type, and the
+roles band ground), `paper`, `muted` (the h3's second line, and the row index), `surface`
+(the roles h2 and the role titles on `ink`), `mark` (count, group headings, locations),
+`hairline` `#a8a29e33` (both the group divider and the dashed row rule, which is the same
+`rgba(168,162,158,0.2)` written two ways).
+
+⚠️ **One inherited AA failure, not introduced here:** the row index is `muted` on `ink` =
+**3.85:1**. `mark` on the same ground is 5.36:1 and would fix it with one token change.
+Shipped as measured and flagged in `features/careers-page/FEATURE.md`; awaiting the user's call.
 
 `#135b45` left this list on 2026-08-11 — it is `brand-green`, and `/product` is the page that
 uses it: the hero prompt-field's submit arrow, Framer's
