@@ -19,7 +19,7 @@ come from the target's own `data-framer-name` attributes — not from guessing a
 | 5 | `why-rogo` | Why financial institutions choose Rogo | `Series C Tenants` | **`review`** | **Built** → [features/why-rogo/](../features/why-rogo/). Two equal columns (`flex:1 0 0; width:1px`) with a **CSS-sticky headline** at `top:96px`; 5 items, each an icon tile + heading + body over a hairline rule. **The items are deliberately not uniform:** item 1 alone has `padding-top:72px` (what aligns the h2 with the first tile), items 4–5 gap 32 where 1–3 gap 28, item 5 alone has no rule, item 4's icon is 3px high in its frame. **Tablet headings are *bigger* than desktop's** — 28px vs 24px, on all five. Built with **no animation library** — the pin is native `position:sticky` and the capture emits zero `data-framer-appear-id` here, so a GSAP pin would add a pin-spacer the original doesn't have. **Framer's internal name is stale** ("Series C" vs. the Series D banner; "Tenants" is the author's spelling of *tenets*) — ignore it, slug is descriptive. Unticked: not diffed against the live site; hover states unobserved (the capture has no `:hover` anywhere in the subtree). |
 | 6 | `by-the-numbers` | By the numbers | `By the Numbers` | **`review`** | **Built** → [features/by-the-numbers/](../features/by-the-numbers/). 3 rows on a `card` `#eeedec` panel — 40,000+ users, 50,000+ daily queries, 300+ institutions — each a display number beside a bottom-aligned caption, over a `hairline` `border-top`. **`844 + 436 = 1280`**: the number cell's cap and the caption cell's cap sum to `--container-max`, so both bind at once and the caption column never drifts. Number leading is an **absolute `128px`**, so 96px (1200–1599.98) and 108px (≥1600) give identical 161px rows. **The count-up guess in this row was wrong** — the capture has zero `data-framer-appear-id`, zero transitions and no `:hover` in the subtree, so it was built static and `gsap` was declined; a JS code component could still do it, and that is the section's top open question. Unticked: not diffed against the live site. |
 | 7 | `security` | Built for enterprise, secure by design | `Security` (`#security`) | **`review`** | **Built** → [features/security/](../features/security/). The one dark section below the hero. Centred headline (**no `<br>`** — both lines come from a `400px` measure) over a 5-badge grid that drops 5 → 2 → 1 columns. 5 badge SVGs vendored to [public/badges/](../public/badges/), validated by rasterising. **Framer paints `data-border` on an `::after` overlay, not the box model** — which is how the original leaves the grid outline **ragged below 1200px** without anything reflowing: GDPR has `border-right:0` at both the 2-col and 1-col tiers, so the shape is open. Reproduced verbatim; **needs the user's call**. Also **needs a call: labels are `3.85:1` on `ink` and fail AA** (`#7f7f7f` would reach 4.56:1) — inherited, not introduced. Two delivery mechanisms and two label weights split the same way across the five badges, i.e. two authoring sessions. Unticked: only the ≥1200 tier compared to a live screenshot. |
-| 8 | `footer` | Footer + closing CTA | `Footer` | **`review`** | **Built** → [features/footer/](../features/footer/). CTA "Unlock financial AI for your firm" + demo button sits **inside** the footer block, as the inventory said. A **nested Framer component with its own tier-gating hashes** (`hidden-1leoyz4`/`16n7npo`/`d23fwj`/`1roolzl`) — re-derived, not reused. ⚠️ **Two of its five variants are never rendered and their CSS is a trap** — `framer-v-1cxbn18` declares a 2-up grid on the link row that looks like the tablet rule and is not. Divider is **two colours by tier** (`ink-soft/50` below 1200, `paper/10` at and above). Link hover is the site's **second measured transition** (`.3s cubic-bezier(.44,0,.56,1)`, colour only). **Three content differences between tiers**, all flagged: "Legal" ships at ≥1200 only, "Press" points at a mailto vs x.com, and the CTA has **no `href` at ≥1200** (the one deliberate deviation — ours uses the original's own `/demo` from its sibling variants). **Needs a call: `muted` titles/copyright are `3.85:1` on `ink` and fail AA.** |
+| 8 | `footer` | Footer + closing CTA | `Footer` | **`review`** | **Built** → [features/footer/](../features/footer/). CTA "Unlock financial AI for your firm" + demo button sits **inside** the footer block, as the inventory said. A **nested Framer component with its own tier-gating hashes** (`hidden-1leoyz4`/`16n7npo`/`d23fwj`/`1roolzl`) — re-derived, not reused. ⚠️ **Two of its five variants are never rendered and their CSS is a trap** — `framer-v-1cxbn18` declares a 2-up grid on the link row that looks like the tablet rule and is not. Divider is **two colours by tier** (`ink-soft/50` below 1200, `paper/10` at and above). Link hover is the site's **second measured transition** (`.3s cubic-bezier(.44,0,.56,1)`, colour only). **Three content differences between tiers**, all flagged: "Legal" ships at ≥1200 only, "Press" points at a mailto vs x.com, and the CTA has **no `href` at ≥1200** (the one deliberate deviation — ours uses the original's own `/demo` from its sibling variants). **Needs a call: `muted` titles/copyright are `3.85:1` on `ink` and fail AA.** **Map panel added 2026-08-11** (user request, ported from clix's own live site) as a fifth item in the link row, right-aligned — the one element here with no counterpart in the target. Keyless Google embed of Tel Aviv-Yafo at `z=12`; radius, filter, width and height all re-decided against this site's tokens rather than copied. ⚠️ Third-party embed, sets Google cookies, no consent gate anywhere on the site. |
 
 ## `/clix` — clone of `rogo.com/felix`
 
@@ -48,12 +48,197 @@ One-section page. Spec + memory in [features/news-page/](../features/news-page/)
 |---|---|---|---|
 | 1 | `Articles` | **`review`** | Built 2026-08-11 from a live fetch (no frozen capture). Hero (h1 88/72/64, subtitle 16 @ 540px balance, mailto button) + 5 filter pills (h-40, radius 28) + 3/2/1-col grid, gap 32. Content is a real 12-story AI digest (`newsItems.ts`) — cards link out to sources; tiles stand in for rogo's art. Never pixel-diffed. |
 
+## Page: `/product` (clone of `rogo.com/product`)
+
+Started 2026-08-11, complete 2026-08-11, committed `04595ef` 2026-08-12.
+Capture: `docs/reference/target/rogo-product-2026-08-11.{html,css}`.
+**Content pass 2026-08-12 on branch `product-content`: all copy is now clix's own and 17
+borrowed assets are deleted.** `noindex` still stands, now for a different reason — Block 6's
+placeholder quotes are attributed to real named clients. See `features/product-page/FEATURE.md`.
+
+⚠️ **The earlier clone commit is on the PUBLIC remote.** `noindex` guards the rendered route, not the
+repository — the three real-person photographs, the vendor marks and the certification
+badges are public as source. Flagged for a deliberate call; see
+`features/product-page/CONTEXT.md`.
+Spec + all measured values: [features/product-page/](../features/product-page/).
+
+⚠️ **Copy is rogo's verbatim by decision ("clone now, rewrite after") — route is `noindex`.**
+⚠️ **Blocks 3 and 6 carry named third-party vendors and named real people.** User's call,
+made against the risk; they must be replaced before this route is ever indexed. The `robots`
+block in `src/app/product/page.tsx` is the guard.
+
+⚠️ **The capture's `framer-v-*` variant classes are STALE — treat them as a hypothesis.** The
+hero CTA is declared `framer-v-velzew` but hydrates to `framer-v-q741vz`, which moves its
+corner brackets from `-22/-48` to `-12/-28`. Confirmed by computed style on the live page, not
+by eye. This also relocated the stylesheet's only two real hover rules onto the hero CTA.
+Related: **headless Chrome now HAS network egress**, contradicting the 2026-08-03 note in
+[CONTEXT.md](CONTEXT.md) — live probing is available for runtime variants, computed geometry
+and motion.
+
+⚠️ **`#features` is ONE band containing five of the nine rows below.** Corrected 2026-08-11 by
+probing the live render: it is 4024px tall at 1440 and 8138px at 1024, and its direct children
+are `[Product]` (2a + 2b + 2d), `[Data Partners]` and `[Feature]` "AI That Learns…". Only
+`Security`, `Testimonials` and `Footer` are genuine siblings of it. **Byte offsets give
+document order, never nesting** — that mistake was made twice here before the live tree
+settled it. `Workflows Scroller` likewise is not a block: it is feature 03's animation panel.
+
+| # | Framer name | Status | Notes |
+|---|---|---|---|
+| 1 | `Hero` + `Product Preview` | **`review`** | **Built** → `src/components/product/ProductHero.tsx`. Two SIBLING blocks (`#first`, `#second`) in one `<section>` so the nav's theme scan stays contiguous. h1 `64/64/56/48`, `-0.06em`, 100%; subtitle `18/18/16/16` at max-w 540, `muted` by inline override of an `ink-soft` preset. 220×40 CTA with two 14×20 corner brackets whose **hover is measured** (slide in to `-2/-18`). 1280×440 media band (phone 380), full-bleed below 1280, `muted` ground under the video with a `mix-blend-overlay` vignette + flat `ink @15%`; four white `@20%` 1px rules, the two vertical ones held against the prompt field by its **load-bearing `max-width:550px`**. Prompt field is **decorative, not an input** — flagged as an open question. **Typed phrase list recovered IN FULL** from the site bundles (4 phrases, `typeSpeed: 30`) — notable because `/clix`'s equivalent never was. **Video is the original's own clip and is public Pexels stock**, so it carries no licensing question. New token `brand-green` `#135b45`. No animation library — both triggers checked and declined. Unticked: not diffed at **1024 or 390**; hold/delete/blink timings **estimated**; contrast not yet run. |
+| 2a | `Features` intro | **`review`** | **Built** → `src/components/product/ProductFeatures.tsx`, which owns the whole `Features` **section shell** (bg `paper`, gap 120, padding `96/40` → `80/40` at tablet → `80/16` at phone — the vertical and horizontal steps happen at *different* breakpoints). Intro h3 is `44/44/40/32`, `-0.05em`, `110%`, balanced, and **left**-aligned — the only left-aligned heading on the page. Two-tone split is **one `<h3>` with an inner `<span>`**; two blocks would let the halves wrap independently and break the sentence across the colour boundary. No motion in the subtree. Matches the reference at 1440 (same break after "in the", same split at "Rogo"). Unticked: not diffed at 1024 or 390. |
+| 2b | `Features` stepper | **`review`** | **Built** → `src/components/product/ProductStepper.tsx`. **Two genuinely different layouts, not one responsive tree.** ≥1200: `Restart Point` — a 768×541 image beside a 472×541 text column (gap 40), text column `space-between` so the title pins top and the stepper pins bottom; one panel at a time, auto-advancing, inactive rows at **opacity .5** (the only distinguishing property — no colour change), each with an absolute `Fill` bar sweeping width 0→100%. <1200: no `Restart Point` in the DOM at all — the four features **stack**, gap 48, all expanded, each a 36px header row + gap 24 + panel. **The image aspect changes by tier too**: 768/541 desktop vs **944/595** below — wider *and* shorter, not one box reflowed. Panel is 510×280 `surface` at radius **1px** (not 0, not 6), centred. **The badge is a square with a circle SUBTRACTED, painted `ink`** — what reads as a ring is four corner slivers; a `rounded-full` outline is a different shape. Title 28/110%/-0.02em; labels Inter 14/130%/-0.01em. Steps are `<button>`s with `aria-current` (original ships `<div>`s). `Fill` is a CSS **animation** with the row remounted via `key`, not a transition — an animation always starts at its `from`, so no hydration flag. ⚠️ **The four panels could not be measured — only the ACTIVE step's is ever mounted**, so capture and live probe both only showed 01; the other three were invented and rebuilt 2026-08-11 from user screenshots. **Step 01: the card AND its icon tile are STATIONARY; the labels step up through them, every row on ONE shared left edge so the travel is purely vertical**, with only the glyph inside the tile swapping. Took four passes. Two misreadings caused them: the muted labels are **not centred** (three labels of different lengths share a left edge and merely look balanced), and the icon tile belongs to the **card**, not the row — in the row it mounted/unmounted and dragged the label sideways. Deviations on the user's call: **1800ms** pace (original ~1000ms) and **one green tile** (original tints per source; its “Real-time Web” glyph is blue). ⚠️ Its keyframe travel is **hardcoded `-62px` and must match `ROW_H`**: parameterising it with a custom property made the `to` invalid and the strip moved nowhere while still rendering. Advance is a `setTimeout` keyed on `active`, not an interval, so a manual pick resets the clock. Unticked: timings **estimated** (5200ms step, 7500ms strip); backdrop is a **substitute**; not diffed at 1024/390. |
+| 2c | `Workflows Scroller` | **`review`** | **Built** → `src/components/product/WorkflowsScroller.tsx`. ⚠️ **NOT a top-level block** — it is feature 03's animation panel inside the stepper and only renders while that step is active; the earlier inventory row was an artefact of reading byte offsets as structure. Two opposed ticker rows carrying the ten `Shortcut Card` labels verbatim. Reuses `.clix-marquee`; **cards carry `margin-right`, not `gap`**, or the -50% loop tears. Tile shape corrected 2026-08-11 from the user's reference — **86px tiles with a glyph on its own line above the label**, not the pills-with-a-dot first built. Speeds 38s/46s are **estimated**. |
+| 2d | — (`Streamline & Automate`) | **`review`** | **Built** → `src/components/product/ProductWorkflows.tsx` + `workflowMocks.tsx`. **Three shapes, and the middle one is the surprise:** ≥1200 = 3 columns with the card a **column** (art over text); 810–1199.98 = 1 column, gap 32, card a **row** (art beside text, measured 944×579); ≤809.98 = 1 column, card back to a **column** (358×625). A plain "stack below desktop" rule gets the tablet tier wrong. Section gap **64**; card gap 32; art box 411/521 at every tier; cards `place-self:start`. Title 44/44/40/32, capped at 512px from 1200 up and **uncapped below**; card title 28/110%/-0.02em `ink`; body 16/130%/-0.01em `muted`. **The three panels are DOM rebuilds of rogo's three 922×1040 product-UI JPGs**, measured off the bitmaps with `sharp` and scaled by a container query (`--u = 1cqw / 8.206` = one source pixel) so a DOM tree scales like a bitmap instead of reflowing. Mock 2 runs off the right edge on purpose — it alone is `object-position: left center`. Body type is **36 source px**. Substituted: rogo's logo chip → `brand-green` tile with `ClixMark`; PowerPoint/Excel icons → lettered badges in the same two colours. New tokens `mock-panel`/`mock-line`/`mock-fill`. Diffed side-by-side against the source JPGs at 1440. `paper` on `forest-deep` is 15.59:1 AAA. |
+| 3 | `Data Partners` | **`review`** | **Built** → `src/components/product/ProductDataPartners.tsx`, inside `ProductFeatures.tsx` as a sibling of `[Product]`. "Trusted Data" + a 640-wide intro over a 13-tile grid, gap 16. **Columns go 3 → 2 → 2, not 3 → 2 → 1** — the phone tier keeps two columns and shrinks the tile from 416×80 to 171×48 (padding `8 16 8 8`, gap 12, graphic 32, label 14/1.1em). Block padding `48px 0`, `0` on phones; block gap 32; radius 0 throughout. Tile fill `surface`@40%, rule `mark`@10%, glyph square `mark`@20%; glyph is ~52% of its square. ⚠️ **The rule is an OVERLAY, not a `border`** — the original paints it with `[data-border] ::after`, which takes no layout space; a real border moved the label 1px and made the phone tile 50px instead of 48. **Every measured value diffed against the live page at 1440/1024/390 and identical**, block height included (721/900/613). Contrast: `ink` on tile **17.65:1**, `muted` on paper **4.74:1**. Eight provider marks vendored to `public/logos/product/` (5 rasters, 2 SVGs given the `viewBox` they omit, and PitchBook decoded out of an inline data-URI); the 5 line glyphs are inlined path data. Deviations: label face Martina Plantijn → Discovery, label `rgb(23,23,23)` → `ink`, glyph stroke `#44403C` → `ink-soft`. ⚠️ **This block is why the route is noindex** — 8 vendor trademarks with logos; replace before indexing. |
+| 4 | `Benefits` | **`review`** | **Built** → `src/components/product/ProductBenefits.tsx` + `benefitArt.tsx`, the last child of `#features`. "AI That Learns How Your Firm Thinks and Works" (a hard `<br>`: line 1 `ink`, line 2 `muted`, so the break IS the colour boundary) over a card grid, gap 16, 1 → 2 → 3 columns. ⚠️ **SIX benefits, not four** — a byte-slice of the capture reads as four; the render has six. **Card height is one rule, not three numbers:** every card is `aspect-ratio: 0.788044` (the same ratio 2d’s art boxes use), which is why 416→528, 464→589 and 358→454 all agree. Card `surface`, radius 0, padding `24 16 16` (`16` on phones); h6 28/110%/-0.04em/500; description 14/130%/-0.01em `muted` in a **fixed 84px well pinned to flex-end**, which keeps 1– to 4-line bodies on one baseline. **Art: one vendored, five rebuilt.** Integrations is vendored (`public/product/benefit-integrations.svg` — third-party product logos, no rogo branding); Custom-Trained Models and Single Tenant Deployment are rebuilt because they carry rogo’s mark; Prompt Library and Governance are rebuilt as rogo product UI; Guided Implementation is rebuilt **and deliberately off-palette**, replacing a photograph of an identifiable real person. Twenty measured values diffed against the live page at 1440/1024/390 — all identical except the block height at 390 (2916 vs 2915, grid row snapping). ⚠️ **Needs a call: the six 14px descriptions are `muted` on full-strength `surface` = 4.35:1 and fail AA** (`#717171` reaches 4.50). Inherited from the original, and the same pair passes next door in Block 3 only because those tiles are `surface` at 40%. |
+| 5 | `Security` | **`review`** | **Built** → `src/components/product/ProductSecurity.tsx`. ⚠️ **NOT a reuse of home's `Security` — they are different sections.** A **white** section wrapping an `ink` **card** (max-w 1280, 618px tall and a row at ≥1200; a column with gap 32 and pad 28/24 below), left column = icon+label · two-tone 44/40/32 heading (`muted` → `paper` mid-heading) · 4-item list · "Find out more"; right column = a **2 × 2 dashed** `#ffffff26` badge grid (296×261 → 444×240 → 1 column of 310×220 at `aspect-ratio 1.40909`), label absolute 16px off the bottom-left, 104px mark centred. ⚠️ **The one structural trap: the "Find out more" link lives INSIDE the title/list container, not beside it.** As a third sibling the left column's `space-between` puts the heading **64px too high** at 1440 — and it looks fine. Numbers caught it, screenshots would not have. Two more tier traps: list `align-items` is centre at ≥1200 *and* ≤809 and flex-start **only** at 810–1199; the link is `min-content` except ≤809 where it is 100%. **36 values × 3 tiers diffed against the live page — every geometry value identical**; the only survivors are two text widths from the Discovery swap and `gap:normal` vs `0px`. Rules are an **overlay span**, not a `border` (same reason as Block 3). Icons inlined from the capture's defs; GDPR needed its own `gdpr-product.svg` (121×120) because home's is a different 102×102 asset. "Find out more" points at `/#security` — this site has no `/security` route. ⚠️ **Ships SOC2 / CCPA / ISO 27001 / GDPR verbatim on the user's "copy everything 100%" call — the exact set removed from home on 2026-08-05 because SOC 2 and ISO 27001 are audited certifications clix does not hold. Replace before indexing; `sections/Security.tsx` holds the drop-in.** Badge labels are `muted` on `ink` = **3.85:1, fails AA** (inherited). |
+| 6 | `Testimonials` | **`review`** | **Built** → `src/components/product/ProductTestimonials.tsx`. ⚠️ **The capture is wrong about every moving part of this block.** It shows 3 slides, both arrows `disabled` at `opacity:0`, and `object-position: left center`. Sampling the LIVE track transform every 250ms for 23s: **12 slides** (3 + clones), **autoplay every 6.0s**, **it loops** (−7725.6 → −3864.0 in a single frame at t=17.68s — the clone snap), **arrows never disabled**, and the portrait crop is **`50% 50%`**, a visibly different part of the frame. The capture's values are the pre-hydration state. Step is **1288px** = 1280 container + 8px gap over **~1.1s**, 46% of the distance inside 250ms — a JS spring, so `cubic-bezier(.25,1,.5,1)` @1100ms is a **fitted** stand-in and the block's only approximation. **Method note: check for autoplay BEFORE measuring any click** — the first probe read a "Previous" as moving two slides when autoplay had simply fired during the wait. Three subtrees in the original → two here: ≥1200 and 810–1199 differ only by the 360×694 photo column, so they are one component with one `hidden` div. ≤809 could NOT be collapsed — **two** testimonials not three, **Patrice's quote is different copy** ("is going to transform" vs "transforms"), Patrice is first there and second everywhere else, own paddings (`24` / `32 24 24 24`) and gaps (`20`/`80`), no photos, no arrows. Section 914 tall (`124 40 96`), 959 at phone (`0 16 96`); card pad 48 gap 80; quote **32px Patrice / 36px the other two** at ≥1200, 28 at tablet, 20 at phone, all 1.3em at letter-spacing **0**; role 14/1.4em **uppercase** `muted`; company mark a 200×20 frame at **0.7** opacity. New token `bone` `#f5f2eb` (DESIGN-SYSTEM.md had it as never-applied — corrected). ⚠️ **Autoplay REMOVED on the user's call 2026-08-11** — built and measured first (6.0s cadence), so this is a recorded divergence, not a gap; verified off by 90 samples over 23s showing one distinct track position. Knock-on: autoplay was what re-aligned an off-grid drag, so arrows and a committed flick are now the only things that do. ⚠️ **It is also DRAGGABLE and it does NOT snap** (user-reported, then measured): the track follows the pointer **1:1**, a release after a slow drag **stays where you dropped it** (six held releases 40–340px all settled at exactly the dragged distance, none changed slide), a **flick** commits exactly one slide, and the grid is restored by **the next index change, not the release** — the following autoplay tick moved 1288−60 / 1288−340, landing back on an exact multiple. Commit is therefore velocity-driven, not distance-driven; the rule `|dx + v×0.15| > 30%` of a slide (velocity zeroed after 80ms idle) is **fitted** and reproduces all three cases. Ours matches the reference on all three, one drag per fresh page load. **Two probe traps worth remembering: velocity from a single event pair is wrong (browsers coalesce moves and can share a timestamp), and a multi-trial drag probe contaminates itself once a trial leaves the track off-grid.** **25 values × 3 tiers — ALL MATCH.** ⚠️ **Three named real people, their firms, their quotes and their photographs ship verbatim** — the strongest claim on the page; replace before indexing. Roles are `muted` on `bone`/`surface` = **4.24 / 4.35:1, fail AA** (inherited). |
+| 7 | `Footer` | **`review`** | **Reused** — `src/components/sections/Footer.tsx`, unchanged. The footer subtree in the /product capture is byte-identical to the home capture's: same `.framer-8dt5bh-container`, same `.framer-qd34j7` link class, same "Unlock financial AI / for your firm", same four link columns. The one block the plan called correctly. |
+| — | **page order** | **`review`** | ⚠️ **The sections are not in DOM order below 1200.** `#features` order 1, `#testimonials` order 2, `#security` order 3 at both sub-1200 tiers; unset (source order) above. So **security sits above testimonials on desktop and below them on tablet and phone**. `<main>` is `flex flex-col` for that reason alone and the two components carry the `order-*` classes. Verified in the rendered DOM at 1600/1440/1024/390 — the flip lands exactly at 1200. Page-wide: zero horizontal overflow at all four tiers, `data-nav-theme` contiguous end to end (no gaps, so the nav never falls back), every control keyboard-reachable with a visible ring. |
+| 7 | `Footer` | `todo` | **Reuse** the site `Footer`. |
+
+## Page: `/security` (clone of `rogo.com/security`)
+
+Started and complete 2026-08-12, on `dev` (no feature branch), built with 4 parallel agents one
+file each. Capture: `docs/reference/target/rogo-security-2026-08-12.{html,css}` — 374 KB HTML,
+**five** inline `<style>` blocks.
+Spec + all measured values: [features/security-page/](../features/security-page/).
+
+✅ **NOT `noindex` — the first cloned route to ship without the guard**, and deliberately so.
+All four gate items that hold `/product`, `/company` and `/careers` are clear: no third-party
+trademark, no certification clix does not hold, no real person quoted, and every string is
+clix's own from the first commit. `/news` is the precedent. Do not add a `robots` block as part
+of unrelated work.
+
+⚠️ **PRACTICES, NOT SEALS** (user's call). The target's compliance grid ships SOC2 / CCPA /
+ISO 27001 / GDPR / EU AI Act — two of them **audited certifications clix does not hold**, and
+the exact set removed from home on 2026-08-05. The five cells carry home's own practice
+statements and its five `practice-*.svg` marks instead, and **the heading moved with them**
+("Compliant With / Industry Standards" → "Built On / Practices We Keep"), because none of these
+is a standard anyone certifies. `sections/Security.tsx`'s standing instruction applies here too.
+
+⚠️ **THREE BANDS, NOT FOUR.** "Security At Our Core" reads as a fourth section and is the
+**second direct child of `#features-1`**, separated from the badge grid by that band's own 120px
+gap. Probed on the live DOM before anything was built — the same mistake `/product` made twice
+by reading byte offsets as nesting. It is why `SecurityCore` is not a `<section>`. The target's
+fourth Framer band, `Reiteration`, is inside `Footer` here as it is there.
+
+⚠️ **THE WHOLE PAGE IS `ink`**, which no other route is. All four `[data-nav-theme]` regions
+declare `dark`, so the nav bar is solid ink from the first pixel to the last.
+
+| # | Framer name | id | Component | Status | Notes |
+|---|---|---|---|---|---|
+| 1 | `Hero` | `#first` | `SecurityHero` | **`review`** | ⚠️ **Height is `70vh`, not a content sum** — 198 + 302 + 80 = 580 and the band is 630 at a 900px viewport (`min-content` below 810, where the sum does close at 521.19). h1 `88/72/64`, 95%, `-0.06em` except phone `-0.05em` — the same preset `/careers` and `/news` carry. Subtitle 18/16 at 130% in the new `paper-soft`. CTA is the **Inverted** variant (white fill, ink label) and its `<a>` is **220 × 36 inside a 220 × 40 frame**, unlike `/careers`' which fills its frame. Brackets `dx −28 / dy −12` at every tier — a **third independent measurement** of `/product`'s and `/careers`' numbers. ⚠️ **The first headline failed the diff**: "Your Data Never Leaves You." sets 3 lines at 390 and cost 60.79px; seven candidates were measured live before "Your Keys. Your Data." was chosen. |
+| 2 | `Benefits` | `#features` | `SecurityBenefits` | **`review`** | Six items, 3 → 2 → 1 columns, gap 40 → 40 → 32, uniform rows 185 / 182.39 / 150.39. Item gap steps **64 → 32** at the phone tier, which is most of why that row is 32px shorter. ⚠️ **Every title is 1 line and every body exactly 2, at every tier** — the rows are uniform, so a 3-line body moves all six; all twelve strings were pre-fitted by rendered line count before the build. Six 36 × 36 line glyphs inlined from the capture's defs, `fill="white"` → `currentColor`. Card 6 replaces rogo's "Audited & tested", which is the same class of claim as the SOC 2 seal. |
+| 3 | `Compliance` row 1 | `#features-1` | `SecurityCompliance` | **`review`** | Two-tone centred h2 (**one element; the `<br>` IS the colour boundary**, paper span over the h2's own `muted`) over a 5 → 2 → 1 grid, gap 0, cells 240 tall at ≥810 and `aspect-ratio: 1.40909` at phone. ⚠️ **The rules are a dashed `::after` overlay, not borders** — a real border takes layout space and moves the 104px mark 1px, the exact bug `/product` Block 3 shipped. ⚠️ **The matrix is ragged and not derivable**: at 390 cell 3 draws `0/1/0/1`, no top *and* no bottom, while cell 4 draws all four. Reproduced verbatim; it also **disagrees with home's grid on cell 4**, which is genuine divergence between two separately-probed pages. Both corner marks are **the same 21 × 33 SVG**, BR at `rotate(180deg)`, hung 5px outside the grid. |
+| 4 | `Compliance` row 2 | — | `SecurityCore` | **`review`** | Not a section: the band's second child. Row + gap 64 at ≥810, column + gap 24 below; left column `flex:1 0 0` capped 450 → 280 → none. ⚠️ **The body is ONE `<p>` with two `<br/>`** — the blank line between the paragraphs is a real line, and two `<p>`s with a margin is a different measurement. ⚠️ **`Explore security portal` is dropped** (user's call; rogo's points at `trust.rogo.ai`), measured first at 190.06 × 32 so it is on record. |
+| 5 | `Reiteration` + `Footer` | — | shared `Footer` | **`review`** | **Reused unchanged.** The target keeps its closing CTA inside the footer, exactly as ours does. |
+| — | verification | | | **`review`** | **Block-diff `ALL MATCH` at 1600 / 1440 / 1024 / 390 — 60 keys per tier.** Build clean (13 routes, `/security` prerendered), `tsc` and `eslint` clean on the new files. Four nav-theme regions contiguous with every gap 0.00; zero horizontal overflow; one focusable in `<main>` with a visible ring; outline h1 → h2 → h3. ⚠️ **The band delta is TWO terms**: −64px at every tier from the dropped link, plus −20.79 at 1024 and −20.80 at 390 from **one line of our own paragraph**. Page totals then reconcile from exactly three terms — those two plus the shared `Footer` being +43.8px / +234px taller than rogo's, the pre-existing `FooterMap` difference. ⚠️ Five 14px labels are `muted` on `ink` = **3.85:1, fail AA** — inherited, the same failure open on four other routes, needs one token change to close them all. |
+
 ## Other pages
 
 Still **not scoped** — see the open question in [PROJECT.md](PROJECT.md).
 
-`Product` · `Security` · `Company` · `Customers` · `Careers` · `Log in`
-(`News` left this list 2026-08-11 — built above.)
+`Customers` · `Log in`
+(`News` and `Product` left this list 2026-08-11, `Company`, `Careers` and `Security` on
+2026-08-12 — all built above.)
+
+## Page: /company
+
+Started and complete 2026-08-12, on `dev` (no feature branch, at the user's instruction).
+Capture: `docs/reference/target/rogo-company-2026-08-12.{html,css}`.
+Spec: [features/company-page/FEATURE.md](../features/company-page/FEATURE.md).
+
+**Design cloned 1:1, content clix's from the first commit.** Unlike `/product` this page was
+never built with the target's copy in it, so no third-party logo, founder name or staff
+photograph ever entered the repo and there is nothing to strip later.
+
+⚠️ **`noindex`**, for a thinner reason than `/product`'s: every string is already clix's own
+and the four-item gate is clear. It is guarded pending two answers, both the user's — whether
+the "Unit 8200 and Technion" credential is substantiable, and the placeholder photograph in
+Block 5. One line lifts it.
+
+⚠️ **Six bands, not five.** `Video` is a sibling of `Hero`, not a child.
+
+| # | Framer name | Component | Status |
+|---|---|---|---|
+| 1 | `Hero` | `CompanyHero` | `review` |
+| 2 | `Video` | `CompanyHero` (same file) | `review` |
+| 3 | `Mission` | `CompanyMission` | `review` |
+| 4 | `Team` → eight services | `CompanyServices` | `review` |
+| 5 | `Investors` → twelve tools | `CompanyTools` | `review` |
+| 6 | `Reiteration` | `CompanyCareers` | `review` |
+| 7 | `Footer` | shared `Footer` | `review` |
+
+**Every band height matches the target to 0.00px at 1600 / 1440 / 1024 / 390**, and `<main>`
+totals match exactly (4497.16 at 1440, 6451.88 at 390). Verified with a before/after harness,
+not by eye.
+
+⚠️ **The document is still 43.8px taller at 1440 and 234px at 390, and none of it is this
+page.** The whole delta is the shared `Footer`, which is that much taller than rogo's on every
+route. Pre-existing, almost certainly `FooterMap.tsx`'s map embed, which rogo's footer has no
+equivalent of. Not fixed here.
+
+## Page: `/careers` (clone of `rogo.com/careers`)
+
+Started and complete 2026-08-12, on `dev` (no feature branch, at the user's instruction), built
+concurrently with `/company` in a separate session. Capture:
+`docs/reference/target/rogo-careers-2026-08-12.{html,css}` — 577 KB HTML, **six** inline
+`<style>` blocks, 581 `data-framer-name` nodes.
+Spec + all measured values: [features/careers-page/](../features/careers-page/).
+
+✅ **THE COPY IS CLIX'S OWN as of 2026-08-12**, in a second pass the same day (user: *"in the
+career section, lets personalize it now, with the headers and subheaders, for the jobs i will
+follow up later"*). Hero h1 **`Join us in engineering the core of next-generation software.`**
+(the user's own sentence), About h3 `Automating The Work` / *`Nobody Should Be Doing`*, both
+About paragraphs, roles h2 `Where You Come In`. The rest is written from `ClixManifesto.tsx` and
+`docs/reference/clixsolutions/`, not invented. **This is the first page on the site to complete
+the "clone now, rewrite after" cycle.**
+
+⚠️ **TWO BLOCKS CHANGED HEIGHT, AND BOTH BLOCK-DIFFS STILL SAID "ALL MATCH".** They compare
+computed style and box geometry, never text, so a copy edit is invisible to them. **After a copy
+edit on a cloned page, a green diff proves nothing about height — probe line counts separately.**
+
+| | Target | Ours | Cause |
+|---|---|---|---|
+| `#hero` | 529 / 529 / 479 / 585 | **613 / 613 / 479 / 707** | the user's h1 is 60 characters against rogo's 44, so it sets 3 lines at ≥1200 and 6 at 390 instead of 2 and 4. Chosen verbatim over four measured 33-to-42-character alternatives, with the ceiling and its cost stated first. **1024 did not move.** |
+| `#about` | 352 / 343 / 471 | **329 / 343 / 430** | our first paragraph sets in 3 lines at ≥1200 where rogo's set in 4; 18px × 130% = 23.4px ≈ the delta. |
+
+Neither was tuned away. Padding sentences out to hit a height the target got from *different
+sentences* would make the measured spec a fiction. **The h1 ceiling is 44 characters** and that
+number is measured, not assumed: eight candidates rendered through `Range.getClientRects()` at
+1440 and 390, everything ≤ 44 giving 2 lines / 4 lines and 45 breaking the phone tier. The roles
+h2 was capped at 17 for the same reason (40px inside 358 less 32 of padding). ⚠️ **The h1 also
+breaks mid-hyphen** ("next-" / "generation") and there is no clean fix at 390 — `nowrap` on the
+compound is a ~480px unbreakable run in a 358px viewport, which `overflow-hidden` would clip.
+Dropping the hyphen is the only fix; flagged to the user, left as written.
+
+⚠️ **`noindex` STILL STANDS, now on ONE reason instead of two.** The three job rows are
+**invented**. A job listing solicits an application, which makes an invented one worse than an
+invented testimonial — every row points at a real `mailto:`, never a fabricated ATS URL. The
+user has said the jobs are the follow-up, so the guard lifts when they are real and not before.
+
+⚠️ **The photographs are already clix-safe.** The original's eight identifiable-staff photos were
+replaced with neutral Pexels stock chosen on a "no clear frontal face" rule (user's call). That is
+**licence compliance, not just liability hygiene**: Pexels bars using photos of identifiable people in
+ways implying endorsement, and a careers carousel implicitly captioned *our team* does exactly that.
+**The same reasoning applies to `/product` Block 6**, which still ships three photographs of real
+people — a licence question there, not only a taste one.
+
+⚠️ **This capture's structure is a hypothesis, not a fact — FOUR SSR-vs-hydrated divergences.**
+(1) the CTA hydrates `framer-v-velzew` → `framer-v-q741vz`; (2) the row's dashed rule computes to
+`border-bottom: 0px none` and is painted on `::after`; (3) the row `<a>` gains an extra wrapper, so its
+3 children become 1; (4) the filter pills and the job rows **share `data-border="true"`** — 83 matches
+inside `#roles`, pills first. Two of the four broke the block-diff before it ran green.
+
+| # | Framer name | Status | Notes |
+|---|---|---|---|
+| 1 | `Hero` (`#hero`) | **`review`** | **Built** → `src/components/careers/CareersHero.tsx`. ⚠️ **Copy is the USER'S OWN sentence** (`Join us in engineering the core of next-generation software.`, 2026-08-12) at 60 chars against rogo's 44, so **height is 613/613/479/707, not the target's 529/529/479/585** — 3 lines at ≥1200 and 6 at 390. Every other value in the block is the target's and the diffs still pass; see the page note above. `198px 40px 80px` (phone `198 16 80`), gap 96; `Text & Button` gap **44 → 24** below 1200, phone `max-w 360`; title box max-w 960. h1 `88/88/72/64`, `-0.06em` (phone `-0.05em`), 95%, centred, balanced. 220×40 CTA `href="#roles"` with two 14×20 brackets at **−28/−12**, hover −18/−2 — byte-identical to `/product`'s, so `ProductHero.tsx`'s components ported unchanged. **No subhead** — proved by arithmetic, not assumed: `198 + 2×88×0.95 + 44 + 40 + 80 = 529` closes the measured height at 1440, and the same sum closes at 1024 and 390. |
+| 2 | `Gallery` (`#gallery`) | **`review`** | **Built** → `CareersGallery.tsx` + `careersPhotos.ts`. **Native scroll-snap, not a JS track** — `overflow-x:auto`, `scroll-snap-type:x mandatory`, `scroll-snap-stop:always`; drag, momentum and snap are the browser's, so unlike `/product` Block 6 there is no spring to fit. **Slide widths are fixed px at EVERY tier** (385/721/389/605/389/389/688/791 × 516, `scrollWidth` 4469) — confirmed twice, by the `sizes` attribute and by a four-tier live sweep. ⚠️ **Slot 5 is a 2572×1714 LANDSCAPE in a 389×516 portrait box** — the original crops it to its centre half; a `w=` sized off the box width delivers 1×, not 2×, because cover scales by height there. **No autoplay** (30 s of samples, one distinct position), **no loop**, Prev edge-disables, **Next never does**. Arrow step = `scrollBy(±clientWidth)` + native snap, chosen by scoring **five** candidate rules against 13 measured transitions (9/13, best; my hand-derived rule scored 5/13 and was arithmetically impossible). **At 390 nothing snaps on either side** — every slide is wider than the 358px snapport. |
+| 3 | `About` (`#about`) | **`review`** | **Built** → `CareersAbout.tsx`. Copy is **clix's** (2026-08-12): h3 `Automating The Work` / *`Nobody Should Be Doing`*, two paragraphs from ClixManifesto + clixsolutions. ⚠️ **The only block whose height moved: 329/343/430 vs the target's 352/343/471**, because our p1 sets in 3 lines at ≥1200 where rogo's set in 4. Every CSS-controlled value is unchanged; do not pad the copy to hit 352. Two columns at ≥1200 (row, max-w 1280, gap 64, title col `flex:1 0 0; width:1px; max-w 490`), one column gap 24 below. h3 `44/44/40/32`, `-0.05em`, 110%, balanced — **one element**, and the `<br>` IS the colour boundary: line 1 `ink`, line 2 `muted`. ⚠️ Not "…Smartest Analyst / On Wall Street", which is the natural misreading. Body `18 → 16`, `-0.02em`, 130%, `ink`; the two paragraphs are separated by **`margin-top:20px`**, not a flex gap. ⚠️ Ships `id="about"` — the original's is literally **`about™`**, and its text container's `data-framer-name` is a stale paragraph of *security* copy. Ignore layer names on this project. |
+| 4 | `Careers` (`#roles`) | **`review`** | **Built** → `CareersRoles.tsx` + `careersOpenings.ts`. Server component. `80px 40px 160px → 80 40 → 64 16`, gap 72; container max-w 1280 gap 40 (32 phone). h2 is **clix's** `Where You Come In` (2026-08-12), capped at 17 chars because that is what fits on one line at 390. Eyebrow = 8×8 `signal-green` dot + `{ROLES.length}` + `open positions`, gaps 10/8. h2 `56/56/48/40` `surface`. Group h4 `36/36/28/24`, **110% at ≥1200 and 1.2em below**. Divider is `aspect-ratio:1120` → **1.141px** at 1280. Row 72 tall, `24px 0`, rendered gaps 16/16/16, rule on `::after`. ⚠️ **Reduced to 3 roles with NO filter pills** (user's call); the 11 pills' measured values are recorded in FEATURE.md as "measured, deliberately not shipped". ⚠️ Index is `muted` on `ink` = **3.85:1, fails AA** — inherited, shipped as measured, **needs the user's call** (`mark` = 5.36:1). |
+| 5 | `Footer` | **`review`** | **Reused** — `src/components/sections/Footer.tsx`, unchanged. |
+| — | verification | **`review`** | **Both block-diffs ALL MATCH at 1600/1440/1024/390** — 18 carousel keys and 38 roles keys, every tier. `npm run build` clean, eslint clean, `tsc` clean. Five `data-nav-theme` sections contiguous (all gaps 0), zero horizontal overflow at every tier, focus order CTA → track → Prev → Next → 3 rows. **One deliberate functional divergence: `scroll-mt` on `#roles`.** The target has no `scroll-padding-top` anywhere, so its own `#roles` CTA lands the band at top 0 with **113px buried under its fixed nav** — probed, not assumed. Ours clears it (115/119px). `scroll-margin` never affects rendered layout, so the diffs stay valid. |
 
 ## Order of work
 

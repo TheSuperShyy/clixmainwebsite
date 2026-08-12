@@ -24,6 +24,8 @@
  * second place on the site with a real authored transition rather than an estimate.
  */
 
+import FooterMap from "./FooterMap";
+
 type FooterLink = {
   label: string;
   href: string;
@@ -61,7 +63,11 @@ const GROUPS: LinkGroup[] = [
   {
     title: "Company",
     links: [
-      { label: "About", href: "/about" },
+      /* Repointed 2026-08-12: was `/about`, which never existed and 404'd. `/company` is the
+         clone of rogo.com/company and is the page this label means. The nav calls the same
+         route "Company"; the labels differ because each list keeps its own capture's wording.
+         The other eight links in this footer still point at routes this repo does not have. */
+      { label: "About", href: "/company" },
       { label: "Insights", href: "/insights" },
       { label: "Playground", href: "/playground" },
     ],
@@ -198,6 +204,10 @@ export default function Footer() {
 
         {/* Bottom — link row over the copyright, gap 72. */}
         <div className="relative flex w-full flex-none flex-col items-center gap-[72px] overflow-hidden">
+          {/* Link row. The four columns are the target's; the map is ours, added
+              2026-08-11 as a fifth item pinned to the right edge. It is why the columns no
+              longer divide the full width — they now share it with a fixed 280/430px
+              panel, which is the intended shift-left. */}
           <div
             className="relative flex w-full flex-none flex-col items-start gap-8
                        overflow-hidden tablet:flex-row tablet:gap-4"
@@ -227,6 +237,8 @@ export default function Footer() {
                 </div>
               </div>
             ))}
+
+            <FooterMap />
           </div>
 
           {/* Copyright — "© 2026" and the holder as two separate uppercase runs, 8px apart.

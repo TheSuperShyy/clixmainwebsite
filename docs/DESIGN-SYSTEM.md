@@ -84,9 +84,21 @@ block cannot carry a media query and the value genuinely differs per tier. **Der
 fixed-height boxes, not measured off the target** — the derivation is written out beside the
 declaration, because it will drift if a row's padding or a child's height changes.
 
-One value is deliberately **not** tokenized: `#8b8b8b` appears ×2 and nowhere else in the
-build. Two uses is a one-off, not a scale step — it gets a documented deviation in
-`features/felix-page/FEATURE.md` if it lands in a section we build.
+> **Superseded, and left here because the reasoning was sound at the time.** This paragraph
+> used to read: *"One value is deliberately not tokenized: `#8b8b8b` appears ×2 and nowhere
+> else in the build. Two uses is a one-off, not a scale step."* It stopped being true the same
+> week. `#8b8b8b` is now `--color-mark`, and it has earned the slot twice over:
+>
+> | Token | Value | Uses | Role |
+> |---|---|---|---|
+> | `mark` | `#8b8b8b` | ×26 on `/clix`, ×26 on `/product` | rogo's own wordmark grey — the `/clix` integrations grid (glyphs + names), and `/product`'s `Data Partners` tiles at 10% (the rule) and 20% (the glyph square) |
+>
+> ⚠️ **~2.97:1 on the tiles — logotype-exempt, NEVER for prose.** `muted` `#737373` is the
+> darkest legible grey and is a different token on purpose. On `/product` the token is only
+> ever used at 10% and 20% as a *surface*, never as text.
+>
+> The lesson is the counting method, again: a use count is a fact about what has been built so
+> far, not a verdict on what the value is for.
 
 `banner` and `hairline-light` were added 2026-08-02 while building `nav`; `canvas`, `card`
 and `ink-wash` on 2026-08-03 while building `testimonials`; `hairline-dark` and `tile` on
@@ -108,17 +120,112 @@ different uses; do not collapse them.
 > written that way in the capture; `0x33` = 51/255 = 0.2, so it is the same value and
 > **must reuse the token** rather than being re-inlined.
 
+### Added 2026-08-11 — `/product` sub-block 2d's rebuilt mocks
+
+| Token | Value | Uses | Role |
+|---|---|---|---|
+| `mock-panel` | `#fafafa` | ×8 | card and panel fill inside the three workflow mocks |
+| `mock-line` | `#e5e5e5` | ×9 | their hairlines, row rules and table borders |
+| `mock-fill` | `#e7e6e4` | ×4 | the chat bubble, and the blurred-out figures in the table |
+
+**These three are sampled from bitmaps, not read from a token table.** The originals are
+three flat JPGs (`922×1040`, on framerusercontent), so there is no Framer variable to quote —
+the values come from `sharp` reading the pixels. That provenance is why they carry their own
+`mock-` family instead of being folded into the palette above: they are the interior palette
+of one illustration and nothing else uses them.
+
+> **`mock-panel` `#fafafa` is not `surface` `#f5f5f5`.** The two appear **together** inside
+> mock 2 — panel body against table header — so collapsing them would flatten a step the
+> reference actually has. Same trap as `canvas` vs `surface` above.
+
+Two raw hexes stay inline in `workflowMocks.tsx` and are **not** tokens: `#c03b1c` and
+`#10743e`, the PowerPoint and Excel badge fills. They are third-party product colours inside
+an SVG glyph, in the same category as the vendor logos under `public/logos/` — not part of
+this site's palette, and tokenizing them would imply they were.
+
 ### Defined but unused here
 
 Present in the Framer project, zero uses on the home page. Recorded so a later page
 doesn't cause them to be re-derived — **do not use them on home-page sections**.
 
-`#f5f2eb` bone · `#135b45` deep green · `#19a26c` green ·
-`#0071c1` blue · `#d94636` terracotta · `#1c1c1c` · `#8b8b8b` ·
-`#ffffff00` transparent · `#ffffffcc` white 80% · `#737373` (duplicate token, same value)
+`#0071c1` blue · `#d94636` terracotta · `#1c1c1c` ·
+`#ffffff00` transparent · `#737373` (duplicate token, same value)
+
+`#ffffffcc` left this list on 2026-08-12 — it is `paper-soft`, and `/security` uses it in every
+one of its three bands. Zero uses on home, and not to be introduced there.
+
+`#19a26c` left this list on 2026-08-12 — it is `signal-green`, the "N open positions" status
+dot on `/careers`. Zero uses on home, and not to be introduced there.
 
 `#1a2a25` and `#0f2822` left this list on 2026-08-09 — they are `forest` and `forest-deep`,
 both live on `/clix`. Still zero uses on **home**, and still not to be introduced there.
+
+`#8b8b8b` left this list on 2026-08-09 — it is `mark`; see the note above the unused list.
+
+---
+
+## Added 2026-08-12 — `/careers`
+
+Three colours the careers clone needs that nothing here covered. Measured off the live page
+over CDP, not sampled from a screenshot. All three are wired into the `@theme` block of
+`src/app/globals.css`.
+
+| Token | Value | Where it is used | Contrast |
+|---|---|---|---|
+| `signal-green` | `#19a26c` | the 8×8 r20 status dot in `N open positions` | decorative; the adjacent text carries the meaning, so exempt |
+| `glyph` | `#afafaf` | the 24×24 corner-turn arrow at the head of each role row | 8.33:1 on `ink`, and it is an icon |
+| `control-scrim` | `#00000033` | behind the carousel's two 40×40 Prev/Next buttons | n/a — covered by an opaque white SVG circle |
+
+`glyph` is deliberately not `mark` (`#8b8b8b`): the original paints the arrow two steps
+lighter than the label beside it, and collapsing the pair flattens the row's hierarchy.
+
+## Added 2026-08-12 — `/security`
+
+One colour, and it is the only one that page needed. Measured off the live page over CDP.
+
+| Token | Value | Where it is used | Contrast |
+|---|---|---|---|
+| `paper-soft` | `#ffffffcc` | hero subtitle · all six benefit bodies · the "Built To Be Trusted" paragraph | **11.84:1** on `ink` — AAA (it flattens to `#d0d0d0` over that ground) |
+
+It is the light-on-dark counterpart of `ink-soft`, and that is why it is its own token rather
+than `paper` at an opacity: white headings and 80% bodies appear **together** in all three of
+that page's bands, so the pair is a real typographic step, not a one-off softening.
+
+**Everything else on `/security` resolved to existing tokens** — `ink` (the ground, for the
+whole page), `paper` (h1, both h3s, the CTA fill, the four corner brackets), `muted` (the
+compliance h3's second line, and the five cell labels), `hairline-light` `#ffffff26` (the
+dashed cell rules, which the target writes as `rgba(255,255,255,0.15)` — the same colour).
+
+⚠️ **One inherited AA failure, the same one already awaiting a call on home, footer, `/product`
+and `/careers`:** the five 14px cell labels are `muted` on `ink` = **3.85:1**. Shipped as
+measured, flagged in `features/security-page/FEATURE.md`.
+
+The failure is confined to those five labels, and the reason is worth keeping: the body text on
+this page is `paper-soft`, not `muted`. `muted` appears in exactly two places here, and the other
+one — the compliance heading's second line — is 44/40/32px, i.e. **large text**, where 3.85:1
+passes AA. So this route adds one failing pair, not two, and `mark` `#8b8b8b` at 5.36:1 would
+close it with a single token change.
+
+**Everything else on `/careers` resolved to existing tokens** — `ink` (page type, and the
+roles band ground), `paper`, `muted` (the h3's second line, and the row index), `surface`
+(the roles h2 and the role titles on `ink`), `mark` (count, group headings, locations),
+`hairline` `#a8a29e33` (both the group divider and the dashed row rule, which is the same
+`rgba(168,162,158,0.2)` written two ways).
+
+⚠️ **One inherited AA failure, not introduced here:** the row index is `muted` on `ink` =
+**3.85:1**. `mark` on the same ground is 5.36:1 and would fix it with one token change.
+Shipped as measured and flagged in `features/careers-page/FEATURE.md`; awaiting the user's call.
+
+`#135b45` left this list on 2026-08-11 — it is `brand-green`, and `/product` is the page that
+uses it: the hero prompt-field's submit arrow, Framer's
+`--token-882a4bb1-3097-4fee-9806-fac2dd4a1644`. **The zero-use count was never wrong** — it was
+taken across the home and `/clix` captures, and it is still zero on both. A zero here means
+"no page counted so far uses it", not "no page does; ignore it". `forest-deep` made the same
+point from the other direction. Still not to be introduced on home.
+
+⚠️ `brand-green` is **rogo's** green, not clix's. It ships verbatim with the rest of the
+`/product` clone and is a candidate for a clix accent in the copy-rewrite pass; `forest` is
+not a drop-in substitute, being a near-black reserved for display type.
 
 Dark mode: **no** `prefers-color-scheme` support in the original. Sections are individually
 light or dark by design, not theme-switched.
@@ -209,7 +316,21 @@ to the subset Framer serves, and swapping it would break 1:1. Self-host the vend
 
 Also vendored but **not applied on this page** — available for later pages, not for home:
 Fragment Mono, Inter Display Medium/SemiBold. Declared in the original but never applied
-anywhere we've measured: BR Sonoma, Martina Plantijn, Rooftop, ABC Arizona Flare.
+anywhere we've measured: BR Sonoma, Rooftop, ABC Arizona Flare.
+
+> **Correction, 2026-08-11 (2): `#f5f2eb` left the zero-use list too.** `/product`'s
+> `Testimonials` cards alternate **cream `#f5f2eb` / `surface` / cream**, so the value now has
+> two live uses and a token: `--color-bone`. Third correction of this shape, after
+> `brand-green` and Martina Plantijn below — the pattern is now clear enough to state as a
+> rule: **a zero-use count in this document is a fact about the pages counted at the time, not
+> a verdict on the project.** Re-check before treating one as permission to drop a value.
+
+> **Correction, 2026-08-11: Martina Plantijn left that list.** `/product`'s `Data Partners`
+> block sets all 13 tile labels in `Test Martina Plantijn Regular` — a serif, at 20 / 18 / 14px
+> by tier. It renders as Discovery in our build under the one-face decision, and the swap is
+> logged in `features/product-page/FEATURE.md`. The original entry was right about the pages
+> counted at the time; it was not a verdict on the whole project. Same shape as `forest-deep`
+> and `brand-green` in the colour section above.
 
 Ignore any family ending in `Placeholder` — Framer's metric-matched loading shims.
 

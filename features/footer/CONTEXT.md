@@ -7,23 +7,87 @@ Reading this file plus `FEATURE.md` should be enough to resume work on this sect
 with no code scanning.
 
 ---
-
 ## Current state
 
-Built and building clean. Closing CTA, divider, four link columns and a centred copyright,
-all on `ink`. Every value extracted from the capture and verified by CDP at all four tiers.
-No new tokens. The link hover is one of only two **measured** transitions on the site.
+Built and building clean. Closing CTA, divider, four link columns, a **map panel** and a
+centred copyright, all on `ink`. Every cloned value extracted from the capture and verified
+by CDP at all four tiers. No new tokens. The link hover is one of only two **measured**
+transitions on the site.
+
+The map is the one element here with no counterpart in the target — added 2026-08-11 at the
+user's request, ported from clix's own live site. Full spec in `FEATURE.md`.
 
 **Two things need the user's call**, both inherited: the "Legal" link ships on the ≥1200
 variant only, and "Press" points at two different destinations by tier. Plus the same
-`muted`-on-`ink` contrast failure as `security`.
+`muted`-on-`ink` contrast failure as `security`, and now a third: the Google embed sets
+third-party cookies with no consent gate anywhere on the site.
 
 **Status:** `review`
-**Next action:** get those calls; decide what to do about link destinations that 404.
+**Next action:** get those calls; decide what to do about link destinations that 404, and
+whether the map embed needs a consent gate before production.
 
 ---
 
 ## Log
+
+### 2026-08-11 — map panel added to the link row
+
+**Trigger:** user — a screenshot of `clix-main-page.vercel.app`'s footer map, *"we have to
+add that to our system, make it look good and should be good for the theme"*. Then a second
+screenshot with a red box drawn at the top-right of the link row: *"you should put it to the
+red box, only the map is needed, you can move the other links a little to the left"*.
+
+**Where the source markup came from.** The reference site is a client-rendered Vite app; its
+`main-*.js` bundle contains no `iframe` and no maps URL, so static fetching found nothing.
+Rendering it headless and dumping the post-JS DOM produced the element in one shot. Worth
+remembering for the next port off that site — **curl the HTML, get nothing; dump the DOM,
+get everything.**
+
+**Measured off the source:**
+`https://maps.google.com/maps?q=Tel+Aviv-Yafo&hl=iw&z=12&output=embed` · `h-[210px]` →
+`230px` @lg · `rounded-[18px]` · `border-white/10` · `saturate(.85)` · `max-w-[430px]` ·
+`loading="lazy"` · `referrerpolicy="no-referrer-when-downgrade"`.
+
+**Four deliberate departures from it**, all in `FEATURE.md`'s table:
+
+- `rounded-[18px]` → `rounded-[6px]`. Counted the radii actually in use across
+  `src/components` first: **14 × `6px`**, one each of `4px`, `2px`, `28px`, `full`. 18px
+  would have been the only one of its kind on the site.
+- `saturate(.85)` → `saturate(.65) brightness(.82) contrast(1.04)`. The first build shipped
+  `.85` verbatim and the screenshot settled it: on `ink` the map was **brighter than the
+  headline and the CTA**. Full colour returns on hover, on the site's own
+  `.3s var(--ease-rogo)`.
+- `max-w-[430px]` → tiered `100% / 280px @810 / 430px @1200`. The source's map sits alone;
+  ours shares a row with four link columns. At 810 the container is 730px — 430 would leave
+  the columns ~59px each and wrap "Privacy Policy" (~95px at 14px). 280 leaves ~96px, which
+  clears it. Verified at 810 and 1024: no label wraps.
+- Fixed height → `self-stretch` + `h-full` from 810, so the panel matches the row rather
+  than carrying a second hard-coded number.
+
+**Placement.** Fifth item in the existing link row, not a new row. The four columns are
+`flex-[1_0_0]`, so a fixed-width fifth item is what shifts them left — the user's ask
+needed no change to any column.
+
+**Reversed within the same task.** The first build was a full "Office" block: label, address
+line, hours, and a separate `Open in Google Maps` link with a hover-nudged arrow, laid out
+beside the map in its own row under the link columns. The user cut it to the map alone. The
+text is gone; the embed's built-in "Open in Maps" button carries the click-through now. The
+one thing lost with it is an explicit external-link affordance in our own markup — noted, not
+mourned.
+
+**No address is shown because clix has none published.**
+`docs/reference/clixsolutions/content.json` gives only "תל אביב · שירות גלובלי" and
+"א׳–ה׳ · 09:00–18:00". The pin is the city, at `z=12` — same as the source. Nothing invented.
+
+**Verified:** `npm run build` clean, `tsc --noEmit` clean, `eslint` clean on both files.
+Screenshotted at 1600 / 1024 / 810 / 390 with the dev server running — panel right-aligned
+in the row at ≥810, full-width below it, no horizontal overflow at any tier.
+
+**Left open:** the embed is third-party and sets Google cookies on load, with no consent
+gate anywhere on this site. Flagged in `FEATURE.md`; needs a decision before production.
+
+
+---
 
 ### 2026-08-03 — built
 
