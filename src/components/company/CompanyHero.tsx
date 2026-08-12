@@ -258,40 +258,48 @@ export default function CompanyHero() {
           here rather than reproduced. */}
       <div className="flex w-full flex-col items-center justify-center gap-24 overflow-hidden bg-paper px-4 tablet:px-10">
         <div className="relative aspect-[1.78344] w-full max-w-[var(--container-max)] overflow-hidden">
-          {/* ⚠️ OURS, NOT THE CAPTURE'S. The original is `loop preload="none" playsinline`,
-              NOT autoplay and NOT muted: its variant is literally named "Paused" and it waits
-              for a press. We autoplay at the user's explicit request, which is a deliberate
-              departure from the target on this one point.
+          {/* ⚠️ OURS, NOT THE CAPTURE'S: the original is `loop preload="none" playsinline`,
+              NOT autoplay and NOT muted. Its variant is literally named "Paused" and it waits
+              for a press. We autoplay, at the user's request. Everything else about this band,
+              including `aspect-[1.78344]`, is the measured clone and must stay.
 
-              `muted` is REQUIRED, not decoration. Browsers block unmuted autoplay outright,
-              so without it the promise rejects and nothing ever plays. It costs nothing here
+              THE CLIP FILLS THE BAND, edge to edge, exactly as the target's does. An earlier
+              pass showed it as a centred portrait player instead; that was reverted on
+              2026-08-12 (user: "it should be like rogo not portrait").
+
+              ⚠️ THE SOURCE IS PORTRAIT AND SIDEWAYS, so `boss-talk.mp4` is a derived file and
+              not something to regenerate casually. The master is
+              features/company-page/assets/boss-vid-source-4k.mp4: 3840x2160 with the content
+              lying on its side and NO rotation flag, so a browser plays it sideways. The
+              pipeline that produced what ships here is one command:
+
+                transpose=1, crop=2160:1210:0:1314, scale=1920:1076
+
+              rotate upright, take a 16:9 window, size it for the box. The crop offset 1314 is
+              the vertical CENTRE and was chosen by comparing three candidates: higher lost the
+              seated listener entirely, lower pushed the speaker's head against the top edge.
+
+              Two consequences of pre-cropping rather than letting CSS do it:
+                · `objectPosition` is inert now. The file already IS 16:9, so there is nothing
+                  for cover to crop. Reframing means re-encoding with a different offset.
+                · it ships 1.9 MB instead of 3.7 MB, because no pixel is carried that is never
+                  drawn. The portrait original wasted 68% of every byte.
+
+              1920 source width DOWNSCALES into the 1280px box, so this is sharp. Its
+              predecessor `boss-lecture.mp4` was 576 wide and upscaled 2.2x, which is why that
+              one looked soft.
+
+              `muted` is REQUIRED, not decoration. Browsers block unmuted autoplay outright, so
+              without it the promise rejects and nothing ever plays. It costs nothing here
               because the clip carries no audio track at all (verified with ffprobe).
 
-              ⚠️ THE CLIP IS 9:16 PORTRAIT IN A 16:9 BOX, and that is a real compromise, not an
-              oversight. Swapped in on 2026-08-12 at the user's request, replacing the Pexels
-              Tel Aviv footage. `boss-lecture.mp4` reports 1024x576 to ffprobe but carries
-              `rotation=-90` in its display matrix, so it actually presents as 576x1024.
-              Against this measured `aspect-[1.78344]` box, `object-fit: cover` locks to width
-              and shows roughly 32% of the frame: a horizontal band across the middle. Checked
-              rather than assumed — the speaker's head and the seated listener both survive at
-              `50% 50%`, which is why the position is unchanged.
-
-              Two consequences to know before touching this:
-                · there is NO horizontal slack. Cover locks to width, so `objectPosition`'s
-                  first value does nothing here. Only the vertical value can reframe it.
-                · 576px upscales 2.2x to fill the 1280px box, so it renders soft. That is the
-                  source, not the markup, and no CSS fixes it.
-              The alternatives, if the crop is ever judged too tight, are letterboxing with
-              `object-contain` (leaves ~877px of empty ground either side) or giving the band
-              its own aspect ratio, which breaks the clone and moves every band below it.
-
-              `preload` moved from `none` to `metadata`: `none` fights autoplay, since the
-              browser has to fetch before it can start. Not `auto` — that would pull the whole
-              1.3 MB on every page load whether or not the band is ever scrolled to. */}
+              `preload` is `metadata`: `none` fights autoplay, since the browser has to fetch
+              before it can start, and `auto` would pull the whole file on every page load
+              whether or not the band is ever scrolled to. */}
           <video
             ref={videoRef}
-            src="/company/boss-lecture.mp4"
-            poster="/company/boss-lecture-poster.jpg"
+            src="/company/boss-talk.mp4"
+            poster="/company/boss-talk-poster.jpg"
             aria-label="Footage of a Clix talk, a speaker addressing a seated audience in a studio space"
             preload="metadata"
             autoPlay={!reduced}
@@ -300,7 +308,6 @@ export default function CompanyHero() {
             playsInline
             controls={reduced}
             className="absolute inset-0 h-full w-full object-cover"
-            style={{ objectPosition: "50% 50%" }}
           />
         </div>
       </div>

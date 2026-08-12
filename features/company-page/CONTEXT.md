@@ -27,6 +27,64 @@ clean; `npx tsc --noEmit` clean across the project.
 
 ---
 
+## 2026-08-12 — Block 1's clip: 4K master in, and a reversal on how it is framed
+
+User supplied `boss-vid.mp4`, *"its more hd, right now its horizontal make it vertical"*.
+
+**The file is `3840x2160` with the content lying on its side and no rotation flag**, which is
+what "horizontal" meant. Not a portrait file with a rotation tag like `boss-lecture.mp4`: this
+one has the rotation **baked into the pixels**, so a browser plays it sideways and no metadata
+fixes it. Rotation direction was settled by rendering both `transpose=1` and `transpose=2` side
+by side rather than reasoning about it: clockwise is upright.
+
+### The reversal, and why the first answer was reasonable but wrong
+
+Asked whether the upright portrait clip should be shown at its natural shape or keep filling the
+16:9 band. Answer was the portrait player; built it, measured it (403.7 / 297.7 / 112.9 wide,
+aspect 0.5625, centred at every tier, band height untouched). Then, seeing it beside rogo's own
+page: *"why is it like this? it should be like rogo not portrait"*. Reverted.
+
+Worth recording because the second answer is obviously right once seen and was not obviously
+right when asked. **A side by side against the target settles a framing question faster than a
+description of one.** The ASCII sketches in the question were accurate and still misled.
+
+### What ships
+
+Pre-cropped to 16:9 in one command rather than letting CSS crop:
+
+```
+transpose=1, crop=2160:1210:0:1314, scale=1920:1076
+```
+
+Offset **1314 is the vertical centre**, chosen by comparing three candidates: higher lost the
+seated listener, lower pushed the speaker's head against the top edge. Centre also means plain
+`50% 50%`, which is the capture's own value.
+
+Two consequences of pre-cropping:
+- **`objectPosition` is inert.** The file already is 16:9, so cover has nothing to crop.
+  Reframing means re-encoding with a different offset, not editing CSS.
+- **1.9 MB instead of 3.7 MB.** The portrait original carried 68% of its bytes as pixels the
+  band never draws.
+
+**The softness is gone.** 1920 source width downscales into the 1280px box; `boss-lecture.mp4`
+was 576 wide and upscaled 2.2x. That file and its poster are deleted.
+
+The 8.8 MB master is kept **outside the web root** at `assets/boss-vid-source-4k.mp4`, because
+everything under `public/` is served whether or not anything references it.
+
+### ⚠️ A harness default that reads as a bug
+
+`vidbox.js` reported the video paused at every tier and it looked like autoplay had regressed.
+It had not. `cdp.js`'s `connect()` **always emulates `prefers-reduced-motion: reduce`**, which is
+deliberate — it is how the geometry probes get a deterministic resting state — and the pause was
+the reduced-motion handling working correctly.
+
+Two things follow. **Every screenshot in this feature's `assets/` shows the reduced-motion
+path**, so a paused poster there is not evidence of a fault. And any future check of autoplay
+must override the emulation explicitly, as `scratchpad/shot-normal.js` does.
+
+---
+
 ## 2026-08-12 — Block 1's video autoplays, and the obvious implementation was wrong
 
 User: *"make the video auto play in company remove the play button"*. A deliberate departure

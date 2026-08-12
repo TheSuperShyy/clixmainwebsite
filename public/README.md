@@ -7,51 +7,48 @@ Real assets taken from the target, per the **1:1 fidelity policy** in
 
 | File | What | Provenance |
 |---|---|---|
-| `boss-lecture.mp4` | 1.3 MB, 6.4s, no audio track. Block 1's video on `/company` | Supplied by the user 2026-08-12 |
-| `boss-lecture-poster.jpg` | 576×1024, 36 KB | Frame at t=2s of the above |
-| `company-bg.jpg` | 2400×1200, 164 KB. Block 5's full-bleed band on `/company` | Stock photograph supplied by the user 2026-08-12. Cropped to 2:1 from a 5917×3950 original and re-encoded |
+| `boss-talk.mp4` | 1920×1076, 1.9 MB, 6.4s, no audio. Block 1's video on `/company` | **Derived.** See the pipeline below |
+| `boss-talk-poster.jpg` | 1280×717, 40 KB | Frame at t=2s of the above |
+| `company-bg.jpg` | 2400×1200, 164 KB. Block 5's full-bleed band | Stock photograph supplied by the user 2026-08-12, cropped to 2:1 from a 5917×3950 original |
 
-> ⚠️ **`boss-lecture.mp4` is 9:16 PORTRAIT in a 16:9 slot.** `ffprobe` reports `1024x576`,
-> but the stream carries `rotation=-90` in its display matrix, so it presents as **576x1024**.
-> Block 1's box is a measured `aspect-[1.78344]`, so `object-fit: cover` locks to width and
-> shows roughly **32% of the frame**, a horizontal band across the middle. Checked rather than
-> assumed: the speaker's head and the seated listener both survive at `50% 50%`.
->
-> Two consequences. **There is no horizontal slack** — cover locks to width, so
-> `objectPosition`'s first value does nothing and only the vertical value can reframe it. And
-> **576px upscales 2.2x** to fill the 1280px box, so it renders visibly soft. That is the
-> source, not the markup, and no CSS fixes it. A wider or higher resolution capture would.
->
-> It has **no audio track** (verified), like the clip it replaced, so leaving it unmuted —
-> faithful to the original, which sets neither `muted` nor `autoplay` — cannot surprise anyone.
+### ⚠️ `boss-talk.mp4` is derived, and the master is sideways
 
-> ⚠️ **Provenance is UNVERIFIED and that matters before this route is indexed.** The file
-> arrived as `company bg.jpg` with no licence recorded. **Confirm the licence permits commercial
-> use.** The uncropped original is preserved outside the web root at
-> `features/company-page/assets/company-bg-source.jpg` so the crop can be redone; it is
-> deliberately NOT in `public/`, because everything under `public/` is served and shipped
-> whether or not any code references it, and it is 2.3 MB.
+The master is **`features/company-page/assets/boss-vid-source-4k.mp4`**, deliberately outside
+the web root: 8.8 MB, and everything under `public/` is served whether or not code references
+it. It is `3840x2160` with the content **lying on its side and NO rotation flag**, so a browser
+plays it sideways. **Do not point the page at the master.**
 
-> ⚠️ **It is stock, not clix's team**, and it sits under a heading about joining that team.
-> Ordinary practice for a careers block, and a far weaker claim than a quote put in a named
-> person's mouth (which is what got three photographs deleted from `/product`), but it is not
-> the real thing.
+One command produced what ships:
 
-Cropped to **2:1 on purpose**, which is neither of the band's own ratios: the band is 2.69 at
-1600 and 1.30 at 390, so 2:1 is the midpoint that survives `object-fit: cover` at both ends.
-Cropping to either extreme would gut the other.
+```
+transpose=1, crop=2160:1210:0:1314, scale=1920:1076
+```
 
-**Replaced `tel-aviv-band.jpg`, now deleted.** That was a graded frame of Old Jaffa standing in
-while both stock sources refused an automated fetch (Pexels 403, Unsplash 401). It was a
-landmark rather than people at work. Its replacement also fixed a real defect: the nav marks
-this band `light`, and the dusk frame had the bar painting dark glyphs over a dark image. The
-new photograph is bright, so the marker is now correct rather than merely specified.
+rotate upright, take a 16:9 window, size it for the box. **Offset `1314` is the vertical centre**
+and was chosen by comparing three candidates: higher lost the seated listener entirely, lower
+pushed the speaker's head against the top edge.
 
-⚠️ **`video/hero-tel-aviv.mp4` and its poster are UNREFERENCED AGAIN** as of 2026-08-12.
-`/company` Block 1 used the clip for part of a day; `boss-lecture.mp4` replaced it. That is
-6.9 MB served and shipped for nothing. It was already dead weight from 2026-08-09 (when
-`Hero.tsx` moved to `hero-israel.mp4`) until this page briefly revived it. **Delete both unless
-a route claims them.**
+Pre-cropped rather than left to CSS, which has two consequences. `objectPosition` is **inert** —
+the file already is 16:9, so cover has nothing to crop and reframing means re-encoding. And it
+ships **1.9 MB instead of 3.7 MB**, because the portrait original wasted 68% of every byte on
+pixels the 16:9 band never draws.
+
+1920 source width **downscales** into the 1280px box, so it is sharp.
+
+**Retired: `boss-lecture.mp4` and its poster.** Same footage at 576x1024, which upscaled 2.2x
+into the box and looked soft. Deleted 2026-08-12.
+
+> ⚠️ `company-bg.jpg`'s **licence is UNVERIFIED**. It arrived as `company bg.jpg` with no
+> provenance recorded. **Confirm commercial use is permitted before this route is indexed.** The
+> uncropped original is at `features/company-page/assets/company-bg-source.jpg`. It is also
+> **stock, not clix's team**, sitting under a heading about joining that team.
+
+Cropped to **2:1 on purpose**, neither of the band's own ratios: the band is 2.69 at 1600 and
+1.30 at 390, so 2:1 is the midpoint that survives `object-fit: cover` at both ends.
+
+⚠️ **`video/hero-tel-aviv.mp4` and its poster are unreferenced**, 6.9 MB of dead weight.
+Candidates for deletion.
+
 
 ## `fonts/` — 57 files, 1.0 MB
 
