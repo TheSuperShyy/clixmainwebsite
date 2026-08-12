@@ -46,6 +46,7 @@
  */
 
 import { useEffect, useRef, useSyncExternalStore } from "react";
+import { usePageDict } from "@/lib/i18n/LocaleProvider";
 
 /* The two corner brackets that frame the CTA. 14x20 each, ink fill, path data verbatim
    from the capture's <use> defs #svg-1980836134_494 (Left) and #svg5446185_500 (Right).
@@ -56,7 +57,19 @@ import { useEffect, useRef, useSyncExternalStore } from "react";
    The 300ms / --ease-rogo timing is OURS and is estimated. Framer animates this in JS and
    the stylesheet's only transition is `color .3s`, so the capture cannot answer it.
    Flagged as estimated in /product's FEATURE.md; the same estimate is reused here rather
-   than a second, different guess. */
+   than a second, different guess.
+
+   ⚠️ NOT MIRRORED IN RTL, AND THAT WAS VERIFIED RATHER THAN OVERLOOKED. The pair is a
+   180-degree ROTATION of one another, not a left/right pair: Left brackets the top edge from
+   above-left, Right brackets the bottom edge from below-right, and rotating the two about the
+   frame's centre maps each onto the other. So the ornament is already symmetric under the only
+   transform that matters and swapping the offsets would move it, not mirror it. Measured in
+   Chrome at 1440 in both locales: the two SVGs sit at x 582–596 and 844–858 against a frame at
+   610–830 — byte-identical numbers in `dir=ltr` and `dir=rtl`. Mirroring would also force
+   `transition-[top,left]` / `transition-[bottom,right]` to become direction-dependent, which
+   is a computed-value change in its own right. /product and /security make the same call, so
+   the three routes agree. These are also frozen offsets (contract §8): a sign may flip, a
+   constant may not. */
 function BracketLeft({ className, style }: { className?: string; style?: React.CSSProperties }) {
   return (
     <svg width="14" height="20" viewBox="0 0 14 20" fill="none" className={className} style={style} aria-hidden="true">
@@ -113,6 +126,13 @@ function usePrefersReducedMotion() {
 }
 
 export default function CompanyHero() {
+  /* THE HOOK, NOT AN IMPORT. A static `import` of a dictionary module from a
+     `"use client"` file bundles BOTH locales into the client chunk
+     (LocaleProvider.tsx's own note). This is the only client component on /company,
+     so it is the only file on the route that reads its strings this way; the other
+     four are server components and call `getDict().company`. */
+  const t = usePageDict("company").hero;
+
   /* AUTOPLAY, AND THAT MAKES THIS HOOK LOAD BEARING (2026-08-12, user: "make the video auto
      play in company remove the play button").
 
@@ -185,7 +205,7 @@ export default function CompanyHero() {
                          desktop:text-[88px]"
               style={{ lineHeight: "95%" }}
             >
-              The Team Behind the Systems
+              {t.title}
             </h1>
             {/* Subhead 18/16/16, weight 400, 130%, -0.02em, max-w 540, balanced. The
                 preset's own colour is #383838 (ink-soft); the element overrides it inline
@@ -194,7 +214,7 @@ export default function CompanyHero() {
               className="w-full max-w-[540px] text-center font-sans text-[16px] font-normal text-balance text-muted desktop:text-[18px]"
               style={{ lineHeight: "130%", letterSpacing: "-0.02em" }}
             >
-              Clix builds the automation that modern businesses run on.
+              {t.subhead}
             </p>
           </div>
 
@@ -218,7 +238,12 @@ export default function CompanyHero() {
                            group-hover:-right-[18px] group-hover:-bottom-0.5"
                 style={{ transitionTimingFunction: "var(--ease-rogo)" }}
               />
-              {/* The original points at ./demo and reads "Request a Demo". Ours is clix's
+              {/* ⚠️ `left-0 w-full` IS A FULL-BLEED IDIOM AND IS DELIBERATELY NOT MIGRATED to
+                  `start-0`. The pair pins both edges of the anchor to the 220px frame, so
+                  there is no inline start to speak of: measured in Chrome, the used `left` and
+                  `right` are both 0px and the box is 610–830 in BOTH locales. `top-1/2` with
+                  `-translate-y-1/2` is the vertical centring idiom for the same reason.
+                  The original points at ./demo and reads "Request a Demo". Ours is clix's
                   one CTA destination sitewide: `#contact`, the anchor Footer.tsx owns, so
                   it resolves in page on this route. Deviation logged in FEATURE.md.
                   No border: the capture declares a 1px border at rgba(168,162,158,0) and
@@ -242,7 +267,7 @@ export default function CompanyHero() {
                     className="font-sans text-[16px] font-medium whitespace-pre text-paper"
                     style={{ lineHeight: "1em", letterSpacing: "-0.01em" }}
                   >
-                    Let&rsquo;s start
+                    {t.ctaLabel}
                   </span>
                 </span>
               </a>
@@ -300,7 +325,7 @@ export default function CompanyHero() {
             ref={videoRef}
             src="/company/boss-talk.mp4"
             poster="/company/boss-talk-poster.jpg"
-            aria-label="Footage of a Clix talk, a speaker addressing a seated audience in a studio space"
+            aria-label={t.videoLabel}
             preload="metadata"
             autoPlay={!reduced}
             muted

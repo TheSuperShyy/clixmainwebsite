@@ -35,7 +35,6 @@
  * route shipping without it. Do not remove the robots block as part of unrelated work.
  */
 
-import type { Metadata } from "next";
 import Nav from "@/components/sections/Nav";
 import CompanyHero from "@/components/company/CompanyHero";
 import CompanyMission from "@/components/company/CompanyMission";
@@ -44,33 +43,37 @@ import CompanyTools from "@/components/company/CompanyTools";
 import CompanyCareers from "@/components/company/CompanyCareers";
 import Footer from "@/components/sections/Footer";
 import { fetchModels } from "@/lib/models";
+import type { Locale } from "@/lib/i18n/config";
+import { seedLocale, getDict } from "@/lib/i18n/server";
+import { PageDictProvider } from "@/lib/i18n/LocaleProvider";
 
-export const metadata: Metadata = {
-  title: "Company",
-  robots: { index: false, follow: false },
-};
+export default async function CompanyRoute({ locale }: { locale: Locale }) {
+  /* Seeded here as well as in the root layout: this body is the direct parent of
+     every section, so a server component below it can never read the locale before
+     it is set, regardless of layout ordering. */
+  seedLocale(locale);
 
-/* Literal, not an imported binding — Next rejects the latter. Source of truth for the value
-   is REVALIDATE_SECONDS in src/lib/models.ts; keep them in step by hand. */
-export const revalidate = 300;
-
-export default async function CompanyPage() {
   const models = await fetchModels();
 
   return (
-    <>
-      <Nav models={models} />
-      <main>
-        <CompanyHero />
-        <CompanyMission />
-        <CompanyServices />
-        <CompanyTools />
-        <CompanyCareers />
-      </main>
-      {/* The shared footer. Its tier-gating hashes in the capture (d23fwj / 1roolzl /
-          1leoyz4 / 16n7npo) are byte-identical to /product's, which is the proof that this
-          is the same Framer component and not a per-page variant. Reused unchanged. */}
-      <Footer />
-    </>
+    /* Client components below this point read their strings with
+       usePageDict("company"). Server components use getDict().company directly and do not
+       need the provider at all — it is here for the client half only. */
+    <PageDictProvider name="company" value={getDict().company}>
+      <>
+        <Nav models={models} />
+        <main>
+          <CompanyHero />
+          <CompanyMission />
+          <CompanyServices />
+          <CompanyTools />
+          <CompanyCareers />
+        </main>
+        {/* The shared footer. Its tier-gating hashes in the capture (d23fwj / 1roolzl /
+            1leoyz4 / 16n7npo) are byte-identical to /product's, which is the proof that this
+            is the same Framer component and not a per-page variant. Reused unchanged. */}
+        <Footer />
+      </>
+    </PageDictProvider>
   );
 }

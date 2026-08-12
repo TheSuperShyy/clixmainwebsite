@@ -38,6 +38,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import ClixMark from "@/components/ui/ClixMark";
 import { TOOL_GLYPHS } from "@/components/ui/ToolGlyphs";
+import { getDict } from "@/lib/i18n/server";
 
 const u = (n: number) => `calc(${n} * var(--u))`;
 
@@ -83,7 +84,20 @@ function Stage({
   );
 }
 
-/** An absolutely-placed box in source coordinates. */
+/**
+ * An absolutely-placed box in source coordinates, measured from the INLINE START.
+ *
+ * ⚠️ MIRRORING LIVES HERE, NOT AT THE CALL SITES, and it is `inset-inline-start` rather than
+ * `922 - x - w` arithmetic. A box at `left: x` width `w` in a container of width `W` sits
+ * `W - x - w` from the right edge, so mirroring it means `right: x` — which is exactly what
+ * `inset-inline-start: x` resolves to under rtl. CSS does it against the ACTUAL containing
+ * block, so it is correct at every nesting depth (a `Line` inside a pill measures against the
+ * pill, not the stage). It resolves to `left` in ltr, so the English render is unchanged.
+ *
+ * Every graphic in this file mirrors, because in all six the horizontal axis carries reading
+ * order: glyph-before-label in the pill stack, icon-then-label-then-bar in the governance rows.
+ * None of them depicts a foreign product's chrome or a causal left-to-right flow.
+ */
 function Box({
   x,
   y,
@@ -107,7 +121,7 @@ function Box({
     <div
       className={`absolute ${className}`}
       style={{
-        left: u(x),
+        insetInlineStart: u(x),
         top: u(y),
         width: w === undefined ? undefined : u(w),
         height: h === undefined ? undefined : u(h),
@@ -120,7 +134,9 @@ function Box({
   );
 }
 
-/** A line of text centred vertically on `cy`, in source coordinates. */
+/** A line of text centred vertically on `cy`, in source coordinates and from the inline start.
+    `whitespace-nowrap` and no width, so it cannot gain a line — it can only run past its
+    parent's edge, which is computable. See the pill widths below. */
 function Line({
   x,
   cy,
@@ -141,7 +157,7 @@ function Line({
     <div
       className={`absolute font-sans whitespace-nowrap ${className}`}
       style={{
-        left: u(x),
+        insetInlineStart: u(x),
         top: u(cy - lh / 2),
         fontSize: u(size),
         lineHeight: u(lh),
@@ -270,33 +286,52 @@ export function ArtIntegrations() {
  * a 0.5px `#0C0A09`@10% rule.
  * The top and bottom fade is the source's alpha mask, restated as a CSS mask.
  *
- * ⚠️ THESE LABELS ARE SHARED STATE. They are nine of the ten in `WorkflowsScroller.tsx`
- * (that one also carries "Document Collection"), in the same order. Change one list and you
- * must change the other, or /product tells two stories about the same workflows.
+ * ⚠️ THE LABELS AND THEIR PILL WIDTHS BOTH COME FROM THE DICTIONARY, and the labels are SHARED
+ * STATE: `workflows.labels` holds ten, `WorkflowsScroller` renders all ten as ticker cards and
+ * this stack renders the first NINE as pills. One list in one place is what used to be two
+ * lists in two files under a comment asking the reader to keep them in step.
  *
- * ⚠️ THE SECOND NUMBER IS A HAND-FITTED PILL WIDTH, NOT A LAYOUT CONSTANT — the source's own
- * widths were fitted to the source's own labels, so replacing the labels invalidates all
- * nine. Re-fitted 2026-08-12: a least-squares line through the nine originals, regressing
- * pill width on each label's advance width in ems (Helvetica metrics as a stand-in for the
- * rendered face), gives `w = 12.87 × ems + 44.6` and reproduces all nine originals to within
- * 3px. The widths below are that line evaluated on the new labels. That is an estimate off a
- * substitute metric, so THE STACK STILL NEEDS A VISUAL CHECK: too narrow and the label runs
- * past the pill (the row is `whitespace-nowrap` and the pill does not clip), too wide and it
- * leaves dead space on the right. The ragged right edge is deliberate and must survive.
+ * ⚠️ THE WIDTH IS A FUNCTION OF THE STRING, WHICH IS WHY IT TRAVELS WITH IT. The row is
+ * `whitespace-nowrap` and the pill does not clip, so too narrow and the label runs out of its
+ * pill; too wide and it leaves dead space. A width fitted to one language is wrong for another.
+ *
+ * THE FORMULA IS GEOMETRY, NOT A FIT, and that was the correction made on 2026-08-12:
+ *     w = 30 + advance + 14.6
+ * The 44.6 that earlier notes called a fitted intercept was never fitted — it is the two insets
+ * this very function writes below, where the icon sits at `x=10 w=14` and the label at `x=30`.
+ * So the leading inset is 30 source units and the trailing one is 44.6 − 30 = 14.6. `advance` is
+ * the label's rendered width divided by the tier's `--prompt-u`, which is tier-invariant by
+ * construction: `fontSize` is `u(12)`, so advance = em × 12 at 0.6786, 1.0357 and 0.8643 alike.
+ * Verified numerically at all three.
+ *
+ * ACCEPTANCE IS THE TWO FAILURE MODES, NOT A TOLERANCE:
+ *   1. the label must not run past the pill — satisfied by construction.
+ *   2. THE RAGGED RIGHT EDGE MUST SURVIVE. Nine equal pills read as a block, not a rag. Spread
+ *      (max − min): English 60 units as shipped, Hebrew 62.1 — +3.5%.
+ *
+ * ⚠️ A FINDING ABOUT THE ENGLISH NUMBERS, LEFT ALONE ON PURPOSE. They are the pre-i18n
+ * least-squares line `w = 12.87 × ems + 44.6` fitted on HELVETICA advances as a proxy, and this
+ * site renders Discovery, which is narrower. Evaluating the geometry above on the real face gives
+ * 164 / 154 / 126 / 152 / 177 / 154 / 172 / 140 / 144, so every English pill carries 13 to 24
+ * units of trailing dead space. Not corrected here — the English render must not move — but
+ * reported, because it is a real 8-to-13% overshoot on nine visible boxes.
  */
-const PROMPTS: readonly [string, number, () => ReactNode][] = [
-  ["Lead Intake and Routing", 185, GlyphPerson],
-  ["Appointment Booking", 167, GlyphDoc],
-  ["Quote Follow Up", 140, GlyphCoin],
-  ["Invoice Reconciliation", 169, GlyphBank],
-  ["Call Summary and Tagging", 200, GlyphPhone],
-  ["Customer Onboarding", 171, GlyphPerson],
-  ["WhatsApp Support Triage", 193, GlyphPhone],
-  ["Weekly Ops Report", 156, GlyphChart],
-  ["Renewal Reminders", 160, GlyphPen],
-];
+/* The nine glyphs, POSITIONAL: each label was chosen for the glyph already in its slot, so these
+   stay in the component and are zipped with `workflows.labels` by index. */
+const PROMPT_GLYPHS = [
+  GlyphPerson,
+  GlyphDoc,
+  GlyphCoin,
+  GlyphBank,
+  GlyphPhone,
+  GlyphPerson,
+  GlyphPhone,
+  GlyphChart,
+  GlyphPen,
+] as const;
 
 export function ArtPrompts() {
+  const t = getDict().product.workflows;
   return (
     <Stage
       w={280}
@@ -314,7 +349,10 @@ export function ArtPrompts() {
         WebkitMaskImage: "linear-gradient(180deg, transparent 0%, #000 14%, #000 84%, transparent 100%)",
       }}
     >
-      {PROMPTS.map(([label, w, Icon], i) => (
+      {t.pillWidths.map((w, i) => {
+        const label = t.labels[i];
+        const Icon = PROMPT_GLYPHS[i];
+        return (
         <Box
           key={label}
           x={25}
@@ -325,6 +363,9 @@ export function ArtPrompts() {
           className="bg-paper"
           style={{ boxShadow: `inset 0 0 0 ${u(0.5)} var(--color-mock-line)` }}
         >
+          {/* ⚠️ THESE TWO COORDINATES *ARE* THE WIDTH FORMULA'S INSETS. Icon at 10 w 14, label
+              at 30: leading inset 30, trailing inset 44.6 − 30 = 14.6. Change either and
+              `pillWidths` in both locale files has to be recomputed. */}
           <Box x={10} y={9} w={14} h={14} className="text-muted">
             <Icon />
           </Box>
@@ -332,7 +373,8 @@ export function ArtPrompts() {
             {label}
           </Line>
         </Box>
-      ))}
+        );
+      })}
     </Stage>
   );
 }
@@ -467,12 +509,16 @@ export function ArtCustomModels() {
  * below ("File Library") is well under half that, as the original's longest was. Visual check
  * still wanted alongside the prompt stack.
  */
-const SOURCES: readonly [string, number, () => ReactNode][] = [
-  ["WhatsApp", 270, GlyphPhone],
-  ["CRM Records", 248, GlyphChart],
-  ["Web Forms", 213, GlyphGlobe],
-  ["Invoices", 187, GlyphCoin],
-  ["File Library", 157, GlyphFolder],
+/* Labels come from `benefits.governance.sources`; the FILL and the GLYPH stay here. The fill is
+   the bar's own length against the fixed 271-unit track and has nothing to do with the text —
+   see the note above. The glyph is positional. Measured against the panel: each label sits at
+   x=42 in a 320-unit panel, so ~254 units of room; English peaks at 61 and Hebrew at 59. */
+const SOURCE_BARS: readonly [number, () => ReactNode][] = [
+  [270, GlyphPhone],
+  [248, GlyphChart],
+  [213, GlyphGlobe],
+  [187, GlyphCoin],
+  [157, GlyphFolder],
 ];
 
 function Stat({ x, label, value, delta }: { x: number; label: string; value: string; delta: string }) {
@@ -483,9 +529,12 @@ function Stat({ x, label, value, delta }: { x: number; label: string; value: str
       </Line>
       {/* Baseline-aligned pair, so the delta sits on the number's baseline whatever its
           width — the source has them optically aligned and a computed x would be a guess. */}
+      {/* `insetInlineStart`, matching the label's `Line x={16}` above, so the number and its
+          delta stay on the same edge as the label in both directions. `items-baseline` and the
+          flex `gap` are direction-neutral; the delta follows the value in reading order. */}
       <div
         className="absolute flex items-baseline font-sans"
-        style={{ left: u(16), top: u(34), gap: u(6) }}
+        style={{ insetInlineStart: u(16), top: u(34), gap: u(6) }}
       >
         <span className="text-ink" style={{ fontSize: u(26), lineHeight: u(30), letterSpacing: "-0.02em" }}>
           {value}
@@ -499,20 +548,24 @@ function Stat({ x, label, value, delta }: { x: number; label: string; value: str
 }
 
 export function ArtGovernance() {
+  const t = getDict().product.benefits.governance;
+  /* ⚠️ THE FOUR STAT VALUES STAY HERE AND STAY LATIN. `122`, `3.1k`, `+6`, `+135` are numerals
+     and a metric abbreviation, which the keep-Latin rule covers and which the real site's own
+     Hebrew dashboard mock demonstrates (`p50`, `842ms`, `+18%`, `99.9`). */
   return (
     <Stage w={320} h={358} scale={0.5563} className="bg-mock-panel" style={{ borderRadius: "2px" }}>
-      <Stat x={24} label="Active Users" value="122" delta="+6" />
-      <Stat x={165} label="Queries" value="3.1k" delta="+135" />
+      <Stat x={24} label={t.statUsers} value="122" delta="+6" />
+      <Stat x={165} label={t.statQueries} value="3.1k" delta="+135" />
       <Line x={24} cy={119} size={11} className="text-muted">
-        Top data sources
+        {t.topSources}
       </Line>
-      {SOURCES.map(([label, fill, Icon], i) => (
-        <div key={label}>
+      {SOURCE_BARS.map(([fill, Icon], i) => (
+        <div key={t.sources[i]}>
           <Box x={24} y={162 + 42 * i - 20} w={12} h={12} className="text-muted">
             <Icon />
           </Box>
           <Line x={42} cy={162 + 42 * i - 14} size={11} className="text-ink">
-            {label}
+            {t.sources[i]}
           </Line>
           <Box x={24} y={162 + 42 * i} w={271} h={4} radius={2} className="bg-surface" />
           <Box x={24} y={162 + 42 * i} w={fill} h={4} radius={2} className="bg-brand-green" />

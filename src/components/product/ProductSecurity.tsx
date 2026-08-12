@@ -50,6 +50,8 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { getDict, getLocale } from "@/lib/i18n/server";
+import { localeHref } from "@/lib/i18n/config";
 
 /* ---- Icons ---------------------------------------------------------------------------
  * Path data verbatim from the capture's defs (`#svg-827916723_1121`, `#svg611686122_1164`,
@@ -125,10 +127,14 @@ const D_SHIELD =
 const D_CODE =
   "M13.6799 5L9.75992 19M5.83992 7.8L1.91992 11.72L5.83992 15.64M18.1599 7.8L22.0799 11.72L18.1599 15.64";
 
-/** The link's 32px arrow — a `mark` @10% tile with a north-east arrow at `mark`. */
+/** The link's 32px arrow — a `mark` @10% tile with a north-east arrow at `mark`.
+    MIRRORED under rtl: it is a "find out more" affordance pointing away from the label, so on a
+    Hebrew page an unmirrored copy points back into the text. `rtl:-scale-x-100` on the `<svg>`,
+    which only matches when `<html dir="rtl">`, so the English computed `transform` stays
+    `none`. The tile is a plain square, so flipping it costs nothing visually. */
 function IconArrowTile() {
   return (
-    <svg viewBox="0 0 32 32" fill="none" aria-hidden="true" className="h-8 w-8 flex-none">
+    <svg viewBox="0 0 32 32" fill="none" aria-hidden="true" className="h-8 w-8 flex-none rtl:-scale-x-100">
       <rect width="32" height="32" className="fill-mark/10" />
       <g stroke="currentColor" strokeWidth="1.5" strokeLinecap="square">
         <path d="M13.5781 11.4688L20.3133 11.4687L20.3133 18.2039" strokeLinejoin="bevel" />
@@ -153,11 +159,13 @@ function IconArrowTile() {
    E2EE means only the endpoints can decrypt, a stronger promise than "encrypted in transit
    and at rest", and it is worth confirming against what clix actually ships. It is a practice
    claim either way, not a certification, so it is not the same class of problem. */
-const LIST: { text: string; icon: ReactNode }[] = [
-  { text: "No training on your data", icon: <IconLock /> },
-  { text: "Modern & secure data practices", icon: <StrokeGlyph d={D_CLOUD} /> },
-  { text: "End to end encryption", icon: <StrokeGlyph d={D_SHIELD} /> },
-  { text: "Reviewed & tested", icon: <StrokeGlyph d={D_CODE} /> },
+/* Text lives in the dictionary (`security.list`); the four GLYPHS are positional and stay here,
+   zipped by index. The tuple typing holds both at four. */
+const LIST_ICONS: ReactNode[] = [
+  <IconLock key="lock" />,
+  <StrokeGlyph key="cloud" d={D_CLOUD} />,
+  <StrokeGlyph key="shield" d={D_SHIELD} />,
+  <StrokeGlyph key="code" d={D_CODE} />,
 ];
 
 /* The 2 × 2 badge grid, in grid order. `border` is the per-cell dashed matrix — the
@@ -170,7 +178,16 @@ const LIST: { text: string; icon: ReactNode }[] = [
    Painted as an OVERLAY span, never as a real `border`: Framer draws it with
    `[data-border] ::after`, which takes no layout space. A real border would push the 104px
    graphic off-centre and, on phones, make the 220px min-height cell 222px. Measured on
-   Block 3 — same trap, same fix. */
+   Block 3 — same trap, same fix.
+
+   ⚠️ THE HORIZONTAL EDGES ARE `border-s` / `border-e`, NOT `border-l` / `border-r`, because this
+   matrix encodes "which cell in the grid am I" and the grid itself mirrors under rtl. The
+   vertical edges (`border-t`, `border-b`) are direction-neutral and are untouched. `border-s`
+   resolves to `border-left` and `border-e` to `border-right` in ltr, so the English outline is
+   the same closed rectangle with the same cross inside it. ⚠️ AND NO CELL MIXES THE TWO
+   VOCABULARIES ON ONE AXIS — `border-e border-r` on the same element would break the identity.
+   Cell 4's bare `border` sets all four sides at once and is neither physical nor logical, so it
+   stays as it is. */
 /* ⚠️ FOUR CELLS, FIVE PRACTICE STATEMENTS. sections/Security.tsx defines five; this grid is
    2 × 2 and the matrix above is measured geometry, so growing it to five would mean
    re-deriving every edge at every tier for a layout the capture never had. One statement had
@@ -193,31 +210,28 @@ const LIST: { text: string; icon: ReactNode }[] = [
 const BADGES = [
   {
     id: "your-cloud",
-    label: "Your cloud, your accounts",
     file: "/badges/practice-cloud.svg",
-    border: "border-t border-r border-l tablet:border-r-0",
+    border: "border-t border-e border-s tablet:border-e-0",
   },
   {
     id: "your-data",
-    label: "Your data stays yours",
     file: "/badges/practice-shield.svg",
-    border: "border-t border-l border-r",
+    border: "border-t border-s border-e",
   },
   {
     id: "least-privilege",
-    label: "Least-privilege access",
     file: "/badges/practice-key.svg",
-    border: "border-t border-l border-r tablet:border-r-0 tablet:border-b",
+    border: "border-t border-s border-e tablet:border-e-0 tablet:border-b",
   },
   {
     id: "ownership",
-    label: "You own the code",
     file: "/badges/practice-code.svg",
     border: "border",
   },
 ] as const;
 
 export default function ProductSecurity() {
+  const t = getDict().product.security;
   return (
     <section
       id="security"
@@ -247,7 +261,7 @@ export default function ProductSecurity() {
           <div className="relative flex w-min flex-row items-center gap-3">
             <IconLockTile />
             <p className="font-sans text-[14px] leading-[130%] tracking-[-0.01em] whitespace-pre text-paper">
-              Security
+              {t.eyebrow}
             </p>
           </div>
 
@@ -257,7 +271,13 @@ export default function ProductSecurity() {
             <div className="relative flex w-full flex-col items-start gap-6 overflow-hidden">
               {/* h3 in the original. Demoted to h2 so the page outline runs h1 → h2; the
                   <br> is the original's, there is no width that breaks it there. It is a
-                  colour boundary, muted above and `paper` below, so both halves must stay.
+                  colour boundary, muted above and `paper` below, so both halves must stay in
+                  the one element and arrive as two separately named dictionary keys.
+                  ⚠️ NEITHER RUN MAY WRAP ON ITS OWN, or half a colour lands on a line by
+                  itself. The tightest measure is the phone tier's 310px at 32px, inside the
+                  dark card's own padding rather than the section's. Measured: English 217.8px
+                  and 207.8px, Hebrew 177.6px and 178.1px — all four single lines at all three
+                  tiers.
 
                   Line 1 was "Built for Enterprise", rogo's positioning. Swapped for the one
                   thing the grid beside it now claims and clix can stand behind: the product
@@ -267,21 +287,21 @@ export default function ProductSecurity() {
                   the sense. "Secure by Design" is kept verbatim: a design posture is not an
                   audit claim, and it is the payoff the colour change lands on. */}
               <h2 className="w-full font-display text-[32px] leading-[110%] font-normal tracking-[-0.05em] text-muted tablet:text-[40px] desktop:text-[44px]">
-                Built for your cloud
+                {t.headingMuted}
                 <br />
-                <span className="text-paper">Secure by Design</span>
+                <span className="text-paper">{t.headingPaper}</span>
               </h2>
 
               {/* `.framer-14oo7rg` — gap 10. Marked up as a list; the original is divs. */}
               <ul className="relative flex w-full list-none flex-col items-start gap-[10px]">
-                {LIST.map(({ text, icon }) => (
+                {t.list.map((text, i) => (
                   <li
                     key={text}
                     /* `align-items` is centre at BOTH ends and flex-start only in the
                        middle tier — the original's override lands on 810–1199 alone. */
                     className="relative flex w-full flex-row items-center gap-4 tablet:items-start desktop:items-center"
                   >
-                    {icon}
+                    {LIST_ICONS[i]}
                     <p className="min-w-0 flex-1 font-sans text-[16px] leading-[130%] tracking-[-0.01em] text-surface">
                       {text}
                     </p>
@@ -293,13 +313,25 @@ export default function ProductSecurity() {
             {/* DEVIATION RESOLVED 2026-08-12. The original points at `./security`; this site
                 had no such route, so this pointed at the home page's own security band rather
                 than ship a 404. `/security` now exists (clone of rogo.com/security), so the
-                link goes where the original's does. The FEATURE.md deviation row is retired. */}
+                link goes where the original's does. The FEATURE.md deviation row is retired.
+
+                ⚠️ THE HREF MUST BE PREFIXED, AND THIS WAS A REAL BUG (found 2026-08-12 in the
+                prerendered HTML): `/he/product` shipped a bare `href="/security"`, which walked
+                a Hebrew visitor straight out of the locale and into the English site. Every
+                other internal link on this route goes through `AppLink`, which prefixes for
+                itself; this one is a raw `next/link` and is therefore the only one nothing was
+                covering. Kept as a raw `Link` deliberately — converting it to `AppLink` would
+                newly route it through the view transition, which is an unrelated behaviour
+                change. `localeHref` is the identity function in English, so the LTR render is
+                unchanged. */}
             <Link
-              href="/security"
+              href={localeHref("/security", getLocale())}
               className="relative flex w-full flex-row items-center gap-3 text-mark no-underline transition-opacity duration-300 ease-[var(--ease-rogo)] hover:opacity-70 focus-visible:ring-2 focus-visible:ring-paper focus-visible:ring-offset-2 focus-visible:ring-offset-ink focus-visible:outline-none tablet:w-min"
             >
+              {/* `whitespace-pre`, so this cannot wrap. Measured 79.7px in Hebrew against
+                  English's 80.0px, so the row's width does not move. */}
               <p className="font-sans text-[14px] leading-[130%] tracking-[-0.01em] whitespace-pre text-paper">
-                Find out more
+                {t.link}
               </p>
               <IconArrowTile />
             </Link>
@@ -313,7 +345,7 @@ export default function ProductSecurity() {
           {/* `.framer-186oark` — 1 column on phones, 2 from 810 up. Rows are `1fr` where the
               parent has a height and `min-content` where it does not. */}
           <div className="relative grid h-full w-full auto-rows-min grid-cols-1 grid-rows-[repeat(2,min-content)] justify-center gap-0 tablet:auto-rows-[minmax(0,1fr)] tablet:grid-cols-2 tablet:grid-rows-[repeat(2,minmax(0,1fr))]">
-            {BADGES.map((b) => (
+            {BADGES.map((b, i) => (
               <div
                 key={b.id}
                 className="relative flex aspect-[1.40909] h-auto min-h-[220px] w-full flex-row items-center justify-center gap-1 self-start overflow-hidden tablet:aspect-auto tablet:h-full tablet:min-h-0"
@@ -323,12 +355,17 @@ export default function ProductSecurity() {
                   aria-hidden="true"
                   className={`pointer-events-none absolute inset-0 border-dashed border-hairline-light ${b.border}`}
                 />
-                {/* Label: absolute, 16px off the bottom-left, 137px measure, above the
-                    graphic (`z-index:1` in the original). Anchored to the BOTTOM, so the
-                    two-line practice statements grow upward into the cell's dead space
-                    instead of moving anything. */}
-                <p className="absolute bottom-4 left-4 z-[1] w-[137px] font-sans text-[14px] leading-[130%] tracking-[-0.01em] text-muted">
-                  {b.label}
+                {/* Label: absolute, 16px off the bottom and 16px in from the inline START, a
+                    137px measure, above the graphic (`z-index:1` in the original). Anchored to
+                    the BOTTOM, so the two-line practice statements grow upward into the cell's
+                    dead space instead of moving anything.
+                    `start-4` rather than `left-4`: this is a real migration, not a symmetric
+                    pair, and it resolves to `left:1rem` in ltr.
+                    ⚠️ TWO LINES IS THE CEILING. A third collides with the centred 104px mark at
+                    the phone tier's 220px cell. Measured at 137px: English 2/1/1/1 lines,
+                    Hebrew 2/2/1/1. Both clear. */}
+                <p className="absolute bottom-4 start-4 z-[1] w-[137px] font-sans text-[14px] leading-[130%] tracking-[-0.01em] text-muted">
+                  {t.badges[i]}
                 </p>
                 {/* Graphic frame — 104px square, clipping the mark inside it. */}
                 <div className="relative h-[104px] w-[104px] flex-none overflow-hidden">
@@ -343,7 +380,10 @@ export default function ProductSecurity() {
                     aria-hidden="true"
                     /* Uniformly square now that all four marks share one 102×102 viewBox
                        — see the note on BADGES. Still pinned top/left/right inside the same
-                       104px frame, so the mark fills it exactly instead of 104 × 103.14. */
+                       104px frame, so the mark fills it exactly instead of 104 × 103.14.
+                       ⚠️ `right-0 left-0` IS A SYMMETRIC FULL-BLEED PAIR AND STAYS PHYSICAL. It
+                       is `inset-x-0` written long; migrating it would swap two identical values
+                       and buy nothing. Verified, not overlooked. */
                     className="absolute top-0 right-0 left-0 aspect-square h-auto"
                   />
                 </div>

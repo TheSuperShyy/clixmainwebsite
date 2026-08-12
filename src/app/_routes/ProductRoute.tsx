@@ -30,7 +30,6 @@
  * unrelated work.
  */
 
-import type { Metadata } from "next";
 import Nav from "@/components/sections/Nav";
 import ProductHero from "@/components/product/ProductHero";
 import ProductFeatures from "@/components/product/ProductFeatures";
@@ -38,37 +37,41 @@ import ProductSecurity from "@/components/product/ProductSecurity";
 import ProductTestimonials from "@/components/product/ProductTestimonials";
 import Footer from "@/components/sections/Footer";
 import { fetchModels } from "@/lib/models";
+import type { Locale } from "@/lib/i18n/config";
+import { seedLocale, getDict } from "@/lib/i18n/server";
+import { PageDictProvider } from "@/lib/i18n/LocaleProvider";
 
-export const metadata: Metadata = {
-  title: "Product",
-  robots: { index: false, follow: false },
-};
+export default async function ProductRoute({ locale }: { locale: Locale }) {
+  /* Seeded here as well as in the root layout: this body is the direct parent of
+     every section, so a server component below it can never read the locale before
+     it is set, regardless of layout ordering. */
+  seedLocale(locale);
 
-/* Literal, not an imported binding — Next rejects the latter. Source of truth for the value
-   is REVALIDATE_SECONDS in src/lib/models.ts; keep them in step by hand. */
-export const revalidate = 300;
-
-export default async function ProductPage() {
   const models = await fetchModels();
 
   return (
-    <>
-      <Nav models={models} />
-      {/* `flex flex-col` is load-bearing, not tidiness. Below 1200 the original reorders
-          the page — `Features` order 1, `Testimonials` order 2, `Security` order 3 — so
-          security drops BELOW the testimonials on tablet and phone. The two components
-          carry the `order-*` classes; this is the flex container they need. */}
-      <main className="flex flex-col">
-        <ProductHero />
-        <ProductFeatures />
-        <ProductSecurity />
-        <ProductTestimonials />
-      </main>
-      {/* Byte-identical to the home page's footer in both captures — same
-          `.framer-8dt5bh-container`, same link rows. Reused unchanged; it was the one block
-          the plan called right. Its copy is already clix's own ("Software that works, results
-          that speak."), rewritten on 2026-08-05, so the content pass had nothing to do here. */}
-      <Footer />
-    </>
+    /* Client components below this point read their strings with
+       usePageDict("product"). Server components use getDict().product directly and do not
+       need the provider at all — it is here for the client half only. */
+    <PageDictProvider name="product" value={getDict().product}>
+      <>
+        <Nav models={models} />
+        {/* `flex flex-col` is load-bearing, not tidiness. Below 1200 the original reorders
+            the page — `Features` order 1, `Testimonials` order 2, `Security` order 3 — so
+            security drops BELOW the testimonials on tablet and phone. The two components
+            carry the `order-*` classes; this is the flex container they need. */}
+        <main className="flex flex-col">
+          <ProductHero />
+          <ProductFeatures />
+          <ProductSecurity />
+          <ProductTestimonials />
+        </main>
+        {/* Byte-identical to the home page's footer in both captures — same
+            `.framer-8dt5bh-container`, same link rows. Reused unchanged; it was the one block
+            the plan called right. Its copy is already clix's own ("Software that works, results
+            that speak."), rewritten on 2026-08-05, so the content pass had nothing to do here. */}
+        <Footer />
+      </>
+    </PageDictProvider>
   );
 }

@@ -56,39 +56,43 @@
  * the block-diff excludes those three heights. Measured and recorded in FEATURE.md, not lost.
  */
 
-import type { Metadata } from "next";
 import Nav from "@/components/sections/Nav";
 import SecurityHero from "@/components/security/SecurityHero";
 import SecurityBenefits from "@/components/security/SecurityBenefits";
 import SecurityCompliance from "@/components/security/SecurityCompliance";
 import Footer from "@/components/sections/Footer";
 import { fetchModels } from "@/lib/models";
+import type { Locale } from "@/lib/i18n/config";
+import { seedLocale, getDict } from "@/lib/i18n/server";
+import { PageDictProvider } from "@/lib/i18n/LocaleProvider";
 
-export const metadata: Metadata = {
-  title: "Security",
-};
+export default async function SecurityRoute({ locale }: { locale: Locale }) {
+  /* Seeded here as well as in the root layout: this body is the direct parent of
+     every section, so a server component below it can never read the locale before
+     it is set, regardless of layout ordering. */
+  seedLocale(locale);
 
-/* Literal, not an imported binding — Next rejects the latter. Source of truth for the value
-   is REVALIDATE_SECONDS in src/lib/models.ts; keep them in step by hand. */
-export const revalidate = 300;
-
-export default async function SecurityPage() {
   const models = await fetchModels();
 
   return (
-    <>
-      <Nav models={models} />
-      <main>
-        <SecurityHero />
-        <SecurityBenefits />
-        {/* Owns `#features-1` AND renders `SecurityCore` as its second child. Not a typo:
-            "Security At Our Core" is a row inside this band, not a band of its own. */}
-        <SecurityCompliance />
-      </main>
-      {/* The target's `Reiteration` CTA lives inside its Footer, exactly as ours does. Reused
-          unchanged; it already declares `data-nav-theme="dark"`, which is what keeps the nav
-          dark past the end of `#features-1`. */}
-      <Footer />
-    </>
+    /* Client components below this point read their strings with
+       usePageDict("security"). Server components use getDict().security directly and do not
+       need the provider at all — it is here for the client half only. */
+    <PageDictProvider name="security" value={getDict().security}>
+      <>
+        <Nav models={models} />
+        <main>
+          <SecurityHero />
+          <SecurityBenefits />
+          {/* Owns `#features-1` AND renders `SecurityCore` as its second child. Not a typo:
+              "Security At Our Core" is a row inside this band, not a band of its own. */}
+          <SecurityCompliance />
+        </main>
+        {/* The target's `Reiteration` CTA lives inside its Footer, exactly as ours does. Reused
+            unchanged; it already declares `data-nav-theme="dark"`, which is what keeps the nav
+            dark past the end of `#features-1`. */}
+        <Footer />
+      </>
+    </PageDictProvider>
   );
 }

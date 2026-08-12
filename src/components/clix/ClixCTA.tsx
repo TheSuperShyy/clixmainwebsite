@@ -8,8 +8,11 @@
  */
 
 import AppLink from "@/components/ui/AppLink";
+import { getDict } from "@/lib/i18n/server";
 
 export default function ClixCTA() {
+  const t = getDict().clix.cta;
+
   return (
     /* NO BACKGROUND, and that is measured: every block on the target is transparent —
          the shared fixed backdrop is the only thing on the page that paints a colour.
@@ -33,12 +36,36 @@ export default function ClixCTA() {
           className="relative flex h-min w-full flex-col items-center justify-center gap-8
                         overflow-clip rounded-[6px] tablet:h-[400px]"
         >
-          {/* Was "Staff Felix today." Renamed 2026-08-10 with the rest of the page.
+          {/* Was "Staff Felix today." Renamed 2026-08-10, then moved to
+              src/lib/i18n/{en,he}/clix.ts on 2026-08-12 as `clix.cta.title`.
+
               LENGTH IS A CONSTRAINT HERE, not just taste: this is 80/72/56px with
-              `white-space:pre` at >=810, so it can never wrap. The original is 18 characters
-              and at the tablet tier (72px, 730px of usable width) that is close to the
-              limit, so the replacement was held to 16. Do not lengthen it without checking
-              810px. */}
+              `white-space:pre` at >=810, so it can never wrap.
+
+              ⚠️ AND THE CONSTRAINT IS INK WIDTH, NOT CHARACTER COUNT. The note that used to
+              live here pinned it at "16 characters", which is a Latin advance-width proxy and
+              does not transfer to another script. The real ceiling is the rendered width at
+              the tightest tier, which is exactly 810px viewport: 72px type inside 730px of
+              usable measure (1280 container, `tablet:px-10`). Measured in Discovery at 72px
+              with -0.05em:
+
+                  en  "Build with Clix."   372.4px ink   357.6px spare
+                  he  "בואו נבנה משהו"     386.0px ink   344.0px spare
+
+              Both clear by a wide margin, so the 16-character ceiling was never the binding
+              constraint — and Hebrew is 13.6px WIDER here, not shorter, which is the opposite
+              of the site-wide pattern and the reason it was measured rather than assumed.
+
+              ⚠️ THE PHONE TIER IS WHERE THE TWO LOCALES DIVERGE, and it is recorded rather
+              than tuned away. On phone the headline is `pre-wrap` in a 300px measure at 56px.
+              English sets ONE line (289.6px of ink in 300px). Hebrew sets TWO: its ink is
+              300.2px, over the measure by 0.2px. That grows this block by 61.6px on the phone
+              tier only (`clix-contact` 301.6px -> 363.2px, measured on the built page).
+
+              Kept, on evidence: rogo's own string, "Staff Felix today.", ALSO sets two lines
+              in this measure. The 300px cap exists precisely to make this headline wrap, so
+              two lines is the target's behaviour and it is the current English replacement
+              that is the outlier at one. */}
           <h2
             /* `white-space:pre` at >=810 — the headline is one line and must not wrap.
                Phone releases it to `pre-wrap` with a 300px measure. */
@@ -48,7 +75,7 @@ export default function ClixCTA() {
                        desktop:text-[80px]"
             style={{ letterSpacing: "-0.05em", lineHeight: "110%" }}
           >
-            Build with Clix.
+            {t.title}
           </h2>
 
           {/* Same `Brand` button as the hero — 48px tall here at every tier, since the
@@ -72,7 +99,7 @@ export default function ClixCTA() {
                 className="font-sans text-[16px] font-medium whitespace-pre text-paper"
                 style={{ lineHeight: "1em", letterSpacing: "-0.01em" }}
               >
-                Request Access
+                {t.button}
               </span>
             </span>
           </AppLink>

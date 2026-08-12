@@ -25,6 +25,7 @@
  * it wraps the element in a pin-spacer and changes the layout the original doesn't change.
  */
 
+import { Fragment } from "react";
 import {
   AgentTreeIcon,
   ChartBoardIcon,
@@ -32,24 +33,41 @@ import {
   DollarCircleIcon,
   IntegrationIcon,
 } from "@/components/ui/WhyRogoIcons";
+import { getDict } from "@/lib/i18n/server";
+import type { HomeDict } from "@/lib/i18n/en/home";
+import type { Translated } from "@/lib/i18n/shape";
+
+/* The five ids, derived from the dictionary rather than declared twice. A tenant renamed in
+   one file and not the other is then a build error, not a blank paragraph.
+   `Translated<>` widens the English file's string LITERAL types back to `string` — without it
+   `TenantCopy` is a union of five literal object types and `t.tenants[item.id]`, itself a union,
+   will not narrow against it. Same widening the Hebrew dictionary uses. */
+type TenantId = keyof HomeDict["whyRogo"]["tenants"];
+type TenantCopy = Translated<HomeDict["whyRogo"]["tenants"][TenantId]>;
 
 type Tenant = {
-  id: string;
+  id: TenantId;
   Icon: (props: { className?: string }) => React.ReactElement;
   /* Each icon sits at its own px offset inside the 40px Icon Frame — the capture gives
      every one a hand-placed absolute box rather than stretching it to fill. Verbatim:
      30x30@(5,5) · 29x29@(6,6) · 27x27@(7,7) · 30x29@(7,5) · 30x30@(5,5). Note #4 is the
-     only one not vertically centred (7 + 29 = 36 of 40); that is the capture's, not ours. */
+     only one not vertically centred (7 + 29 = 36 of 40); that is the capture's, not ours.
+
+     ⚠️ THE `left-[Npx]` IN EVERY ONE OF THESE IS PHYSICAL ON PURPOSE — DO NOT MIGRATE THEM TO
+     `start-[Npx]`. They are not direction utilities. Each is an OPTICAL nudge measured off the
+     target's own artwork inside a 40px frame, and four of the five are deliberately ~1px off
+     centre (a 29px glyph at x=6 leaves 6 left and 5 right). The glyphs themselves are not
+     mirrored for RTL — they are abstract diagrams, not navigational affordances — so their
+     nudges must not be either. Flipping them would move every icon 1px the wrong way on /he
+     and change nothing about how the page reads. */
   iconBox: string;
   /* Icon Frame opacity. Four of five are .7; item 1 alone is .6, and item 4 carries its
      .7 on the SVG path instead of the frame. Reproduced where each one actually lives. */
   frameOpacity: string;
-  title: string;
   /* Framer caps each heading at a hand-set width to control where it wraps — 844 / 500 /
      300 / 844 / 844. The 300 on item 3 is not a typo: that headline is meant to break
      across three lines. */
   titleMax: string;
-  body: string;
   /* Items 1, 2 and 4 track at `-0.1px`; items 3 and 5 at `-0.01em`. Same author, same
      paragraph style, two different values — the capture's inconsistency, copied rather
      than normalised. At 18px they differ by 0.08px per character. */
@@ -67,16 +85,26 @@ type Tenant = {
      opacity — so where an icon moved position, those two moved with it.
    All five original icons are still used, none added: AgentTree reads as agents, ChartBoard
    as a CRM dashboard, Integration as the stack, DollarCircle as the ROI call. Deployment
-   carries WhatsApp, which is the one loose fit. */
+   carries WhatsApp, which is the one loose fit.
+
+   ⚠️ THE COPY IS NO LONGER IN THIS TABLE (2026-08-12). `title` and `body` moved to
+   src/lib/i18n/{en,he}/home.ts under `whyRogo.tenants`, keyed by the same five ids. What is
+   left here is GEOMETRY, and it is geometry that has to keep lining up with the right copy —
+   which is exactly why the dictionary is keyed by id rather than being an array: `titleMax`
+   300 belongs to `crm` and to nothing else, and an index-based pairing would let the two slide
+   past each other silently. `TenantId` is derived from the dictionary type, so they cannot.
+
+   ⚠️ AND THE HEBREW RESTORES WHAT THE ENGLISH WAS RENDERED FROM. These five map 1:1 onto
+   the real company site's services 01/02/03/04/08, so on /he the titles are that site's own H2s
+   and lead lines and the bodies condense its paragraphs and bullets. he/home.ts gives the path
+   behind each one. */
 const TENANTS: Tenant[] = [
   {
     id: "agents",
     Icon: AgentTreeIcon,
     iconBox: "absolute top-[6px] left-[6px] h-[29px] w-[29px]",
     frameOpacity: "opacity-70",
-    title: "AI agents that do the work",
     titleMax: "max-w-[844px]",
-    body: "Autonomous agents for sales, support, research and operations. They work in your brand’s voice, on your data, following your processes. Multi-agent orchestration with memory and tool use, voice agents for inbound and outbound calls, and human approval wherever it matters.",
     bodyTracking: "-0.1px",
     containerClass: "gap-7 py-[72px] border-b border-hairline-dark",
   },
@@ -85,9 +113,7 @@ const TENANTS: Tenant[] = [
     Icon: DeploymentIcon,
     iconBox: "absolute top-[5px] left-[5px] h-[30px] w-[30px]",
     frameOpacity: "opacity-70",
-    title: "The channel they already use",
     titleMax: "max-w-[500px]",
-    body: "Assistants on WhatsApp Business that book, sell, support and follow up. Connected to your CRM, payments, calendar and catalogue, and handing off to a person the moment one is needed.",
     bodyTracking: "-0.1px",
     containerClass: "gap-7 pb-[72px] border-b border-hairline-dark",
   },
@@ -96,9 +122,7 @@ const TENANTS: Tenant[] = [
     Icon: ChartBoardIcon,
     iconBox: "absolute top-[7px] left-[5px] h-[29px] w-[30px]",
     frameOpacity: "opacity-100",
-    title: "One true picture of every customer",
     titleMax: "max-w-[300px]",
-    body: "Modern CRM installed, configured and wired into the tools your team actually opens. Data modelling and migration, pipeline and reporting, AI enrichment and lead scoring, plus the training that makes it survive contact with the team.",
     bodyTracking: "-0.01em",
     containerClass: "gap-7 pb-[72px] border-b border-hairline-dark",
   },
@@ -107,9 +131,7 @@ const TENANTS: Tenant[] = [
     Icon: IntegrationIcon,
     iconBox: "absolute top-[7px] left-[7px] h-[27px] w-[27px]",
     frameOpacity: "opacity-70",
-    title: "Every tool you use, feeding one brain",
     titleMax: "max-w-[844px]",
-    body: "We wire payments, accounting, marketing and support into one stack, with n8n, Make and custom code. End-to-end workflow design, webhooks and middleware, internal dashboards, and the monitoring and retries for when something upstream breaks.",
     bodyTracking: "-0.1px",
     containerClass: "gap-8 pb-[72px] border-b border-hairline-dark",
   },
@@ -118,15 +140,13 @@ const TENANTS: Tenant[] = [
     Icon: DollarCircleIcon,
     iconBox: "absolute top-[5px] left-[5px] h-[30px] w-[30px]",
     frameOpacity: "opacity-60",
-    title: "Not every problem needs AI",
     titleMax: "max-w-[844px]",
-    body: "The ones that do need the right AI. We audit, prioritise, and decide what to build, what to buy and what to leave alone, weighing return, security and whether the choice still holds up two years from now.",
     bodyTracking: "-0.01em",
     containerClass: "gap-8 pb-[72px]",
   },
 ];
 
-function TenantItem({ item }: { item: Tenant }) {
+function TenantItem({ item, copy }: { item: Tenant; copy: TenantCopy }) {
   const { Icon } = item;
 
   return (
@@ -136,7 +156,12 @@ function TenantItem({ item }: { item: Tenant }) {
     >
       {/* Icon Container — 64px tile, black @5%, radius 6. */}
       <div className="relative h-16 w-16 flex-none overflow-clip rounded-[6px] bg-tile">
-        {/* Icon Frame — 40px square, absolutely centred in the tile. */}
+        {/* Icon Frame — 40px square, absolutely centred in the tile.
+            ⚠️ `left-1/2` + `-translate-x-1/2` IS A CENTRING IDIOM AND MUST NOT BE MIGRATED to
+            `start-1/2`. In RTL `start-1/2` resolves to `right:50%` while the translate still
+            moves the box LEFT, so the frame would land off-centre by its own width (20px).
+            The pair is direction-neutral as written; leaving it is the correct action, not an
+            oversight. */}
         <div
           className={`absolute top-1/2 left-1/2 aspect-square w-10
                       -translate-x-1/2 -translate-y-1/2 overflow-clip text-ink
@@ -146,9 +171,10 @@ function TenantItem({ item }: { item: Tenant }) {
         </div>
       </div>
 
-      {/* Text column — gap 16, and a 32px right inset the original applies to the text
-          only, never to the icon tile. */}
-      <div className="flex w-full flex-col items-start gap-4 pr-8">
+      {/* Text column — gap 16, and a 32px inset the original applies to the text only, never
+          to the icon tile. Logical (`pe-8`), so on /he the inset sits on the left where the
+          text's ragged edge now is; in LTR it still computes to `padding-right:32px`. */}
+      <div className="flex w-full flex-col items-start gap-4 pe-8">
         {/* h4 in the original. Demoted to h3 here so the outline runs h1 (hero) → h2
             (section) → h3 (item) without a skipped level. Purely semantic. */}
         <h3
@@ -158,7 +184,7 @@ function TenantItem({ item }: { item: Tenant }) {
                       desktop:text-[24px] desktop:leading-[1.1em]
                       ${item.titleMax}`}
         >
-          {item.title}
+          {copy.title}
         </h3>
 
         <p
@@ -166,7 +192,7 @@ function TenantItem({ item }: { item: Tenant }) {
                      desktop:text-[18px]"
           style={{ letterSpacing: item.bodyTracking }}
         >
-          {item.body}
+          {copy.body}
         </p>
       </div>
     </div>
@@ -174,6 +200,8 @@ function TenantItem({ item }: { item: Tenant }) {
 }
 
 export default function WhyRogo() {
+  const t = getDict().home.whyRogo;
+
   return (
     <section
       data-nav-theme="light"
@@ -202,13 +230,36 @@ export default function WhyRogo() {
         >
           {/* h3 in the original — see the note on TenantItem's heading. */}
           <h2
-            className="w-full max-w-[400px] text-left font-display text-[36px]
+            /* `text-start`, was `text-left`. ⚠️ THIS IS THE ONE MIGRATION IN THE SET THAT IS
+               NOT A COMPUTED-VALUE IDENTITY: it renders pixel-identically in LTR, but
+               `getComputedStyle().textAlign` now returns the keyword "start" instead of "left".
+               A computed-style diff will print that as a mismatch and it is NOT a regression —
+               see contract §6. Migrated anyway, because on /he a hard `left` would ragged the
+               headline against the wrong edge of its own column. */
+            className="w-full max-w-[400px] text-start font-display text-[36px]
                        leading-[105%] tracking-[-0.05em] text-ink tablet:text-[44px]"
           >
             {/* The hard break is in the capture at every tier, and it survives the 400px
-                measure at all of them — it is the author's line break, not a fallback. */}
-            The quiet mechanisms <br />
-            behind modern business
+                measure at all of them — it is the author's line break, not a fallback.
+
+                ⚠️ EVERY RUN BUT THE LAST CARRIES A TRAILING SPACE, and that is byte-fidelity,
+                not sloppiness. The original JSX was `The quiet mechanisms <br />` — a space
+                before the break — so that space is in the shipped HTML and removing it would
+                show up in a byte diff of the English render. Same idiom Footer.tsx uses for
+                `chrome.footer.tagline`. It costs nothing in Hebrew: a space before a `<br>`
+                collapses, and the Hebrew sets two runs here as well.
+
+                THE COUNT IS PER LOCALE (`readonly string[]`, not a tuple). Hebrew sets 2 runs
+                that each fit on ONE line in the 400px measure, where English's second run wraps
+                — so this headline is 2 lines on /he against 3 in English above 810, and 3
+                against 4 on phone. The column is `position:sticky` and the section's height
+                comes from the tenants beside it, so nothing else moves. */}
+            {t.heading.map((run, i) => (
+              <Fragment key={i}>
+                {i > 0 && <br />}
+                {i < t.heading.length - 1 ? `${run} ` : run}
+              </Fragment>
+            ))}
           </h2>
         </div>
 
@@ -219,7 +270,7 @@ export default function WhyRogo() {
                      tablet:w-px tablet:flex-[1_0_0] tablet:gap-[88px]"
         >
           {TENANTS.map((item) => (
-            <TenantItem key={item.id} item={item} />
+            <TenantItem key={item.id} item={item} copy={t.tenants[item.id]} />
           ))}
         </div>
       </div>

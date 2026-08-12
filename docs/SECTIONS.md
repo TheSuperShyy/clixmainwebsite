@@ -135,6 +135,57 @@ declare `dark`, so the nav bar is solid ink from the first pixel to the last.
 | 5 | `Reiteration` + `Footer` | — | shared `Footer` | **`review`** | **Reused unchanged.** The target keeps its closing CTA inside the footer, exactly as ours does. |
 | — | verification | | | **`review`** | **Block-diff `ALL MATCH` at 1600 / 1440 / 1024 / 390 — 60 keys per tier.** Build clean (13 routes, `/security` prerendered), `tsc` and `eslint` clean on the new files. Four nav-theme regions contiguous with every gap 0.00; zero horizontal overflow; one focusable in `<main>` with a visible ring; outline h1 → h2 → h3. ⚠️ **The band delta is TWO terms**: −64px at every tier from the dropped link, plus −20.79 at 1024 and −20.80 at 390 from **one line of our own paragraph**. Page totals then reconcile from exactly three terms — those two plus the shared `Footer` being +43.8px / +234px taller than rogo's, the pre-existing `FooterMap` difference. ⚠️ Five 14px labels are `muted` on `ink` = **3.85:1, fail AA** — inherited, the same failure open on four other routes, needs one token change to close them all. |
 
+## Locale: Hebrew + RTL (`/he/*`)
+
+Started 2026-08-12, on `dev` (no feature branch, at the user's instruction).
+Spec + all measured values: [features/i18n-rtl/](../features/i18n-rtl/) ·
+build-wave contract: [docs/i18n-agent-contract.md](i18n-agent-contract.md).
+
+**Not a clone of anything.** There is no Hebrew rogo.ai, so this locale is **not held to the §6
+fidelity bar** and cannot be diffed against the target. Its bar is correctness: no horizontal
+overflow at the four tiers, nothing clipped, uniform grid rows still uniform within 0.5px
+(assertable *without* an English reference — the strongest check available here), colour-boundary
+headings still breaking where the colour changes, contrast AA, keyboard reachable. **The English
+side, by contrast, is held to zero regression and it is provable** — the logical-property
+migration is a computed-style identity transform.
+
+✅ **Most of the Hebrew is a RESTORATION, not a translation.** `docs/reference/clixsolutions/` is
+the user's own site, `lang="he" dir="rtl"`, with **no English version** — 20,169 Hebrew characters
+across 11 pages. `Hero.tsx:13-23` and `Footer.tsx:164-173` both document that their English was
+rendered *out of* that Hebrew.
+
+⚠️ **STRUCTURAL FACTS THAT WILL BREAK THE BUILD IF FORGOTTEN.** `src/app/layout.tsx` is
+**deleted**; there are now TWO root layouts, `(en)/layout.tsx` and `he/layout.tsx`. **Never add
+`src/app/not-found.tsx`** — without a root layout Next injects its builtin one for `/_not-found`,
+and a custom file stops that injection and makes the build **exit 1**. `[[...locale]]` is not an
+option: `validate-app-paths.js` throws E913 for a segment after an optional catch-all.
+
+| # | Piece | Component / file | Status | Notes |
+|---|---|---|---|---|
+| 1 | Locale core | `src/lib/i18n/*` | **`review`** | `Locale`/`Direction`/`dirSign` + path helpers (**24 unit assertions**; `localeHref("/#x","he") === "/he#x"` is load-bearing — the slash collapse is what keeps `AppLink`'s same-route-hash guard matching). Two access seams: a `cache()` request store for the 34 server components (**no default — it throws**, so a read before the seed is a build failure, not a Hebrew page rendering English) and a React context for the 23 client ones. **No server component was converted to client; no `locale` prop is drilled.** |
+| 2 | Route split | `src/app/{(en),he,_routes}/**` | **`review`** | Route groups, **no middleware**. Bare English URLs survive by construction. **20 routes, all statically prerendered** (13 before). A `[lang]`+rewrite was rejected on evidence: Next sets `x-nextjs-rewritten-path`, so `usePathname()` can return the internal path — and both `LocaleToggle` and `ViewTransitions.tsx`'s commit resolver depend on it. |
+| 3 | Toggle | `ui/LocaleToggle.tsx` | **`review`** | A single link to the other language, in all three Nav layouts. **A dropdown is impossible, not merely undesirable** — four ancestors are `overflow-hidden`. `h-9` keeps `--nav-row-h` (74/70px, which `/clix`'s `spacer` reads) unmoved. Accessible name **is** `עברית` on a `lang="he"` element (WCAG G81) — ⚠️ do not add an English `aria-label`. A **plain `<a>`, deliberately not routed through `AppLink`**: a view transition across a root-layout boundary would leave the promise unresolved and fire the 1500ms failsafe on a *working* nav. |
+| 4 | Shared chrome | `{en,he}/chrome.ts`, `Nav`, `Footer`, `FooterMap`, `ModelTicker` | **`review`** | Nav labels + CTA + footer groups/links/tagline/copyright + a11y, both locales, provenance marked. ⚠️ **Footer tagline sets 2 lines in Hebrew, 3 in English** (4 on phone) — the real phrase has one comma and does not split three ways; `tagline` is typed `readonly string[]` for exactly that. Ticker's `→` is **isolated, not mirrored** — its own comment says the glyph replaces the words "in"/"out", so mirroring inverts the meaning. |
+| 5 | Direction infrastructure | `globals.css` | **`review`** | `clix-marquee-rtl` (`+50%`, the mirror) + `[dir="rtl"] .clix-marquee`; `clix-marquee` byte-identical. ⚠️ **`.clix-marquee` is now load-bearing in the cascade** — renaming it or moving it off the animated track silently reverts the Hebrew strip to LTR. Empty `[dir="rtl"]` hook for Hebrew tracking; **values deliberately unset** (see open questions). |
+| 6 | Page copy ×7 + direction pass | `{en,he}/{home,product,security,company,careers,news,clix}.ts` + their components | **`review`** | 8-agent wave, one owner per file, **all landed**. **400 EN / 433 HE strings; 82 SOURCED, 141 AUTHORED.** English proven a no-op by byte-diff (home's `<main>` 75055→75056, the +1 being `text-left`→`text-start`). ⚠️ **The agents corrected the brief eight times and were right every time** — three client/server labels, GSAP's already-correct sign, the `mr-*` loop claim, `/product`'s badge set, and two of my predictions. ⚠️ **Two agents measured the same string at 131.6 and 156.9px and BOTH were right** — home's label is 12px, `/security`'s is 14px. A width is meaningless without its type spec. ⚠️ **Equal grid-row heights do not prove uniform content** (`align-self:stretch` absorbs a short body); assert heights AND per-card line count. **Not yet seen by a Hebrew reader.** |
+
+**Two real bugs caught before shipping:** `AppLink`'s same-route-hash test would have gone
+locale-blind and crossfaded the document over a mere scroll; and `ClixFelixFooter.tsx:138`'s SVG
+wordmark would have **vanished** in RTL — `direction` inherits into SVG, where `text-anchor:start`
+means *inline*-start, so the 2034-unit word lands outside its viewBox. Not a font problem.
+
+✅ **Discovery already covers Hebrew** — fontTools: 51 codepoints, all 27 base+final letters, full
+niqqud, maqaf/geresh/gershayim/sof-pasuq, shekel, `wght 100–800`. **No font vendored**, closing the
+question parked at `fonts-discovery.css:47` since 2026-08-03. ⚠️ **Inter has ZERO Hebrew**, so a
+Discovery 404 drops Hebrew to the OS sans — the existing fallback rationale does not hold here.
+
+⚠️ **Open, and each needs the user:** the Hebrew fallback face · negative letter-spacing on Hebrew
+(hook in place, empty) · `metadataBase`/`hreflang` deferred (the production origin is recorded
+nowhere in this repo) · **`/he/news` is publicly indexable while carrying translated third-party
+headlines**, where `/news` ships without a `robots` block *because* those headlines were verbatim ·
+**`/he/clix` must keep `noindex`** (its fabricated quotes read as *more* credible in Hebrew) · the
+`noam-tovi` / נווה דודי caption conflict becomes reader-visible in Hebrew.
+
 ## Other pages
 
 Still **not scoped** — see the open question in [PROJECT.md](PROJECT.md).

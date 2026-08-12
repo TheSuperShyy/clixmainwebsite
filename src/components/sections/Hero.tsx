@@ -9,26 +9,34 @@
  */
 
 import LogoCarousel from "@/components/sections/LogoCarousel";
+import { getDict } from "@/lib/i18n/server";
 
-/* Copy is clix's own as of 2026-08-04, no longer the target's. Both lines are English
-   renderings of what the real company site (docs/reference/clixsolutions/) already says in
-   Hebrew — the headline is its closing CTA, "אתם מביאים את העסק. אנחנו מביאים את הבינה."
-   English is the primary language by decision, not by default; a Hebrew/RTL variant is a
-   separate job and is NOT served by translating these strings in place. */
-/* Two sentences, so the break between them is authored rather than left to the shaper.
+/* COPY MOVED TO THE DICTIONARY (2026-08-12): src/lib/i18n/{en,he}/home.ts, key `hero`. The
+   three consts that used to sit here are gone; what they DOCUMENTED is not, because it is
+   measurement and it still governs the boxes below.
+
+   Copy is clix's own as of 2026-08-04, no longer the target's. Both headline lines were
+   English renderings of what the real company site (docs/reference/clixsolutions/) already
+   says in Hebrew — its closing CTA, "אתם מביאים את העסק. אנחנו מביאים את הבינה."
+   ⚠️ THE WARNING THIS COMMENT USED TO CARRY WAS CORRECT AND IS NOW SPENT. It said a Hebrew
+   variant "is NOT served by translating these strings in place", and that is exactly why
+   he/home.ts does not translate them: that H2 is a real heading on four of the live site's
+   pages and it already arrives broken across two lines at the sentence boundary, so `hero.he`
+   is a RESTORATION of the original wording. Two consts, two lines, no re-splitting needed.
+
+   Two sentences, so the break between them is authored rather than left to the shaper.
    Measured at 1440 with the real face and -0.05em tracking: allowed to wrap freely, the
    second sentence splits between article and noun ("We bring the / intelligence."), and at
-   390 the sentence boundary lands mid-line ("business. We") — the worst break available. */
-const HEADLINE_A = "You bring the business.";
-const HEADLINE_B = "We bring the intelligence.";
-/* Names the services, not the company — the brand is already the wordmark two rows up, and
-   naming it again here spent one of only three lines saying nothing. (The prose-capitalised
-   "Clix" convention this comment used to document still holds; it lives on in WhyRogo.tsx
-   and ByTheNumbers.tsx, which do say the name.) */
-const TAGLINE =
-  "AI agents, automations and custom software, built around how your team already works.";
+   390 the sentence boundary lands mid-line ("business. We") — the worst break available.
+
+   The tagline names the services, not the company — the brand is already the wordmark two rows
+   up, and naming it again here spent one of only three lines saying nothing. (The
+   prose-capitalised "Clix" convention this comment used to document still holds; it lives on
+   in WhyRogo.tsx and ByTheNumbers.tsx, which do say the name.) */
 
 export default function Hero() {
+  const t = getDict().home.hero;
+
   return (
     <section
       data-nav-theme="hero"
@@ -124,9 +132,9 @@ export default function Hero() {
                            text-[48px] tablet:text-[56px] desktop:text-[64px]"
                 style={{ lineHeight: "95%", letterSpacing: "-0.05em" }}
               >
-                {HEADLINE_A}
+                {t.headlineA}
                 <br />
-                {HEADLINE_B}
+                {t.headlineB}
               </h1>
             </div>
 
@@ -136,7 +144,7 @@ export default function Hero() {
                 className="text-center font-sans text-[20px] text-paper"
                 style={{ lineHeight: "125%", letterSpacing: "-0.02em" }}
               >
-                {TAGLINE}
+                {t.tagline}
               </p>
             </div>
           </div>
@@ -159,7 +167,7 @@ export default function Hero() {
                 className="font-sans text-[16px] font-medium text-ink"
                 style={{ lineHeight: "1em", letterSpacing: "-0.01em" }}
               >
-                Let&rsquo;s start
+                {t.cta}
               </span>
             </span>
           </a>

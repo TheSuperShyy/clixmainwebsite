@@ -39,6 +39,15 @@
  * two <br /> are load-bearing. The spans are not — both carry the same colour, so `text-paper-soft`
  * on the <p> covers them and the spans are dropped.
  *
+ * That is also why the two runs arrive from the dictionary as SEPARATE KEYS (`core.body1` and
+ * `core.body2`) rather than as one string with an escape in it: a dictionary holds text, and the
+ * two `<br />` are markup that belongs to this file.
+ *
+ * ⚠️ AND IT IS WHY LINE-COUNTING THIS ELEMENT NEEDS CARE. A `Range`/`getClientRects()` walk emits
+ * NO rect for the empty line, so it under-counts by one and makes a correct box look wrong.
+ * Count `offsetHeight / lineHeightPx` instead: line-height here is 130% of font-size, so the
+ * blank line is in the height by construction. Verified 2026-08-12 in both locales.
+ *
  * ─── ⚠️ THE `Explore security portal` LINK IS DELIBERATELY DROPPED ───────────────────────
  * The target's right column ends with a link to `trust.rogo.ai`, a Vanta trust centre clix does
  * not have. The user's explicit call on 2026-08-12 was to drop it. Measured before dropping, so
@@ -77,6 +86,27 @@
  * tier: max(48.41, 187.25) = 187.25 ✓, max(88, 187.17) = 187.17 ✓, and at 390 the column
  * stacks: 35.2 + 24 + 291.16 = 350.36 ✓.
  *
+ * ⚠️ RE-MEASURED 2026-08-12 DURING THE i18n PASS, AND THREE OF THE NUMBERS ABOVE NO LONGER
+ * RENDER. Reported rather than rewritten, because the copy driving them is BYTE-IDENTICAL to what
+ * this file shipped before the extraction (verified literal by literal against git HEAD), so
+ * whatever moved is not the strings:
+ *
+ * | value            | table says          | renders today (English)          |
+ * |------------------|---------------------|----------------------------------|
+ * | h3 box @1024     | 280 × 88 (2 lines)  | 280 × 44 (ONE line)              |
+ * | body box @1024   | 600 × 187.17 (9)    | 600 × 166.38 (EIGHT)             |
+ * | body box @390    | 358 × 291.16 (14)   | 358 × 270.36 (THIRTEEN)          |
+ *
+ * ≥1200 is exact on every value (450 × 48.41 and 766 × 187.25), so this is not a font
+ * substitution — a wrong face would move the desktop tier too. The h3 one is a hairline: "Built
+ * To Be Trusted" measures 277.6px at 40px against a 280px column, a 2.4px margin, which is
+ * precisely the kind of value that flips between font revisions. The two body values are one line
+ * each, and they propagate: `SecurityCompliance`'s band-height note reads 1371.17 / 2035.08 where
+ * the band now measures 1350.38 / 2014.28, both exactly 20.79px = one 16px/130% line short. The
+ * h3 change costs nothing, because the row height is max(left, right) and the body wins it at
+ * every tier. Re-confirmed against a PRODUCTION build (`next build` + `next start`), which
+ * reproduces all three figures exactly, so this is not a dev-server artefact.
+ *
  * ⚠️ `flex: 1 0 0` IS FRAMER'S TWO-COLUMN IDIOM AND `flex-1` IS NOT A SUBSTITUTE. Tailwind's
  * `flex-1` is `flex: 1 1 0%` (shrink 1); the original is `1 0 0` (shrink 0). Written
  * `flex-[1_0_0]`, matching ProductHero, ProductSecurity, ByTheNumbers and CareersAbout. Note
@@ -85,11 +115,34 @@
  * paragraph's content from contributing to the distribution in the main axis, which is why the
  * base-tier `w-full` needs no `tablet:` reset.
  *
+ * ─── COPY LIVES IN THE DICTIONARY ────────────────────────────────────────────────────────
+ * `src/lib/i18n/{en,he}/security.ts` → `core` (`title`, `body1`, `body2`), read with
+ * `getDict()`. NOT `usePageDict()`: this is a server component and the client hook would force
+ * `"use client"` onto a subtree with no motion and no state.
+ *
+ * ─── DIRECTION (contract §5, §6) ─────────────────────────────────────────────────────────
+ * One migration in this file: the h3's `text-left` → `text-start`. It renders pixel-identically
+ * in LTR, but it is the ONE non-identity in the logical-utility table — `getComputedStyle()
+ * .textAlign` returns the keyword `"start"` where it used to return `"left"`.
+ *
+ * ⚠️ AND IT IS PRECISELY ONE KEY OF THIS PAGE'S OWN HARNESS: `docs/reference/security-diff.js`
+ * builds `out.h3bType` from `type()`, whose last field is `c.textAlign`, so that row now reads
+ * `... 400 start` against the target's `... 400 left`. That is the documented non-identity, NOT
+ * a regression — every pixel is unchanged. No other key moves: `out.lblType` reads a label that
+ * never carried a `text-align` class and still inherits `start`, and `out.lblInset` reads
+ * computed `left`, which `start-4` still resolves to 16px in LTR.
+ * Nothing else here is physical: `items-start` on both the row and the right column is already a
+ * logical flex keyword and follows `direction` on its own.
+ *
  * DIVERGENCES / JUDGEMENT CALLS
  * - The heading is NOT the target's "Security At Our Core" — that is rogo's string, and every
  *   string on this page is clix's own from the first commit (the /company model). Ours was
  *   picked to set in ONE line inside the 450px left column at 44px, matching the target's
  *   48.41px single-line h3 box, so the block's geometry does not drift.
+ *   ⚠️ The h3 is the one box on this row with real slack, in either locale: the row height is
+ *   max(leftColumn, rightColumn) and the body wins it at every tier (187.25 / 187.17 / and the
+ *   phone tier stacks), so an h3 that sets two lines instead of one costs nothing. The BODY is
+ *   what governs this row.
  * - Copy lengths were held against the target's (349 and 211 characters) so the rendered line
  *   count stays close and the 187.25px body box holds. The copy is free to change; the geometry
  *   it was measured against is not.
@@ -102,20 +155,15 @@
  *   `react/no-unescaped-entities` can never apply — that rule only inspects JSX text.
  */
 
-/* clix's own, one line at 44px inside the 450px left column. See the heading note above. */
-const TITLE = "Built To Be Trusted";
-
-/* ⚠️ "we log every read and every write" is the SAME UNVERIFIED CLAIM as benefit 3 in
-   SecurityBenefits.tsx: both assume per-run logs exist and are visible to the client. It is
-   open question 1 in features/security-page/FEATURE.md, awaiting the user. If the answer comes
-   back no, both places change together. */
-const P1 =
-  "Security is not a layer clix adds at the end. Every automation we build runs inside your own cloud, your own CRM and your own inboxes, under credentials you issue and can revoke in a minute. We ask for the narrowest scope a workflow needs, we log every read and every write, and we hand you the code so nothing depends on us staying in the room.";
-
-const P2 =
-  "We do not train models on your data, and we do not keep a second copy of it. When a workflow touches something sensitive, you can see exactly what it touched and when. That is the whole of the promise, and it is checkable.";
+import { getDict } from "@/lib/i18n/server";
 
 export default function SecurityCore() {
+  /* Server read of `core`. ⚠️ `body1`'s "we log every read and every write" is the SAME
+     UNVERIFIED CLAIM as benefit 3 in SecurityBenefits.tsx — both assume per-run logs exist AND
+     are visible to the client. Open question 1 in features/security-page/FEATURE.md, awaiting
+     the user; if the answer comes back no, both places change together, in both locales. */
+  const t = getDict().security.core;
+
   return (
     /* `Container .framer-1bz2s3e` — the band's SECOND child, not a section. Column + gap 24
        on phone; row + gap 64 from 810 up. max-w 1280 = --container-max.
@@ -140,11 +188,11 @@ export default function SecurityCore() {
       >
         {/* Left-aligned here, unlike row 1's centred h3. 110% / -0.05em at every tier. */}
         <h3
-          className="w-full text-left font-display text-[32px] font-normal text-paper
+          className="w-full text-start font-display text-[32px] font-normal text-paper
                      tablet:text-[40px] desktop:text-[44px]"
           style={{ lineHeight: "110%", letterSpacing: "-0.05em" }}
         >
-          {TITLE}
+          {t.title}
         </h3>
       </div>
 
@@ -167,10 +215,10 @@ export default function SecurityCore() {
           className="font-sans text-[16px] font-normal text-paper-soft desktop:text-[18px]"
           style={{ lineHeight: "130%", letterSpacing: "-0.02em" }}
         >
-          {P1}
+          {t.body1}
           <br />
           <br />
-          {P2}
+          {t.body2}
         </p>
       </div>
     </div>

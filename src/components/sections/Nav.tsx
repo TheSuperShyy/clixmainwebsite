@@ -43,6 +43,9 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import AppLink from "@/components/ui/AppLink";
+import LocaleToggle from "@/components/ui/LocaleToggle";
+import { useChrome, useLocale } from "@/lib/i18n/LocaleProvider";
+import { localeHref } from "@/lib/i18n/config";
 import ClixWordmark from "@/components/ui/ClixWordmark";
 import ClixMark from "@/components/ui/ClixMark";
 import ModelTicker from "@/components/ui/ModelTicker";
@@ -90,35 +93,42 @@ const MARK_SIZE = 28;
    the old mapping across would have pointed `Clix` at `#services` and `Careers` at
    `#contact`, which is a wrong destination dressed up as a working link. `#services` and
    `#contact` are now unreferenced from the link row; `#contact` is still the CTA's target. */
-const LINKS: { label: string; href: string | null }[] = [
+/* LABELS MOVED TO THE DICTIONARY (2026-08-12, Hebrew locale). This array is now the
+   DESTINATIONS and their order; the visible text comes from `chrome.nav.labels[i]`, which is a
+   fixed-length 7-tuple for exactly that reason — "seven slots, deliberately" is a type now, not
+   just a comment, so a locale that supplies six labels fails the build.
+
+   `key` replaces `label` as the React key on purpose: a key that changed with the locale would
+   remount every item on a language switch. */
+const LINKS: { key: string; href: string | null }[] = [
   /* Live as of 2026-08-09: `/clix` exists (clone of rogo.com/felix), so per the rule above
      the slot got its href the moment its page did. The only ROUTE in this list — every other
      live item is a same-page hash. */
-  { label: "Clix", href: "/clix" },
+  { key: "clix", href: "/clix" },
   /* Live as of 2026-08-11: `/product` exists (clone of rogo.com/product). Same rule — the
      slot gets its href the moment its page does. Second ROUTE in this list.
      ⚠️ /product is `noindex`. That was because its copy was rogo's verbatim; the content pass
      on 2026-08-12 cleared that, and the guard now stands on the placeholder testimonial quotes
      attributed to real named clients. Either way it is a crawler directive, not a reason to
      hide it from the nav — the page is reachable and real. */
-  { label: "Product", href: "/product" },
+  { key: "product", href: "/product" },
   /* Live as of 2026-08-12: `/security` exists (clone of rogo.com/security). Was `/#security`,
      the home page's own dark band, for as long as there was no page to point at. Home's
      `#security` section is untouched and still carries that anchor — it just no longer has to
      stand in for a route. Fourth ROUTE in this list, and the first one that is NOT `noindex`:
      every string on `/security` is clix's own and it ships no certification seal, so nothing
      guards it. */
-  { label: "Security", href: "/security" },
+  { key: "security", href: "/security" },
   /* Live as of 2026-08-12: `/company` exists (clone of rogo.com/company). Same rule — the slot
      gets its href the moment its page does. Third ROUTE in this list.
      ⚠️ /company is `noindex`, but for a thinner reason than /product's: every string on it is
      already clix's own. It is guarded pending two answers, the Unit 8200 credential and the
      placeholder photograph. See src/app/company/page.tsx. A crawler directive is not a reason
      to hide a real, reachable page from the nav. */
-  { label: "Company", href: "/company" },
-  { label: "Customers", href: "/#testimonials" },
+  { key: "company", href: "/company" },
+  { key: "customers", href: "/#testimonials" },
   /* Live since 2026-08-11 — /news is the rogo.com/news clone carrying the AI digest. */
-  { label: "News", href: "/news" },
+  { key: "news", href: "/news" },
   /* Live as of 2026-08-12: `/careers` exists (clone of rogo.com/careers). Same rule — the slot
      gets its href the moment its page does. Fourth ROUTE in this list, and the last `null` in
      it apart from none: every label now resolves.
@@ -126,7 +136,7 @@ const LINKS: { label: string; href: string | null }[] = [
      mission copy are still rogo's verbatim, and the three job rows are invented. A job listing
      solicits an application, so an invented one is worse than an invented testimonial — but
      that is a crawler directive, not a reason to hide a reachable page from the nav. */
-  { label: "Careers", href: "/careers" },
+  { key: "careers", href: "/careers" },
 ];
 
 /* Each page section declares which of these it is, via `data-nav-theme`. Anything the nav
@@ -290,6 +300,17 @@ export default function Nav({
   /* One flag drives every text, ring and border colour: `dark` and `hero` share a palette
      and differ only in the bar's fill. */
   const light = theme === "light";
+
+  /* Shared chrome, from whichever root layout mounted the provider. Nav is already a client
+     component, so this is a context read rather than a prop — nothing about the nav's own
+     wiring changed to gain a second language. */
+  const t = useChrome();
+  /* THE TWO LOGO LINKS ARE RAW `next/link`, NOT `AppLink`, and stay that way — the logo has
+     deliberately been an instant swap rather than a crossfade since 2026-08-12, and routing it
+     through the view transition would be an unrelated behaviour change. But raw means nothing
+     prefixes their href, so on a Hebrew page `href="/"` would have walked the visitor out of
+     the locale. `localeHref` is the identity function in English, so this is a no-op there. */
+  const locale = useLocale();
 
   /* The banner leaves on its own, NOT with the colour flip. Live-site evidence: rogo.ai can
      be caught with the header already light AND the banner still on screen, so the two are
@@ -464,7 +485,7 @@ export default function Nav({
           >
             <div className="flex w-min items-center gap-10">
               <Link
-                href="/"
+                href={localeHref("/", locale)}
                 /* Width was a fixed 60px while this box held the target's SVG logotype. The
                  clix mark is set in type, so it sizes itself and the box follows it.
 
@@ -475,20 +496,21 @@ export default function Nav({
                           transition-colors duration-300
                           focus-visible:ring-2 focus-visible:outline-none
                           ${light ? "text-ink focus-visible:ring-ink" : "text-paper focus-visible:ring-paper"}`}
-                aria-label="clix home"
+                aria-label={t.a11y.home}
               >
                 <ClixMark size={MARK_SIZE} />
                 <ClixWordmark />
               </Link>
             </div>
             <div className="flex w-min items-center gap-2">
+              <LocaleToggle light={light} />
               <button
                 ref={toggleRef}
                 type="button"
                 onClick={() => setOpen((v) => !v)}
                 aria-expanded={open}
                 aria-controls="nav-mobile-panel"
-                aria-label={open ? "Close menu" : "Open menu"}
+                aria-label={open ? t.a11y.closeMenu : t.a11y.openMenu}
                 className={`flex h-10 w-10 flex-none cursor-pointer items-center justify-center
                           gap-[10px] transition-colors duration-300
                           focus-visible:ring-2 focus-visible:outline-none
@@ -510,10 +532,10 @@ export default function Nav({
             <nav
               id="nav-mobile-panel"
               className="flex w-full flex-col gap-1 bg-ink px-4 pt-2 pb-6"
-              aria-label="Main"
+              aria-label={t.a11y.mainLandmark}
             >
               {/* Keyed on label, not href — inert items share a null href. */}
-              {LINKS.map((l) => {
+              {LINKS.map((l, i) => {
                 const style = {
                   lineHeight: "1.5em",
                   letterSpacing: "-0.01em",
@@ -523,7 +545,7 @@ export default function Nav({
                   "flex h-9 items-center font-sans text-[18px] font-medium text-paper";
                 return l.href ? (
                   <AppLink
-                    key={l.label}
+                    key={l.key}
                     href={l.href}
                     onClick={() => setOpen(false)}
                     className={`${base} no-underline transition-opacity duration-300
@@ -531,18 +553,18 @@ export default function Nav({
                               focus-visible:outline-none`}
                     style={style}
                   >
-                    {l.label}
+                    {t.nav.labels[i]}
                   </AppLink>
                 ) : (
                   /* Dimmed to 50% rather than rendered at full strength: an item that cannot
                    be activated should not look identical to one that can. */
                   <span
-                    key={l.label}
+                    key={l.key}
                     aria-disabled="true"
                     className={`${base} cursor-default opacity-50`}
                     style={style}
                   >
-                    {l.label}
+                    {t.nav.labels[i]}
                   </span>
                 );
               })}
@@ -553,8 +575,11 @@ export default function Nav({
                 here but kept in NavButton — the >=1200 header still has no second button
                 either, and re-adding one should not mean re-deriving the variant. */}
               <div className="mt-4 flex items-center gap-2">
+                {/* Panel is `bg-ink` in every theme state, so `light` is unconditionally false
+                    here — the dark-surface palette always applies. */}
+                <LocaleToggle light={false} />
                 <NavButton variant="inverse" light={false} href="/#contact">
-                  Let&rsquo;s start
+                  {t.nav.cta}
                 </NavButton>
               </div>
             </nav>
@@ -582,13 +607,13 @@ export default function Nav({
         >
           <div className="relative flex w-full max-w-[var(--container-max)] items-center justify-between">
             <Link
-              href="/"
+              href={localeHref("/", locale)}
               /* Colour + transition on the anchor, not per child — see the compact row. */
               className={`flex h-9 flex-none cursor-pointer items-center gap-2 no-underline
                         transition-colors duration-300
                         focus-visible:ring-2 focus-visible:outline-none
                         ${light ? "text-ink focus-visible:ring-ink" : "text-paper focus-visible:ring-paper"}`}
-              aria-label="clix home"
+              aria-label={t.a11y.home}
             >
               <ClixMark size={MARK_SIZE} />
               <ClixWordmark />
@@ -597,13 +622,13 @@ export default function Nav({
             <nav
               className="absolute top-0 bottom-0 left-1/2 z-[1] flex w-min -translate-x-1/2
                        items-center justify-center gap-3 overflow-hidden"
-              aria-label="Main"
+              aria-label={t.a11y.mainLandmark}
             >
               {/* Keyed on label, not href — inert items share a null href.
                 The inert ones render the SAME box (`h-9 px-3 py-2`) as the links, because
                 the row's spacing was measured against seven equal items; swapping one for a
                 narrower element would shift the whole centred row. */}
-              {LINKS.map((l) => {
+              {LINKS.map((l, i) => {
                 const box =
                   "flex h-9 w-min flex-col items-center justify-center overflow-hidden px-3 py-2 whitespace-pre";
                 const text = `font-sans text-[18px] font-medium transition-colors duration-300 ${
@@ -611,7 +636,7 @@ export default function Nav({
                 }`;
                 return l.href ? (
                   <AppLink
-                    key={l.label}
+                    key={l.key}
                     href={l.href}
                     className={`${box} cursor-pointer no-underline transition-opacity
                               duration-300 hover:opacity-70 focus-visible:ring-2
@@ -623,14 +648,14 @@ export default function Nav({
                       className={text}
                       style={{ lineHeight: "1.5em", letterSpacing: "-0.01em" }}
                     >
-                      {l.label}
+                      {t.nav.labels[i]}
                     </span>
                   </AppLink>
                 ) : (
                   /* Dimmed to 50% rather than rendered at full strength: an item that cannot
                    be activated should not look identical to one that can. */
                   <span
-                    key={l.label}
+                    key={l.key}
                     aria-disabled="true"
                     className={`${box} cursor-default opacity-50`}
                   >
@@ -638,7 +663,7 @@ export default function Nav({
                       className={text}
                       style={{ lineHeight: "1.5em", letterSpacing: "-0.01em" }}
                     >
-                      {l.label}
+                      {t.nav.labels[i]}
                     </span>
                   </span>
                 );
@@ -648,8 +673,12 @@ export default function Nav({
             {/* One button, not two — see the note on the mobile panel. The wrapper keeps its
               `gap-2` so re-adding a second button needs no layout work. */}
             <div className="flex w-min items-center gap-2 overflow-hidden">
+              {/* Safe to widen this group: the link row beside it is ABSOLUTELY centred
+                  (`left-1/2 -translate-x-1/2` below), which its own comment says is deliberate
+                  so the links stay optically centred however wide the button group gets. */}
+              <LocaleToggle light={light} />
               <NavButton variant="inverse" light={light} href="/#contact">
-                Let&rsquo;s start
+                {t.nav.cta}
               </NavButton>
             </div>
           </div>

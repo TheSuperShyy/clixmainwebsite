@@ -22,39 +22,19 @@
  */
 
 import { MockWorkflow, MockTable, MockMaterial } from "@/components/product/workflowMocks";
+import { getDict } from "@/lib/i18n/server";
 
-/* Copy is clix's, written to the capture's measured lengths: the three bodies sit in fixed
-   boxes (card 1 is the only 4-line one, which is what `self-start` below exists for), so each
-   string stays within 10% of the character count it replaces. Titles 23/18/17 -> 24/17/17,
-   bodies 221/184/171 -> 233/195/183. */
-const CARDS = [
-  {
-    title: "Automations Built To Fit",
-    body:
-      "We map the process your team already runs, then automate it end to end across the " +
-      "tools you already own. Webhooks, middleware and error handling come with it, so a " +
-      "step that breaks upstream is caught and retried, never silently lost.",
-    Art: MockWorkflow,
-  },
-  {
-    title: "Ask Your Own Data",
-    body:
-      "Your CRM, your spreadsheets and your billing in one table you can sort, filter and " +
-      "update as the day moves. Ask it a question in plain language and get an answer you " +
-      "can trace back to the record.",
-    Art: MockTable,
-  },
-  {
-    title: "Reports On Demand",
-    body:
-      "Decks, summaries and spreadsheets built from the same data your team works in. The " +
-      "numbers stay consistent, the template stays yours, and the source file ships " +
-      "alongside every export.",
-    Art: MockMaterial,
-  },
-] as const;
+/* Copy lives in the dictionary (`workflows.title`, `workflows.cards`), written to the capture's
+   measured lengths: the three bodies sit in fixed boxes (card 1 is the only 4-line one, which is
+   what `self-start` below exists for). English titles 23/18/17 -> 24/17/17, bodies
+   221/184/171 -> 233/195/183.
+   The three ART components are POSITIONAL and stay here: they are mock UI, not copy, and
+   pairing a card with the wrong illustration is a worse failure than any wording. Zipped with
+   `workflows.cards` by index, which the tuple typing holds at three. */
+const ART = [MockWorkflow, MockTable, MockMaterial] as const;
 
 export default function ProductWorkflows() {
+  const t = getDict().product.workflows;
   return (
     /* `Feature` — column, items start, gap 64, overflow hidden. */
     <div className="flex w-full flex-col items-start justify-center gap-16 overflow-hidden">
@@ -68,13 +48,15 @@ export default function ProductWorkflows() {
                      tablet:text-[40px] desktop:text-[44px]"
           style={{ lineHeight: "110%", letterSpacing: "-0.05em" }}
         >
-          Connect Your Stack &amp; Automate The Work
+          {t.title}
         </h3>
       </div>
 
       {/* Grid — 3 cols at desktop, 1 col below. Gap 24, except 32 at the tablet tier. */}
       <div className="grid w-full grid-cols-1 justify-center gap-6 overflow-hidden tablet:gap-8 desktop:grid-cols-3 desktop:gap-6">
-        {CARDS.map(({ title, body, Art }) => (
+        {t.cards.map(({ title, body }, i) => {
+          const Art = ART[i];
+          return (
           <article
             key={title}
             /* Card: column at phone and desktop, ROW at tablet. Gap 32 throughout.
@@ -107,7 +89,8 @@ export default function ProductWorkflows() {
               </p>
             </div>
           </article>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

@@ -27,18 +27,21 @@
  * ⚠️ 2b SHIPS TWO FULL DOM VARIANTS, not one responsive tree — see ProductStepper.tsx.
  */
 
-/* Left-aligned, `text-wrap: balance`, and split mid-sentence: the first clause is `muted` and
+/* Start-aligned, `text-wrap: balance`, and split mid-sentence: the first clause is `muted` and
    the rest is `ink`. One <h3> with an inner <span>, exactly as the original does it — two
-   sibling blocks would let the halves wrap independently and break the sentence. */
+   sibling blocks would let the halves wrap independently and break the sentence.
+   The two runs come from `intro.muted` and `intro.ink`, two separately-named dictionary keys,
+   because the span boundary IS the colour change and markup never goes in a dictionary. Unlike
+   the two `<br>` headings on this route, there is no hard break here: this is one balanced
+   sentence, so either run MAY wrap internally in either language. */
 import ProductStepper from "@/components/product/ProductStepper";
 import ProductWorkflows from "@/components/product/ProductWorkflows";
 import ProductDataPartners from "@/components/product/ProductDataPartners";
 import ProductBenefits from "@/components/product/ProductBenefits";
-
-const INTRO_MUTED = "Every business runs on a hundred handoffs nobody owns,";
-const INTRO_INK = " Clix builds the quiet systems that remove them.";
+import { getDict } from "@/lib/i18n/server";
 
 export default function ProductFeatures() {
+  const t = getDict().product.intro;
   return (
     <section
       id="features"
@@ -58,13 +61,16 @@ export default function ProductFeatures() {
               The preset's own colour is `ink`; the element overrides the whole heading to
               `muted` and the inner span puts the second clause back to `ink`. Ours states
               both directly rather than reproducing the override dance. */}
+          {/* `text-start`, not `text-left`. Pixel-identical in ltr; the computed KEYWORD
+              becomes "start" rather than "left", which is the one non-identity in the logical
+              migration and is not a regression. */}
           <h3
-            className="w-full text-left text-balance font-display text-[32px] font-normal
+            className="w-full text-start text-balance font-display text-[32px] font-normal
                        text-muted tablet:text-[40px] desktop:text-[44px]"
             style={{ lineHeight: "110%", letterSpacing: "-0.05em" }}
           >
-            {INTRO_MUTED}
-            <span className="text-ink">{INTRO_INK}</span>
+            {t.muted}
+            <span className="text-ink">{t.ink}</span>
           </h3>
 
           {/* 2b — the stepper (>=1200) / stacked features (<1200). Sibling of the intro

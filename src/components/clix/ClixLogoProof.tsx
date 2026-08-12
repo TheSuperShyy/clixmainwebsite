@@ -16,9 +16,16 @@
  * grid from 436px to 600px, because 12 tiles in 2 columns is 6 rows instead of 3.
  */
 
+import { getDict } from "@/lib/i18n/server";
+
 import { TOOL_MARKS } from "./toolMarks";
 
 export default function ClixLogoProof() {
+  /* ⚠️ ONLY THE CAPTION IS A DICTIONARY STRING. The twelve names below come from
+     TOOL_MARKS and stay LATIN in every locale: they are product trademarks, not words.
+     /company imports the same module, so nothing there is affected either. */
+  const t = getDict().clix.logoProof;
+
   return (
     <section
       /* The id is ClixBackdrop's handle: as the ground fades to forest-deep this whole
@@ -47,7 +54,7 @@ export default function ClixLogoProof() {
             lineHeight: "1.5em",
           }}
         >
-          The tools we build with and integrate
+          {t.caption}
         </p>
 
         {/* The grid's HEIGHT is fixed, not derived — 436px at >=810, 600px on phone. With

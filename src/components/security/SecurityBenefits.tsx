@@ -52,7 +52,45 @@
  * LINE COUNT, not by character budget. Do not reword them, and do not "improve" one with a
  * longer phrase — the geometry is measured, and the sentences are what fill it.
  *
- * ─── COPY — CLIX'S OWN, NOT THE TARGET'S ─────────────────────────────────────────────────
+ * ⚠️ AND THE ROW HEIGHT IS A SUM, SO UNDERSHOOT FAILS EXACTLY AS OVERFLOW DOES. 36 + 64 +
+ * (23.41 + 4 + 41.59) + 16 = 185 at ≥1200: a ONE-line body shortens the row by 20.8px just as
+ * surely as a three-line one lengthens it. That is the likelier failure in Hebrew, not the
+ * obvious one — measured, Hebrew on this site runs about 15% SHORTER than English, so a body
+ * translated phrase-for-phrase tends to fall back to a single line. Twelve strings × four tiers
+ * × three column widths (400 / 452 / 358) is 48 constraints, and one string moves all six
+ * cards.
+ *
+ * The check needs NO English reference and no target: render the band and assert THE SIX CARD
+ * HEIGHTS ARE EQUAL to within 0.5px. Hebrew's vertical metrics are identical to Latin's and every
+ * `line-height` here is a percentage of `font-size`, so hitting the line counts hits the pixel
+ * heights exactly, in either script.
+ *
+ * Measured over CDP on 2026-08-12 at 1600 / 1440 / 1024 / 390 on both `/security` and
+ * `/he/security`: six equal heights at all eight combinations, spread 0.000px, and
+ * 185 / 185 / 182.39 / 150.39 per tier in BOTH locales.
+ *
+ * ⚠️ BUT EQUAL HEIGHTS ALONE DO NOT PROVE THE LINE COUNTS, and anyone re-running that check
+ * needs to know why. The grid items are `align-self: stretch` by default, so every card in a row
+ * is stretched to the TALLEST card in that row: at ≥1200 (3 × 2) and at 1024 (2 × 3) one short
+ * body is absorbed by its row-mate and all six still report the same height. Only at 390, where
+ * each card is its own row, does the height test see a short body directly. So assert BOTH: six
+ * equal heights AND, per card, `round(p.height / lineHeightPx)` = 1 for the title and 2 for the
+ * body. That pair is what was measured above.
+ *
+ * ⚠️ AND IT FOUND SOMETHING IN THE ENGLISH, WHICH IS RECORDED RATHER THAN CHANGED: at the 1024
+ * tier card 2's body ("Workflows run in your own accounts. Clix never holds a second copy.")
+ * measures 446.1px natural against a 452px column and therefore sets ONE line, not two. Its row
+ * height is unaffected (card 1 beside it sets two), so the 182.39 sum still closes, but the
+ * claim "every body in exactly 2 lines AT EVERY TIER" is 1/24 short in English at 1024. The
+ * string is byte-identical to what this file shipped before the i18n extraction — verified
+ * literal by literal against git HEAD — so this is a pre-existing condition, not a regression,
+ * and fixing copy was out of scope for that pass. Hebrew's six are 2 lines at all four tiers.
+ *
+ * ─── COPY — CLIX'S OWN, NOT THE TARGET'S, AND IT LIVES IN THE DICTIONARY ─────────────────
+ * The twelve strings are in `src/lib/i18n/{en,he}/security.ts` under `benefits.items`, read
+ * here with `getDict().security` — NOT with `usePageDict()`. This is a server component (see
+ * above) and the client hook would force `"use client"` onto a block that ships zero JS.
+ *
  * The `/company` model: every string is clix's from the first commit, so there is nothing to
  * strip later. Five of the six restate the practice statements home's
  * src/components/sections/Security.tsx already ships, deliberately, so the two pages sound
@@ -62,10 +100,18 @@
  * on 2026-08-05 when it took SOC 2 and ISO 27001 off the home page, and the same call the
  * compliance band below makes with practices in place of seals.
  *
+ * ⚠️ WHAT STAYS IN THIS FILE IS THE LAYOUT HALF OF EACH CARD: the glyph and its slot id. The
+ * ORDER is the target's own (lock, shield, viewfinder, key, database, monitor) and it is
+ * load-bearing twice over — it pairs each claim with the mark that illustrates it, and below
+ * 1200 the grid reflows to 2 then 1 column, so source order IS reading order. Both the glyph
+ * tuple here and `benefits.items` in the dictionary are fixed at SIX, so a locale that supplied
+ * five fails the build rather than dropping a card.
+ *
  * Curly apostrophes. No em dash, no en dash, no hyphen standing in for one in the COPY
  * (standing user request, 2026-08-10); `least-privilege` is a genuine compound modifier and
- * stays. The strings live in module-level consts rather than JSX text nodes so
- * `react/no-unescaped-entities` can never apply — that rule only inspects JSX text.
+ * stays. Hebrew keeps the PREFIX hyphen (`ב-TLS`), which is orthography. No string is a JSX
+ * text node, so `react/no-unescaped-entities` can never apply — that rule only inspects JSX
+ * text, and dictionary reads are expressions.
  *
  * ─── ICONS ───────────────────────────────────────────────────────────────────────────────
  * Six 36 × 36 glyphs lifted verbatim from the capture's `svg-templates` defs, inlined HERE
@@ -95,6 +141,8 @@
  */
 
 import type { ReactElement, ReactNode } from "react";
+
+import { getDict } from "@/lib/i18n/server";
 
 /* Shared root for all six defs — 36 × 36, `fill="none"`, decorative, and coloured by token
    rather than by the `white` the Framer defs hard-code. `shrink-0` because the item is a flex
@@ -251,56 +299,48 @@ function MonitorGlyph() {
   );
 }
 
-type Benefit = {
-  readonly title: string;
-  readonly body: string;
+/** The layout half of a card: which mark it shows, and a locale-independent key for it. */
+type BenefitSlot = {
+  /** React key. NOT the title — a key must not change when the locale does. */
+  readonly id: string;
   readonly Icon: () => ReactElement;
 };
 
-/* Order and glyph pairing are the target's own, kept: lock, shield, viewfinder, key, database,
+/* SIX SLOTS, AS A TUPLE, zipped index-for-index with `benefits.items` in the dictionary. Order
+   and glyph pairing are the target's own, kept: lock, shield, viewfinder, key, database,
    monitor. Reordering would pair a claim with a mark that does not illustrate it, and below
    1200 the grid reflows to 2 and then 1 column, so source order IS reading order.
-   ⚠️ Each title is 1 line and each body 2 lines at every tier — see the TRAP in the header. */
-const BENEFITS: readonly Benefit[] = [
-  {
-    title: "No training on your data",
-    body: "We never use your data to train or improve any model, ours or a vendor’s.",
-    Icon: LockGlyph,
-  },
-  {
-    title: "Your data stays yours",
-    body: "Workflows run in your own accounts. Clix never holds a second copy.",
-    Icon: ShieldGlyph,
-  },
-  {
-    /* ⚠️ OPEN QUESTION 1 (FEATURE.md): this assumes per-run logs exist AND are visible to the
-       client, not merely retained internally. Awaiting the user's confirmation. */
-    title: "Full visibility on every run",
-    body: "Every run records what it read, what it wrote and when, so nothing is hidden.",
-    Icon: ViewfinderGlyph,
-  },
-  {
-    title: "Least-privilege access",
-    body: "Each integration gets the narrowest scope that does the job, and nothing wider.",
-    Icon: KeyGlyph,
-  },
-  {
-    /* ⚠️ OPEN QUESTION 2 (FEATURE.md): this names TLS in transit and a MANAGED secret store,
-       both specific enough to be wrong. Awaiting the user's confirmation. */
-    title: "Encrypted in transit and at rest",
-    body: "Data moves over TLS and credentials are held in a managed secret store.",
-    Icon: DatabaseGlyph,
-  },
-  {
-    /* Replaces the target's "Audited & tested" card, which clix cannot claim. See the copy
-       note in the file header. */
-    title: "You own the code",
-    body: "The automations are yours. Hand them to another team, or run them without us.",
-    Icon: MonitorGlyph,
-  },
+   ⚠️ Each title is 1 line and each body 2 lines at every tier — see the TRAP in the header.
+   The ids record what each slot CLAIMS, which is what makes the two open questions below
+   findable from either file. */
+const SLOTS: readonly [
+  BenefitSlot,
+  BenefitSlot,
+  BenefitSlot,
+  BenefitSlot,
+  BenefitSlot,
+  BenefitSlot,
+] = [
+  { id: "no-training", Icon: LockGlyph },
+  { id: "data-stays-yours", Icon: ShieldGlyph },
+  /* ⚠️ OPEN QUESTION 1 (FEATURE.md): this slot's copy assumes per-run logs exist AND are
+     visible to the client, not merely retained internally. Awaiting the user's confirmation.
+     `SecurityCore`'s `body1` makes the same claim and changes with it. */
+  { id: "visibility-on-every-run", Icon: ViewfinderGlyph },
+  { id: "least-privilege", Icon: KeyGlyph },
+  /* ⚠️ OPEN QUESTION 2 (FEATURE.md): this slot's copy names TLS in transit and a MANAGED
+     secret store, both specific enough to be wrong. Awaiting the user's confirmation. */
+  { id: "encrypted", Icon: DatabaseGlyph },
+  /* Replaces the target's "Audited & tested" card, which clix cannot claim. See the copy note
+     in the file header. */
+  { id: "you-own-the-code", Icon: MonitorGlyph },
 ];
 
 export default function SecurityBenefits() {
+  /* Server read. `usePageDict()` would mean `"use client"` on a zero-JS block — see the header.
+     The dictionary's tuple is six long and so is `SLOTS`, so the zip below cannot run short. */
+  const t = getDict().security.benefits;
+
   return (
     <section
       id="features"
@@ -326,11 +366,11 @@ export default function SecurityBenefits() {
                    tablet:grid-cols-[repeat(2,minmax(50px,1fr))] tablet:gap-10
                    desktop:grid-cols-[repeat(3,minmax(50px,1fr))]"
       >
-        {BENEFITS.map(({ title, body, Icon }) => (
+        {SLOTS.map(({ id, Icon }, i) => (
           /* Item — column, `padding: 0 0 16px`, and the gap between the icon and the text
              container is 32 on phone but 64 from 810 up. That 32px step is most of why the
              phone row measures 150.39 against the tablet 182.39. */
-          <div key={title} className="flex flex-col gap-8 pb-4 tablet:gap-16">
+          <div key={id} className="flex flex-col gap-8 pb-4 tablet:gap-16">
             <Icon />
 
             {/* `Container` — column, gap 4 at every tier. The only value in this block that
@@ -342,7 +382,7 @@ export default function SecurityBenefits() {
                 className="font-sans text-[16px] font-normal text-paper desktop:text-[18px]"
                 style={{ lineHeight: "130%", letterSpacing: "-0.02em" }}
               >
-                {title}
+                {t.items[i].title}
               </p>
               {/* Body: 16px at every tier, and -0.01em where the title is -0.02em. The two
                   tracking values differ on purpose; it is not a transcription slip. */}
@@ -350,7 +390,7 @@ export default function SecurityBenefits() {
                 className="font-sans text-[16px] font-normal text-paper-soft"
                 style={{ lineHeight: "130%", letterSpacing: "-0.01em" }}
               >
-                {body}
+                {t.items[i].body}
               </p>
             </div>
           </div>

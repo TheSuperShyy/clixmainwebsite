@@ -36,12 +36,37 @@
  * The tier variants of `object-position` (`center` vs `center top`) collapse to nothing here:
  * the crop is horizontal only, so the vertical component never applies.
  *
+ * ---------------------------------------------------------------------------------------
+ * MIRRORING UNDER RTL, AND WHY THERE IS NO `922 - x - w` ANYWHERE BELOW.
+ *
+ * Every call site stays in SOURCE-LTR COORDINATES — the numbers read off the JPGs, unchanged —
+ * and the `Box` / `Line` primitives resolve which side they mean. They do it with
+ * `inset-inline-start` rather than `left`, and that single substitution IS the mirror:
+ *
+ *     a box at `left: x` with width `w` in a container of width `W` sits `W - x - w` from the
+ *     container's right edge; mirroring it means `left = W - x - w`, i.e. `right = x`. And
+ *     `inset-inline-start: x` under rtl IS `right: x`.
+ *
+ * So CSS does the arithmetic against the ACTUAL containing block, which matters here because
+ * these primitives nest: a `Line` inside a `Card` is positioned against the card's 650 or 716
+ * units, not against the frame's 922. A hand-written `922 - x - w` would be wrong for every
+ * nested call, and there are more nested calls than top-level ones. `inset-inline-start`
+ * resolves to `left` in ltr, so the English render is untouched.
+ *
+ * WHAT MIRRORS AND WHAT DOES NOT. Everything here mirrors, because in all three mocks the
+ * horizontal axis carries READING order: glyph-before-label, checkbox-before-label, table
+ * column order, the label-then-download-affordance row. Nothing here encodes causal or temporal
+ * order — mock 1's workflow runs DOWN the panel, not across it, which is why its step list
+ * mirrors safely while the real site's /playground node graph (left to right, output-right) does
+ * not. Machine tokens stay Latin; see the dictionary's `mocks` notes.
+ *
  * Capture: docs/reference/target/rogo-product-2026-08-11.html
  * Spec: features/product-page/FEATURE.md · memory: features/product-page/CONTEXT.md
  */
 
 import type { CSSProperties, ReactNode } from "react";
 import ClixMark from "@/components/ui/ClixMark";
+import { getDict } from "@/lib/i18n/server";
 
 /* One source pixel, as a CSS length. See the note above. */
 const u = (n: number) => `calc(${n} * var(--u))`;
@@ -51,7 +76,11 @@ const CROP_CENTRED = -50.7;
 
 /* ---- Primitives ---------------------------------------------------------------------- */
 
-/** An absolutely-placed box in source coordinates. */
+/**
+ * An absolutely-placed box in source coordinates, measured from the INLINE START.
+ * `x` is always the source JPG's own left-edge coordinate; under rtl the primitive flips it.
+ * See the header note for why this is `inset-inline-start` and not arithmetic.
+ */
 function Box({
   x,
   y,
@@ -75,7 +104,7 @@ function Box({
     <div
       className={`absolute ${className}`}
       style={{
-        left: u(x),
+        insetInlineStart: u(x),
         top: u(y),
         width: w === undefined ? undefined : u(w),
         height: h === undefined ? undefined : u(h),
@@ -92,6 +121,13 @@ function Box({
  * A single line of text, VERTICALLY CENTRED on `cy`. Centring on the measured optical centre
  * rather than anchoring a top edge is what keeps the rebuild aligned: the bands measured off
  * the JPGs run cap-top to descender-bottom, and their midpoint is the only stable landmark.
+ *
+ * ⚠️ IT HAS NO WIDTH AND IS `whitespace-nowrap`, SO IT CANNOT GAIN A LINE. The only failure mode
+ * a longer string can produce is running past the card's edge, which is exactly computable as
+ * `x + advance <= cardWidth - inset` in source units. Every line here was checked that way
+ * (advance = em × `size`, so it is tier-invariant). Where Hebrew ran long the STRING was
+ * shortened or the `Card` widened — never `size`, because 36 and 31 are measured off the source
+ * bitmaps and shared across lines, so nudging one would desynchronise the whole mock.
  */
 function Line({
   x,
@@ -113,7 +149,7 @@ function Line({
     <div
       className={`absolute font-sans whitespace-nowrap ${className}`}
       style={{
-        left: u(x),
+        insetInlineStart: u(x),
         top: u(cy - lh / 2),
         fontSize: u(size),
         lineHeight: u(lh),
@@ -251,7 +287,10 @@ function MockFrame({ cropLeft, children }: { cropLeft: number; children: ReactNo
         style={
           {
             "--u": "calc(1cqw / 8.206)",
-            left: `calc(${cropLeft} * 1cqw / 8.206)`,
+            /* The crop offset, on the inline-start side. Under rtl the 922-wide artwork hangs
+               off the LOGICAL start of the 820.6 window, which keeps mock 2's deliberate
+               overflow on the same side of the reading order as it is in English. */
+            insetInlineStart: `calc(${cropLeft} * 1cqw / 8.206)`,
             width: "calc(922cqw / 8.206)",
             height: "calc(1040cqw / 8.206)",
           } as CSSProperties
@@ -267,14 +306,8 @@ function MockFrame({ cropLeft, children }: { cropLeft: number; children: ReactNo
  * Measured: chip 138,148 650x112 · connector x473 · panel 138,298 650x560 · six rows on an
  * 80px pitch, first centred at y374 · 48px tile at x190, labels at x261.
  */
-const RUN_STEPS = [
-  "Reading new messages",
-  "Checking the CRM",
-  "Scoring against your rules",
-  "Drafting reply",
-] as const;
-
 export function MockWorkflow() {
+  const t = getDict().product.mocks.workflow;
   return (
     <MockFrame cropLeft={CROP_CENTRED}>
       {/* The workflow being launched. */}
@@ -283,7 +316,7 @@ export function MockWorkflow() {
           <GlyphBenchmark />
         </Box>
         <Line x={90} cy={56} size={36} weight={500} className="text-ink">
-          Qualify Inbound WhatsApp Leads
+          {t.title}
         </Line>
       </Card>
 
@@ -295,9 +328,9 @@ export function MockWorkflow() {
       <Card x={138} y={298} w={650} h={560}>
         <MarkTile x={52} y={52} />
         <Line x={123} cy={76} size={36} className="text-muted">
-          Running workflow...
+          {t.running}
         </Line>
-        {RUN_STEPS.map((label, i) => (
+        {t.steps.map((label, i) => (
           <div key={label}>
             <Box x={62.5} y={143 + 80 * i} w={26} h={26} className="text-muted">
               <GlyphCheck />
@@ -311,7 +344,7 @@ export function MockWorkflow() {
           <GlyphSpinner />
         </Box>
         <Line x={123} cy={476} size={36} className="text-muted">
-          Syncing to the CRM...
+          {t.syncing}
         </Line>
       </Card>
     </MockFrame>
@@ -325,13 +358,10 @@ export function MockWorkflow() {
  * from the left, so the table deliberately runs out of frame.
  */
 /* Acquisition channels, not companies: the reference named four real manufacturers, and no
-   third-party name belongs under this wordmark. Lengths held to the measured ones (16/6/11)
-   so the rows keep their optical rhythm and the third still reads as the dimmed one. */
-const TABLE_ROWS = [
-  { name: "WhatsApp inbound", dim: false },
-  { name: "Events", dim: false },
-  { name: "Paid search", dim: true },
-] as const;
+   third-party name belongs under this wordmark. Names live in the dictionary
+   (`mocks.table.rows`); the DIM flag is layout — the third row is the greyed one in the
+   reference — so it stays here and is zipped by index. */
+const ROW_DIM = [false, false, true] as const;
 
 function Checkbox({ x, cy }: { x: number; cy: number }) {
   return (
@@ -348,27 +378,31 @@ function Checkbox({ x, cy }: { x: number; cy: number }) {
 }
 
 export function MockTable() {
+  const t = getDict().product.mocks.table;
   return (
     <MockFrame cropLeft={0}>
       <Card x={74} y={140} w={900} h={1000}>
         {/* The question, as a chat bubble. */}
         <Box x={54} y={70} w={767} h={96} radius={48} className="bg-mock-fill" />
         <Line x={106} cy={118} size={36} className="text-ink">
-          Which lead sources actually closed deals?
+          {t.question}
         </Line>
 
         <MarkTile x={66} y={221} />
         <Line x={142} cy={245} size={36} className="text-muted">
-          Checked 4 systems
+          {t.checked}
         </Line>
 
         {/* Two explicit lines, not a wrapping paragraph: the break is part of the reference,
-            and the second line has to reach past the crop exactly as it does there. */}
+            and the second line has to reach past the crop exactly as it does there. Measured
+            end-of-line in source units, against the 820.6 visible window: English 995 and 888,
+            Hebrew 946 and 925. Both locales still run out of frame, which IS the composition —
+            this is the only one of the three mocks cropped from its logical start. */}
         <Line x={63} cy={341} size={36} className="text-ink">
-          WhatsApp inbound closed the most deals last quarter, and
+          {t.answer[0]}
         </Line>
         <Line x={63} cy={391} size={36} className="text-ink">
-          paid search brought the fewest at the highest cost.
+          {t.answer[1]}
         </Line>
 
         {/* The table. Its own box, so the header fill and row rules clip to the radius. */}
@@ -384,22 +418,29 @@ export function MockTable() {
           <Box x={0} y={0} w={700} h={93} className="bg-surface" />
           <Checkbox x={34} cy={46} />
           <Line x={108} cy={46} size={36} className="text-muted">
-            Channel
+            {t.colChannel}
           </Line>
+          {/* ⚠️ THE TIGHTEST MEASURE IN THE THREE MOCKS, AND ENGLISH ALREADY LOSES IT. This
+              starts at x=426 inside a 700-unit box that is `overflow-hidden`, so it has 274
+              units. English needs 295.5 and is therefore clipped by ~21 units TODAY, before
+              this pass; Hebrew needs 269.2 and fits. Left as found rather than "fixed", because
+              widening the box or shrinking the type would move the English render. Reported. */}
           <Line x={426} cy={46} size={36} className="text-muted">
-            % of Pipeline Closed
+            {t.colClosed}
           </Line>
-          {TABLE_ROWS.map((r, i) => (
-            <div key={r.name}>
+          {t.rows.map((name, i) => (
+            <div key={name}>
               <Box x={0} y={93 + 114 * i} w={700} h={1} className="bg-mock-line" />
+              {/* Checkbox before label: the inset carries reading order, so it mirrors. The
+                  `Checkbox` is a `Box`, so it mirrors for free. */}
               <Checkbox x={34} cy={150 + 114 * i} />
               <Line
                 x={108}
                 cy={150 + 114 * i}
                 size={36}
-                className={r.dim ? "text-muted" : "text-ink"}
+                className={ROW_DIM[i] ? "text-muted" : "text-ink"}
               >
-                {r.name}
+                {name}
               </Line>
               {/* The figures are blurred out in the reference — a soft bar says "redacted"
                   without inventing numbers we would then have to stand behind. */}
@@ -426,40 +467,45 @@ export function MockTable() {
  * y413.5 · caption at y586 · two 612x106 export rows at y622 and y744, 48px badge at x178,
  * label at x248, download glyph at x702.
  */
-/* Extensions kept: the P/X badges above are keyed to .pptx/.xlsx and stop making sense
-   without them. Only the names changed, at the measured lengths (24/26 -> 23/24). */
-const EXPORTS = [
-  { name: "Automation Rollout.pptx", letter: "P", fill: "#c03b1c" },
-  { name: "Workflow Run Backup.xlsx", letter: "X", fill: "#10743e" },
+/* The two file badges. Letter and fill are POSITIONAL artwork and stay here; the names live in
+   the dictionary (`mocks.material.exports`).
+   ⚠️ EXTENSIONS ARE NOT TRANSLATED IN ANY LOCALE: `.pptx` and `.xlsx` are keyed to these P and
+   X badges and stop making sense without them. Only the stem translates. */
+const EXPORT_BADGES = [
+  { letter: "P", fill: "#c03b1c" },
+  { letter: "X", fill: "#10743e" },
 ] as const;
 
 export function MockMaterial() {
+  const t = getDict().product.mocks.material;
   return (
     <MockFrame cropLeft={CROP_CENTRED}>
       <Card x={102} y={150} w={716} h={130}>
         <MarkTile x={52} y={40} />
         <Line x={126} cy={64} size={36} className="text-muted">
-          Assembling the deck...
+          {t.assembling}
         </Line>
       </Card>
 
       <Card x={102} y={338} w={716} h={564}>
+        {/* Three explicit lines at the measured 48-unit pitch, so the breaks are the
+            reference's rather than the browser's. */}
         <Line x={53} cy={75.5} size={36} className="text-ink">
-          Here is your deck. I built it
+          {t.prose[0]}
         </Line>
         <Line x={53} cy={123.5} size={36} className="text-ink">
-          on your own template, and attached
+          {t.prose[1]}
         </Line>
         <Line x={53} cy={171.5} size={36} className="text-ink">
-          the source numbers behind every slide.
+          {t.prose[2]}
         </Line>
         <Line x={53} cy={248} size={31} className="text-muted">
-          Exports (2)
+          {t.exportsLabel}
         </Line>
 
-        {EXPORTS.map((f, i) => (
+        {t.exports.map((name, i) => (
           <Box
-            key={f.name}
+            key={name}
             x={52}
             y={284 + 122 * i}
             w={612}
@@ -469,10 +515,12 @@ export function MockMaterial() {
             style={{ boxShadow: `inset 0 0 0 ${u(1)} var(--color-mock-line)` }}
           >
             <Box x={24} y={29} w={48} h={48}>
-              <GlyphFile letter={f.letter} fill={f.fill} />
+              <GlyphFile letter={EXPORT_BADGES[i].letter} fill={EXPORT_BADGES[i].fill} />
             </Box>
+            {/* 454 units of room before the download glyph at x=548. Measured: English 359/386,
+                Hebrew 333/309. */}
             <Line x={94} cy={53} size={36} className="text-ink">
-              {f.name}
+              {name}
             </Line>
             <Box x={548} y={40} w={26} h={26} className="text-muted">
               <GlyphDownload />

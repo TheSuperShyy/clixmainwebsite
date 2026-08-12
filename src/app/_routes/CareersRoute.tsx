@@ -48,39 +48,42 @@
  * the guard. See the deviations table in FEATURE.md.
  */
 
-import type { Metadata } from "next";
 import Nav from "@/components/sections/Nav";
 import CareersHero from "@/components/careers/CareersHero";
 import CareersGallery from "@/components/careers/CareersGallery";
 import CareersAbout from "@/components/careers/CareersAbout";
 import Footer from "@/components/sections/Footer";
 import { fetchModels } from "@/lib/models";
+import type { Locale } from "@/lib/i18n/config";
+import { seedLocale, getDict } from "@/lib/i18n/server";
+import { PageDictProvider } from "@/lib/i18n/LocaleProvider";
 
-export const metadata: Metadata = {
-  title: "Careers",
-  robots: { index: false, follow: false },
-};
+export default async function CareersRoute({ locale }: { locale: Locale }) {
+  /* Seeded here as well as in the root layout: this body is the direct parent of
+     every section, so a server component below it can never read the locale before
+     it is set, regardless of layout ordering. */
+  seedLocale(locale);
 
-/* Literal, not an imported binding — Next rejects the latter. Source of truth for the value
-   is REVALIDATE_SECONDS in src/lib/models.ts; keep them in step by hand. */
-export const revalidate = 300;
-
-export default async function CareersPage() {
   const models = await fetchModels();
 
   return (
-    <>
-      <Nav models={models} />
-      <main>
-        <CareersHero />
-        <CareersGallery />
-        <CareersAbout />
-      </main>
-      {/* Byte-identical to the home page's footer in this capture too — same
-          `.framer-8dt5bh-container`, same link rows. Reused unchanged. It declares its own
-          `data-nav-theme="dark"`, and since the `#roles` band was removed it is now the ONLY
-          dark section on the route — the sole thing that turns the nav over. */}
-      <Footer />
-    </>
+    /* Client components below this point read their strings with
+       usePageDict("careers"). Server components use getDict().careers directly and do not
+       need the provider at all — it is here for the client half only. */
+    <PageDictProvider name="careers" value={getDict().careers}>
+      <>
+        <Nav models={models} />
+        <main>
+          <CareersHero />
+          <CareersGallery />
+          <CareersAbout />
+        </main>
+        {/* Byte-identical to the home page's footer in this capture too — same
+            `.framer-8dt5bh-container`, same link rows. Reused unchanged. It declares its own
+            `data-nav-theme="dark"`, and since the `#roles` band was removed it is now the ONLY
+            dark section on the route — the sole thing that turns the nav over. */}
+        <Footer />
+      </>
+    </PageDictProvider>
   );
 }

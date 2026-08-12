@@ -23,6 +23,9 @@
  * verbatim until then, under the standing "clone now, rewrite after" decision; this is the
  * "after".
  *
+ * COPY LIVES IN THE DICTIONARY as of the i18n pass: `src/lib/i18n/{en,he}/careers.ts` →
+ * `hero.headline`. This is a server component, so it reads with `getDict()`, not a hook.
+ *
  * ⚠️ THE HEADLINE IS THE USER’S OWN SENTENCE, CHOSEN VERBATIM ON 2026-08-12 over four
  * measured alternatives. It is 60 characters against rogo’s 44. The ceiling for keeping this
  * block’s original geometry was 44 — probed, not estimated: every candidate at or under 44
@@ -30,12 +33,34 @@
  * in 3 lines and 6. Do NOT trim the sentence to reclaim height: the target’s heights were
  * measured against the target’s copy, and this page’s copy is no longer the target’s.
  *
+ * ⚠️ THAT 44-CHARACTER CEILING IS LATIN-ONLY AND DOES NOT TRANSFER TO ANOTHER LOCALE. It came
+ * out of eight Latin candidates measured through `Range.getClientRects()`, so it is an advance-
+ * width proxy for Latin lowercase and nothing more. Hebrew letters average 1.117× that advance
+ * and Hebrew has no capitals, so counting Hebrew characters against 44 is meaningless. The real
+ * constraint in every locale is the RENDERED LINE COUNT in the 960px Text Container (360px on
+ * phone) — measure it; do not count characters.
+ *
+ * MEASURED FOR `he`, production build over CDP, 2026-08-12. Hebrew sets in FEWER lines at the
+ * phone tier and the same count everywhere else, so `#hero` shrinks by exactly one line there:
+ *   1600  529 -> 529   3 lines both   198 + (3 x 88 x 95% = 250.78) + 80
+ *   1440  529 -> 529   3 lines both   198 + (3 x 88 x 95% = 250.78) + 80
+ *   1024  415 -> 415   2 lines both   198 + (2 x 72 x 95% = 136.81) + 80
+ *   390   643 -> 582   6 -> 5 lines   198 + (5 x 64 x 95% = 303.98) + 80   (−60.8 = one line)
+ * ⚠️ AND THE THREE UNCHANGED NUMBERS ARE AGAIN NOT EVIDENCE OF ANYTHING. They agree because the
+ * two sentences happen to wrap to the same line count at those widths, not because the Hebrew
+ * was fitted to them. Same trap as the 529 note below, one layer down.
+ *
  * ⚠️ 529 AT ≥1200 IS A COINCIDENCE, NOT A MATCH — the single most misleading number in this
  * file. The target is 529 with a 2-line headline PLUS a 44px gap and a 40px CTA. We are 529
  * with a 3-line headline and NO CTA, because the extra line (+83.6) and the removed button
  * (−84) cancel to within a pixel. Two independent changes happening to sum to zero. Nothing
  * about the block is faithful here; if you re-add the CTA it becomes 613, and if you shorten
  * the headline to 2 lines it becomes 445. Treat the agreement as arithmetic, never as proof.
+ * And it is a COINCIDENCE OF THE ENGLISH LINE COUNT, so it does not survive translation: the
+ * Hebrew headline sets in a different number of lines and `#hero` is therefore a different
+ * height on `/he/careers`. That is expected and recorded, NOT tuned back to 529 — trimming
+ * Hebrew until it reproduces a number the target got from a 2-line English sentence plus a
+ * button it no longer has would be fiction twice over.
  *
  * ⚠️ NOTE THE TABLET COLUMN: 1024 DID NOT MOVE. The 72px type against a 944px measure still
  * sets this sentence in 2 lines, exactly as rogo’s 44-character one did. That is measured,
@@ -48,6 +73,10 @@
  * the hyphen (“next generation”) removes the break, keeps the line count, and is the only
  * change that would fix it. Flagged to the user 2026-08-12; left as written pending their
  * call, because it is their sentence.
+ *   ✅ THIS DEFECT IS ENGLISH-ONLY. The Hebrew headline is a restoration of the real site’s own
+ *   services `<h1>` and contains no hyphenated compound — no hyphen at all — so there is no
+ *   mid-hyphen break to fix on `/he/careers`. The open question above is closed for that
+ *   locale rather than carried into it.
  *
  * The rest of the page’s copy is the manifesto’s: /clix's green band opens "we build the
  * quiet mechanisms that drive modern businesses". See ClixManifesto.tsx and CareersAbout.tsx.
@@ -84,7 +113,14 @@
  * viewport — which is why that cap is a measured value and not a guard.
  */
 
+import { getDict } from "@/lib/i18n/server";
+
 export default function CareersHero() {
+  /* SERVER read, per the i18n contract: `getDict()` and never `usePageDict`. Adding the hook
+     here would mean adding `"use client"`, which would ship a JS bundle for a block that has
+     no behaviour at all. */
+  const t = getDict().careers.hero;
+
   return (
     /* Measured: column, place-content:center, align-items:center, gap 96, width 100%,
        overflow hidden, padding 198/40/80 (phone 198/16/80).
@@ -126,7 +162,7 @@ export default function CareersHero() {
                        desktop:text-[88px]"
             style={{ lineHeight: "95%" }}
           >
-            Join us in engineering the core of next-generation software.
+            {t.headline}
           </h1>
         </div>
 

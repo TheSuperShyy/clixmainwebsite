@@ -17,11 +17,18 @@
  * "the afternoon you just gave back" is the manifesto's own image, reused on purpose so the
  * careers page and the product page sound like one company.
  *
+ * COPY LIVES IN THE DICTIONARY as of the i18n pass: `src/lib/i18n/{en,he}/careers.ts` →
+ * `about.titleInk`, `about.titleMuted`, `about.body`. This is a server component, so it reads
+ * with `getDict()`, not a hook. The strings are still rendered through a JSX EXPRESSION rather
+ * than as JSX text, exactly as the consts they replaced were, so `react/no-unescaped-entities`
+ * still cannot apply — that rule only inspects JSX text nodes. That property was the reason for
+ * the consts and it survives the move; do not "simplify" a string back into the markup.
+ *
  * NO DASHES — no em dash, no en dash, no hyphen standing in for one (user's standing request,
- * 2026-08-10). Apostrophes are now the CURLY ’ used everywhere else in this repo; the straight
+ * 2026-08-10). Apostrophes are the CURLY ’ used everywhere else in this repo; the straight
  * ones that used to be here were the target's, and there is no longer a reason to carry them.
- * The strings stay in consts rather than JSX text so `react/no-unescaped-entities` can never
- * apply — that rule only inspects JSX text nodes.
+ * The Hebrew has one carve-out and only one: the PREFIX hyphen in `ב-WhatsApp`, which is
+ * orthography rather than punctuation style. See he/careers.ts.
  *
  * LENGTHS WERE HELD CLOSE TO THE ORIGINAL'S ON PURPOSE (244/189 characters against rogo's
  * 244/201). This column is measured and paragraph copy is what fills it, so a rewrite half
@@ -65,6 +72,18 @@
  * | h3              | 44                             | 40                  | 32                 |
  * | body <p>        | 18                             | 16                  | 16                 |
  *
+ * ⚠️ AND THE SECTION HEIGHT DIVERGES AGAIN ON `/he/careers`, for the same reason and by the same
+ * licence: the Hebrew paragraphs wrap to their own line counts, so `textCol` is a different
+ * height. Every value CSS controls is identical in both locales. Measured on the production
+ * build over CDP, 2026-08-12 (en -> he, and the paragraph line counts that explain it):
+ *   1600  329.03 -> 329.03   p lines [3,2] -> [3,2]   no change
+ *   1440  329.03 -> 329.03   p lines [3,2] -> [3,2]   no change
+ *   1024  343.19 -> 322.39   p lines [2,2] -> [2,1]   −20.8 = one line at 16 x 130%
+ *   390   429.58 -> 408.78   p lines [5,4] -> [5,3]   −20.8 = one line at 16 x 130%
+ * The h3 sets 2 lines in BOTH locales at EVERY tier, and each colour run measures exactly one
+ * line ([1,1]) — so the boundary still falls on the <br> and neither fragment wraps alone.
+ * Do not tune the Hebrew to reproduce an English number.
+ *
  * ⚠️ THE SECTION HEIGHT ROW IS THE ONE PLACE THIS BLOCK NO LONGER EQUALS THE TARGET, and it
  * is a consequence of the copy rewrite, not a layout defect. Every value that CSS controls —
  * padding, gap, column widths, type — is unchanged and both block-diffs still report ALL
@@ -98,23 +117,22 @@
  *   gap is measured at 0 and Framer emits paragraph spacing as a margin on `:not(:first-child)`.
  *   Encoded as `[&>p+p]:mt-5` on the container so the rule stays where the original put it
  *   (on the flow, not on a hand-tagged element) and a third paragraph would inherit it.
+ * - `text-start` on the <h3>, migrated from `text-left`. The ONLY direction utility on this
+ *   route. It renders pixel-identically in LTR but the computed KEYWORD becomes `"start"`
+ *   instead of `"left"`, so a computed-style diff prints a mismatch here that is not a
+ *   regression — the one non-identity in the whole logical-property table.
  */
 
-/* Line 1 is `ink`, line 2 is `muted`, and the <br /> between them is the boundary.
-   NOT "…Smartest Analyst" / "On Wall Street" — see TRAP 1 above. */
-const TITLE_INK = "Automating The Work";
-const TITLE_MUTED = "Nobody Should Be Doing";
-
-/* Clix's own. Curly apostrophes, no dashes. See the copy note in the file header. */
-const BODY = [
-  "Clix builds the quiet mechanisms that run modern businesses: AI agents that answer and qualify in your customers’ own language, WhatsApp assistants that sell where people already are, CRM work, and the integrations that hold all of it together.",
-  "We are a small team in Tel Aviv, and small is the point. There is no queue to get your work in front of a client, and no layer between you and the person whose afternoon you just gave back.",
-];
+import { getDict } from "@/lib/i18n/server";
 
 /* 18px ≥1200, 16px below. Weight 400 / `ink` / 130% / -0.02em at every tier. */
 const BODY_CLASS = "font-sans text-[16px] font-normal text-ink desktop:text-[18px]";
 
 export default function CareersAbout() {
+  /* SERVER read, per the i18n contract: `getDict()` and never `usePageDict`. Adding the hook
+     would mean adding `"use client"` to a block with no behaviour in it. */
+  const t = getDict().careers.about;
+
   return (
     <section
       id="about"
@@ -133,20 +151,24 @@ export default function CareersAbout() {
             `flex:1 0 0; width:1px; max-width:490px` from 1200 up. See TRAP 2. */}
         <div className="relative flex w-full flex-none flex-col desktop:w-px desktop:max-w-[490px] desktop:flex-[1_0_0]">
           <h3
-            className="w-full text-left text-balance font-display text-[32px] font-normal
+            className="w-full text-start text-balance font-display text-[32px] font-normal
                        text-ink tablet:text-[40px] desktop:text-[44px]"
             style={{ lineHeight: "110%", letterSpacing: "-0.05em" }}
           >
-            {TITLE_INK}
+            {/* Line 1 is `ink`, line 2 is `muted`, and this <br /> IS the colour boundary —
+                the split is after the WHOLE first line, not where it visually looks. ONE <h3>:
+                as siblings the two runs would wrap independently and break the sentence across
+                the colour change. See TRAP 1. Holds in both locales. */}
+            {t.titleInk}
             <br />
-            <span className="text-muted">{TITLE_MUTED}</span>
+            <span className="text-muted">{t.titleMuted}</span>
           </h3>
         </div>
 
         {/* `Text Container` — its own gap is 0; the 20px between paragraphs is the
             `[&>p+p]:mt-5` margin rule, exactly as the original applies it. */}
         <div className="relative flex w-full flex-none flex-col items-start gap-0 [&>p+p]:mt-5 desktop:w-px desktop:flex-[1_0_0]">
-          {BODY.map((paragraph) => (
+          {t.body.map((paragraph) => (
             <p
               key={paragraph.slice(0, 24)}
               className={BODY_CLASS}

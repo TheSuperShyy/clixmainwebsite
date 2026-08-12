@@ -21,30 +21,31 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import WorkflowsScroller from "@/components/product/WorkflowsScroller";
 import { PanelSources, PanelCitations, PanelDocuments } from "@/components/product/stepperPanels";
+import { usePageDict } from "@/lib/i18n/LocaleProvider";
 
-/* COPY IS OURS, GEOMETRY IS THE CAPTURE’S. The capture’s title runs 63 characters and its
-   four step labels 23 to 34. The stepper column is a hand-measured 472x541 with 60px rows,
-   so a longer line wraps and breaks the measured height. Every string below is written to
-   within 10% of the one it replaces. Counts are in features/product-page/FEATURE.md. */
-/* Deliberately NOT "Eight Services, One Platform": that is the hero's h1, a few hundred px up
-   the same page. The hero states the thesis, this elaborates it.
+/* COPY IS OURS AND LIVES IN THE DICTIONARY (`stepper.title`, `stepper.steps`); GEOMETRY IS THE
+   CAPTURE’S. The capture’s title runs 63 characters and its four step labels 23 to 34. The
+   stepper column is a hand-measured 472x541 with 60px rows, so a longer line wraps and breaks
+   the measured height. Counts are in features/product-page/FEATURE.md. */
+/* Deliberately NOT the hero's h1, which sits a few hundred px up the same page. The hero
+   states the thesis, this elaborates it.
    ⚠️ FITTED BY MEASUREMENT, NOT BY CHARACTER COUNT, and the difference bit once already.
-   The first draft ("One Secure Platform Built to Run the Work Behind Your Business") was 62
-   chars against the capture's 63, comfortably inside the 10% rule, and it still wrapped to
-   THREE lines at 390 where the capture takes two: +30px on the h3, which pushed all 645
+   An earlier English draft ("One Secure Platform Built to Run the Work Behind Your Business")
+   was 62 chars against the capture's 63, comfortably inside the 10% rule, and it still wrapped
+   to THREE lines at 390 where the capture takes two: +30px on the h3, which pushed all 645
    elements below it down the page. Character count does not decide wrapping, word boundaries
    do. Rendered line counts, measured in the real face at each tier:
         390px   2 lines / 62px    (capture: 2 / 62)
        1024px   1 line  / 31px    (capture: 1 / 31)
        1440px   2 lines / 62px    (capture: 2 / 62)
-   Re-measure, do not re-count, if this string ever changes. */
-const TITLE = "One Integrated Platform Built to Run Your Whole Business";
-const STEPS = [
-  { n: "01", label: "All your systems in one place" },
-  { n: "02", label: "Every answer shows its source" },
-  { n: "03", label: "Automate your workflows" },
-  { n: "04", label: "Ask questions of your documents" },
-] as const;
+   Re-measure, do not re-count, if this string ever changes — in EITHER locale. The Hebrew
+   restoration (he/product.ts `stepper.title`) was fitted the same way and lands on the same
+   2 / 1 / 2. */
+
+/* The badge numerals. NOT in the dictionary: they are the same four glyphs in every locale, and
+   pairing them with a translated label across two files would only invite the two to drift.
+   Zipped with `stepper.steps` by index, which the tuple typing keeps at four. */
+const STEP_NUMBERS = ["01", "02", "03", "04"] as const;
 
 /* NOT in the capture — Framer runs the advance in JS and the stylesheet carries no timing at
    all beyond the site's one `color .3s`. ESTIMATED, and flagged as such in FEATURE.md. The
@@ -77,6 +78,9 @@ function Badge({ n }: { n: string }) {
           fill="currentColor"
         />
       </svg>
+      {/* `left-1/2` + `-translate-x-1/2` is a CENTRING IDIOM and stays physical. Migrating it
+          would be an active bug: under rtl `start-1/2` resolves to `right:50%` while the
+          translate still moves left, landing the numeral off-centre by its own width. */}
       <span
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-sans
                    text-[14px] font-normal text-ink"
@@ -131,7 +135,7 @@ function StepRow({
       onClick={onSelect}
       aria-current={active ? "true" : undefined}
       className={`relative flex h-[60px] w-full flex-row items-center gap-4 overflow-hidden p-3
-                  text-left transition-opacity duration-300
+                  text-start transition-opacity duration-300
                   focus-visible:ring-2 focus-visible:ring-ink focus-visible:outline-none
                   ${active ? "opacity-100" : "opacity-50 hover:opacity-75"}`}
       style={{ transitionTimingFunction: "var(--ease-rogo)" }}
@@ -142,9 +146,14 @@ function StepRow({
           A CSS ANIMATION rather than a transition, and the caller remounts it via `key` on
           each step change. A transition would need a "have we hydrated yet" flag to start
           from a real 0; an animation always begins at its `from`. */}
+      {/* `start-0`, not `left-0`, so the bar is anchored to the inline START.
+          ⚠️ THE `step-fill` KEYFRAME NEEDS NO RTL COUNTERPART. It animates `width` 0% -> 100%,
+          and width is direction-neutral: with `inset-inline-start: 0` the box grows toward the
+          inline END in both directions, which is the sweep. A mirrored keyframe would be a
+          second name to keep in step for nothing. */}
       {active && progress && (
         <span
-          className="absolute inset-y-0 left-0 -z-px bg-surface"
+          className="absolute inset-y-0 start-0 -z-px bg-surface"
           style={{ animation: `step-fill ${STEP_MS}ms linear forwards` }}
           aria-hidden="true"
         />
@@ -220,6 +229,7 @@ function ImagePanel({ step, animate = false }: { step: number; animate?: boolean
 }
 
 export default function ProductStepper() {
+  const t = usePageDict("product").stepper;
   const reduced = usePrefersReducedMotion();
   const [active, setActive] = useState(0);
 
@@ -228,7 +238,7 @@ export default function ProductStepper() {
      stepper moves on by itself — the one thing a manual selection must not do. */
   useEffect(() => {
     if (reduced) return;
-    const id = setTimeout(() => setActive((a) => (a + 1) % STEPS.length), STEP_MS);
+    const id = setTimeout(() => setActive((a) => (a + 1) % STEP_NUMBERS.length), STEP_MS);
     return () => clearTimeout(id);
   }, [reduced, active]);
 
@@ -244,23 +254,23 @@ export default function ProductStepper() {
         {/* 472x541, column, SPACE-BETWEEN — measured. That is what pins the title to the top
             and the stepper to the bottom against the image's full height. */}
         <div className="flex h-[541px] w-[472px] shrink-0 flex-col items-start justify-between">
-          <div className="flex w-full flex-row items-center gap-[10px] pl-3">
+          <div className="flex w-full flex-row items-center gap-[10px] ps-3">
             <h3
               className="w-full font-display text-[28px] font-normal text-ink"
               style={{ lineHeight: "110%", letterSpacing: "-0.02em" }}
             >
-              {TITLE}
+              {t.title}
             </h3>
           </div>
           <div className="flex w-full flex-col">
-            {STEPS.map((s, i) => (
+            {STEP_NUMBERS.map((n, i) => (
               <StepRow
                 /* `key` carries the active index so the row REMOUNTS when the step changes,
                    restarting the Fill animation from 0. Without it the sweep would only ever
                    play once. */
-                key={`${s.n}-${i === active ? active : "idle"}`}
-                n={s.n}
-                label={s.label}
+                key={`${n}-${i === active ? active : "idle"}`}
+                n={n}
+                label={t.steps[i]}
                 active={i === active}
                 progress={!reduced}
                 onSelect={() => setActive(i)}
@@ -276,10 +286,10 @@ export default function ProductStepper() {
           className="w-full font-display text-[28px] font-normal text-ink"
           style={{ lineHeight: "110%", letterSpacing: "-0.02em" }}
         >
-          {TITLE}
+          {t.title}
         </h3>
-        {STEPS.map((s, i) => (
-          <StackedFeature key={s.n} n={s.n} label={s.label} step={i + 1} />
+        {STEP_NUMBERS.map((n, i) => (
+          <StackedFeature key={n} n={n} label={t.steps[i]} step={i + 1} />
         ))}
       </div>
     </>

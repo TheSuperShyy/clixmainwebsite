@@ -8,6 +8,18 @@
  * source's own name as the card's attribution, the ARTICLE as the link (cards link out,
  * in a new tab, because ours is a digest rather than a blog — see FEATURE.md deviations).
  *
+ * ⚠️ AND THE ENGLISH STILL LIVES HERE, AFTER THE 2026-08-12 HEBREW PASS. The obvious way to
+ * translate a headline is to move it into src/lib/i18n/en/news.ts, and that was rejected: it
+ * would end the property above, permanently. So `en/news.ts` PROJECTS its copy out of this
+ * array instead, and only the HEBREW is authored by hand, joined on `id`. Adding a story is
+ * therefore still one edit here — plus one `tsc` error telling you the Hebrew is missing,
+ * which is the point.
+ *
+ * ⚠️ A NEW ENTRY NEEDS AN `id`, and the array is `as const satisfies readonly NewsItem[]` so
+ * that every id has a literal type. Do not loosen that annotation: it is what `NewsItemId`
+ * (bottom of this file) is derived from, and it is the only thing standing between a missing
+ * translation and a silently-English Hebrew card.
+ *
  * Categories mirror rogo's five-pill bar in COUNT only (All + 4); the labels are how AI
  * news actually clusters, not rogo's PR taxonomy.
  *
@@ -50,12 +62,12 @@ export type LockupPart = { glyph?: string; text: string };
 
 export type CardArt =
   /** rogo's "rogo × Entropia" — flat token ground, centred wordmark lockup. */
-  | { kind: "lockup"; ground: Ground; parts: LockupPart[]; joiner: "×" | "/" }
+  | { kind: "lockup"; ground: Ground; parts: readonly LockupPart[]; joiner: "×" | "/" }
   /** rogo's "Deal Room" — light ground, faint panel texture, a figure over it. */
   | {
       kind: "stat";
       ground: Ground;
-      glyphs?: string[];
+      glyphs?: readonly string[];
       figure: string;
       caption: string;
       /** Which scatter from `PANELS` in NewsBoard. Give each stat tile a different one. */
@@ -76,6 +88,16 @@ export type CardArt =
     };
 
 export type NewsItem = {
+  /**
+   * STABLE JOIN KEY. Translations live in src/lib/i18n/{en,he}/news.ts and join on THIS,
+   * never on the array index: the order below is deliberate, non-chronological and shifts
+   * whenever a story is added, so an index join would silently mis-pair every card after
+   * the insertion point.
+   *
+   * Slug-shaped, lowercase, and never reused or edited once shipped — renaming an id is
+   * the same as deleting the story and adding a new one, and `tsc` will say so.
+   */
+  id: string;
   /** ISO date for <time dateTime>; rendered in the target's own M/D/YY format. */
   date: string;
   title: string;
@@ -86,6 +108,9 @@ export type NewsItem = {
   art: CardArt;
 };
 
+/** What the pill bar can be filtered to — the join key for `news.filters`. */
+export type FilterKey = (typeof CATEGORIES)[number];
+
 export const CATEGORIES: readonly ["All", ...NewsCategory[]] = [
   "All",
   "Models",
@@ -94,9 +119,10 @@ export const CATEGORIES: readonly ["All", ...NewsCategory[]] = [
   "Policy",
 ];
 
-export const NEWS_ITEMS: NewsItem[] = [
+export const NEWS_ITEMS = [
   /* ---- row 1 ---- */
   {
+    id: "anthropic-riot-compute",
     date: "2026-08-11",
     title: "Anthropic locks 20-year, 191 MW compute deal with Riot for $9.1B",
     source: "The Block",
@@ -113,6 +139,7 @@ export const NEWS_ITEMS: NewsItem[] = [
     },
   },
   {
+    id: "south-australia-ai-commission",
     date: "2026-08-11",
     title: "South Australia unveils Australia's first AI royal commission",
     source: "SBS News",
@@ -128,6 +155,7 @@ export const NEWS_ITEMS: NewsItem[] = [
     },
   },
   {
+    id: "gpt56-cyber-chrome-zero-days",
     date: "2026-08-10",
     title: "OpenAI's new GPT-5.6-Cyber found two Chrome zero-days",
     source: "The Decoder",
@@ -145,6 +173,7 @@ export const NEWS_ITEMS: NewsItem[] = [
 
   /* ---- row 2 ---- */
   {
+    id: "unitree-shanghai-ipo",
     date: "2026-08-11",
     title: "Unitree Shanghai IPO draws 2,700x retail oversubscription",
     source: "Crypto Briefing",
@@ -158,6 +187,7 @@ export const NEWS_ITEMS: NewsItem[] = [
     },
   },
   {
+    id: "meta-muse-glimmer",
     date: "2026-08-10",
     title: "Meta releases Muse Glimmer, a 30B agent model that runs on a laptop",
     source: "Meta AI",
@@ -171,6 +201,7 @@ export const NEWS_ITEMS: NewsItem[] = [
     },
   },
   {
+    id: "h3c-apple-silicon",
     date: "2026-08-11",
     title: "Redis creator ships native MiniMax H3 runtime for Apple Silicon",
     source: "GitHub",
@@ -192,6 +223,7 @@ export const NEWS_ITEMS: NewsItem[] = [
 
   /* ---- row 3 ---- */
   {
+    id: "claude-riemann-zeta",
     date: "2026-08-10",
     title: "Claude improves a Riemann-zeta bound with 60 subagents and 31M tokens",
     source: "Anthropic",
@@ -207,6 +239,7 @@ export const NEWS_ITEMS: NewsItem[] = [
     },
   },
   {
+    id: "sonnet5-price-freeze",
     date: "2026-08-11",
     title: "Anthropic freezes Sonnet 5 at intro pricing, cancels Sept 1 hike",
     source: "Claude on X",
@@ -220,6 +253,7 @@ export const NEWS_ITEMS: NewsItem[] = [
     },
   },
   {
+    id: "singapore-gdp-forecast",
     date: "2026-08-11",
     title: "Singapore doubles 2026 GDP forecast, credits AI capex surge",
     source: "Xinhua",
@@ -239,6 +273,7 @@ export const NEWS_ITEMS: NewsItem[] = [
 
   /* ---- row 4 ---- */
   {
+    id: "fed-warsh-ai-overhaul",
     date: "2026-08-11",
     title: "Fed's Warsh puts Andreessen and Chetty in charge of AI overhaul",
     source: "Axios",
@@ -264,6 +299,7 @@ export const NEWS_ITEMS: NewsItem[] = [
     },
   },
   {
+    id: "tldv-meeting-leak",
     date: "2026-08-10",
     title: "AI notetaker tl;dv leaked 181K meetings, sat on the fix for six months",
     source: "bobdahacker",
@@ -280,6 +316,7 @@ export const NEWS_ITEMS: NewsItem[] = [
     },
   },
   {
+    id: "openai-ethics-chief-exit",
     date: "2026-08-11",
     title: "OpenAI's ethics chief Bakalar leaves after under a year",
     source: "Financial Times",
@@ -292,4 +329,14 @@ export const NEWS_ITEMS: NewsItem[] = [
       chip: "Financial Times",
     },
   },
-];
+] as const satisfies readonly NewsItem[];
+
+/**
+ * Every story's id, as a LITERAL UNION derived from the array above — not hand-maintained.
+ *
+ * This is the type that makes a missing translation a build failure: `he/news.ts` is keyed by
+ * `NewsItemId`, so adding a story here without adding its Hebrew is a `tsc` error rather than
+ * an English headline on a Hebrew page. Adding the story is still the only edit English needs
+ * — `en/news.ts` projects its copy straight out of this array.
+ */
+export type NewsItemId = (typeof NEWS_ITEMS)[number]["id"];

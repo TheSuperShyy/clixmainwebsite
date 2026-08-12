@@ -21,12 +21,11 @@
  */
 
 import { useEffect, useState, useSyncExternalStore } from "react";
+import { usePageDict } from "@/lib/i18n/LocaleProvider";
 
-/* The hero prompt's typed phrases. CLIX'S OWN (2026-08-12). Four things an owner actually
-   asks for, one per capability family: agent follow-up, WhatsApp intake, call summaries,
-   invoice chasing. Held to rogo's character lengths (37/48/44/34 vs 36/50/43/35) because the
-   typing loop is time-driven, not length-driven: a longer phrase just sits on screen longer,
-   and above ~50 chars it wraps to a third line in the phone field, whose box is a fixed h-11.
+/* The hero prompt's typed phrases live in the dictionary (`hero.prompts`). CLIX'S OWN
+   (2026-08-12). Four things an owner actually asks for, one per capability family: agent
+   follow-up, WhatsApp intake, call summaries, invoice chasing.
 
    The original's list ("benchmark revenue estimates for AAPL" and three siblings) was
    recovered from the lazily-loaded code component in bundle
@@ -34,17 +33,35 @@ import { useEffect, useState, useSyncExternalStore } from "react";
    `typeSpeed: 30` and `showCursor: true` came from; the SSR HTML renders an EMPTY span plus
    the cursor, so none of it is in the capture. Kept on record because the timings below are
    still the original's measured values. */
-const PROMPTS = [
-  "follow up with every lead from friday",
-  "route every whatsapp inquiry to the right person",
-  "turn every sales call into a written summary",
-  "send and chase invoices without me",
-];
 const TYPE_SPEED_MS = 30; /* measured: typeSpeed 30 */
 /* Not in the bundle payload: the hold at the end of a phrase and the delete rate. Both are
    ESTIMATED. Flagged in FEATURE.md; a live observation can tighten them. */
 const HOLD_MS = 1800;
 const DELETE_SPEED_MS = 18;
+
+/**
+ * ⚠️ THE ONE PIECE OF ANIMATION TIMING ON THIS ROUTE THAT IS LOCALE-DERIVED, and the reason is
+ * arithmetic rather than taste.
+ *
+ * The loop above advances ONE CHARACTER per tick, so `typeSpeed` is a RATE and the time a
+ * phrase takes is `rate × length`. Hebrew carries the same meaning in fewer, slightly wider
+ * characters — measured, this route's four phrases run 30/34/30/33 characters against English's
+ * 37/48/44/34 while rendering 201/225/199/219px against 230/307/274/227. At a fixed 30ms/char
+ * the Hebrew phrases would finish 150 to 400ms early each, and the block's whole cadence (type,
+ * hold 1800, delete, next) would tighten visibly.
+ *
+ * So HOLD THE DURATION, NOT THE RATE: scale the per-character delay by how much shorter this
+ * locale's phrases are. `HOLD_MS` is untouched — it is already a duration.
+ *
+ * Derived from the strings themselves rather than tabled per locale, so it cannot drift when
+ * the copy changes. In English the mean IS `EN_MEAN_PROMPT_CHARS`, so the ratio is exactly 1
+ * and both rates evaluate to 30 and 18 — the LTR build is byte-identical, which is what keeps
+ * this pass verifiable as a no-op. In Hebrew it lands at 38.50ms/char, putting the four phrases
+ * at 1155/1309/1155/1271ms against English's 1110/1440/1320/1020.
+ *
+ * A DOCUMENTED DIVERGENCE, deliberately: animation timing on this site is otherwise frozen.
+ */
+const EN_MEAN_PROMPT_CHARS = 163 / 4; /* (37 + 48 + 44 + 34) / 4 — frozen, see above */
 
 /* Subscribed rather than read once, so a mid-session change to the OS setting is honoured.
    The server snapshot is `false` — matchMedia does not exist during SSR, and false matches
@@ -63,8 +80,17 @@ function usePrefersReducedMotion() {
 
 /** The typed prompt + blinking caret. Reduced-motion renders the first phrase, static. */
 function TypedPrompt() {
+  const t = usePageDict("product").hero;
+  const prompts = t.prompts;
   const reduced = usePrefersReducedMotion();
   const [typed, setTyped] = useState("");
+
+  /* Both rates scale together; see EN_MEAN_PROMPT_CHARS. `prompts` is a module constant in the
+     dictionary, so these are stable for the mount and the effect never re-runs on them. */
+  const paceScale =
+    EN_MEAN_PROMPT_CHARS / (prompts.reduce((n, p) => n + p.length, 0) / prompts.length);
+  const typeMs = TYPE_SPEED_MS * paceScale;
+  const deleteMs = DELETE_SPEED_MS * paceScale;
 
   useEffect(() => {
     if (reduced) return;
@@ -73,26 +99,26 @@ function TypedPrompt() {
     let deleting = false;
     let timer: ReturnType<typeof setTimeout>;
     const tick = () => {
-      const full = PROMPTS[phrase];
+      const full = prompts[phrase];
       chars += deleting ? -1 : 1;
       setTyped(full.slice(0, chars));
-      let next: number = deleting ? DELETE_SPEED_MS : TYPE_SPEED_MS;
+      let next: number = deleting ? deleteMs : typeMs;
       if (!deleting && chars === full.length) {
         deleting = true;
         next = HOLD_MS;
       } else if (deleting && chars === 0) {
         deleting = false;
-        phrase = (phrase + 1) % PROMPTS.length;
+        phrase = (phrase + 1) % prompts.length;
       }
       timer = setTimeout(tick, next);
     };
-    timer = setTimeout(tick, TYPE_SPEED_MS);
+    timer = setTimeout(tick, typeMs);
     return () => clearTimeout(timer);
-  }, [reduced]);
+  }, [reduced, prompts, typeMs, deleteMs]);
 
-  /* DERIVED, not set in the effect: writing PROMPTS[0] into state from the effect body is
+  /* DERIVED, not set in the effect: writing prompts[0] into state from the effect body is
      both a lint error (react-hooks/set-state-in-effect) and a wasted second render. */
-  const text = reduced ? PROMPTS[0] : typed;
+  const text = reduced ? prompts[0] : typed;
 
   return (
     /* Measured: 16px/1em desktop+, 15px/1.4em phone, 15px/1em tablet; letter-spacing 0;
@@ -106,9 +132,13 @@ function TypedPrompt() {
       style={{ color: "rgb(23, 23, 23)", letterSpacing: "0em" }}
       aria-hidden="true"
     >
+      {/* `ms-px` and not `ml-px`: the caret follows the text in DOM order, so under rtl it
+          renders to the LEFT of the phrase and the 1px gap it needs is on its right. The
+          logical property resolves to `margin-left` in ltr, so the English computed value is
+          unchanged. */}
       <span>{text}</span>
-      {!reduced && <span className="ml-px animate-[blink_1s_step-end_infinite] text-muted">|</span>}
-      {reduced && <span className="ml-px text-muted">|</span>}
+      {!reduced && <span className="ms-px animate-[blink_1s_step-end_infinite] text-muted">|</span>}
+      {reduced && <span className="ms-px text-muted">|</span>}
     </span>
   );
 }
@@ -133,7 +163,22 @@ function TypedPrompt() {
  * Incidental finding worth carrying forward: headless Chrome DOES have network egress in this
  * environment, contrary to the note in docs/CONTEXT.md dated 2026-08-03. Live probing is
  * available for exactly this class of question — runtime variant selection, computed
- * geometry, motion — none of which a static capture can answer. */
+ * geometry, motion — none of which a static capture can answer.
+ *
+ * ⚠️ THESE TWO ARE **NOT MIRRORED UNDER RTL**, AND THAT WAS VERIFIED RATHER THAN OVERLOOKED
+ * (2026-08-12). The pair is a 180°-ROTATIONAL ORNAMENT, not a pointer: `BracketRight`'s path
+ * data is `BracketLeft`'s rotated half a turn, one clings to the top-left and the other to the
+ * bottom-right, and neither marks a leading or a trailing edge. There is no "start" corner to
+ * swap to. Three further reasons, in descending order of how much they would cost:
+ *   1. mirroring would make `transition-[top,left]` / `transition-[bottom,right]` direction
+ *      dependent, i.e. two different transition-property lists per locale. That is a changed
+ *      COMPUTED VALUE on the English page as soon as the class becomes conditional, which is
+ *      exactly what this pass may not do.
+ *   2. the −28 / −12 offsets and their `group-hover` targets (−18 / −2) are measured off the
+ *      live `q741vz` variant, per the note above. A mirrored pair would need four more.
+ *   3. the ornament reads identically either way, so the whole exercise buys nothing.
+ * Logged as a documented divergence from the "mirror navigational affordances" rule, which
+ * these are not. */
 function BracketLeft({ className, style }: { className?: string; style?: React.CSSProperties }) {
   return (
     <svg width="14" height="20" viewBox="0 0 14 20" fill="none" className={className} style={style} aria-hidden="true">
@@ -188,10 +233,14 @@ function AttachIcon() {
   );
 }
 
-/* Submit arrow, 20x21.25 with the original's `translate(0 0.625)` group offset folded in. */
+/* Submit arrow, 20x21.25 with the original's `translate(0 0.625)` group offset folded in.
+   MIRRORED under rtl: this one IS a navigational affordance — it points from the field toward
+   "send", so an unmirrored copy points back at the text on a Hebrew page. `rtl:-scale-x-100`
+   rather than a second path: the variant only matches when `<html dir="rtl">`, so the English
+   computed `transform` stays `none`. */
 function ArrowIcon() {
   return (
-    <svg width="20" height="21" viewBox="0 0 20 21.25" fill="none" className="h-[21px] w-5 shrink-0" aria-hidden="true">
+    <svg width="20" height="21" viewBox="0 0 20 21.25" fill="none" className="h-[21px] w-5 shrink-0 rtl:-scale-x-100" aria-hidden="true">
       <g transform="translate(0 0.625)">
         <path
           d="M 11.487 5.081 L 16.25 9.844 L 11.487 14.606"
@@ -215,6 +264,7 @@ function ArrowIcon() {
 }
 
 export default function ProductHero() {
+  const t = usePageDict("product").hero;
   return (
     <section
       id="hero"
@@ -243,7 +293,7 @@ export default function ProductHero() {
                          desktop:text-[64px]"
               style={{ lineHeight: "100%", letterSpacing: "-0.06em" }}
             >
-              Eight Services, One Platform
+              {t.headline}
             </h1>
             {/* Subtitle 18/18/16/16, weight 400, -0.02em, 130%, max-w 540, balanced.
                 The preset's colour is #383838 (ink-soft) but the element overrides it inline
@@ -253,8 +303,7 @@ export default function ProductHero() {
                          font-normal text-muted desktop:text-[18px]"
               style={{ lineHeight: "130%", letterSpacing: "-0.02em" }}
             >
-              AI agents, automations, CRM and custom software, built as one system around
-              how your team already works
+              {t.subhead}
             </p>
           </div>
 
@@ -280,7 +329,13 @@ export default function ProductHero() {
                   ./demo, the same authoring slip the site footer already carries. Ours points
                   at `#contact` at every tier, which is clix's one CTA destination sitewide
                   (Hero.tsx, Footer.tsx) and resolves IN-PAGE here: Footer carries
-                  `id="contact"` and /product renders it. Deviation logged in FEATURE.md. */}
+                  `id="contact"` and /product renders it. Deviation logged in FEATURE.md.
+                  ⚠️ NEEDS NO LOCALE PREFIX, and that was checked rather than assumed: a BARE
+                  HASH is not an app-internal path, `localeHref` returns it untouched by its own
+                  documented contract, and /he/product renders the same Footer with the same
+                  `id`. So this resolves in-page on both locales. It is also the only `<a>` in
+                  this file — the one raw `next/link` on the route is in ProductSecurity.tsx and
+                  IS prefixed there. */}
               <a
                 href="#contact"
                 className="flex h-10 w-full items-center justify-center gap-2 overflow-hidden
@@ -298,7 +353,7 @@ export default function ProductHero() {
                     className="font-sans text-[16px] font-medium whitespace-pre text-paper"
                     style={{ lineHeight: "1em", letterSpacing: "-0.01em" }}
                   >
-                    Let&rsquo;s start
+                    {t.cta}
                   </span>
                 </span>
               </a>
@@ -364,7 +419,7 @@ export default function ProductHero() {
                   how the original keeps the field from growing as the phrase wraps. */}
               <div
                 className="relative flex h-14 w-full flex-col items-start justify-start gap-[10px]
-                           overflow-hidden pt-4 pr-3 pb-2 pl-4
+                           overflow-hidden pt-4 pe-3 pb-2 ps-4
                            tablet:h-auto tablet:min-h-[54px] tablet:pt-3
                            desktop:h-min desktop:min-h-0 desktop:flex-row desktop:items-center
                            desktop:justify-between desktop:gap-0"
@@ -379,7 +434,7 @@ export default function ProductHero() {
                 <div className="flex h-min w-min flex-row items-center justify-start gap-2">
                   <button
                     type="button"
-                    aria-label="Attach files"
+                    aria-label={t.a11y.attach}
                     className="flex aspect-square w-4 items-center justify-center text-muted
                                transition-opacity duration-300 hover:opacity-70
                                focus-visible:ring-2 focus-visible:ring-ink
@@ -393,7 +448,7 @@ export default function ProductHero() {
                     in globals.css: this is ROGO's green, kept verbatim with the clone. */}
                 <button
                   type="button"
-                  aria-label="Submit prompt"
+                  aria-label={t.a11y.submit}
                   className="flex aspect-square w-8 shrink-0 flex-row items-center justify-center
                              gap-1 overflow-hidden rounded-[6px] bg-brand-green px-3 py-[6px]
                              text-paper transition-opacity duration-300 hover:opacity-90

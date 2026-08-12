@@ -46,6 +46,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useViewTransitionNavigate } from "./ViewTransitions";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
+import { localeHref } from "@/lib/i18n/config";
 
 type AppLinkProps = {
   href: string;
@@ -63,6 +65,7 @@ export default function AppLink({
 }: AppLinkProps) {
   const navigate = useViewTransitionNavigate();
   const pathname = usePathname();
+  const locale = useLocale();
 
   if (external) {
     return (
@@ -79,6 +82,14 @@ export default function AppLink({
   }
 
   if (href.startsWith("/")) {
+    /* THE ONLY LOCALE-AWARE LINE IN THIS FILE, and it is deliberately INSIDE this branch
+       rather than at the top. Call sites keep writing `/product`; on a Hebrew page that
+       becomes `/he/product`. It is the identity function in English, so the LTR render is
+       byte-identical. Applying it above the `external` branch would be a semantic change —
+       an `external` link to an internal path is nobody's intent here, and today's code does
+       not route it. */
+    const to = localeHref(href, locale);
+
     const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
       onClick?.(e);
 
@@ -88,17 +99,24 @@ export default function AppLink({
       }
 
       /* A hash pointing at the route we are already on is a scroll. `/#contact` from `/`
-         must fall through to Link; the same href from `/company` is a real navigation. */
-      const [path] = href.split("#");
+         must fall through to Link; the same href from `/company` is a real navigation.
+
+         ⚠️ COMPARED AGAINST THE PREFIXED FORM, not the raw href. `usePathname()` returns the
+         PUBLIC path, so on `/he` it is `"/he"` — and the raw `/#contact` would never match it,
+         turning a same-page scroll into a full navigation with a crossfade over it. That is
+         also why `localeHref` collapses the slash: `"/he#contact"` splits to `"/he"`, which
+         matches, where `"/he/#contact"` would split to `"/he/"`, which does not. There is a
+         test for exactly that in the config module. */
+      const [path] = to.split("#");
       const target = path === "" ? "/" : path;
-      if (href.includes("#") && target === pathname) return;
+      if (to.includes("#") && target === pathname) return;
 
       e.preventDefault();
-      navigate(href);
+      navigate(to);
     };
 
     return (
-      <Link href={href} onClick={handleClick} {...rest}>
+      <Link href={to} onClick={handleClick} {...rest}>
         {children}
       </Link>
     );

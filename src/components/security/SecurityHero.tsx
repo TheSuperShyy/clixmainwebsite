@@ -13,12 +13,25 @@
  *
  * COPY IS CLIX'S OWN FROM THE FIRST COMMIT — the `/company` model, not the `/careers` one.
  * Nothing of rogo's editorial ever lands here, so there is nothing to strip later and the route
- * needs no `robots` guard. The two strings below were length-fitted to the target's RENDERED
+ * needs no `robots` guard. The two English strings were length-fitted to the target's RENDERED
  * line counts (h1 two lines, subtitle two lines, at all three tiers); they are not free text.
  *
+ * ⚠️ THE COPY NOW LIVES IN `src/lib/i18n/{en,he}/security.ts` AND IS READ WITH `getDict()`,
+ * NOT WITH `usePageDict()`. This is a SERVER component (see above) — the client hook would
+ * force `"use client"` on a block that ships zero JS today, which is exactly what the header's
+ * second paragraph forbids. `getDict()` is safe here because `SecurityRoute` seeds the locale
+ * as the first statement of its body, and this component renders below it.
+ *
+ * ⚠️ THE H1 IS THE ONE LENGTH RISK ON THIS BLOCK, IN EITHER LOCALE. The section is `70vh` with
+ * `place-content: center` AND `overflow: hidden`, so it does not grow — at a 900px viewport it
+ * is 630px against 580px of content, and a THIRD h1 line (+83.6px at 88px/95%) would overflow
+ * that budget and be clipped top and bottom rather than pushing the band taller. Both locales'
+ * titles are verified at two lines; a longer one is a clipped one.
+ *
  * NO DASHES IN CLIX COPY — no em dash, no en dash, no hyphen standing in for one (user's
- * standing request, 2026-08-10, first recorded in ClixManifesto.tsx). It governs the three
- * consts below, not these comments.
+ * standing request, 2026-08-10, first recorded in ClixManifesto.tsx). It governs the strings in
+ * the dictionary, not these comments. Hebrew keeps the PREFIX hyphen (`ה-AI`, `ב-TLS`), which
+ * is orthography rather than punctuation style.
  *
  * TIER MAP — three sizes, not four. XL (>=1600) and desktop (1200-1599.98) are identical on
  * every value in this block, so no `xl:` rule exists here. Written mobile-first.
@@ -52,15 +65,26 @@
  * the ownership of the colour is not. `data-nav-theme="dark"` because the whole page is `ink`.
  */
 
-const TITLE = "Your Keys. Your Data.";
-const SUBTITLE =
-  "Clix runs your automations inside your own accounts, with the narrowest access that does the job.";
-const CTA = "Request Demo";
+import { getDict } from "@/lib/i18n/server";
 
 /* ---------------------------------------------------------------------------------------
  * The two corner brackets that frame the CTA. 14x20 each, path data verbatim from the
- * capture's <use> defs. These really are two DIFFERENT paths — unlike the 21x33 marks on
- * Block 3, which are one SVG used twice with a 180deg rotation.
+ * capture's <use> defs.
+ *
+ * ⚠️ THEY ARE NOT MIRRORED IN RTL, AND THAT IS A DECISION, NOT AN OVERSIGHT (contract §7).
+ * The pair is a ROTATIONAL ORNAMENT, not a navigational affordance: it points at nothing, and
+ * a 180° turn is direction-symmetric, so `/he/security` ships the identical artwork at the
+ * identical measured offsets. Same call `/product` and `/careers` make on the same pair.
+ *
+ * ⚠️ CORRECTION, 2026-08-12. An earlier version of this comment claimed these "really are two
+ * DIFFERENT paths — unlike the 21x33 marks on Block 3". That claim is WRONG. Rotating
+ * `BracketLeft` 180° about (6.996, 10) reproduces `BracketRight` to within 0.008 user units on
+ * every coordinate of both paths — e.g. left `M4.79688 3.46116` maps to (9.20312, 16.53884)
+ * against right's `M9.19531 16.5388`, and the same 0.0078 x-offset holds for all 16 pairs. So
+ * these are the SAME artwork rotated, exactly like Block 3's 21x33 marks. The ARTWORK IS LEFT
+ * ALONE — two verbatim path pairs from the capture's own defs are what the capture ships, and
+ * collapsing them into one rotated component would be a rewrite justified by a comment. Only
+ * the false claim is fixed.
  *
  * COPIED VERBATIM FROM src/components/careers/CareersHero.tsx (which took them from
  * ProductHero.tsx), deliberately, rather than extracted to a shared module: this repo keeps
@@ -118,6 +142,10 @@ function BracketRight({ className, style }: { className?: string; style?: React.
 }
 
 export default function SecurityHero() {
+  /* Server read of the route's namespace. Byte-identical to the consts this block used to
+     carry — see src/lib/i18n/en/security.ts, which is where they now live. */
+  const t = getDict().security.hero;
+
   return (
     /* Measured: column, place-content:center, align-items:center, gap 96, width 100%,
        overflow hidden, position relative, padding 198/40/80 (phone 198/16/80).
@@ -159,7 +187,7 @@ export default function SecurityHero() {
                        desktop:text-[88px]"
             style={{ lineHeight: "95%" }}
           >
-            {TITLE}
+            {t.title}
           </h1>
 
           {/* Subtitle 18px at >=1200, 16px below; line-height 130% and tracking -0.02em at every
@@ -174,7 +202,7 @@ export default function SecurityHero() {
                        text-[16px] desktop:text-[18px]"
             style={{ lineHeight: "130%", letterSpacing: "-0.02em" }}
           >
-            {SUBTITLE}
+            {t.subtitle}
           </p>
         </div>
 
@@ -248,7 +276,7 @@ export default function SecurityHero() {
                 className="font-sans text-[16px] font-medium whitespace-pre text-ink"
                 style={{ lineHeight: "1em", letterSpacing: "-0.01em" }}
               >
-                {CTA}
+                {t.cta}
               </span>
             </span>
           </a>
