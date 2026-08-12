@@ -46,7 +46,7 @@ One-section page. Spec + memory in [features/news-page/](../features/news-page/)
 
 | # | Section | Status | Notes |
 |---|---|---|---|
-| 1 | `Articles` | **`review`** | Built 2026-08-11 from a live fetch (no frozen capture). Hero (h1 88/72/64, subtitle 16 @ 540px balance, mailto button) + 5 filter pills (h-40, radius 28) + 3/2/1-col grid, gap 32. Content is a real 12-story AI digest (`newsItems.ts`) — cards link out to sources; tiles stand in for rogo's art. Never pixel-diffed. |
+| 1 | `Articles` | **`review`** | Built 2026-08-11 from a live fetch (no frozen capture). Hero (h1 88/72/64, subtitle 16 @ 540px balance, mailto button) + 5 filter pills (h-40, radius 28) + 3/2/1-col grid, gap 32. Content is a real 12-story AI digest (`newsItems.ts`) — cards link out to sources. **Card art rebuilt 2026-08-12:** rogo's grid is **three templates, not one**, so ours runs 5 typeset lockups (simple-icons CC0 marks via `NEWS_GLYPHS`) / 3 stat tiles (deterministic square field, seeded per tile at module scope) / 4 Pexels photographs with a floating white chip — declared per story, so a filter click no longer recolours a card the way the old `TILE[i % 4]` rotation did. ⚠️ simple-icons `riot` and `axios` are the **wrong companies**; read each file's `<title>` before using a mark. Never pixel-diffed. |
 
 ## Page: `/product` (clone of `rogo.com/product`)
 

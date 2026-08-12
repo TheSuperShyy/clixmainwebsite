@@ -59,11 +59,70 @@ link OUT to the source articles instead of to internal posts.
 | Pill shape | height / padding / radius | 40 / `10px 20px` / 28px |
 | Card image | radius | **0** — square corners, no radius anywhere on the card |
 
-### Assets
+### Card art — three templates (2026-08-12)
+
 Original cards use `framerusercontent` images (rogo's own — not vendored, same rule as
-everywhere). Ours are **built tiles**: solid token grounds (canvas / forest / forest-deep
-rotation) with the story's source name set in the display face — the visual language of
-rogo's own partnership tiles ("rogo × Entropia").
+everywhere). **rogo's grid is not one template**, which is the fact this section is built
+on: its six visible cards run flat wordmark lockups (`rogo × Entropia`, `rogo + Rivanna`,
+`rogo × DOW JONES`), one photograph with a floating white chip (`Claude Opus 5 with Rogo`),
+and light panels carrying figures (`Deal Room`, `✳ Intelligence`). Ours runs the same three
+over 12 stories — **5 lockups · 3 stat tiles · 4 photographs** — declared per item in
+`newsItems.ts` and drawn by `NewsBoard.tsx`.
+
+| Template | Ground | Contents | rogo's original |
+|---|---|---|---|
+| `lockup` | `forest` ×2 · `canvas` ×2 · `forest-deep` ×1 | centred `[mark] Name  ×|/  Name [mark]`, display 20px/−0.03em | `rogo × Entropia` |
+| `stat` | `surface` ×3 | square-field texture + centred figure (display 28) over caption (sans 14 `muted`) | `Deal Room` / `✳ Intelligence` |
+| `photo` | — | full-bleed `object-cover` + centred white chip (radius 10, `8px 12px`, sans 14) | `Claude Opus 5 with Rogo` |
+
+Slot is unchanged at every tier: `aspect-[1.90476]`, `overflow-hidden`, **radius 0**.
+
+**Order is composed, not chronological** (it never was). Strict alternation was tried first
+and rejected — it put one kind per grid column on every row, which reads as a template.
+The shipped sequence gives `L P S / P L L / S L P / L S P` at 3 columns: no row or column
+is one kind, and the three dark grounds zig-zag rather than lining up.
+
+#### Brand marks
+simple-icons, **CC0 1.0**, single-path 24×24, inlined as `currentColor` — the same source
+and contract as [`ui/ToolGlyphs.tsx`](../../src/components/ui/ToolGlyphs.tsx), whose `<svg>`
+was lifted into a shared `ui/Glyph.tsx` for this. `NEWS_GLYPHS` spreads `TOOL_GLYPHS`
+(`openai` and `claude` were already there) and adds **`anthropic`, `meta`, `github`,
+`googlechrome`, `apple`**.
+
+> ⚠️ **Two slugs are the wrong company.** Verified by reading each file's `<title>` rather
+> than trusting the slug: simple-icons' **`riot` is Riot Games / Riot.im**, not Riot
+> Platforms the miner; its **`axios` is the JS HTTP client**, not the news outlet.
+> `financialtimes` and `unitree` 404. All four render as type — the fallback ToolGlyphs
+> already documents, and the reason `Riot Platforms` and `Federal Reserve` are typeset.
+
+#### Photographs
+All Pexels (`images.pexels.com/photos/<id>/pexels-photo-<id>.jpeg?auto=compress&cs=tinysrgb&w=1200`),
+royalty-free commercial, no attribution. Response bytes verbatim — **no local re-encode**
+(there is no `sharp` in this repo and none was added). `w=1200` is a 2× source for a card
+that is ~405px at desktop.
+
+| File | Pexels ID | Delivered | Bytes | Subject | Framing |
+|---|---|---|---|---|---|
+| `australia-parliament.jpg` | 12532604 | 1200×800 | 38 KB | flag mast, Australian Parliament House | `50% 25%` — mast is in the top third |
+| `shanghai-lujiazui.jpg` | 31772144 | 1200×800 | 174 KB | Lujiazui towers, Shanghai Tower at right | default |
+| `singapore-marina-bay.jpg` | 33847224 | 1200×800 | 269 KB | Marina Bay skyline across the water | `50% 20%` — crops two walkers out |
+| `vacated-desk.jpg` | 19165510 | 1200×803 | 87 KB | emptied cubicle, bare desk by a window | default |
+
+⚠️ **`objectPosition`'s first value does nothing here.** Every source is *taller* than the
+1.90476 slot, so `cover` locks to width and only the vertical value reframes. Same trap as
+`/careers`, arriving from the opposite direction (there the box was taller than the source).
+
+⚠️ **Licensing, one level past "royalty-free".** The Pexels licence bars photos of
+identifiable people in ways implying endorsement. Applied here by subject and by crop: no
+frontal face appears in any of the four.
+
+⚠️ **Pexels' search page still 403s** to a plain fetch (as `company-page/CONTEXT.md`
+records). IDs came from `WebSearch` scoped to `pexels.com` — the ID is the trailing number
+in the result slug. The CDN filename pattern above 404s for roughly 1 ID in 8; take the
+next candidate.
+
+**A fifth photo was sourced and deleted** — see the Fed card note under *Documented
+deviations*.
 
 ### Interactive states
 | Element | Hover | Focus-visible | Notes |
@@ -93,7 +152,8 @@ Library: none (plain React state). Reduced-motion: nothing animates.
 | Property | Original | Ours | Why |
 |---|---|---|---|
 | h1/card-title face | ABC Arizona Mix | Discovery (`--font-display`) | licensing, sitewide decision 2026-08-08 |
-| Card images | rogo's article art | token-ground source tiles | rogo's assets are not vendorable; tiles reuse their own partnership-card language |
+| Card images | rogo's article art | 5 lockups / 3 stat tiles / 4 Pexels photographs | rogo's assets are not vendorable; the three templates are rebuilt from their own grid's language, and the marks are CC0 |
+| Fed card art | — | **typeset lockup, not a photograph** | user 2026-08-12: *"i dont see the connection of the background and the topic"*. Every candidate building either names the **wrong** institution (the Capitol = Congress; a carved "United States National Bank" = a commercial bank; Pexels' one "Fed building" hit, 6534073, is the **Tennessee State Office Building**, mislabelled upstream) or names none and connects to nothing. `Federal Reserve / AI overhaul` states the link instead of implying it. `institution-facade.jpg` (7078251) was deleted rather than left in `public/`, which ships whether or not code references it |
 | Card link target | internal `/news/<slug>` | external source article, new tab | ours is a digest of third-party reporting |
 | Pill categories | Media/Product/Partnerships/Meet the team | Models/Business/Security/Policy | content is AI news, not rogo PR |
 | Button `mailto:` | press@rogo.ai | clixteam579@gmail.com | our media contact |
