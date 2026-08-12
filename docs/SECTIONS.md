@@ -213,10 +213,29 @@ breaks mid-hyphen** ("next-" / "generation") and there is no clean fix at 390 �
 compound is a ~480px unbreakable run in a 358px viewport, which `overflow-hidden` would clip.
 Dropping the hyphen is the only fix; flagged to the user, left as written.
 
-⚠️ **`noindex` STILL STANDS, now on ONE reason instead of two.** The three job rows are
-**invented**. A job listing solicits an application, which makes an invented one worse than an
-invented testimonial — every row points at a real `mailto:`, never a fabricated ATS URL. The
-user has said the jobs are the follow-up, so the guard lifts when they are real and not before.
+⚠️ **THE `#roles` BAND AND THE HERO CTA WERE REMOVED** later the same day (user: *"remove
+this section we dont need job offering for now also remove the see career button"*). The page is
+**Hero → Gallery → About → Footer**. The CTA went with the band regardless of the ask: its only
+job was `href="#roles"`, so keeping it would have left the page's sole call to action pointing at
+a dead fragment. **The band's full measured spec is retained** in FEATURE.md, and
+`careers-roles-diff.js` is kept with a warning header — both describe the *target*, and
+re-deriving them means re-probing a live site. Components restore from commit `bbf10b1`.
+
+⚠️ **The removal's real risk was the nav, not the layout.** `#roles` was the page's ONLY
+`data-nav-theme="dark"` section, so the light → dark handover now happens at the Footer.
+Re-probed at all four tiers: `hero > gallery > about > contact`, `light > light > light > dark`,
+**every gap 0**. If the band ever returns it must go back *between* `#about` and `<Footer>`.
+
+⚠️ **`#hero` is now 529 at ≥1200 — the target's number, and it means nothing.** The target is
+529 with a 2-line headline plus a 44px gap and a 40px button; ours is 529 with a 3-line headline
+and no button, and +83.6 and −84 cancel to within a pixel. **Two unrelated changes summing to
+zero. Never read a matching number as fidelity without the arithmetic behind it.**
+
+⚠️ **`noindex` IS NOW UNJUSTIFIED AND STILL IN PLACE — the one open decision on this route.**
+Both original reasons are gone: the copy is clix's own, and the invented job rows left with the
+band. The photographs were never part of the guard. It is kept **deliberately**, because lifting
+it makes the route publicly indexable and that is the user's call, not a side effect of deleting
+a section. Removing the `robots` block is a one-line change.
 
 ⚠️ **The photographs are already clix-safe.** The original's eight identifiable-staff photos were
 replaced with neutral Pexels stock chosen on a "no clear frontal face" rule (user's call). That is
@@ -236,7 +255,7 @@ inside `#roles`, pills first. Two of the four broke the block-diff before it ran
 | 1 | `Hero` (`#hero`) | **`review`** | **Built** → `src/components/careers/CareersHero.tsx`. ⚠️ **Copy is the USER'S OWN sentence** (`Join us in engineering the core of next-generation software.`, 2026-08-12) at 60 chars against rogo's 44, so **height is 613/613/479/707, not the target's 529/529/479/585** — 3 lines at ≥1200 and 6 at 390. Every other value in the block is the target's and the diffs still pass; see the page note above. `198px 40px 80px` (phone `198 16 80`), gap 96; `Text & Button` gap **44 → 24** below 1200, phone `max-w 360`; title box max-w 960. h1 `88/88/72/64`, `-0.06em` (phone `-0.05em`), 95%, centred, balanced. 220×40 CTA `href="#roles"` with two 14×20 brackets at **−28/−12**, hover −18/−2 — byte-identical to `/product`'s, so `ProductHero.tsx`'s components ported unchanged. **No subhead** — proved by arithmetic, not assumed: `198 + 2×88×0.95 + 44 + 40 + 80 = 529` closes the measured height at 1440, and the same sum closes at 1024 and 390. |
 | 2 | `Gallery` (`#gallery`) | **`review`** | **Built** → `CareersGallery.tsx` + `careersPhotos.ts`. **Native scroll-snap, not a JS track** — `overflow-x:auto`, `scroll-snap-type:x mandatory`, `scroll-snap-stop:always`; drag, momentum and snap are the browser's, so unlike `/product` Block 6 there is no spring to fit. **Slide widths are fixed px at EVERY tier** (385/721/389/605/389/389/688/791 × 516, `scrollWidth` 4469) — confirmed twice, by the `sizes` attribute and by a four-tier live sweep. ⚠️ **Slot 5 is a 2572×1714 LANDSCAPE in a 389×516 portrait box** — the original crops it to its centre half; a `w=` sized off the box width delivers 1×, not 2×, because cover scales by height there. **No autoplay** (30 s of samples, one distinct position), **no loop**, Prev edge-disables, **Next never does**. Arrow step = `scrollBy(±clientWidth)` + native snap, chosen by scoring **five** candidate rules against 13 measured transitions (9/13, best; my hand-derived rule scored 5/13 and was arithmetically impossible). **At 390 nothing snaps on either side** — every slide is wider than the 358px snapport. |
 | 3 | `About` (`#about`) | **`review`** | **Built** → `CareersAbout.tsx`. Copy is **clix's** (2026-08-12): h3 `Automating The Work` / *`Nobody Should Be Doing`*, two paragraphs from ClixManifesto + clixsolutions. ⚠️ **The only block whose height moved: 329/343/430 vs the target's 352/343/471**, because our p1 sets in 3 lines at ≥1200 where rogo's set in 4. Every CSS-controlled value is unchanged; do not pad the copy to hit 352. Two columns at ≥1200 (row, max-w 1280, gap 64, title col `flex:1 0 0; width:1px; max-w 490`), one column gap 24 below. h3 `44/44/40/32`, `-0.05em`, 110%, balanced — **one element**, and the `<br>` IS the colour boundary: line 1 `ink`, line 2 `muted`. ⚠️ Not "…Smartest Analyst / On Wall Street", which is the natural misreading. Body `18 → 16`, `-0.02em`, 130%, `ink`; the two paragraphs are separated by **`margin-top:20px`**, not a flex gap. ⚠️ Ships `id="about"` — the original's is literally **`about™`**, and its text container's `data-framer-name` is a stale paragraph of *security* copy. Ignore layer names on this project. |
-| 4 | `Careers` (`#roles`) | **`review`** | **Built** → `CareersRoles.tsx` + `careersOpenings.ts`. Server component. `80px 40px 160px → 80 40 → 64 16`, gap 72; container max-w 1280 gap 40 (32 phone). h2 is **clix's** `Where You Come In` (2026-08-12), capped at 17 chars because that is what fits on one line at 390. Eyebrow = 8×8 `signal-green` dot + `{ROLES.length}` + `open positions`, gaps 10/8. h2 `56/56/48/40` `surface`. Group h4 `36/36/28/24`, **110% at ≥1200 and 1.2em below**. Divider is `aspect-ratio:1120` → **1.141px** at 1280. Row 72 tall, `24px 0`, rendered gaps 16/16/16, rule on `::after`. ⚠️ **Reduced to 3 roles with NO filter pills** (user's call); the 11 pills' measured values are recorded in FEATURE.md as "measured, deliberately not shipped". ⚠️ Index is `muted` on `ink` = **3.85:1, fails AA** — inherited, shipped as measured, **needs the user's call** (`mark` = 5.36:1). |
+| 4 | ~~`Careers` (`#roles`)~~ **REMOVED** | **`review`** | **Built** → `CareersRoles.tsx` + `careersOpenings.ts`. Server component. `80px 40px 160px → 80 40 → 64 16`, gap 72; container max-w 1280 gap 40 (32 phone). h2 is **clix's** `Where You Come In` (2026-08-12), capped at 17 chars because that is what fits on one line at 390. Eyebrow = 8×8 `signal-green` dot + `{ROLES.length}` + `open positions`, gaps 10/8. h2 `56/56/48/40` `surface`. Group h4 `36/36/28/24`, **110% at ≥1200 and 1.2em below**. Divider is `aspect-ratio:1120` → **1.141px** at 1280. Row 72 tall, `24px 0`, rendered gaps 16/16/16, rule on `::after`. ⚠️ **Reduced to 3 roles with NO filter pills** (user's call); the 11 pills' measured values are recorded in FEATURE.md as "measured, deliberately not shipped". ⚠️ Index is `muted` on `ink` = **3.85:1, fails AA** — inherited, shipped as measured, **needs the user's call** (`mark` = 5.36:1). |
 | 5 | `Footer` | **`review`** | **Reused** — `src/components/sections/Footer.tsx`, unchanged. |
 | — | verification | **`review`** | **Both block-diffs ALL MATCH at 1600/1440/1024/390** — 18 carousel keys and 38 roles keys, every tier. `npm run build` clean, eslint clean, `tsc` clean. Five `data-nav-theme` sections contiguous (all gaps 0), zero horizontal overflow at every tier, focus order CTA → track → Prev → Next → 3 rows. **One deliberate functional divergence: `scroll-mt` on `#roles`.** The target has no `scroll-padding-top` anywhere, so its own `#roles` CTA lands the band at top 0 with **113px buried under its fixed nav** — probed, not assumed. Ours clears it (115/119px). `scroll-margin` never affects rendered layout, so the diffs stay valid. |
 

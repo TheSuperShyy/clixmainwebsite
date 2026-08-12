@@ -1,4 +1,12 @@
 /**
+ * ⚠️ THE `#roles` BAND WAS REMOVED FROM OUR PAGE ON 2026-08-12 (user: "remove this section
+ * we dont need job offering for now"), so THIS CONFIG NO LONGER RUNS GREEN — its `ours`
+ * expression will throw on a null `#roles`. It is kept, not deleted, because the `ref` half is
+ * still a working description of the target's band and re-deriving it would mean re-probing a
+ * live site. If the band comes back (restore from commit bbf10b1) this config comes back with
+ * it, unchanged. Verified against the target at 1600/1440/1024/390 on 2026-08-12: ALL MATCH,
+ * 38 keys per tier.
+ *
  * Config for docs/reference/block-diff.js — verifies /careers' `#roles` band against
  * rogo.com/careers. Run it with the dev server up on 3001:
  *

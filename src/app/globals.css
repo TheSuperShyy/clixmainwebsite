@@ -84,7 +84,16 @@
 
   /* ---- /careers, added 2026-08-12 -------------------------------------------------------
      Three colours the careers clone needs that no existing token covers. All measured off
-     the live page, not sampled from a screenshot. */
+     the live page, not sampled from a screenshot.
+
+     ⚠️ TWO OF THE THREE WENT IDLE THE SAME DAY. `signal-green` and `glyph` existed only for
+     the `#roles` band, and that band was removed on the user's call ("remove this section we
+     dont need job offering for now"). They are KEPT rather than deleted: both are the target's
+     own measured values, the band is restorable from commit bbf10b1, and re-deriving them
+     would mean re-probing a live site to recover two hex codes. An idle token in `@theme`
+     emits one CSS custom property and no utilities, so the cost is a line. Same reasoning the
+     rest of this file uses for its declared-but-unused colours. `control-scrim` is still live
+     — the gallery's Prev/Next buttons use it. */
 
   /* The "N open positions" status dot, 8x8 at radius 20. This value was ALREADY recorded in
      DESIGN-SYSTEM.md as one of the target's declared-but-unused greens; /careers is the page

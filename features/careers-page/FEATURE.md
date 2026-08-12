@@ -4,7 +4,7 @@
 |---|---|
 | Slug | `careers-page` |
 | Route | `/careers` |
-| Order on page | Nav (fixed) → Hero → Gallery → About → Roles → Footer |
+| Order on page | Nav (fixed) → Hero → Gallery → About → Footer — ⚠️ **`Roles` removed 2026-08-12** |
 | Status | `review` |
 | Reference | `docs/reference/target/rogo-careers-2026-08-12.{html,css}` (577,355 B HTML · **six** inline `<style>` blocks → 149,428 B CSS · 581 `data-framer-name` nodes, 83 unique) + live CDP probe 2026-08-12 |
 | Screenshots | `assets/ref-{1600,1440,1024,390}-{top,about,roles}.png` |
@@ -17,6 +17,28 @@ Rogo's recruiting page: an oversized centred hero over a full-bleed horizontal p
 a two-column mission statement, and a dark band listing every open role. Ours keeps the design
 1:1 and departs on content in four recorded places: **editorial copy** (rewritten in clix's
 voice 2026-08-12), photos, role list, indexability.
+
+⚠️ **THE `#roles` BAND AND THE HERO CTA WERE REMOVED ON 2026-08-12**, later the same day
+(user: *"remove this section we dont need job offering for now also remove the see career
+button"*). The page is now Hero → Gallery → About → Footer. **Every measured value for the
+band is deliberately left in this file below** — it is the record of the target, not of our
+build, and it is what makes the band restorable without re-probing a live site. The components
+themselves (`CareersRoles.tsx`, `careersOpenings.ts`) are in commit `bbf10b1`.
+
+Four consequences, all verified rather than reasoned:
+- **`#roles` was the page's only `data-nav-theme="dark"` section.** The light → dark handover
+  now happens at the Footer. Re-probed at all four tiers: `hero > gallery > about > contact`,
+  `light > light > light > dark`, **every gap 0**. If the band ever returns it must go back
+  *between* `#about` and `<Footer>` or the dark run is discontiguous.
+- **The CTA went with it** — it existed to point at `#roles`. Nothing on the page now links to
+  a fragment, and a probe for dangling `href="#..."` returns none. `BracketLeft`/`BracketRight`
+  went too; this file was their only user and identical copies remain in `ProductHero.tsx`.
+- **`#hero` is now 529 / 529 / 415 / 643.** ⚠️ The 529 is a **coincidence, not a match**: the
+  target is 529 with a 2-line headline plus a 44px gap and a 40px button, we are 529 with a
+  3-line headline and no button, and the extra line (+83.6) and the removed button (−84)
+  cancel to within a pixel. Never cite it as evidence of fidelity.
+- **Two tokens went idle**, `signal-green` and `glyph`. Kept, and documented as idle in
+  `docs/DESIGN-SYSTEM.md`.
 
 **THE COPY IS CLIX'S OWN AS OF 2026-08-12** (user: *"in the career section, lets personalize it
 now, with the headers and subheaders, for the jobs i will follow up later"*). It was rogo's
@@ -107,7 +129,7 @@ encryption. The rendered text is the careers copy. Same class of artefact as `ab
 | Property | XL 1600 | Desktop 1440 | Tablet 1024 | Phone 390 |
 |---|---|---|---|---|
 | `#hero` padding | `198px 40px 80px` | same | same | `198px 16px 80px` |
-| `#hero` gap / height | 96 / **613** (target 529) | 96 / **613** (target 529) | 96 / 479 | 96 / **707** (target 585) |
+| `#hero` gap / height | 96 / **529** (target 529, coincidence) | 96 / **529** (same) | 96 / **415** (target 479) | 96 / **643** (target 585) |
 | `Text & Button` gap | **44** | **44** | **24** | **24** (max-w 360) |
 | `Text Container` max-w / gap | 960 / 16 | same | same | same |
 | `#gallery` padding / height | `40px 40px 80px` / 636 | same | same | `40px 16px 80px` / 636 |
@@ -283,6 +305,11 @@ lands on `:not(:first-child)`).
 
 ### Roles band — row anatomy
 
+⚠️ **NOT SHIPPED as of 2026-08-12** — everything from here to the end of this subsection
+describes the TARGET's band and our removed implementation of it. Kept verbatim so the band can
+be restored from commit `bbf10b1` without re-probing rogo.com. `docs/reference/careers-roles-diff.js`
+survives for the same reason and carries the same warning.
+
 ```
 #roles  (ink, gap 72)
 └ Container  max-w 1280, gap 40 (32 phone)
@@ -335,7 +362,9 @@ is the page that uses it — same shape of correction as `brand-green`, `forest-
 | Property | Original | Ours | Why |
 |---|---|---|---|
 | Editorial copy | rogo's, verbatim | **clix's own** — hero h1, About h3 + both paragraphs, roles h2 | user's call 2026-08-12; written from `ClixManifesto.tsx` + `docs/reference/clixsolutions/`. See Purpose for the before/after and the three constraints. |
-| `#hero` height | 529 / 529 / 479 / 585 | **613** / **613** / 479 / **707** | the user's 60-character h1 sets in 3 lines at ≥1200 and 6 at 390 against rogo's 2 and 4. Chosen verbatim with the numbers on the table; see Purpose. 1024 is unchanged. |
+| Roles band (`#roles`) | a dark band listing 77 roles | **not shipped** | user's call 2026-08-12, "we dont need job offering for now". Measured spec retained below; components in commit `bbf10b1`. Removing it also removed the page's only dark section — nav-theme contiguity re-verified. |
+| Hero CTA | 220×40 "See Careers" + two corner brackets, → `./careers#roles` | **not shipped** | same call. It pointed at the band that was removed; keeping it would leave the page's only CTA aimed at a dead fragment. |
+| `#hero` height | 529 / 529 / 479 / 585 | **529 / 529 / 415 / 643** | two changes, not one: the user's 60-character h1 sets 3 lines at ≥1200 and 6 at 390 (+83.6 / +121.6), and the CTA's gap+button came out (−84 / −64). ⚠️ **At ≥1200 they cancel and the number happens to land back on 529. Coincidence, not fidelity.** |
 | `#about` height | 352 / 343 / 471 | **329** / 343 / **430** | a direct consequence of the row above and nothing else: our first paragraph sets in 3 lines at ≥1200 where rogo's set in 4 (18px × 130% = 23.4px ≈ the 23px delta). Every CSS-controlled value in the block is unchanged and both block-diffs still report ALL MATCH. **Not to be "fixed" by padding the copy to hit 352.** |
 | Display face | ABC Arizona Mix | Discovery (`--font-display`) | licensing, sitewide decision 2026-08-08 |
 | Eyebrow count face | Rooftop Mono Regular 14 | Discovery (`--font-sans`) | one-face decision; same call as `ProductTestimonials.tsx` |
@@ -355,48 +384,48 @@ rgba(255,255,255,0.1)` with `mark` label, each carrying a `CMS Item Counter`.
 
 ## Acceptance checklist
 
-- [x] Matches reference at 1600 / 1440 / 1024 / 390 — both block-diffs ALL MATCH (18 + 38 keys × 4 tiers)
+- [x] Matches reference at 1600 / 1440 / 1024 / 390 — carousel block-diff ALL MATCH (18 keys × 4 tiers). ⚠️ The roles diff (38 keys) passed on 2026-08-12 and **no longer runs**, because the band it compares was removed
 - [x] Spacing/type/color from tokens, or deviation documented above
-- [x] Interactive states — focus-visible everywhere; Prev edge-disable reproduced. ⚠️ Row hover and carousel-button hover were NOT observable and nothing was invented
+- [x] Interactive states — focus-visible everywhere; Prev edge-disable reproduced. ⚠️ Carousel-button hover was NOT observable and nothing was invented. Since the CTA and the role rows were removed, **the carousel is the only interactive thing left on the page**
 - [x] Motion — no autoplay, no loop, native snap, edge-disable all exact. ⚠️ Arrow LANDINGS approximate: 9 of 13 measured transitions
 - [x] `prefers-reduced-motion` respected — arrow scroll drops to `behavior:"auto"`; nothing else on the page animates
-- [x] Keyboard reachable, focus visible, tab order correct
-- [x] Meaningful `alt`; contrast checked — ⚠️ one inherited AA failure shipped as measured (row index, 3.85:1)
+- [x] Keyboard reachable, focus visible, tab order correct — re-probed after the removals: track → Previous → Next, plus nav and footer. No dangling `href="#…"` anywhere on the page
+- [x] Meaningful `alt`; contrast checked — ✅ **the one AA failure (row index, `muted` on `ink` = 3.85:1) is gone**, resolved by deleting the band rather than by fixing it. Nothing on the page now fails AA
 - [x] No horizontal overflow at any tier
 - [x] `npm run build` clean
 - [x] `CONTEXT.md` (feature + global) updated, `SECTIONS.md` row added
 
-## Known defect — scroll anchoring
+## ~~Known defect — scroll anchoring~~ (moot since 2026-08-12)
 
-The hero CTA's whole purpose is `href="#roles"`, and the nav is `position:fixed`. With no
-`scroll-padding-top` anywhere in `globals.css` / `layout.tsx` / `Nav.tsx` (grepped: zero hits for
-`scroll-padding`), the jump puts `#roles`' top edge *under* the bar and hides its eyebrow and
-probably the `Find Your Role` h2. **Pre-existing, not introduced here** — `/product`'s `#contact`
-CTA has the identical defect today — but it is far more visible on this page.
+The hero CTA pointed at `#roles` and the nav is `position:fixed`. With no `scroll-padding-top`
+anywhere in `globals.css` / `layout.tsx` / `Nav.tsx` (grepped: zero hits), the jump put
+`#roles`' top edge *under* the bar and buried its eyebrow and part of its h2 — **113px of it,
+probed on rogo.com itself, so the target has the same defect**. We fixed ours with `scroll-mt`
+on the band (115px at ≥1200, 119 below), the pattern `Footer.tsx` already uses on `#contact`.
 
-Fixed by putting `scroll-mt-*` on `#roles`, which is the pattern `Footer.tsx` already uses
-(`scroll-mt-24` on `#contact`). Applied at reconciliation rather than by the section agent, so
-the value is decided once against the real rendered nav height.
+**Both the CTA and the band are now removed, so this cannot occur on this page.** Kept because
+the finding is not local to it: **`/product`'s `#contact` CTA has the identical defect today**,
+and any future in-page anchor here will need the same `scroll-mt` treatment.
 
 ## Open questions
 
-- [ ] **Row index is `muted` on `ink` = 3.85:1 and FAILS AA.** Inherited from the original, same
-      class as `/product` Blocks 4/5/6. Shipping as measured and flagging; promoting it to
-      `mark` (5.36:1) is a one-token fix if wanted. **Needs the user's call.**
-      (3.85 / 5.36 / 8.33 are `contrast-check.js` output. 3.91 / 5.44 / 8.25 appeared in earlier
-      drafts of this file and the build brief; those were planning estimates, never tool output.)
-- [ ] The three role titles are invented (clix-plausible, not rogo's). **Does the user want to
-      be contacted about them?** A job listing invites an application in a way a placeholder
-      testimonial does not. **This is now the ONLY thing holding the noindex guard** — the copy
-      reason was retired 2026-08-12 — and the user has said the jobs are a follow-up.
-- [ ] The roles group heading is still the generic `Open Roles` and the eyebrow label the
-      generic `open positions` (`careersOpenings.ts`). Left alone deliberately in the copy pass:
-      both are labels for a list that is itself provisional, so they are the jobs' follow-up,
-      not the headers'.
+- [ ] **`noindex` IS NOW UNJUSTIFIED AND STILL IN PLACE. The single open decision on this
+      page.** Both original reasons are gone: the copy is clix's own (rewritten 2026-08-12) and
+      the invented job rows went with the `#roles` band the same day. The photographs were never
+      part of the guard — neutral stock on a "no clear frontal face" rule, which is licence
+      compliance. **Kept anyway, deliberately**, because lifting it makes the route publicly
+      indexable and that is the user's call, not a side effect of deleting a section. Removing
+      the `robots` block in `src/app/careers/page.tsx` is a one-line change.
+- [x] ~~Row index is `muted` on `ink` = 3.85:1 and FAILS AA.~~ **Resolved 2026-08-12 by
+      deletion, not by a fix.** Still true of the target, and still shipping on `/product`
+      Blocks 4/5/6. (3.85 / 5.36 / 8.33 are `contrast-check.js` output; the 3.91 / 5.44 / 8.25
+      in earlier drafts were planning estimates that never went through the tool.)
+- [x] ~~The three role titles are invented.~~ **Moot** — the band was removed 2026-08-12.
+- [x] ~~The roles group heading and eyebrow label are still generic.~~ **Moot**, same removal.
 - [ ] **The hero h1 breaks mid-hyphen** ("next-" / "generation") at 1440 and 390. Dropping the
       hyphen from "next-generation" is the only fix that survives the phone tier. **Needs the
       user's call — it is their sentence.**
-- [ ] Row hover state — not observed. Nothing invented beyond a focus ring.
+- [x] ~~Row hover state — not observed.~~ **Moot** — the rows were removed 2026-08-12.
 - [ ] Carousel button hover state — not observed.
 - [ ] Whether the arrow step rule holds at the tablet/phone `clientWidth`s. Derived and verified
       at 1440 only; the rule is width-driven so it should, but it is untested there.

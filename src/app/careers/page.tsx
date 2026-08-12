@@ -10,27 +10,38 @@
  *
  * SECTION ORDER IS LOAD-BEARING AND SO IS THE ABSENCE OF GAPS. Nav.tsx's theme scanner picks
  * the `[data-nav-theme]` element spanning the nav's bottom edge and falls back to "light" on a
- * gap, so the four sections must be vertically contiguous: any margin between them lets a
- * white bar paint over the ink `#roles` band. That is why <main> is a PLAIN <main> — no
- * `flex flex-col` (unlike /product, which needs the flex container for its `order-*`
+ * gap, so the sections must be vertically contiguous. That is why <main> is a PLAIN <main> —
+ * no `flex flex-col` (unlike /product, which needs the flex container for its `order-*`
  * reordering below 1200; nothing on this page reorders), no padding, no gap.
- *   #hero light · #gallery light · #about light · #roles dark · Footer declares its own dark.
+ *   #hero light · #gallery light · #about light · Footer declares its own dark.
  *
- * ⚠️ NOINDEX — ONE REASON LEFT, DOWN FROM TWO. The three job rows are INVENTED:
- * clix-plausible titles, not openings clix has confirmed, pointing at
- * mailto:clixteam579@gmail.com rather than a fabricated ATS URL. A job listing solicits an
- * application, which makes an invented one worse than an invented testimonial, not better.
+ * ⚠️ THE `#roles` BAND WAS REMOVED 2026-08-12 (user: "remove this section we dont need job
+ * offering for now also remove the see career button"). It was the page's ONLY dark section,
+ * so the light → dark handover now happens at the Footer instead of one section earlier.
+ * Re-verified after the removal: three `[data-nav-theme]` sections plus the Footer, every gap
+ * 0 at all four tiers, so the scanner never falls through. **If you re-add the band, put it
+ * back BETWEEN `#about` and `<Footer>`** — anywhere else and the dark run is discontiguous.
+ * Everything needed to restore it is in commit bbf10b1: `CareersRoles.tsx`,
+ * `careersOpenings.ts`, and the measured spec in features/careers-page/FEATURE.md.
  *
- * The FIRST reason was retired on 2026-08-12 (user: "in the career section, lets personalize
- * it now, with the headers and subheaders, for the jobs i will follow up later"). Every
- * editorial string on this page — the hero h1, the About heading and its two paragraphs, the
- * roles h2 — is now clix's own, written from ClixManifesto.tsx and docs/reference/
- * clixsolutions/. The user's own sentence is also why the guard stays: the jobs are the
- * follow-up, and until they are real this page still solicits applications for roles that
- * do not exist.
+ * ⚠️ NOINDEX — AND AS OF 2026-08-12 NOTHING ON THE PAGE STILL REQUIRES IT. Read this
+ * before you either lift it or leave it, because both are now decisions rather than defaults.
  *
- * The guard lifts when the roles listed are roles clix is actually hiring for, and not before.
- * Do not remove the robots block as part of unrelated work.
+ * It was put here for two content reasons, and both are gone:
+ *   1. The hero headline and the About mission copy were rogo's VERBATIM. Retired the same day
+ *      (user: "in the career section, lets personalize it now, with the headers and
+ *      subheaders"). Every editorial string is now clix's own, written from ClixManifesto.tsx
+ *      and docs/reference/clixsolutions/.
+ *   2. The three job rows were INVENTED. Retired when the whole `#roles` band was removed
+ *      (user: "remove this section we dont need job offering for now"). There is no longer a
+ *      listing on this page, so nothing here solicits an application for a role that does not
+ *      exist.
+ * The carousel photographs were never part of the guard — they are neutral stock, chosen on a
+ * "no clear frontal face" rule, which is licence compliance and not just hygiene.
+ *
+ * IT IS KEPT ANYWAY, DELIBERATELY, because lifting it makes the route publicly indexable and
+ * that is the user's call to make, not a side effect of deleting a section. Removing the
+ * robots block below is a one-line change once they say so.
  *
  * The carousel photographs are already clix-safe: the original's eight identifiable staff
  * photos were replaced with neutral stock (user's call, 2026-08-12), so they are NOT part of
@@ -42,7 +53,6 @@ import Nav from "@/components/sections/Nav";
 import CareersHero from "@/components/careers/CareersHero";
 import CareersGallery from "@/components/careers/CareersGallery";
 import CareersAbout from "@/components/careers/CareersAbout";
-import CareersRoles from "@/components/careers/CareersRoles";
 import Footer from "@/components/sections/Footer";
 import { fetchModels } from "@/lib/models";
 
@@ -65,11 +75,11 @@ export default async function CareersPage() {
         <CareersHero />
         <CareersGallery />
         <CareersAbout />
-        <CareersRoles />
       </main>
       {/* Byte-identical to the home page's footer in this capture too — same
-          `.framer-8dt5bh-container`, same link rows. Reused unchanged. It already declares
-          `data-nav-theme="dark"`, which is what keeps the nav dark past the end of #roles. */}
+          `.framer-8dt5bh-container`, same link rows. Reused unchanged. It declares its own
+          `data-nav-theme="dark"`, and since the `#roles` band was removed it is now the ONLY
+          dark section on the route — the sole thing that turns the nav over. */}
       <Footer />
     </>
   );

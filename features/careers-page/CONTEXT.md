@@ -12,35 +12,42 @@ Reading this file plus `FEATURE.md` should be enough to resume work cold, with n
 **Branch:** `dev` (user's explicit instruction 2026-08-12: *"dont create a career branch just stay
 in dev"*).
 
-**Verified, not asserted:**
-- **Both block-diffs ALL MATCH at 1600 / 1440 / 1024 / 390** — 18 carousel keys, 38 roles keys.
-  `node docs/reference/block-diff.js docs/reference/careers-{carousel,roles}-diff.js 1600 1440 1024 390`
+**The page is Hero → Gallery → About → Footer.** Three sections, not four: the `#roles` band
+and the hero's "See Careers" CTA were removed on 2026-08-12 at the user's request. All the
+copy is clix's own, rewritten from rogo's verbatim the same day. See the log for both passes.
+
+**Verified, not asserted (re-run AFTER the removals):**
+- **Carousel block-diff ALL MATCH at 1600 / 1440 / 1024 / 390**, 18 keys.
+  `node docs/reference/block-diff.js docs/reference/careers-carousel-diff.js 1600 1440 1024 390`
+  ⚠️ The roles diff passed the same day with 38 keys and **no longer runs** — its `ours`
+  expression throws on a null `#roles`. Kept anyway; see the log.
 - `npm run build` clean (12 static routes, `/careers` prerendered), `tsc --noEmit` clean,
   `eslint` clean.
-- Five `data-nav-theme` sections contiguous — every gap 0 at every tier, so the nav never falls
-  back to `light` over the ink band.
+- `data-nav-theme` chain re-probed at all four tiers: `hero > gallery > about > contact` /
+  `light > light > light > dark`, **every gap 0**. Removing `#roles` removed the page's only
+  dark section, so the handover now happens at the Footer.
+- No dangling in-page anchors: every `href="#…"` on the page resolves. Probed, not grepped.
 - Zero horizontal overflow at all four tiers.
-- Focus order: CTA → carousel track → Previous → Next → 3 role rows. 7 focusables, all with a
-  visible ring.
-- Contrast run through `contrast-check.js`, not estimated. One inherited AA failure; see below.
-- Rendered and eyeballed against `assets/ref-*` at all four tiers.
+- Focus order: carousel track → Previous → Next, all with a visible ring. **The carousel is
+  the only interactive thing left on the page.**
+- Contrast run through `contrast-check.js`, not estimated. **Nothing on the page fails AA now**
+  — the one failure was the role-row index and it went with the band.
+- Rendered and eyeballed at all four tiers.
 
-**Copy is clix's own as of 2026-08-12.** The hero h1, the About heading and both its
-paragraphs, and the roles h2 were rewritten from rogo's verbatim in the same session the page
-was built. **The noindex guard still stands** — it had two reasons and this retired one; the
-three job rows are still invented, which is the user's own follow-up. Details in the log below.
+**Awaiting the user — two items, neither blocking:**
+1. **`noindex` is now unjustified and still in place. The one real open decision.** Both reasons
+   are gone: the copy is clix's own, and the invented job rows left with the band. The
+   photographs were never part of the guard. **Kept deliberately** — lifting it makes the route
+   publicly indexable, which is the user's call and not a side effect of deleting a section.
+   One line in `src/app/careers/page.tsx`.
+2. **The hero h1 breaks mid-hyphen** ("next-" / "generation"). Dropping the hyphen is the only
+   fix that survives the phone tier. It is the user's sentence, so it is their call.
 
-**Awaiting the user — nothing here blocks a commit:**
-1. **Row index is `muted` on `ink` = 3.85:1 and fails AA.** Inherited from the original, same
-   class as `/product` Blocks 4/5/6. Shipped as measured. `mark` = 5.36:1 fixes it with one token.
-2. **The three role titles are invented.** Does the user want to be contacted about them? Every
-   row is a real `mailto:clixteam579@gmail.com`, never a fabricated ATS URL — but a job listing
-   solicits an application in a way a placeholder testimonial does not. Since 2026-08-12 this is
-   the **only** thing keeping `/careers` out of the index.
-3. **A `mailto:` styled as a job-board row gives no signal it opens an email client.** One
-   `sr-only` span would say so; not invented, since it is a content decision.
-4. **`Footer.tsx`'s "Company" column has no Careers link.** Deliberately not added: it is a
-   contended file, and a 4th link where the other columns have 3 is a visible change.
+**Resolved by the removal, recorded so they are not re-raised:** the row index's 3.85:1 AA
+failure (still true of the target and of `/product` Blocks 4/5/6), the invented role titles, the
+generic `Open Roles` / `open positions` labels, and the `mailto:`-styled-as-a-job-row question.
+`Footer.tsx`'s "Company" column still has no Careers link — deliberately not added; it is a
+contended file and a 4th link where the others have 3 is a visible change.
 
 ⚠️ **A SECOND CLAUDE BUILT `/company` IN THIS SAME WORKING TREE** (user, 2026-08-12). Not a git
 conflict — a literal same-file race. Handled by namespacing everything under `careers/` and
@@ -52,6 +59,47 @@ surfaces any route's compile error on all of them — expect that, it is not you
 ---
 
 ## Log
+
+### 2026-08-12 — `#roles` band and hero CTA removed (later still)
+
+**Done**
+- Deleted `src/components/careers/CareersRoles.tsx` and `careersOpenings.ts`; unmounted the
+  section from `page.tsx`. User: *"remove this section we dont need job offering for now also
+  remove the see career button"*.
+- Removed the hero's 220×40 "See Careers" CTA and, with it, `BracketLeft` / `BracketRight`.
+  This file was their only user; identical copies remain in `ProductHero.tsx`.
+
+**Decisions**
+- **The CTA had to go with the band, not just because the user asked.** Its whole job was
+  `href="#roles"`. Left in place it would have been the page's only call to action, pointing at
+  a fragment that no longer resolves.
+- **`careers-roles-diff.js` was KEPT, not deleted**, with a warning header. Its `ours` half now
+  throws, but its `ref` half is still a working description of the target's band, and
+  re-deriving it means re-probing a live site. Same reasoning kept the band's full measured
+  spec in FEATURE.md.
+- **`signal-green` and `glyph` were KEPT in `@theme`** though nothing uses them now. Both are
+  the target's own measured values; an idle token emits one custom property and no utilities.
+  Documented as idle in DESIGN-SYSTEM.md, with an explicit "do not introduce them elsewhere to
+  justify keeping them" — that is how a palette drifts.
+- **`noindex` was NOT lifted, even though both of its reasons are now gone.** Making a route
+  publicly indexable is outward-facing and reversible only in the sense that the crawl already
+  happened. It is the user's call, flagged, not taken.
+
+**Measured (all after the removal, all four tiers)**
+- `#hero` **529 / 529 / 415 / 643**. ⚠️ **The 529 is a coincidence and it is the most
+  misleading number on this page.** The target is 529 with a 2-line headline plus a 44px gap
+  and a 40px button; we are 529 with a 3-line headline and no button. The extra line (+83.6)
+  and the removed CTA (−84) cancel to within a pixel. Two unrelated changes summing to zero.
+  Never cite it as fidelity: re-add the CTA and it is 613, shorten the headline and it is 445.
+- `<main>` 1494 / 1494 / 1394 / 1708. `#gallery` 636 and `#about` 329/343/430, both unchanged.
+- **Nav-theme chain `hero > gallery > about > contact`, `light > light > light > dark`, every
+  gap 0.** This was the risk worth probing: `#roles` was the ONLY dark section, so its removal
+  moves the light → dark handover to the Footer. It holds. **If the band ever returns it must
+  go back between `#about` and `<Footer>`**, or the dark run is discontiguous and the nav
+  paints a white bar over it.
+- Zero dangling `href="#…"`; zero horizontal overflow; carousel diff still ALL MATCH.
+
+---
 
 ### 2026-08-12 — copy pass (later the same day)
 
