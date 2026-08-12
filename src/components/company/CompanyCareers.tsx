@@ -68,6 +68,8 @@
    capture's 63 — well inside the 10% rule, and it still wrapped to three lines where the
    capture takes two and pushed 645 elements down the page. Character count does not decide
    wrapping. Do not re-word these without re-measuring. */
+import AppLink from "@/components/ui/AppLink";
+
 const TITLE_LINE_1 = "Join The Team Building";
 const TITLE_LINE_2 = "What Comes Next";
 
@@ -181,7 +183,7 @@ export default function CompanyCareers() {
 
                 An inert `width:auto; height:auto` Framer wrapper between the column and this
                 <a> is dropped rather than copied. */}
-            <a
+            <AppLink
               href="/careers"
               className="flex h-9 w-fit min-w-[124px] shrink-0 cursor-pointer items-center justify-center
                          gap-2 overflow-hidden rounded-[6px] bg-ink px-4 py-2 no-underline
@@ -204,7 +206,7 @@ export default function CompanyCareers() {
                   See Careers
                 </span>
               </span>
-            </a>
+            </AppLink>
           </div>
         </div>
       </div>

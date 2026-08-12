@@ -395,6 +395,37 @@ html {
   }
 }
 
+/* Page transition (2026-08-12, second pass). Driven by
+   src/components/ui/ViewTransitions.tsx — read that file for why this is a view transition
+   and not a keyframe.
+
+   ⚠️ THE FIRST ATTEMPT WAS A `@keyframes` OPACITY FADE ON `template.tsx`, AND IT WAS A WHITE
+   FLASH BY CONSTRUCTION. Fading the incoming page up from `opacity: 0` shows `body`'s own
+   `--color-paper` through it, because App Router has already unmounted the outgoing page —
+   there is nothing behind it to fade *from*. Do not reintroduce a page-level opacity
+   animation; it cannot be tuned into a crossfade.
+
+   The browser holds a snapshot of the old frame and crossfades it into the new one, so both
+   frames are on screen together and no background is ever exposed. Only duration and easing
+   are set here — the default crossfade animation is exactly what is wanted.
+
+   300ms / --ease-rogo are the site's own measured motion values (the capture's link preset;
+   what Nav and Footer already use), so the page transition and the nav's theme swap share one
+   curve. NOT a measurement of rogo's own page transition, which is not extractable from its
+   static assets.
+
+   The fixed header and the /clix backdrop need no special handling here: a view transition
+   snapshots at the compositor, so unlike a `transform` on a wrapper it never establishes a
+   containing block and cannot make a `position: fixed` element jump.
+
+   The global prefers-reduced-motion clamp at the end of this file covers these animations,
+   and ViewTransitions.tsx additionally skips the transition entirely in that case. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 300ms;
+  animation-timing-function: var(--ease-rogo);
+}
+
 /* Accessibility floor — a deliberate divergence from the target, which ships
    no reduced-motion handling. Documented in docs/DESIGN-SYSTEM.md so it is
    never logged as a fidelity defect. */

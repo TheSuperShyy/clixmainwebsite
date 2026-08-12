@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { ViewTransitionProvider } from "@/components/ui/ViewTransitions";
 
 /* Browser tab title. Deliberately "clix", not the target's own — this is the one place the
    build identifies as itself rather than as the clone target, and a tab reading "Rogo"
@@ -16,7 +17,9 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <ViewTransitionProvider>{children}</ViewTransitionProvider>
+      </body>
     </html>
   );
 }

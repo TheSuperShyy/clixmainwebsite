@@ -42,6 +42,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import AppLink from "@/components/ui/AppLink";
 import ClixWordmark from "@/components/ui/ClixWordmark";
 import ClixMark from "@/components/ui/ClixMark";
 import ModelTicker from "@/components/ui/ModelTicker";
@@ -165,13 +166,16 @@ function NavButton({
      palette is the same — see the header comment. */
   light: boolean;
   children: string;
-  href?: string;
+  /* Required as of 2026-08-12. It was optional, but both call sites always passed one and
+     a button with no destination is not a link at all — tightening it lets AppLink take
+     the routing decision without an undefined branch to defend against. */
+  href: string;
   external?: boolean;
 }) {
   return (
-    <a
+    <AppLink
       href={href}
-      {...(external ? { target: "_blank", rel: "noreferrer" } : null)}
+      external={external}
       className={[
         "flex w-min items-center justify-center gap-2 rounded-[6px] border px-4 py-2",
         "cursor-pointer whitespace-nowrap no-underline",
@@ -206,7 +210,7 @@ function NavButton({
           {children}
         </span>
       </span>
-    </a>
+    </AppLink>
   );
 }
 
@@ -518,7 +522,7 @@ export default function Nav({
                 const base =
                   "flex h-9 items-center font-sans text-[18px] font-medium text-paper";
                 return l.href ? (
-                  <a
+                  <AppLink
                     key={l.label}
                     href={l.href}
                     onClick={() => setOpen(false)}
@@ -528,7 +532,7 @@ export default function Nav({
                     style={style}
                   >
                     {l.label}
-                  </a>
+                  </AppLink>
                 ) : (
                   /* Dimmed to 50% rather than rendered at full strength: an item that cannot
                    be activated should not look identical to one that can. */
@@ -606,7 +610,7 @@ export default function Nav({
                   light ? "text-ink" : "text-paper"
                 }`;
                 return l.href ? (
-                  <a
+                  <AppLink
                     key={l.label}
                     href={l.href}
                     className={`${box} cursor-pointer no-underline transition-opacity
@@ -621,7 +625,7 @@ export default function Nav({
                     >
                       {l.label}
                     </span>
-                  </a>
+                  </AppLink>
                 ) : (
                   /* Dimmed to 50% rather than rendered at full strength: an item that cannot
                    be activated should not look identical to one that can. */

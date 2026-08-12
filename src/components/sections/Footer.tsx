@@ -24,6 +24,7 @@
  * second place on the site with a real authored transition rather than an estimate.
  */
 
+import AppLink from "@/components/ui/AppLink";
 import FooterMap from "./FooterMap";
 
 type FooterLink = {
@@ -114,9 +115,9 @@ function FooterLinkItem({ item }: { item: FooterLink }) {
       className={`relative h-auto w-auto max-w-[1024px] ${tierClass(item.only)}`}
     >
       <p className="text-[14px] leading-[1.5em] tracking-[-0.02em]">
-        <a
+        <AppLink
           href={item.href}
-          {...(item.external ? { target: "_blank", rel: "noreferrer" } : null)}
+          external={item.external}
           /* paper -> surface on hover. The `.3s cubic-bezier(.44,0,.56,1)` is the
              capture's own, not an estimate — it is declared on the link style preset. */
           className="text-paper no-underline transition-[color] duration-300
@@ -126,7 +127,7 @@ function FooterLinkItem({ item }: { item: FooterLink }) {
           style={{ transitionTimingFunction: "var(--ease-rogo)" }}
         >
           {item.label}
-        </a>
+        </AppLink>
       </p>
     </div>
   );

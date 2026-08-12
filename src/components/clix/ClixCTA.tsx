@@ -7,6 +7,8 @@
  * spacing, not padding.
  */
 
+import AppLink from "@/components/ui/AppLink";
+
 export default function ClixCTA() {
   return (
     /* NO BACKGROUND, and that is measured: every block on the target is transparent —
@@ -51,7 +53,7 @@ export default function ClixCTA() {
 
           {/* Same `Brand` button as the hero — 48px tall here at every tier, since the
               original's mobile-only 44px variant is a hero-specific instance. */}
-          <a
+          <AppLink
             href="/#contact"
             className="relative flex h-12 w-min flex-none cursor-pointer items-center
                        justify-center gap-2 overflow-hidden rounded-[6px] border
@@ -73,7 +75,7 @@ export default function ClixCTA() {
                 Request Access
               </span>
             </span>
-          </a>
+          </AppLink>
         </div>
       </div>
     </section>
