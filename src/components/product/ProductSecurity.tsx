@@ -19,15 +19,21 @@
  *
  * A prop on the home component could not have bridged that. Built fresh, as its own file.
  *
- * ⚠️ THE FOUR BADGES ARE ROGO'S: SOC2, CCPA, ISO 27001, GDPR — and this repo REMOVED that
- * exact set from the home page on 2026-08-05 because SOC 2 and ISO 27001 are audited
- * certifications that clix does not hold. They are back here only because /product is a
- * verbatim clone behind `robots: { index: false, follow: false }`, on the user's explicit
- * "copy everything 100%" call, and they sit beside thirteen borrowed vendor trademarks in
- * Block 3 under the same gate. **They are a false claim the moment this route is indexed.**
- * Replace them (sections/Security.tsx's practice statements are the drop-in) before that
- * happens, and do not copy this block to any indexed page. See FEATURE.md → "Documented
- * deviations".
+ * ⚠️ THE BADGES ARE NO LONGER ROGO'S, AND THE REASON MATTERS. These four cells shipped as
+ * SOC2, CCPA, ISO 27001 and GDPR, copied under the user's "copy everything 100%" call. SOC 2
+ * and ISO 27001 are AUDITED CERTIFICATIONS and clix holds none of them: showing the seal
+ * without holding the report is misrepresentation, not marketing. This repo removed the same
+ * set from the home page on 2026-08-05 for exactly that reason, and the only thing keeping
+ * it defensible here was `robots: { index: false, follow: false }`. One flipped flag and the
+ * page was making a false claim. So the cells now state practices clix actually follows,
+ * matching sections/Security.tsx.
+ *
+ * Do not put certification seals back unless clix has been audited and can produce the
+ * report on request. Enterprise buyers do ask.
+ *
+ * Replaced 2026-08-12. Thirteen borrowed vendor trademarks still sit in Block 3 under the
+ * same `noindex` gate; those are a separate problem this file does not solve. See
+ * FEATURE.md → "Documented deviations".
  *
  * TIER MAP — from the capture, three tiers (no separate ≥1600):
  *
@@ -132,13 +138,26 @@ function IconArrowTile() {
   );
 }
 
-/* ---- Content, verbatim from the capture ---------------------------------------------- */
+/* ---- Content ---------------------------------------------------------------------------
+ * Glyphs and layout are verbatim from the capture. The copy is not: see the header warning,
+ * and the two notes below.
+ */
 
+/* Three of these four are practice statements and survive the swap unchanged. The fourth did
+   not: rogo's "Audited & tested", in a security block that used to sit beside a SOC 2 seal,
+   reads as a claim to a third-party security audit. clix has not had one, which is the whole
+   reason the seals came out. "Reviewed" is the true version of the same sentence — code
+   review and tests, which is what the `</>` glyph beside it depicts anyway.
+
+   "End to end encryption" is kept as captured, and flagged rather than edited. Strictly,
+   E2EE means only the endpoints can decrypt, a stronger promise than "encrypted in transit
+   and at rest", and it is worth confirming against what clix actually ships. It is a practice
+   claim either way, not a certification, so it is not the same class of problem. */
 const LIST: { text: string; icon: ReactNode }[] = [
   { text: "No training on your data", icon: <IconLock /> },
   { text: "Modern & secure data practices", icon: <StrokeGlyph d={D_CLOUD} /> },
   { text: "End to end encryption", icon: <StrokeGlyph d={D_SHIELD} /> },
-  { text: "Audited & tested", icon: <StrokeGlyph d={D_CODE} /> },
+  { text: "Reviewed & tested", icon: <StrokeGlyph d={D_CODE} /> },
 ];
 
 /* The 2 × 2 badge grid, in grid order. `border` is the per-cell dashed matrix — the
@@ -152,25 +171,50 @@ const LIST: { text: string; icon: ReactNode }[] = [
    `[data-border] ::after`, which takes no layout space. A real border would push the 104px
    graphic off-centre and, on phones, make the 220px min-height cell 222px. Measured on
    Block 3 — same trap, same fix. */
+/* ⚠️ FOUR CELLS, FIVE PRACTICE STATEMENTS. sections/Security.tsx defines five; this grid is
+   2 × 2 and the matrix above is measured geometry, so growing it to five would mean
+   re-deriving every edge at every tier for a layout the capture never had. One statement had
+   to go, and "Encrypted in transit and at rest" is it:
+     1. It is already said, one column to the left, by the list item "End to end encryption".
+        No other statement duplicates the list.
+     2. At 32 characters it was the longest of the five, into a 137px measure at 14px — the
+        labels here are 14px where the home section's are 12px, so the box is proportionally
+        tighter than the one those strings were sized for.
+   The four kept run 16 to 25 characters and set two lines each at worst, clearing the centred
+   104px mark by 26px at the tightest tier (phone, 220px cell). Nothing else moved: grid, cell
+   geometry, graphic frame and label position are as captured, and the border matrix needed no
+   edit at all because the cell count did not change.
+
+   `square` is gone. It existed because rogo's seals had two intrinsic ratios: SOC2 was
+   120×120 and the other three 121×120 (aspect 1.00833, so 104 × 103.14 in the 104px frame).
+   All five practice marks are drawn on one 102×102 viewBox, so the flag would now describe a
+   difference that no longer exists and 1.00833 would squash them by 0.8%. The frame itself is
+   untouched at 104 × 104. */
 const BADGES = [
   {
-    id: "soc2",
-    label: "SOC2",
-    file: "/badges/soc2.svg",
-    /* SOC2's artwork is the one that is square (viewBox 120×120); the other three are
-       121×120, i.e. aspect 1.00833, so they sit 104 × 103.14 in the same 104px frame. */
-    square: true,
+    id: "your-cloud",
+    label: "Your cloud, your accounts",
+    file: "/badges/practice-cloud.svg",
     border: "border-t border-r border-l tablet:border-r-0",
   },
-  { id: "ccpa", label: "CCPA", file: "/badges/ccpa.svg", square: false, border: "border-t border-l border-r" },
   {
-    id: "iso",
-    label: "ISO 27001",
-    file: "/badges/iso-27001.svg",
-    square: false,
+    id: "your-data",
+    label: "Your data stays yours",
+    file: "/badges/practice-shield.svg",
+    border: "border-t border-l border-r",
+  },
+  {
+    id: "least-privilege",
+    label: "Least-privilege access",
+    file: "/badges/practice-key.svg",
     border: "border-t border-l border-r tablet:border-r-0 tablet:border-b",
   },
-  { id: "gdpr", label: "GDPR", file: "/badges/gdpr-product.svg", square: false, border: "border" },
+  {
+    id: "ownership",
+    label: "You own the code",
+    file: "/badges/practice-code.svg",
+    border: "border",
+  },
 ] as const;
 
 export default function ProductSecurity() {
@@ -212,9 +256,18 @@ export default function ProductSecurity() {
             {/* `.framer-sa3scy` — title over list, gap 24. */}
             <div className="relative flex w-full flex-col items-start gap-6 overflow-hidden">
               {/* h3 in the original. Demoted to h2 so the page outline runs h1 → h2; the
-                  <br> is the original's, there is no width that breaks it there. */}
+                  <br> is the original's, there is no width that breaks it there. It is a
+                  colour boundary, muted above and `paper` below, so both halves must stay.
+
+                  Line 1 was "Built for Enterprise", rogo's positioning. Swapped for the one
+                  thing the grid beside it now claims and clix can stand behind: the product
+                  runs in the customer's own cloud. Same 20 characters, so it breaks where it
+                  broke — at 32px on a 360px phone the original was already within a few px
+                  of wrapping, which is why the replacement had to match the count, not just
+                  the sense. "Secure by Design" is kept verbatim: a design posture is not an
+                  audit claim, and it is the payoff the colour change lands on. */}
               <h2 className="w-full font-display text-[32px] leading-[110%] font-normal tracking-[-0.05em] text-muted tablet:text-[40px] desktop:text-[44px]">
-                Built for Enterprise
+                Built for your cloud
                 <br />
                 <span className="text-paper">Secure by Design</span>
               </h2>
@@ -270,21 +323,27 @@ export default function ProductSecurity() {
                   className={`pointer-events-none absolute inset-0 border-dashed border-hairline-light ${b.border}`}
                 />
                 {/* Label: absolute, 16px off the bottom-left, 137px measure, above the
-                    graphic (`z-index:1` in the original). */}
+                    graphic (`z-index:1` in the original). Anchored to the BOTTOM, so the
+                    two-line practice statements grow upward into the cell's dead space
+                    instead of moving anything. */}
                 <p className="absolute bottom-4 left-4 z-[1] w-[137px] font-sans text-[14px] leading-[130%] tracking-[-0.01em] text-muted">
                   {b.label}
                 </p>
                 {/* Graphic frame — 104px square, clipping the mark inside it. */}
                 <div className="relative h-[104px] w-[104px] flex-none overflow-hidden">
-                  {/* Decorative: the label beside it already names the certification, and
-                      the capture marks the mark itself aria-hidden. Plain <img> — a fixed
-                      static SVG gains nothing from next/image. */}
+                  {/* Decorative: the label beside it already names the practice, and the
+                      capture marks the mark itself aria-hidden. An alt here would say every
+                      statement twice. Plain <img> — a fixed static SVG gains nothing from
+                      next/image. */}
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={b.file}
                     alt=""
                     aria-hidden="true"
-                    className={`absolute top-0 right-0 left-0 h-auto ${b.square ? "aspect-square" : "aspect-[1.00833]"}`}
+                    /* Uniformly square now that all four marks share one 102×102 viewBox
+                       — see the note on BADGES. Still pinned top/left/right inside the same
+                       104px frame, so the mark fills it exactly instead of 104 × 103.14. */
+                    className="absolute top-0 right-0 left-0 aspect-square h-auto"
                   />
                 </div>
               </div>

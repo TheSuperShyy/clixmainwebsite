@@ -5,7 +5,9 @@
  * Capture: docs/reference/target/rogo-product-2026-08-11.html.
  * Spec: features/product-page/FEATURE.md · memory: features/product-page/CONTEXT.md
  *
- * ⚠️ Copy is rogo's verbatim. The route is noindex.
+ * ⚠️ GEOMETRY is rogo's, measured. COPY is clix's (rewritten 2026-08-12) — every string is
+ * within 10% of the character count it replaced, because the card bodies sit in fixed boxes.
+ * The route is noindex.
  *
  * TIER MAP — three shapes, and the middle one is the surprise:
  *   >=1200  3 columns, gap 24; card is a COLUMN (art over text)
@@ -21,29 +23,33 @@
 
 import { MockWorkflow, MockTable, MockMaterial } from "@/components/product/workflowMocks";
 
-/* Verbatim from the capture, including the body copy. */
+/* Copy is clix's, written to the capture's measured lengths: the three bodies sit in fixed
+   boxes (card 1 is the only 4-line one, which is what `self-start` below exists for), so each
+   string stays within 10% of the character count it replaces. Titles 23/18/17 -> 24/17/17,
+   bodies 221/184/171 -> 233/195/183. */
 const CARDS = [
   {
-    title: "Firm-Specific Workflows",
+    title: "Automations Built To Fit",
     body:
-      "Create and automate workflows tailored to your needs, reducing manual tasks and " +
-      "integrating seamlessly with your existing tools. Optimize processes for research, " +
-      "analysis, and reporting to improve efficiency and accuracy.",
+      "We map the process your team already runs, then automate it end to end across the " +
+      "tools you already own. Webhooks, middleware and error handling come with it, so a " +
+      "step that breaks upstream is caught and retried, never silently lost.",
     Art: MockWorkflow,
   },
   {
-    title: "AI Table Interface",
+    title: "Ask Your Own Data",
     body:
-      "Organize and manage data effortlessly with an interactive table interface. Sort, " +
-      "filter, and update information in real time, enabling structured analysis and " +
-      "seamless decision-making.",
+      "Your CRM, your spreadsheets and your billing in one table you can sort, filter and " +
+      "update as the day moves. Ask it a question in plain language and get an answer you " +
+      "can trace back to the record.",
     Art: MockTable,
   },
   {
-    title: "Material Creation",
+    title: "Reports On Demand",
     body:
-      "Generate reports, summaries, and presentations with AI-powered automation. Transform " +
-      "raw data into polished, professional materials while ensuring clarity and consistency.",
+      "Decks, summaries and spreadsheets built from the same data your team works in. The " +
+      "numbers stay consistent, the template stays yours, and the source file ships " +
+      "alongside every export.",
     Art: MockMaterial,
   },
 ] as const;
@@ -62,7 +68,7 @@ export default function ProductWorkflows() {
                      tablet:text-[40px] desktop:text-[44px]"
           style={{ lineHeight: "110%", letterSpacing: "-0.05em" }}
         >
-          Streamline &amp; Automate Your Workflows
+          Connect Your Stack &amp; Automate The Work
         </h3>
       </div>
 

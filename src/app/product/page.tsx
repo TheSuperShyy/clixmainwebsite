@@ -8,15 +8,26 @@
  * `position:fixed; z-index:3; top/left/right:0`. So no `spacer`; the hero's own 198px top
  * padding clears the banner + nav row, exactly the job /news's 220px does.
  *
- * ⚠️ NOINDEX, AND IT MUST STAY THAT WAY UNTIL THE CONTENT PASS.
- * Every string on this page is rogo's verbatim ("clone now, rewrite after"), and the blocks
- * still to come carry things a clix wordmark cannot honestly ship: thirteen named
- * financial-data vendors (LSEG, FactSet, S&P Capital IQ, PitchBook, Preqin, Dow Jones,
- * Daloopa, Quartr) and photographs and quotes attributed to identifiable real people at real
- * firms. Shipping those under this brand asserts partnerships and endorsements that do not
- * exist. The robots block below is a guard, not boilerplate — do not remove it as part of
- * unrelated work. The full list and the swap-before-index condition are in
- * features/product-page/FEATURE.md under "Documented deviations".
+ * ⚠️ NOINDEX, AND IT MUST STAY THAT WAY. The reason CHANGED on 2026-08-12, read on.
+ *
+ * The content pass ran on 2026-08-12: rogo's copy is gone, replaced with clix's own. The
+ * named financial-data vendors, the SOC2/ISO 27001 badges clix does not hold, and the three
+ * photographed real people at real firms are all out. So the ORIGINAL reason for the guard
+ * is cleared.
+ *
+ * It stays anyway, because the pass introduced a new one: Block 6 carries PLACEHOLDER quotes
+ * attributed to clix's real, named clients. clix has no written testimonials, only video, so
+ * the words in those cards are invented and the people are real. That is the same class of
+ * problem the vendor logos were, and it is why ProductTestimonials.tsx carries its own
+ * warning block.
+ *
+ * The guard lifts when all four hold, tracked in features/product-page/FEATURE.md:
+ *   1. no third-party trademark in copy or assets
+ *   2. no certification badge clix does not hold
+ *   3. no real person quoted, INCLUDING the placeholders
+ *   4. every string is clix's own
+ * Items 1, 2 and 4 are done. Item 3 is not. Do not remove the robots block as part of
+ * unrelated work.
  */
 
 import type { Metadata } from "next";
@@ -54,8 +65,9 @@ export default async function ProductPage() {
         <ProductTestimonials />
       </main>
       {/* Byte-identical to the home page's footer in both captures — same
-          `.framer-8dt5bh-container`, same "Unlock financial AI / for your firm", same link
-          rows. Reused unchanged; it was the one block the plan called right. */}
+          `.framer-8dt5bh-container`, same link rows. Reused unchanged; it was the one block
+          the plan called right. Its copy is already clix's own ("Software that works, results
+          that speak."), rewritten on 2026-08-05, so the content pass had nothing to do here. */}
       <Footer />
     </>
   );

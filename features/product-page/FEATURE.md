@@ -24,22 +24,63 @@ a runtime-variant problem the earlier pages never hit.
 
 ---
 
-## ⚠️ Read first — the copy is the target's, and this route must not be indexed
+## ⚠️ Read first — the copy is now clix's, and the route is STILL not indexable
 
-Every string on this page is rogo's **verbatim**, by decision on 2026-08-11 ("clone now,
-rewrite after"), the same policy `/clix` runs under. Three blocks carry content that goes
-further than copy — **all of them are now built and shipping it**:
+**Superseded 2026-08-12.** This section used to say every string was rogo's verbatim. That
+stopped being true when the content pass ran. What follows is the current state.
 
-| What | Where | Why it cannot ship |
+### Cleared by the content pass
+
+| What | Where | Replaced with |
 |---|---|---|
-| LSEG, FactSet, S&P Capital IQ, PitchBook, Preqin, Dow Jones, Daloopa, Quartr — names **and logos** | Block 3 `Data Partners` — **built** | Asserts data-provider partnerships that do not exist |
-| Patrice Maffre (Nomura), Pieter Taselaar (Lucerne Capital), Sean Warneke (Schonfeld) — names, roles, firms, **headshots**, quotes, plus Nomura's mark | Block 6 `Testimonials` — **built** | Attributes endorsements to identifiable real people. The strongest claim on the page |
-| **SOC2, CCPA, ISO 27001, GDPR** badges | Block 5 `Security` — **built** | SOC 2 and ISO 27001 are AUDITED CERTIFICATIONS clix does not hold. This repo removed this exact set from the home page on 2026-08-05 for that reason |
-| Word, Excel, PowerPoint, SharePoint, Google Drive marks | Block 4, `benefit-integrations.svg` | Third-party trademarks, vendored verbatim |
+| LSEG, FactSet, S&P Capital IQ, PitchBook, Preqin, Dow Jones, Daloopa, Quartr, names **and logos** | Block 3 | clix's own 13-tool stack, glyphs from `ui/ToolGlyphs.tsx` (CC0 simple-icons). Files deleted from `public/logos/product/` |
+| Patrice Maffre (Nomura), Pieter Taselaar (Lucerne Capital), Sean Warneke (Schonfeld), headshots, quotes, Nomura's mark | Block 6 | clix's own clients. Photographs deleted from `public/testimonials/product/` |
+| **SOC2, CCPA, ISO 27001, GDPR** badges | Block 5 | Four of the five practice statements from `sections/Security.tsx`. SVGs deleted from `public/badges/` |
+| Word, Excel, PowerPoint, SharePoint, Google Drive marks | Block 4 `benefit-integrations.svg` | A 3x2 grid rebuilt from `TOOL_GLYPHS` at the same 213x138 box. File deleted |
+| Bloomberg, Rogo, NVIDIA, Apple, Microsoft, Caterpillar, Boeing, Ford, General Electric | Blocks 2a, 1, 2b, 2d | Generic or clix-appropriate scenarios. No third-party name renders anywhere on the page |
 
-`src/app/product/page.tsx` carries `robots: { index: false, follow: false }` as a mechanical
-guard. **Do not remove it as a side effect of unrelated work.** The acceptance checklist below
-has an unticked item that gates on replacing both.
+17 borrowed asset files were deleted. `git grep` confirms no code path references any of them.
+
+### ⚠️ Why `noindex` STAYS anyway
+
+The pass introduced one new problem while clearing four old ones. **Block 6 carries placeholder
+quotes attributed to clix's real, named clients.** clix has no written testimonials, only video,
+so the words are invented and the people are real. The placeholders are written to be
+unmistakable (bracketed all-caps tag naming the person, third-person grammar, no quotation
+marks) precisely so they cannot be mistaken for endorsements, but an invented sentence under a
+real face is still the same class of problem the vendor logos were.
+
+`robots: { index: false, follow: false }` in `src/app/product/page.tsx` lifts when all four hold:
+
+1. ✅ no third-party trademark in copy or assets
+2. ✅ no certification badge clix does not hold
+3. ❌ **no real person quoted, INCLUDING the placeholders**
+4. ✅ every string is clix's own
+
+Three of four are done. Item 3 needs real quotes, or a restructure onto the video accordion
+that `sections/Testimonials.tsx` already implements.
+
+### Block 6 carries all six clients
+
+`SLIDES` and `PHONE_CARDS` are six, in `sections/Testimonials.tsx` `CLIPS` order. rogo's three
+was rogo's number. The carousel took it without modification (`N` is `SLIDES.length`). The phone
+tier deliberately shows six where the capture shows two; see the component and CONTEXT.md.
+
+### ⚠️ Unresolved: `noam-tovi.jpg` may not be Noam Tovi
+
+`public/testimonials/noam-tovi.jpg` is a still from that client's video, and the video's own
+burned-in caption reads `אני נווה דוידי`, transliterating to **Nave Davidi**. `sections/Testimonials.tsx:63`
+labels the same file **Noam Tovi, Owner, investments**. Those are different names and nothing in
+this repo can say which is right. Block 6 slot 3 was moved to `nevo-yahaloman` on 2026-08-12 for
+that reason. **Resolve the label with the client before using that photograph anywhere.**
+
+### Known cosmetic defect, not fixed
+
+`asaf-peretz.jpg` and `adir-peretz.jpg` are 9:16 video stills with **burned-in Hebrew subtitle
+captions**, and the 360x694 portrait slot crops one of them mid-word. They read fine as video
+thumbnails on the home page, which is what they were vendored for; they read as a defect beside
+a written quote. Left alone deliberately: the files are shared with `sections/Testimonials.tsx`,
+so cropping them changes the home page too. That is the user's call, not a unilateral one.
 
 ---
 

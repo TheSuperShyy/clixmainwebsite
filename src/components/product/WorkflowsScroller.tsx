@@ -16,18 +16,18 @@
 
 /* Verbatim from the capture — `Shortcut Card 01`..`10`, in the original's own order. */
 const ROW_ONE = [
-  "Earnings Comp Analysis",
-  "Public Company Strip Profile",
-  "Meeting Prep",
-  "Private Company Profile",
-  "Personal Bio",
+  "Lead Intake and Routing",
+  "Appointment Booking",
+  "Quote Follow Up",
+  "Invoice Reconciliation",
+  "Call Summary and Tagging",
 ];
 const ROW_TWO = [
-  "Financial Sponsor Overview",
-  "Public Company Profile",
-  "News Run",
-  "Secondaries Buyer Overview",
-  "Proofread My Deck",
+  "Customer Onboarding",
+  "WhatsApp Support Triage",
+  "Weekly Ops Report",
+  "Renewal Reminders",
+  "Document Collection",
 ];
 
 /* Speed is NOT in the capture — Framer drives this in JS. Estimated, and slower than the home

@@ -263,15 +263,15 @@ function MockFrame({ cropLeft, children }: { cropLeft: number; children: ReactNo
   );
 }
 
-/* ---- Mock 1 — Firm-Specific Workflows -------------------------------------------------
+/* ---- Mock 1 — Automations Built To Fit ------------------------------------------------
  * Measured: chip 138,148 650x112 · connector x473 · panel 138,298 650x560 · six rows on an
  * 80px pitch, first centred at y374 · 48px tile at x190, labels at x261.
  */
 const RUN_STEPS = [
-  "Identifying companies",
-  "Searching sources",
-  "Retrieving company metrics",
-  "Creating table",
+  "Reading new messages",
+  "Checking the CRM",
+  "Scoring against your rules",
+  "Drafting reply",
 ] as const;
 
 export function MockWorkflow() {
@@ -283,7 +283,7 @@ export function MockWorkflow() {
           <GlyphBenchmark />
         </Box>
         <Line x={90} cy={56} size={36} weight={500} className="text-ink">
-          Benchmark Precedent Transactions
+          Qualify Inbound WhatsApp Leads
         </Line>
       </Card>
 
@@ -311,23 +311,26 @@ export function MockWorkflow() {
           <GlyphSpinner />
         </Box>
         <Line x={123} cy={476} size={36} className="text-muted">
-          Finalizing citations...
+          Syncing to the CRM...
         </Line>
       </Card>
     </MockFrame>
   );
 }
 
-/* ---- Mock 2 — AI Table Interface -------------------------------------------------------
+/* ---- Mock 2 — Ask Your Own Data --------------------------------------------------------
  * Measured: card 74,140 running off both the right and bottom edges · pill 128,210 767x96 ·
  * tile at 140,361 · prose lines centred at y481/531 · table from 140,597 with a 93px header
  * and 114px rows. The overflow IS the composition — this is the only one of the three cropped
  * from the left, so the table deliberately runs out of frame.
  */
+/* Acquisition channels, not companies: the reference named four real manufacturers, and no
+   third-party name belongs under this wordmark. Lengths held to the measured ones (16/6/11)
+   so the rows keep their optical rhythm and the third still reads as the dimmed one. */
 const TABLE_ROWS = [
-  { name: "General Electric", dim: false },
-  { name: "Boeing", dim: false },
-  { name: "Caterpillar", dim: true },
+  { name: "WhatsApp inbound", dim: false },
+  { name: "Events", dim: false },
+  { name: "Paid search", dim: true },
 ] as const;
 
 function Checkbox({ x, cy }: { x: number; cy: number }) {
@@ -351,21 +354,21 @@ export function MockTable() {
         {/* The question, as a chat bubble. */}
         <Box x={54} y={70} w={767} h={96} radius={48} className="bg-mock-fill" />
         <Line x={106} cy={118} size={36} className="text-ink">
-          Tariff impact on top manufacturing firms?
+          Which lead sources actually closed deals?
         </Line>
 
         <MarkTile x={66} y={221} />
         <Line x={142} cy={245} size={36} className="text-muted">
-          Found 12 sources
+          Checked 4 systems
         </Line>
 
         {/* Two explicit lines, not a wrapping paragraph: the break is part of the reference,
             and the second line has to reach past the crop exactly as it does there. */}
         <Line x={63} cy={341} size={36} className="text-ink">
-          Currently, Caterpillar, Boeing, and Ford face the greatest
+          WhatsApp inbound closed the most deals last quarter, and
         </Line>
         <Line x={63} cy={391} size={36} className="text-ink">
-          tariff pressures among leading U.S. manufacturers.
+          paid search brought the fewest at the highest cost.
         </Line>
 
         {/* The table. Its own box, so the header fill and row rules clip to the radius. */}
@@ -381,10 +384,10 @@ export function MockTable() {
           <Box x={0} y={0} w={700} h={93} className="bg-surface" />
           <Checkbox x={34} cy={46} />
           <Line x={108} cy={46} size={36} className="text-muted">
-            Company
+            Channel
           </Line>
           <Line x={426} cy={46} size={36} className="text-muted">
-            % Revenue from Imports
+            % of Pipeline Closed
           </Line>
           {TABLE_ROWS.map((r, i) => (
             <div key={r.name}>
@@ -418,14 +421,16 @@ export function MockTable() {
   );
 }
 
-/* ---- Mock 3 — Material Creation --------------------------------------------------------
+/* ---- Mock 3 — Reports On Demand --------------------------------------------------------
  * Measured: chip 102,150 716x130 · panel 102,338 716x564 · prose on a 48px pitch centred at
  * y413.5 · caption at y586 · two 612x106 export rows at y622 and y744, 48px badge at x178,
  * label at x248, download glyph at x702.
  */
+/* Extensions kept: the P/X badges above are keyed to .pptx/.xlsx and stop making sense
+   without them. Only the names changed, at the measured lengths (24/26 -> 23/24). */
 const EXPORTS = [
-  { name: "TMT Market Overview.pptx", letter: "P", fill: "#c03b1c" },
-  { name: "Tech Multiples Backup.xlsx", letter: "X", fill: "#10743e" },
+  { name: "Automation Rollout.pptx", letter: "P", fill: "#c03b1c" },
+  { name: "Workflow Run Backup.xlsx", letter: "X", fill: "#10743e" },
 ] as const;
 
 export function MockMaterial() {
@@ -434,19 +439,19 @@ export function MockMaterial() {
       <Card x={102} y={150} w={716} h={130}>
         <MarkTile x={52} y={40} />
         <Line x={126} cy={64} size={36} className="text-muted">
-          Generating Powerpoint...
+          Assembling the deck...
         </Line>
       </Card>
 
       <Card x={102} y={338} w={716} h={564}>
         <Line x={53} cy={75.5} size={36} className="text-ink">
-          Here is your requested deck. I
+          Here is your deck. I built it
         </Line>
         <Line x={53} cy={123.5} size={36} className="text-ink">
-          customized your presentation template
+          on your own template, and attached
         </Line>
         <Line x={53} cy={171.5} size={36} className="text-ink">
-          and included file with the backup data.
+          the source numbers behind every slide.
         </Line>
         <Line x={53} cy={248} size={31} className="text-muted">
           Exports (2)

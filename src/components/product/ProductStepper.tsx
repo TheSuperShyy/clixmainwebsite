@@ -22,13 +22,28 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import WorkflowsScroller from "@/components/product/WorkflowsScroller";
 import { PanelSources, PanelCitations, PanelDocuments } from "@/components/product/stepperPanels";
 
-/* Verbatim from the capture. */
-const TITLE = "An Integrated, Secure Platform Built to Drive Your Firm Forward";
+/* COPY IS OURS, GEOMETRY IS THE CAPTURE’S. The capture’s title runs 63 characters and its
+   four step labels 23 to 34. The stepper column is a hand-measured 472x541 with 60px rows,
+   so a longer line wraps and breaks the measured height. Every string below is written to
+   within 10% of the one it replaces. Counts are in features/product-page/FEATURE.md. */
+/* Deliberately NOT "Eight Services, One Platform": that is the hero's h1, a few hundred px up
+   the same page. The hero states the thesis, this elaborates it.
+   ⚠️ FITTED BY MEASUREMENT, NOT BY CHARACTER COUNT, and the difference bit once already.
+   The first draft ("One Secure Platform Built to Run the Work Behind Your Business") was 62
+   chars against the capture's 63, comfortably inside the 10% rule, and it still wrapped to
+   THREE lines at 390 where the capture takes two: +30px on the h3, which pushed all 645
+   elements below it down the page. Character count does not decide wrapping, word boundaries
+   do. Rendered line counts, measured in the real face at each tier:
+        390px   2 lines / 62px    (capture: 2 / 62)
+       1024px   1 line  / 31px    (capture: 1 / 31)
+       1440px   2 lines / 62px    (capture: 2 / 62)
+   Re-measure, do not re-count, if this string ever changes. */
+const TITLE = "One Integrated Platform Built to Run Your Whole Business";
 const STEPS = [
-  { n: "01", label: "All your content in one place" },
-  { n: "02", label: "Transparent, auditable sources" },
+  { n: "01", label: "All your systems in one place" },
+  { n: "02", label: "Every answer shows its source" },
   { n: "03", label: "Automate your workflows" },
-  { n: "04", label: "Proprietary document interrogation" },
+  { n: "04", label: "Ask questions of your documents" },
 ] as const;
 
 /* NOT in the capture — Framer runs the advance in JS and the stylesheet carries no timing at

@@ -120,26 +120,15 @@ standalone files.
 > well-formedness error**, and SVG loaded through `<img>` is parsed as strict XML — so all
 > nine failed to render entirely. Fixed by dropping every root `xmlns` after the first.
 
-## `logos/product/` — 8 files (added 2026-08-11)
+## `logos/product/` — **DELETED 2026-08-12**
 
-The data-provider marks in `/product`'s `Trusted Data` block. **Three different source forms**,
-which is the part worth knowing before touching them:
+Held the eight data-provider marks (LSEG, Dow Jones, FactSet, Capital IQ, PitchBook, Preqin,
+Quartr, Daloopa) plus `nomura.svg` for `/product`'s `Trusted Data` block. All nine were
+third-party trademarks under copy asserting partnerships that do not exist.
 
-| Files | Source | Note |
-|---|---|---|
-| `lseg.png` `dow-jones.png` `factset.png` `capital-iq.png` `preqin.png` | framerusercontent rasters | Kept at the original's own sizes (225–400px square). Each is a full-bleed coloured square, not a transparent mark — so they render with no padding and no tile fill under them |
-| `quartr.svg` `daloopa.svg` | framerusercontent SVGs | **Both shipped without a `viewBox`** and had one added. That is rule 1 below, and it is the exact fault that made five home-page logos disappear in August |
-| `pitchbook.svg` | *no file exists* | Framer inlines it as a `data:image/svg+xml` background instead of serving a file, so it was URL-decoded out of the capture and written here |
-
-All eight verified by rasterising (see below); none is blank.
-
-The block's other five graphics are **not files** — they are line glyphs whose path data is
-inlined in `src/components/product/ProductDataPartners.tsx`, verbatim from the capture's defs
-block and one data-URI.
-
-> ⚠️ **These are eight third-party trademarks** and they assert data-provider partnerships that
-> do not exist. They ship on an explicit decision, gated behind the `robots: { index: false }`
-> on `/product`. **They must be replaced before that route is ever indexed.**
+Removed in the content pass. That block now renders clix's own 13-tool stack from
+`src/components/ui/ToolGlyphs.tsx` (CC0 simple-icons), which claims only "tools we build with".
+Nothing in `src/` references this directory; verified before deletion.
 
 ## `product/` — the /product page's own assets
 
@@ -188,18 +177,26 @@ logos by height and relies on their intrinsic aspect ratios.
 | moelis | nomura | raymond-james | rothschild |
 | tigerglobal | truist | | |
 
-## `badges/` — 5 files, 83 KB
+## `badges/` — originally 5 compliance marks, **4 of them now deleted**
 
 Compliance marks for `#security`, extracted 2026-08-03. All five are `#6D6D6D` /
 `rgb(109,109,109)` line art on the section's `ink` background.
 
 | File | Source in the capture | Bytes | viewBox |
 |---|---|---|---|
-| `soc2.svg` | `<use href="#svg785812565_46827">` | 46,926 | `0 0 120 120` |
-| `ccpa.svg` | `<use href="#svg-1130630889_6001">` | 6,025 | `0 0 121 120` |
-| `iso-27001.svg` | `<use href="#svg-229124054_6985">` | 7,046 | `0 0 121 120` |
-| `gdpr.svg` | inline `background-image:url('data:image/svg+xml,…')` | 10,997 | `0 0 102 102` |
-| `eu-ai-act.svg` | inline `background-image:url('data:image/svg+xml,…')` | 12,314 | `0 0 102 102` |
+| ~~`soc2.svg`~~ | `<use href="#svg785812565_46827">` | 46,926 | **DELETED 2026-08-12** |
+| ~~`ccpa.svg`~~ | `<use href="#svg-1130630889_6001">` | 6,025 | **DELETED 2026-08-12** |
+| ~~`iso-27001.svg`~~ | `<use href="#svg-229124054_6985">` | 7,046 | **DELETED 2026-08-12** |
+| `gdpr.svg` | inline `background-image:url('data:image/svg+xml,…')` | 10,997 | `0 0 102 102` — unmounted since 2026-08-05 |
+| `eu-ai-act.svg` | inline `background-image:url('data:image/svg+xml,…')` | 12,314 | `0 0 102 102` — unmounted since 2026-08-05 |
+
+> ⚠️ **SOC 2 and ISO 27001 are AUDITED CERTIFICATIONS clix does not hold**, and CCPA/GDPR
+> badges assert a compliance posture nobody has assessed. They came off the home page on
+> 2026-08-05 and off `/product` on 2026-08-12. The replacements are the five practice
+> statements in `sections/Security.tsx` with `badges/practice-*.svg`. **Do not put a
+> certification seal back on either page unless clix has been audited and can produce the
+> report on request.** `gdpr.svg` and `eu-ai-act.svg` survive only as unmounted files and are
+> candidates for deletion too.
 
 > **Two delivery mechanisms in one row of five.** The first three are `<use>` references into
 > the defs block; the last two are data-URI CSS backgrounds. The same split shows up in the
@@ -217,20 +214,43 @@ extraction produced *two*. Same rule either way: **exactly one `xmlns` on the ro
 All five were validated by rasterising through `sharp` at density 300 and eyeballing a
 contact sheet, per the rules above — not by grepping.
 
-## /product Blocks 5 and 6 — added 2026-08-11
+## /product Blocks 5 and 6 — added 2026-08-11, **all DELETED 2026-08-12**
 
-| File | What | Provenance |
+| File | What | Fate |
 |---|---|---|
-| `badges/gdpr-product.svg` | GDPR star ring, 121×120 | /product capture's `#svg-1544788426_10435`. **Not the same asset as `badges/gdpr.svg`**, which is home's 102×102 data-URI version — different viewBox, so they cannot be shared. `xmlns` added (inline SVG in HTML has none) and the `id` stripped. Rasterised to confirm non-blank. |
-| `logos/product/nomura.svg` | Nomura wordmark, 121×22 | framerusercontent. ⚠️ Third-party trademark |
-| `testimonials/product/patrice-maffre.jpg` | portrait, 781×1024 | framerusercontent |
-| `testimonials/product/pieter-taselaar.jpg` | portrait, 781×1024 | framerusercontent |
-| `testimonials/product/sean-warneke.jpg` | portrait, 781×1024 | framerusercontent |
+| `badges/gdpr-product.svg` | GDPR star ring, 121×120 | Deleted. Was a separate asset from home's `badges/gdpr.svg` (different viewBox, could not be shared) |
+| `logos/product/nomura.svg` | Nomura wordmark, 121×22 | Deleted. Third-party trademark |
+| `testimonials/product/patrice-maffre.jpg` | portrait, 781×1024 | Deleted |
+| `testimonials/product/pieter-taselaar.jpg` | portrait, 781×1024 | Deleted |
+| `testimonials/product/sean-warneke.jpg` | portrait, 781×1024 | Deleted |
+| `product/benefit-integrations.svg` | Word/Excel/PowerPoint/SharePoint/Drive wall, 299×194 | Deleted. Rebuilt from `TOOL_GLYPHS` at the same 213×138 rendered box |
 
-⚠️ **The three portraits are photographs of identifiable real people** at real firms, used
-under quotes attributed to them. They exist only as a build-time scaffold behind
-`/product`'s `robots: { index: false, follow: false }`. **Delete them and swap in the repo's
-own testimonial people (`public/testimonials/*.jpg`) before that route is ever indexed.**
+The three portraits were photographs of identifiable real people at real firms under quotes
+attributed to them. Block 6 now uses clix's own clients from `public/testimonials/`.
+
+### ⚠️ Two live notes on `public/testimonials/*.jpg`
+
+1. **`noam-tovi.jpg` may not be Noam Tovi.** Its burned-in video caption reads
+   `אני נווה דוידי` — **Nave Davidi** — while `sections/Testimonials.tsx:63` labels it
+   "Noam Tovi, Owner, investments". Different names, and nothing here resolves which is right.
+   `/product` avoids the file for now. **Check with the client before using it anywhere.**
+2. **They are 9:16 video stills, not portraits.** `asaf-peretz.jpg` and `adir-peretz.jpg`
+   carry burned-in Hebrew subtitle captions. Fine as video thumbnails, which is what they were
+   vendored for; visible as a defect in `/product`'s 360×694 portrait slot, which crops one
+   mid-word. Cropping them would change the home page too, so it has not been done unilaterally.
+
+## `product/screens/` — 6 files (added 2026-08-12)
+
+Real UI captures of systems clix has shipped, extracted as single frames from the screen
+recordings published on `clix-lp.vercel.app` (`media/v0*.mp4`), scaled to max 1600px wide.
+`flow-builder.jpg` is the pick of them: it is clix's own product, CLIX-branded, no customer
+data on screen. **Vendored but not yet mounted.**
+
+> ⚠️ **Three of the nine source recordings were rejected, and two for a reason worth
+> recording.** `v04` shows a client's logo, a named person and a phone number. `v06` shows two
+> real leads with **live mobile numbers**. Both are public on clix-lp right now. `v05` was
+> skipped as a judgement call: it is n8n's own UI, so it proves work rather than product.
+> **Vet every frame for burned-in customer data before vendoring another one.**
 
 The slideshow arrows and all of Block 5's icons are **inlined as JSX**, not vendored — each
 is under 1 KB and they need states (focus rings, token colours) a flat file cannot carry.

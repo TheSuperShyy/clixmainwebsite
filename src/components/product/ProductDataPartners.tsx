@@ -1,18 +1,28 @@
 /**
- * ProductDataPartners — clone of rogo.com/product's `Data Partners` block ("Trusted Data"),
- * Block 3. Capture offset 336814, live class `.framer-1itlwii`.
+ * ProductDataPartners — the "tools we build with" block on /product, Block 3.
  *
- * Capture: docs/reference/target/rogo-product-2026-08-11.html (+ .css).
+ * THE BOX IS ROGO'S, THE CONTENT IS CLIX'S. Every geometry value below is still measured from
+ * rogo.com/product's `Data Partners` block (capture offset 336814, live class
+ * `.framer-1itlwii`, in docs/reference/target/rogo-product-2026-08-11.html + .css). What
+ * changed on 2026-08-12 is what sits in the thirteen tiles.
+ *
+ * WHAT WAS HERE AND WHY IT IS GONE. The target's version carried eight third-party financial
+ * data vendors' trademarks, as image files vendored into the public tree, beneath copy that
+ * asserted data provider PARTNERSHIPS and named Rogo outright. clix has none of those
+ * relationships, and the user's boss has ruled out client logos entirely, so the whole wall
+ * is replaced with the tools clix actually builds on. That is nominative use of each tool's
+ * name, not endorsement, and it is the same true claim /clix already makes in ClixLogoProof
+ * ("The tools we build with and integrate"). Nothing in this file may drift back toward "our
+ * partners" or "our customers". The eight names, and the image files they pointed at, are
+ * recorded in features/product-page/CONTEXT.md; deliberately, they are not repeated here.
+ *
+ * The file name and the default export keep the `DataPartners` spelling because /product's
+ * page module imports them by that name, and this component does not own that file.
+ *
  * Spec: features/product-page/FEATURE.md · memory: features/product-page/CONTEXT.md
  *
  * ⚠️ NOT A SECTION. It is a child of `#features`, a sibling of `[Product]` — see the
  * correction note at the top of ProductFeatures.tsx.
- *
- * ⚠️ THIS BLOCK CARRIES EIGHT THIRD-PARTY TRADEMARKS (LSEG, Dow Jones, FactSet, S&P Capital
- * IQ, PitchBook, Preqin, Quartr, Daloopa), logos included. They ship verbatim with the rest
- * of the clone, on the user's explicit call, and they assert partnerships that do not exist.
- * The route's `robots: { index: false, follow: false }` is what makes that acceptable —
- * **do not remove it, and replace these before this page is ever indexed.**
  *
  * TIER MAP — measured on the live page at 1600/1440/1024/390:
  *
@@ -30,109 +40,76 @@
  * the tile instead; a plain "one column on phones" rule gets it wrong.
  */
 
-import type { ReactNode } from "react";
+import { TOOL_GLYPHS } from "@/components/ui/ToolGlyphs";
 
-/* Verbatim from the capture. */
-const TITLE = "Trusted Data";
+const TITLE = "Tools We Build With";
 const INTRO =
-  "We partner with trusted data providers to bring the highest‑quality financial " +
-  "information to our platform. Their expertise, combined with Rogo’s technology, gives " +
-  "customers the clarity and confidence they need to move fast.";
+  "We build on the tools your team already opens every day. Voice, chat, documents, " +
+  "spreadsheets and calendars connect into one system, so the automation lands where " +
+  "people already work, not in a new place they have to learn.";
 
-/* ---- The five line glyphs -------------------------------------------------------------
- * Path data verbatim from the capture's defs block (`#svg66653610_713`, `#svg637455021_240`,
- * `#svg1766875017_478`, `#svg-209490878_991`) and, for the globe, from the inline data-URI
- * that Framer emits instead of a def. Stroke is `currentColor` rather than the original's
- * literal `#44403C`, so the colour comes from a token — see the deviation note in FEATURE.md.
+/* ---- The thirteen tiles, in grid order -------------------------------------------------
+ * A discriminated union, the same shape as the one it replaces: `slug` keys into
+ * TOOL_GLYPHS (CC0 simple-icons paths, already vendored in this repo for the home page logo
+ * row), `mono` is the fallback for the two tools simple-icons has no mark for.
+ *
+ * SIMPLE-ICONS CARRIES NO MARK FOR VAPI OR MONDAY.COM. Both 404 upstream, which is why
+ * LogoCarousel renders those two as text alone. A bare name works in a scrolling strip; it
+ * does not work here, because every tile has a graphic square and two empty squares would
+ * read as broken images. So those two get a single letter set in the site's own display
+ * face. That is our type, not a redrawn trademark: guessing at a logo from memory is how you
+ * ship a subtly wrong one.
+ *
+ * Casing is each vendor's own. `n8n` and `monday.com` really are lowercase and `OpenAI`
+ * really is camel cased; do not sentence case these.
+ *
+ * The order is LogoCarousel's, so both rows of the site name the stack in the same sequence.
+ * Thirteen entries is load bearing: the grid's last row holds one tile at 3 columns and one
+ * at 2, and that ragged edge is the original's.
  */
+type Tool = { label: string; slug: string } | { label: string; mono: string };
 
-function Glyph({ children, viewBox = "0 0 25 24", width = 1.25 }: { children: ReactNode; viewBox?: string; width?: number }) {
+const TOOLS: readonly Tool[] = [
+  { label: "Vapi", mono: "V" },
+  { label: "ElevenLabs", slug: "elevenlabs" },
+  { label: "n8n", slug: "n8n" },
+  { label: "OpenAI", slug: "openai" },
+  { label: "Claude", slug: "claude" },
+  { label: "Gemini", slug: "gemini" },
+  { label: "Make", slug: "make" },
+  { label: "WhatsApp", slug: "whatsapp" },
+  { label: "monday.com", mono: "m" },
+  { label: "Google Sheets", slug: "googlesheets" },
+  { label: "Google Docs", slug: "googledocs" },
+  { label: "Google Calendar", slug: "googlecalendar" },
+  { label: "Hostinger", slug: "hostinger" },
+];
+
+/**
+ * One brand mark, filling whatever box it is given and taking its colour from it.
+ *
+ * `aria-hidden` always, and no `<title>`: every mark in this grid sits beside the tool's name
+ * as real text, so the graphic is decoration. That is the same contract the vendor `<img>`
+ * tiles used to hold with `alt=""`; the accessible name comes from the label, once.
+ *
+ * Returns null on an unknown slug rather than throwing, so a future typo degrades to an
+ * empty square instead of taking the route down.
+ */
+function ToolMark({ slug }: { slug: string }) {
+  const d = TOOL_GLYPHS[slug];
+  if (!d) return null;
   return (
     <svg
-      viewBox={viewBox}
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={width}
-      strokeLinecap="round"
-      strokeLinejoin="round"
+      viewBox="0 0 24 24"
+      fill="currentColor"
       className="h-full w-full"
       aria-hidden="true"
+      focusable="false"
     >
-      {children}
+      <path d={d} />
     </svg>
   );
 }
-
-/** Your Firm's Data — a database cylinder. */
-function IconDatabase() {
-  return (
-    <Glyph>
-      <path d="M12.666 8c4.971 0 9-1.343 9-3s-4.029-3-9-3c-4.97 0-9 1.343-9 3s4.03 3 9 3Z" />
-      <path d="M3.667 5v14c0 .796.948 1.559 2.636 2.121 1.687.563 3.977.879 6.363.879 2.387 0 4.677-.316 6.364-.879 1.688-.562 2.636-1.325 2.636-2.121V5" />
-      <path d="M3.667 12c0 .796.948 1.559 2.636 2.121 1.687.563 3.977.879 6.363.879 2.387 0 4.677-.316 6.364-.879 1.688-.562 2.636-1.325 2.636-2.121" />
-    </Glyph>
-  );
-}
-
-/** Real-time Web & News — a meridian globe. */
-function IconGlobe() {
-  return (
-    <Glyph>
-      <path d="M 12.334 22 C 17.856 22 22.334 17.523 22.334 12 C 22.334 6.477 17.856 2 12.334 2 C 6.811 2 2.334 6.477 2.334 12 C 2.334 17.523 6.811 22 12.334 22 Z" />
-      <path d="M 12.334 2 C 7.001 7.6 7.001 16.4 12.334 22 C 17.667 16.4 17.667 7.6 12.334 2 Z" />
-      <path d="M 2.333 12 L 22.333 12" />
-    </Glyph>
-  );
-}
-
-/** SEC Filings — a columned building. The one glyph at stroke 1.5, not 1.25. */
-function IconBank() {
-  return (
-    <Glyph width={1.5}>
-      <path d="M3.333 22h18m-15-4v-7m4.001 7v-7m4 7v-7m4 7v-7m-6-9 8 5h-16l8-5Z" />
-    </Glyph>
-  );
-}
-
-/** Transcripts — a handset. */
-function IconPhone() {
-  return (
-    <Glyph>
-      <path d="M22.666 16.92v3a1.998 1.998 0 0 1-2.18 2 19.791 19.791 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.776 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11l-1.27 1.27a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.908.339 1.85.574 2.81.7a2 2 0 0 1 1.72 2.03Z" />
-    </Glyph>
-  );
-}
-
-/** International Filings — a networked globe. Its own viewBox, 20 × 20.11. */
-function IconNetwork() {
-  return (
-    <Glyph viewBox="0 0 20 20.11" width={1.2}>
-      <path d="M 19.49 13.16 L 14.95 13.16 C 13.845 13.16 12.95 14.055 12.95 15.16 L 12.95 19.7 M 4.95 1.5 L 4.95 3.16 C 4.95 4.817 6.293 6.16 7.95 6.16 C 9.055 6.16 9.95 7.055 9.95 8.16 C 9.95 9.26 10.85 10.16 11.95 10.16 C 13.055 10.16 13.95 9.265 13.95 8.16 C 13.95 7.06 14.85 6.16 15.95 6.16 L 19.12 6.16 M 8.95 20.11 L 8.95 16.16 C 8.95 15.055 8.055 14.16 6.95 14.16 C 5.845 14.16 4.95 13.265 4.95 12.16 L 4.95 11.16 C 4.95 10.055 4.055 9.16 2.95 9.16 L 0 9.16" />
-      <path d="M 10 20 C 15.523 20 20 15.523 20 10 C 20 4.477 15.523 0 10 0 C 4.477 0 0 4.477 0 10 C 0 15.523 4.477 20 10 20 Z" />
-    </Glyph>
-  );
-}
-
-/* ---- The thirteen tiles, in grid order -------------------------------------------------
- * Five carry a line glyph on a `mark/20` square; eight carry the provider's own mark, which
- * is a full-bleed coloured square in every case — hence no padding and no background under
- * them. `logo` files are vendored under public/logos/product/ (see public/README.md).
- */
-const PARTNERS = [
-  { label: "Your Firm’s Data", Icon: IconDatabase },
-  { label: "LSEG", logo: "/logos/product/lseg.png" },
-  { label: "Dow Jones", logo: "/logos/product/dow-jones.png" },
-  { label: "FactSet", logo: "/logos/product/factset.png" },
-  { label: "Capital IQ", logo: "/logos/product/capital-iq.png" },
-  { label: "PitchBook", logo: "/logos/product/pitchbook.svg" },
-  { label: "Preqin", logo: "/logos/product/preqin.png" },
-  { label: "Real-time Web & News", Icon: IconGlobe },
-  { label: "SEC Filings", Icon: IconBank },
-  { label: "Transcripts", Icon: IconPhone },
-  { label: "Quartr", logo: "/logos/product/quartr.svg" },
-  { label: "International Filings", Icon: IconNetwork },
-  { label: "Daloopa", logo: "/logos/product/daloopa.svg" },
-] as const;
 
 export default function ProductDataPartners() {
   return (
@@ -159,9 +136,9 @@ export default function ProductDataPartners() {
 
       {/* `.framer-18lgsti` — grid, gap 16 at every tier. 2 columns until 1200, then 3. */}
       <ul className="grid w-full list-none grid-cols-2 justify-center gap-4 overflow-hidden desktop:grid-cols-3">
-        {PARTNERS.map((p) => (
+        {TOOLS.map((t) => (
           <li
-            key={p.label}
+            key={t.label}
             /* Tile: `#f5f5f566` = `surface` @40%, radius 0. `self-start` is the original's
                `place-self:start` — tiles do not stretch to fill a taller grid row. */
             className="relative flex min-h-12 w-full flex-row items-center gap-3 self-start overflow-hidden
@@ -173,34 +150,35 @@ export default function ProductDataPartners() {
                 space; a real border pushes the content in by 1px and, on phones, makes the
                 tile 50px instead of 48. Measured: both deltas disappear with this. */}
             <span aria-hidden="true" className="pointer-events-none absolute inset-0 border border-mark/10" />
-            {"logo" in p ? (
-              /* A provider mark. Full-bleed square, so it gets no tile fill of its own.
-                 `alt=""`: the provider's name is the text beside it, and a second
-                 announcement of the same name is noise. Plain <img> for the same reason as
-                 elsewhere in this build — a fixed-size static asset gains nothing from
-                 next/image's loader. */
-              /* eslint-disable-next-line @next/next/no-img-element */
-              <img
-                src={p.logo}
-                alt=""
-                width={48}
-                height={48}
-                className="h-8 w-8 flex-none object-cover tablet:h-12 tablet:w-12"
-              />
-            ) : (
-              /* A line glyph on a `mark/20` square. The glyph is ~52% of the square in the
-                 original (25 of 48, 17 of 32), centred. */
-              <span className="flex h-8 w-8 flex-none items-center justify-center bg-mark/20 tablet:h-12 tablet:w-12">
+            {/* The graphic square: `mark/20`, 32 on phones and 48 from tablet. Every tile now
+                gets one. The old file had two treatments, a line glyph on this square and a
+                full bleed vendor image with no square at all, and that split only existed
+                because the vendor art was itself a coloured tile. One monochrome mark set on
+                one square is both fewer branches and a quieter block. */}
+            <span className="flex h-8 w-8 flex-none items-center justify-center bg-mark/20 tablet:h-12 tablet:w-12">
+              {"slug" in t ? (
+                /* The mark is ~52% of the square in the original (25 of 48, 17 of 32),
+                   centred. Kept exactly, so the tile geometry is untouched. */
                 <span className="block h-[52%] w-[52%] text-ink-soft">
-                  <p.Icon />
+                  <ToolMark slug={t.slug} />
                 </span>
-              </span>
-            )}
+              ) : (
+                /* Monogram fallback, `aria-hidden` for the same reason as the marks: the name
+                   is already beside it. Sized to sit on the marks' optical line rather than
+                   to fill the 52% box, which a letterform would overpower. */
+                <span
+                  aria-hidden="true"
+                  className="font-display text-[15px] leading-none font-normal text-ink-soft tablet:text-[22px]"
+                >
+                  {t.mono}
+                </span>
+              )}
+            </span>
             {/* 14 / 1.1em on phones, 18 / 1.5em at tablet, 20 / 1.5em from 1200.
                 `min-w-0` so a long label wraps inside the tile instead of widening it — the
                 original does the same thing with `flex: 1 0 0; width: 1px`. */}
             <span className="min-w-0 flex-1 font-display text-[14px] leading-[1.1em] font-normal text-ink tablet:text-[18px] tablet:leading-[1.5em] desktop:text-[20px]">
-              {p.label}
+              {t.label}
             </span>
           </li>
         ))}

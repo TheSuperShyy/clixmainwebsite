@@ -7,14 +7,52 @@
  * Capture: docs/reference/target/rogo-product-2026-08-11.html (+ .css).
  * Spec: features/product-page/FEATURE.md · memory: features/product-page/CONTEXT.md
  *
- * ⚠️ THREE NAMED, PHOTOGRAPHED REAL PEOPLE AT REAL FIRMS — Patrice Maffre (Nomura), Pieter
- * Taselaar (Lucerne Capital), Sean Warneke (Schonfeld) — with their quotes and headshots,
- * plus Nomura's mark. This is the strongest claim on the page: it is not a borrowed
- * trademark, it is an endorsement attributed to an identifiable person who has never heard
- * of clix. It ships verbatim only as a build-time scaffold behind the route's
- * `robots: { index: false, follow: false }`, on the user's explicit call.
- * **Replace all three before this route is indexed — the repo's own testimonial people are
- * in public/testimonials/.** See FEATURE.md → "Documented deviations".
+ * ⚠️⚠️  THE THREE QUOTES BELOW ARE PLACEHOLDERS ATTRIBUTED TO REAL, NAMED CLIENTS.  ⚠️⚠️
+ *
+ * Superseded 2026-08-12. This block used to carry Patrice Maffre (Nomura), Pieter Taselaar
+ * (Lucerne Capital) and Sean Warneke (Schonfeld) verbatim from the capture, with their
+ * headshots and Nomura's mark. All six of those things are gone. What stands here now is
+ * clix's own clients, from public/testimonials/, and it is safer but it is NOT yet safe:
+ *
+ *   THE PEOPLE ARE REAL. THE PHOTOGRAPHS ARE REAL. THE WORDS ARE NOT THEIRS.
+ *
+ * clix holds no written testimonial from anybody. Every endorsement it has exists on video
+ * only, and no quotable sentence with a name attached exists anywhere, so the strings below
+ * are scaffolding written to sit at roughly the length a real quote will occupy.
+ *
+ * WHY THEY LOOK THE WAY THEY DO, AND WHY THAT MUST SURVIVE ANY COPY PASS. Each string opens
+ * with a bracketed all caps tag naming the client it is NOT quoting, then talks about that
+ * client in the THIRD PERSON. A real endorsement is first person, so the grammar alone
+ * breaks the illusion before the reader reaches the second word, and the tag breaks it
+ * before the first. The strings are also unquoted: the original wrapped every quote in
+ * straight double quotes, and quotation marks are the visual cue that says "somebody said
+ * this", which is the one thing these must never say.
+ *
+ * Plausible marketing prose here would be worse than obvious filler. That is not a guess, it
+ * is the failure already logged in src/components/clix/ClixTestimonial.tsx: placeholder text
+ * that got renamed into fabricated endorsements and stopped reading as unfinished. Lorem
+ * ipsum would be worse too, in the other direction, because it reads as broken rather than
+ * as awaiting a real quote.
+ *
+ * THE ROUTE MUST STAY `robots: { index: false, follow: false }` UNTIL THIS IS CLEARED.
+ * It is set in src/app/product/page.tsx. Clearing it takes all four of these, not some:
+ *
+ *   1. get a written sentence from each named client, in their own words, or their written
+ *      approval to transcribe one from their video
+ *   2. replace every string tagged `[PLACEHOLDER QUOTE ...]` below, on the desktop SLIDES
+ *      and on the PHONE_CARDS, which carry their own copy at ≤809
+ *   3. recheck `quoteDesktop` per slide. It is a per quote font size fitted to that quote's
+ *      character count, and real copy will not be the length of this filler
+ *   4. delete this warning block. Only then may the robots block come off the route.
+ *
+ * Until step 4, treat this section as unlaunched. It is not merely unfinished: it puts words
+ * next to a real person's face.
+ *
+ * NO CLIENT LOGOS, AND NOT BY OMISSION. The original ran Nomura's mark above its first
+ * quote. clix has no client logos and the user's boss has ruled them out, so the `logo`
+ * field, the `CompanyMark` component and the flex row that held it are deleted rather than
+ * left empty. Nothing was substituted in. Do not reintroduce the slot without that decision
+ * changing.
  *
  * THE ORIGINAL SHIPS THREE SUBTREES; THIS SHIPS TWO, AND THE COLLAPSE IS DELIBERATE.
  *
@@ -27,10 +65,14 @@
  * The first two are one component with one hidden column and two quote sizes — verified
  * identical, so duplicating the subtree would only duplicate the DOM. The third is NOT a
  * responsive variant of the other two and cannot be collapsed into them:
- *   · two testimonials, not three (Sean Warneke is absent below 810)
- *   · Patrice's quote is **different copy** — "Rogo is going to transform" here versus
- *     "Rogo transforms" above 810. Not a truncation; a different sentence.
- *   · Patrice is FIRST on phones (`order:0`) and second in the DOM everywhere else
+ *   · two testimonials, not three. The third slot (Sean Warneke there, Nevo Yahaloman here)
+ *     is absent below 810.
+ *   · slot 1's quote is **different copy** at this width, not a truncation but a different
+ *     sentence: "Rogo is going to transform" there versus "Rogo transforms" above 810. The
+ *     placeholders keep the quirk structurally, so it survives the real copy landing.
+ *     PHONE_CARDS[0] carries its own string; PHONE_CARDS[1] reuses slide 2's, which is what
+ *     the original does too.
+ *   · slot 1 is FIRST on phones (`order:0`) and second in the DOM everywhere else
  *   · no photos, no arrows, and its own paddings (24 / `32 24 24 24`) and gaps (20 / 80)
  *
  * MOTION IS MEASURED, NOT GUESSED — AND THE CAPTURE WOULD HAVE LIED ABOUT ALL OF IT.
@@ -84,9 +126,32 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-/* ---- Content, verbatim from the capture ------------------------------------------------
- * Straight double quotes (U+0022) around each quote and curly apostrophes (U+2019) inside
- * are both the original's, character for character.
+/* ---- Content ----------------------------------------------------------------------------
+ * The PEOPLE, their roles and their photo ids are clix's own, taken from the `CLIPS` array in
+ * src/components/sections/Testimonials.tsx so that a client reads identically on both pages.
+ * Change one, change the other.
+ *
+ * THE QUOTES ARE PLACEHOLDERS. Read the warning at the top of this file before touching them.
+ *
+ * WHICH THREE OF THE SIX, AND WHY. The desktop tier renders a 360px PORTRAIT beside each
+ * quote and derives its `alt` from `${name}, ${role}`, so a slide needs both a person and a
+ * sourced role. That rules out two of the six on facts already recorded in that file:
+ * `elyashiv-engineering` is a COMPANY, not a person, carries no role at all, and its speaker
+ * is unidentified even to us; `achituv`'s role was read off an uploaded filename and is
+ * flagged there as unsourced. Putting either behind a face and a job title on a marketing
+ * page would be inventing the very thing this file exists to stop inventing. So the three
+ * slides are the three best sourced people, in the order the section already lists them.
+ *
+ * LENGTHS ARE MATCHED ON PURPOSE, AND THE COUNTS ARE MEASURED, NOT ESTIMATED. `quoteDesktop`
+ * is fitted per slide to that quote's character count, so a placeholder of the wrong length
+ * would make the fitted size look wrong and send someone chasing a bug that is not there.
+ * Counted with the surrounding quote marks the original carried, new versus original:
+ *
+ *   slide 1  288 / 288      slide 2  157 / 150      slide 3  156 / 163
+ *   phone 1  284 / 299      phone 2  reuses slide 2
+ *
+ * Every one is within 7 characters except phone card 1 at 15 short, and that card is a fixed
+ * `h-[505px]` box, so nothing reflows. No `quoteDesktop` value needed changing.
  */
 
 type Slide = {
@@ -95,83 +160,203 @@ type Slide = {
   name: string;
   role: string;
   photo: string;
-  /** Cream `bone` or `surface` — the original alternates, it is not derived from position. */
+  /** Cream `bone` or `surface`. The original alternates; it is not derived from position. */
   cream: boolean;
-  /** Quote size at ≥1200. Patrice's is 32px, the other two are 36px; all three are 28px at
-      810–1199. A per-slide value in the original, so a per-slide value here. */
+  /** Quote size at ≥1200. The original's first card is 32px and the other two are 36px; all
+      three are 28px from 810 to 1199. A per-slide value in the original, so a per-slide value
+      here. It is sized to the quote's length, so it is step 3 of the checklist above. */
   quoteDesktop: string;
-  /** Only Patrice's card carries a company mark. */
-  logo?: string;
 };
+
+/* ALL SIX CLIENTS, 2026-08-12, on the user's call. rogo's slideshow carried three; clix has
+   six and `sections/Testimonials.tsx` already shows all of them, so showing three here read as
+   a bug. Order matches that file's `CLIPS` exactly, so the two pages never disagree.
+
+   The carousel took this without changes: `N` is `SLIDES.length`, `LOOP` is three copies of
+   `SLIDES`, and the normalisation snap is modulo `N`, so slide count was already a variable.
+   Only the alternation and the sizes below are hand-set.
+
+   NO PRONOUNS in any placeholder. Two of the six are people whose pronouns nobody here has
+   been told, and one is a company. Naming the client and writing around the pronoun costs
+   nothing and cannot misgender anyone. */
+const ADIR_PLACEHOLDER =
+  "[PLACEHOLDER QUOTE, NOT SOMETHING ADIR PERETZ SAID] No approved wording exists for this " +
+  "client yet. This filler runs to about the length the real one should.";
 
 const SLIDES: Slide[] = [
   {
-    id: "patrice",
+    id: "asaf-peretz",
     quote:
-      '"Our strategic integration of Rogo transforms how we deliver value to clients. Rogo ' +
-      "enables our teams to analyze market data and identify opportunities with unprecedented " +
-      "speed and precision, while allowing our bankers to focus more deeply on client " +
-      'relationships and strategic advisory."',
-    name: "Patrice Maffre",
-    role: "International Head of Investment Banking, Nomura",
-    photo: "/testimonials/product/patrice-maffre.jpg",
+      "[PLACEHOLDER QUOTE, NOT SOMETHING ASAF PERETZ SAID] clix holds no written testimonial " +
+      "from this client and no wording has been approved. This paragraph is scaffolding, set " +
+      "at roughly the length a real quote will run, and it is here to be deleted the moment " +
+      "an approved sentence replaces it.",
+    name: "Asaf Peretz",
+    role: "Founder, SalesIQ",
+    photo: "/testimonials/asaf-peretz.jpg",
     cream: true,
     quoteDesktop: "desktop:text-[32px]",
-    logo: "/logos/product/nomura.svg",
   },
   {
-    id: "pieter",
-    quote:
-      '"The Rogo platform is by far the most advanced AI tool in this space. It is improving ' +
-      'the way we do research and making our team far more productive."',
-    name: "Pieter Taselaar",
-    role: "Founding partner & Portfolio manager at Lucerne Capital",
-    photo: "/testimonials/product/pieter-taselaar.jpg",
+    id: "adir-peretz",
+    quote: ADIR_PLACEHOLDER,
+    name: "Adir Peretz",
+    role: "Owner, video and photography studio",
+    photo: "/testimonials/adir-peretz.jpg",
     cream: false,
     quoteDesktop: "desktop:text-[36px]",
   },
   {
-    id: "sean",
+    id: "nevo-yahaloman",
     quote:
-      '"Rogo helped me find relevant precedent data from a number of filings that I wouldn’t ' +
-      'have found otherwise. It completely changed how I evaluated the opportunity."',
-    name: "Sean Warneke",
-    role: "Senior Analyst at Schonfeld",
-    photo: "/testimonials/product/sean-warneke.jpg",
+      "[PLACEHOLDER QUOTE, NOT SOMETHING NEVO YAHALOMAN SAID] Nothing on this card was said " +
+      "by this client. The words are layout scaffolding and must be replaced before launch.",
+    name: "Nevo Yahaloman",
+    role: "Founder",
+    photo: "/testimonials/nevo-yahaloman.jpg",
     cream: true,
+    quoteDesktop: "desktop:text-[36px]",
+  },
+  /* ⚠️ THIS PHOTOGRAPH MAY NOT BE THIS PERSON, AND THAT IS UNRESOLVED.
+     `public/testimonials/noam-tovi.jpg` is a still from the client's video, and the video's
+     own burned-in caption reads "אני נווה דוידי", transliterating to Nave Davidi, while this
+     repo labels the same file "Noam Tovi, Owner, investments" (sections/Testimonials.tsx:63).
+     Two different names; nothing here can say which is right. The pairing is NOT introduced by
+     this page, it already ships on the home page, so excluding it here would hide the problem
+     rather than fix it. Kept, flagged, and gated behind noindex.
+     RESOLVE THE LABEL WITH THE CLIENT before either page is indexed. */
+  {
+    id: "noam-tovi",
+    quote:
+      "[PLACEHOLDER QUOTE, NOT SOMETHING NOAM TOVI SAID] Placeholder text standing in for a " +
+      "sentence this client has never been asked for. Replace before launch.",
+    name: "Noam Tovi",
+    role: "Owner, investments",
+    photo: "/testimonials/noam-tovi.jpg",
+    cream: false,
+    quoteDesktop: "desktop:text-[36px]",
+  },
+  /* `achituv`'s role is recorded in sections/Testimonials.tsx as READ OFF AN UPLOADED
+     FILENAME, not given by the user, and flagged there as unsourced. Carried verbatim rather
+     than improved, so the uncertainty stays visible in one place instead of being laundered
+     into a second file that looks authoritative. */
+  {
+    id: "achituv",
+    quote:
+      "[PLACEHOLDER QUOTE, NOT SOMETHING ACHITUV SAID] Placeholder text standing in for a " +
+      "sentence this client has never been asked for. Replace before launch.",
+    name: "Achituv",
+    role: "Vtechezena",
+    photo: "/testimonials/achituv.jpg",
+    cream: true,
+    quoteDesktop: "desktop:text-[36px]",
+  },
+  /* A COMPANY, not a person, which is why `role` is empty rather than an invented job title.
+     The speaker in the video is not identified anywhere in this repo. `CardBody` holds the
+     role line open with a non-breaking space so this card matches the others' height. */
+  {
+    id: "elyashiv-engineering",
+    quote:
+      "[PLACEHOLDER QUOTE, NOT SOMETHING ELYASHIV ENGINEERING SAID] Placeholder text standing " +
+      "in for a sentence this client has never been asked for. Replace before launch.",
+    name: "Elyashiv Engineering",
+    role: "",
+    photo: "/testimonials/elyashiv-engineering.jpg",
+    cream: false,
     quoteDesktop: "desktop:text-[36px]",
   },
 ];
 
-/** ≤809 only. Two cards, Patrice first, and Patrice's quote is not the one above. */
+/** ≤809 only. A static stack, no arrows, and slot 1's quote is not the one above.
+ *
+ *  ⚠️ SIX CARDS NOW, AND THAT IS A DELIBERATE DEPARTURE FROM THE CAPTURE. The original ships
+ *  exactly TWO here against three slides above, an editorial cut rather than a truncation, and
+ *  that asymmetry was reproduced faithfully until 2026-08-12. It stops making sense once the
+ *  page carries clix's own six: a phone reader seeing two of six, with no arrows and no
+ *  affordance suggesting more exist, reads it as the list. Desktop and phone now show the same
+ *  clients in the same order.
+ *
+ *  The cost is scroll length: six stacked cards run roughly 2100px on a phone. If that proves
+ *  too long, cut the TAIL of this array rather than reordering, so the two tiers keep agreeing
+ *  on who comes first.
+ *
+ *  Card 1 keeps its own longer string, and card 2 still shares slide 2's, both as the original
+ *  does. Cards 3 to 6 reuse their slides' strings for the same reason: one string to replace
+ *  per client when the real wording lands. */
 const PHONE_CARDS = [
   {
-    id: "patrice",
+    id: "asaf-peretz",
     quote:
-      '"Our strategic integration of Rogo is going to transform how we deliver value to ' +
-      "clients. Rogo enables our teams to analyze market data and identify opportunities with " +
-      "unprecedented speed and precision, while allowing our bankers to focus more deeply on " +
-      'client relationships and strategic advisory."',
-    name: "Patrice Maffre",
-    role: "International Head of Investment Banking, Nomura",
+      "[PLACEHOLDER QUOTE, NOT SOMETHING ASAF PERETZ SAID] This is the phone card's own " +
+      "string, kept separate because the original ships different copy at this width. It is " +
+      "not a shortened version of the slide above, and it is not this client's wording " +
+      "either. Replace both before this route is indexed.",
+    name: "Asaf Peretz",
+    role: "Founder, SalesIQ",
     cream: true,
-    logo: "/logos/product/nomura.svg",
     /* Measured heights, not derived: 505 and 334. */
     box: "h-[505px]",
-    /* `--u1dxzv` / `--50mq1o` — the two cards do not share either value. */
+    /* `--u1dxzv` / `--50mq1o`. The two cards do not share either value. */
     pad: "pt-8 pr-6 pb-6 pl-6",
     gap: "gap-20",
   },
   {
-    id: "pieter",
-    quote:
-      '"The Rogo platform is by far the most advanced AI tool in this space. It is improving ' +
-      'the way we do research and making our team far more productive."',
-    name: "Pieter Taselaar",
+    id: "adir-peretz",
+    /* The original repeats slide 2's quote here character for character. Referenced rather
+       than retyped so the two cannot drift apart when the real sentence lands: whoever
+       replaces it replaces one string and both tiers move together. If the real copy ever
+       needs to differ at this width, inline it here, the way card 1 above already does. */
+    quote: ADIR_PLACEHOLDER,
+    name: "Adir Peretz",
     /* The original's phone copy sets this string in capitals AND applies
        `text-transform:uppercase`, so it renders the same as the sentence-case one above.
        Kept sentence-case here: identical output, one less thing to keep in step. */
-    role: "Founding partner & Portfolio manager at Lucerne Capital",
+    role: "Owner, video and photography studio",
+    cream: false,
+    box: "h-[334px]",
+    pad: "p-6",
+    gap: "gap-5",
+  },
+  /* Cards 3 to 6 take card 2's measured shape (334 / p-6 / gap-5), not card 1's. Card 1 is the
+     one-off: it is 505px because the original's lead card carries a longer quote and its own
+     padding and gap. These four carry short placeholders, so the shorter box is the right
+     parent. Re-measure if the real quotes come back long. `cream` continues the alternation
+     from the slides above so the two tiers stripe identically. */
+  {
+    id: "nevo-yahaloman",
+    quote: SLIDES[2].quote,
+    name: "Nevo Yahaloman",
+    role: "Founder",
+    cream: true,
+    box: "h-[334px]",
+    pad: "p-6",
+    gap: "gap-5",
+  },
+  {
+    id: "noam-tovi",
+    quote: SLIDES[3].quote,
+    name: "Noam Tovi",
+    role: "Owner, investments",
+    cream: false,
+    box: "h-[334px]",
+    pad: "p-6",
+    gap: "gap-5",
+  },
+  {
+    id: "achituv",
+    quote: SLIDES[4].quote,
+    name: "Achituv",
+    role: "Vtechezena",
+    cream: true,
+    box: "h-[334px]",
+    pad: "p-6",
+    gap: "gap-5",
+  },
+  {
+    id: "elyashiv-engineering",
+    quote: SLIDES[5].quote,
+    name: "Elyashiv Engineering",
+    role: "",
     cream: false,
     box: "h-[334px]",
     pad: "p-6",
@@ -181,46 +366,29 @@ const PHONE_CARDS = [
 
 /* ---- Card internals, shared by all three tiers ---------------------------------------- */
 
-function CompanyMark({ src }: { src: string }) {
-  return (
-    /* 200 × 20 box at 70% opacity; the 121 × 22 mark is `contain`, pinned left top, so it
-       lands 110 × 20 in the left of that box. */
-    <div className="relative h-5 w-[200px] flex-none opacity-70">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={src}
-        alt=""
-        aria-hidden="true"
-        width={121}
-        height={22}
-        className="block h-full w-full object-contain object-left-top"
-      />
-    </div>
-  );
-}
+/* The original's `CompanyMark` (a 200 × 20 box at 70% opacity holding Nomura's 121 × 22 SVG,
+   `contain`, pinned left top) lived here and was deleted 2026-08-12 with the `logo` field.
+   See the "NO CLIENT LOGOS" note at the top: clix has none and they are ruled out, so the
+   slot is gone rather than empty. */
 
 function CardBody({
   quote,
   name,
   role,
-  logo,
   quoteSize,
 }: {
   quote: string;
   name: string;
   role: string;
-  logo?: string;
   quoteSize: string;
 }) {
   return (
     <>
-      {/* `.framer-p8w8fr` — grows to fill the card, gap 28 between mark and quote. */}
+      {/* `.framer-p8w8fr` grows to fill the card. Its `gap-7` was the 28px between the company
+          mark and the quote and is now inert, the quote being this box's only child. Kept
+          because `flex-1` here is what holds the author block to the bottom of the card, and
+          because it is where a second element would go if one is ever added. */}
       <div className="relative flex w-full flex-1 flex-col items-start justify-start gap-7">
-        {logo ? (
-          <div className="relative flex w-full flex-row items-center gap-[10px]">
-            <CompanyMark src={logo} />
-          </div>
-        ) : null}
         {/* Quote. `letter-spacing: 0` is the original's and is the reason this does not use
             any of the page's other type steps — every one of them is negative. */}
         <blockquote
@@ -238,9 +406,18 @@ function CardBody({
           </p>
           {/* Rooftop Mono in the original; Discovery here under the one-face decision of
               2026-08-08, same as every other borrowed face on this page. 1.4em and the
-              uppercase transform are the original's. */}
-          <p className="w-full font-sans text-[14px] leading-[1.4em] tracking-normal text-muted uppercase">
-            {role}
+              uppercase transform are the original's.
+
+              ALWAYS RENDERED, even with no role. `elyashiv-engineering` is a COMPANY, not a
+              person, so it is the one entry with an empty role rather than an invented job
+              title. The non-breaking space holds the line box open so its card stays the same
+              height as a one-line role, and `aria-hidden` keeps a screen reader from
+              announcing the filler. Same treatment as sections/Testimonials.tsx:299. */}
+          <p
+            className="w-full font-sans text-[14px] leading-[1.4em] tracking-normal text-muted uppercase"
+            {...(role ? null : { "aria-hidden": true })}
+          >
+            {role || " "}
           </p>
         </div>
       </div>
@@ -487,7 +664,6 @@ export default function ProductTestimonials() {
                       quote={s.quote}
                       name={s.name}
                       role={s.role}
-                      logo={s.logo}
                       quoteSize={`text-[28px] ${s.quoteDesktop}`}
                     />
                   </div>
@@ -499,14 +675,21 @@ export default function ProductTestimonials() {
                       says `object-position:left center`; the hydrated component computes
                       `50% 50%`, and centre is what the live page shows. Reading the capture
                       alone gets this wrong, and it is visible — the crop lands on a
-                      different part of the frame. */}
+                      different part of the frame. That matters more here than it did with the
+                      capture's studio headshots: these three files are POSTER FRAMES pulled
+                      from the clients' testimonial videos, framed for a 9:16 phone clip, not
+                      portraits shot for a 360 × 694 slot. */}
                   <div className="relative hidden h-full w-[360px] flex-none desktop:block">
+                    {/* No `width`/`height` attributes, deliberately. The capture's three
+                        headshots shared one intrinsic size (781 × 1024) and could state it;
+                        ours do not (720 × 1014 for asaf, 720 × 1272 for the other two), so a
+                        single pair would be false for at least one of them. Nothing is lost:
+                        the box above fixes BOTH axes in CSS, so the intrinsic ratio can cause
+                        no layout shift and the attributes would only be wrong metadata. */}
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={s.photo}
                       alt={`${s.name}, ${s.role}`}
-                      width={781}
-                      height={1024}
                       /* Without this the browser's own image-drag ghost hijacks the
                          gesture and the carousel never sees the pointer move. */
                       draggable={false}
@@ -532,7 +715,6 @@ export default function ProductTestimonials() {
                 quote={c.quote}
                 name={c.name}
                 role={c.role}
-                logo={c.logo}
                 quoteSize="text-[20px]"
               />
             </div>

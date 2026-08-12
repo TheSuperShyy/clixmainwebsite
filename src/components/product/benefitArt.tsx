@@ -5,20 +5,21 @@
  * Capture: docs/reference/target/rogo-product-2026-08-11.html (+ .css).
  * Spec: features/product-page/FEATURE.md · memory: features/product-page/CONTEXT.md
  *
- * ⚠️ WHAT THE ORIGINALS ARE, AND WHY FIVE OF SIX ARE REBUILT.
+ * ⚠️ WHAT THE ORIGINALS ARE, AND WHY ALL SIX ARE REBUILT.
  *
  * | # | Benefit | Source | Rendered | Ours |
  * |---|---|---|---|---|
- * | 1 | Integrations | inline def `#svg2107740873_10853`, 299×194 | 213×138 | **vendored** |
- * | 2 | Prompt Library | `Ai1MRBNzdfhFLnx4E0V2bNdUiI.svg`, 280×357 | per tier | rebuilt |
+ * | 1 | Integrations | inline def `#svg2107740873_10853`, 299×194 | 213×138 | rebuilt |
+ * | 2 | Ready Workflows | `Ai1MRBNzdfhFLnx4E0V2bNdUiI.svg`, 280×357 | per tier | rebuilt |
  * | 3 | Guided Implementation | `5HetZbyFL8dnsh9HFTZzwfUpRrk.png`, 416×160 | 128×49 | rebuilt |
  * | 4 | Custom-Trained Models | inline data-URI, 203.48×174 | 203×174 | rebuilt |
  * | 5 | Governance & Permissions | `owjXcQ1FEy8SiPDDgo9j1jx1Yww.svg`, 320×358 | 178×199 | rebuilt |
  * | 6 | Single Tenant Deployment | inline def `#svg-710985286_2997`, 193×253 | 156×204 | rebuilt |
  *
- * #1 is the only one vendored, and for the same reason Block 3's partner marks are: it is a
- * wall of **third-party product logos** (Word, Excel, PowerPoint, SharePoint, Google Drive)
- * that we cannot honestly redraw. It carries no rogo branding at all.
+ * #1 was vendored to `/product/benefit-integrations.svg` up to 2026-08-12, on the reasoning
+ * that a wall of **third-party product logos** (Word, Excel, PowerPoint, SharePoint, Google
+ * Drive) cannot be honestly redrawn. It is now rebuilt in the source's own geometry from the
+ * CC0 simple-icons in `TOOL_GLYPHS`, naming tools clix actually uses; that file is dropped.
  *
  * The rest are rebuilt because each carries something that must not ship under this wordmark:
  *   · #4 and #6 contain **rogo's own logo mark** — replaced with `ClixMark`.
@@ -36,6 +37,7 @@
 
 import type { CSSProperties, ReactNode } from "react";
 import ClixMark from "@/components/ui/ClixMark";
+import { TOOL_GLYPHS } from "@/components/ui/ToolGlyphs";
 
 const u = (n: number) => `calc(${n} * var(--u))`;
 
@@ -213,38 +215,85 @@ const GlyphCoin = () => (
 );
 
 /* ---- 1 · Integrations ------------------------------------------------------------------
- * Vendored verbatim. Six 92.4px tiles, rx 2.4, in a 3×2 grid inside a 299×194 frame.
+ * REBUILT 2026-08-12. Was `/product/benefit-integrations.svg`, vendored verbatim — a wall of
+ * Word, Excel, PowerPoint, SharePoint and Google Drive marks. Those are third-party
+ * trademarks belonging to companies clix does not build with, so the file goes and this
+ * grid replaces it. Geometry is the vendored SVG's own, unchanged: six 92.4 tiles, rx 2.4,
+ * at x .1 / 102.1 / 204.1 and y .6 / 101 inside a 299×194 frame, rendering 213×138.
+ *
+ * The marks are CC0 simple-icons out of `TOOL_GLYPHS` — the same six-of-eleven set the logo
+ * carousel names, i.e. tools clix actually uses, which is nominative use. They render in
+ * `muted` rather than brand colour, matching the one tile in the original that was NOT a
+ * logo (its stroke was `#737373`). Still decoration: `aria-hidden`, no label, exactly as the
+ * `<img alt="" aria-hidden>` it replaces.
  */
+const INTEGRATION_TILES: readonly (readonly [number, number, string])[] = [
+  [0.1, 0.6, "n8n"],
+  [102.1, 0.6, "make"],
+  [204.1, 0.6, "openai"],
+  [0.1, 101, "whatsapp"],
+  [102.1, 101, "claude"],
+  [204.1, 101, "googlesheets"],
+];
+
 export function ArtIntegrations() {
   return (
-    /* eslint-disable-next-line @next/next/no-img-element */
-    <img
-      src="/product/benefit-integrations.svg"
-      alt=""
-      aria-hidden="true"
-      width={213}
-      height={138}
-      className="block h-[138px] w-[213px]"
-    />
+    /* The wrapper carries the `aria-hidden` the `<img alt="" aria-hidden>` used to. */
+    <div aria-hidden="true">
+      <Stage
+        w={299}
+        h={194}
+        /* 213/299 = 0.7124 and 138/194 = 0.7113 — one factor cannot hit both axes exactly, so
+           the box is fixed in classes (as the prompt list is) and the contents take the
+           width-derived scale. */
+        scale={0.7124}
+        sizeClassName="h-[138px] w-[213px]"
+        className="text-muted"
+      >
+        {INTEGRATION_TILES.map(([x, y, slug]) => (
+          <Box key={slug} x={x} y={y} w={92.4} h={92.4} radius={2.4} className="bg-paper">
+            {/* A 34-unit mark optically centred in the 92.4 tile, matching the source's own. */}
+            <Box x={29.2} y={29.2} w={34} h={34}>
+              <svg viewBox="0 0 24 24" fill="currentColor" className="h-full w-full">
+                <path d={TOOL_GLYPHS[slug]} />
+              </svg>
+            </Box>
+          </Box>
+        ))}
+      </Stage>
+    </div>
   );
 }
 
-/* ---- 2 · Prompt Library ----------------------------------------------------------------
+/* ---- 2 · Ready Workflows (the target's "Prompt Library" slot) ---------------------------
  * Measured from the source SVG: nine pills at x25, y 12 + 38n, height 32, rx 2, `paper` fill,
- * a 0.5px `#0C0A09`@10% rule. Widths are the source's own, so the stack keeps its ragged
- * right edge even though our labels set narrower than the original's outlined type.
+ * a 0.5px `#0C0A09`@10% rule.
  * The top and bottom fade is the source's alpha mask, restated as a CSS mask.
+ *
+ * ⚠️ THESE LABELS ARE SHARED STATE. They are nine of the ten in `WorkflowsScroller.tsx`
+ * (that one also carries "Document Collection"), in the same order. Change one list and you
+ * must change the other, or /product tells two stories about the same workflows.
+ *
+ * ⚠️ THE SECOND NUMBER IS A HAND-FITTED PILL WIDTH, NOT A LAYOUT CONSTANT — the source's own
+ * widths were fitted to the source's own labels, so replacing the labels invalidates all
+ * nine. Re-fitted 2026-08-12: a least-squares line through the nine originals, regressing
+ * pill width on each label's advance width in ems (Helvetica metrics as a stand-in for the
+ * rendered face), gives `w = 12.87 × ems + 44.6` and reproduces all nine originals to within
+ * 3px. The widths below are that line evaluated on the new labels. That is an estimate off a
+ * substitute metric, so THE STACK STILL NEEDS A VISUAL CHECK: too narrow and the label runs
+ * past the pill (the row is `whitespace-nowrap` and the pill does not clip), too wide and it
+ * leaves dead space on the right. The ragged right edge is deliberate and must survive.
  */
 const PROMPTS: readonly [string, number, () => ReactNode][] = [
-  ["Earnings Comp Analysis", 183, GlyphPhone],
-  ["Public Company Strip Profile", 211, GlyphBank],
-  ["Meeting Prep", 122, GlyphDoc],
-  ["Private Company Profile", 183, GlyphBank],
-  ["Personal Bio", 117, GlyphPerson],
-  ["Financial Sponsor Overview", 204, GlyphCoin],
-  ["News Run", 104, GlyphGlobe],
-  ["Secondaries Buyer Overview", 210, GlyphCoin],
-  ["Proofread My Deck", 155, GlyphPen],
+  ["Lead Intake and Routing", 185, GlyphPerson],
+  ["Appointment Booking", 167, GlyphDoc],
+  ["Quote Follow Up", 140, GlyphCoin],
+  ["Invoice Reconciliation", 169, GlyphBank],
+  ["Call Summary and Tagging", 200, GlyphPhone],
+  ["Customer Onboarding", 171, GlyphPerson],
+  ["WhatsApp Support Triage", 193, GlyphPhone],
+  ["Weekly Ops Report", 156, GlyphChart],
+  ["Renewal Reminders", 160, GlyphPen],
 ];
 
 export function ArtPrompts() {
@@ -405,11 +454,24 @@ export function ArtCustomModels() {
  * ships as `brand-green` so the block does not introduce a second accent. Flagged in
  * FEATURE.md.
  */
+/*
+ * ⚠️ UNLIKE `PROMPTS`, THE NUMBER HERE IS NOT FITTED TO THE LABEL AND MUST NOT BE. It is the
+ * bar's fill length against the fixed 271px track above it — a decorative descending series
+ * (270 / 248 / 213 / 187 / 157) read straight off the source SVG, sitting on its own row
+ * BELOW the label. Nothing about it scales with the text, so the five values are carried
+ * through unchanged; re-fitting them to the new labels would replace five measured numbers
+ * with five invented ones. They are mock proportions, not clix's traffic mix.
+ *
+ * The labels do need checking against the panel, though: each is set at x42 in an 11px
+ * `whitespace-nowrap` row inside a 320-unit panel, so it has ~278 units of room. The longest
+ * below ("File Library") is well under half that, as the original's longest was. Visual check
+ * still wanted alongside the prompt stack.
+ */
 const SOURCES: readonly [string, number, () => ReactNode][] = [
-  ["Web", 270, GlyphGlobe],
-  ["SEC Filings", 248, GlyphBank],
-  ["Market Data", 213, GlyphChart],
-  ["Earnings Transcripts", 187, GlyphPhone],
+  ["WhatsApp", 270, GlyphPhone],
+  ["CRM Records", 248, GlyphChart],
+  ["Web Forms", 213, GlyphGlobe],
+  ["Invoices", 187, GlyphCoin],
   ["File Library", 157, GlyphFolder],
 ];
 

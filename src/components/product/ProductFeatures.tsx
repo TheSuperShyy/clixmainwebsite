@@ -35,8 +35,8 @@ import ProductWorkflows from "@/components/product/ProductWorkflows";
 import ProductDataPartners from "@/components/product/ProductDataPartners";
 import ProductBenefits from "@/components/product/ProductBenefits";
 
-const INTRO_MUTED = "Just as Bloomberg digitized financial data in the 1980s,";
-const INTRO_INK = " Rogo is now transforming financial workflows.";
+const INTRO_MUTED = "Every business runs on a hundred handoffs nobody owns,";
+const INTRO_INK = " Clix builds the quiet systems that remove them.";
 
 export default function ProductFeatures() {
   return (

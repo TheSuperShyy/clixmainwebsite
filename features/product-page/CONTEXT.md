@@ -6,36 +6,192 @@ Newest entry on top. Append after every task — never rewrite past entries.
 
 ## Current state
 
-**Status:** every block of `/product` is built. Blocks 1, 2a, 2b, 2c, 2d, 3, 4, 5, 6 in
-`review`; Block 7 is the shared `<Footer/>`, reused unchanged. The route renders
-`<Nav/> <main>hero · features · security · testimonials</main> <Footer/>`, is `noindex`, and
-is reachable from the nav. `npm run build`, `eslint src/components/product/`, the contrast
-sweep and the 4-tier overflow sweep (1600/1440/1024/390) are all clean as of 2026-08-11.
+**Status:** `/product` is built AND its copy is clix's own. Branch **`product-content`**, off
+`dev`. **41 files staged, NOT committed, NOT merged, NOT pushed.** Build, typecheck and eslint
+clean. Blocks 1, 2a–2d, 3, 4, 5, 6 in `review`; Block 7 is the shared `<Footer/>`.
 
-⚠️ `eslint src/` is **not** clean, and it is nothing to do with this page: two pre-existing
-errors in `src/components/clix/` — an `<a href="/">` that should be a `<Link>` in `ClixCTA`,
-and `reduced.current` read during render in `ClixHero`. The second is a real React fault
-(a ref read during render will not re-render when it changes), worth fixing when `/clix` is
-next opened.
+### ⚠️ Pick this up first: the branch is uncommitted
 
-**Next action:** the **copy + content pass**. Nothing structural is outstanding. What is
-outstanding is the gate: this route cannot be indexed until the borrowed content is replaced.
+41 files are `git add`ed on `product-content` and nothing is committed. Commit before doing
+anything else, or a stray `checkout` loses the whole pass.
 
-### ⚠️ What blocks indexing, in order of severity
+### Open decisions, all the user's, none blocking a commit
 
-1. **Three named real people with photographs** (Block 6) — Patrice Maffre / Nomura, Pieter
-   Taselaar / Lucerne Capital, Sean Warneke / Schonfeld, with quotes and headshots, plus
-   Nomura's mark. An endorsement attributed to an identifiable person. The repo's own
-   testimonial people are already in `public/testimonials/`.
-2. **Four certification badges** (Block 5) — SOC2, CCPA, ISO 27001, GDPR. Two of them are
-   audited certifications clix does not hold. `sections/Security.tsx` already holds the
-   practice-statement replacements written for exactly this reason on 2026-08-05.
-3. **Eight vendor trademarks with logos** (Block 3) and five product logos (Block 4).
-4. Every string on the page is rogo's.
+1. **Burned-in subtitles.** `asaf-peretz.jpg` and `adir-peretz.jpg` are 9:16 video stills with
+   Hebrew subtitle captions baked in; the 360x694 portrait slot crops Asaf's mid-word through
+   "SalesIQ". Fine as video thumbnails, which is what they were vendored for. NOT cropped
+   unilaterally because the files are shared with `sections/Testimonials.tsx`, so a crop
+   changes the home page too.
+2. **`noam-tovi.jpg` may not be Noam Tovi.** Burned-in caption reads Nave Davidi. Ships on both
+   pages already. Needs the client, not a code change.
+3. **Six screenshots vendored but NOT mounted**, in `public/product/screens/`. Wave 2 of the
+   plan was gated on the user seeing wave 1 first, and it never ran.
+4. **`End to end encryption`** (Block 5 `LIST` item 3) is a stronger claim than "encrypted in
+   transit and at rest". Flagged by the agent that wrote the block, left as captured. Worth
+   confirming against what clix actually ships.
+5. Three inherited AA contrast failures (`muted` on `bone` 4.24, `surface` 4.35, `ink` 3.85),
+   pre-existing and still awaiting a call. This pass added no new colour pair; `globals.css` is
+   untouched.
 
-`robots: { index: false, follow: false }` in `src/app/product/page.tsx` is the guard. Do not
-remove it as a side effect of unrelated work.
+### The noindex gate: 3 of 4 cleared
+
+`robots: { index: false, follow: false }` in `src/app/product/page.tsx` stays. Trademarks,
+badges and rogo strings are all gone. What holds it shut now is Block 6's **placeholder quotes
+attributed to real named clients**. Fix is real quotes, or restructure onto the video accordion
+`sections/Testimonials.tsx` already implements.
+
+### Next scope: the Company section
+
+`Nav.tsx:107` still carries `{ label: "Company", href: null }`, an inert link the repo's own
+rule says to activate the moment the page exists. `Careers` (L111) is the other one.
+
+Source material already captured, no new fetch needed:
+`docs/reference/clixsolutions/` holds `/about` (7 named team members, the "Unit 8200 and
+Technion alumni" line), the methodology ("The speed of a lab. The discipline of a factory.",
+diagnose → design → build → operate), and `/insights`. `features/product-page/FEATURE.md` has the
+tier map and nav mechanics that apply to any new route.
+
+⚠️ **No team photographs exist in this repo.** Seven people are named on the live site; their
+images live only there. That is the same shape of gap Block 6 hit, so decide the approach
+BEFORE building a team block, not after.
+
 ---
+## 2026-08-12 (later) — Block 6 carries all SIX clients, not three
+
+The user caught it on sight: `sections/Testimonials.tsx` lists six clients and `/product` was
+showing three, so the block read as broken rather than as an edit. rogo's slideshow held three;
+that number was never clix's.
+
+`SLIDES` and `PHONE_CARDS` are both six now, in `CLIPS` order so the two pages never disagree
+about who comes first.
+
+**The carousel needed no changes.** `N` is `SLIDES.length`, `LOOP` is three copies of `SLIDES`,
+and the normalisation snap is modulo `N`, so slide count was already a variable. Verified live:
+18 track items, 6 distinct clients, loop intact.
+
+**Geometry:** unchanged at 1440 and 1024, because the carousel is a fixed-height viewport and
+only the track behind it grows. At 390 the testimonials section goes 959 to 2391 (+1432), which
+is four more stacked cards at 334 plus gaps. That is the intended cost of the change, not a
+regression, and it is the only page-height movement in the whole pass.
+
+**Two deliberate departures, both recorded in the file:**
+
+- **The phone tier now shows six, where the capture shows two.** rogo ships two cards against
+  three slides, an editorial cut rather than a truncation, and that asymmetry was reproduced
+  faithfully until now. It stops making sense at six: a phone reader seeing two of six, with no
+  arrows and no affordance suggesting more exist, reads that as the whole list. Cost is ~2100px
+  of scroll. If it needs trimming, cut the TAIL so both tiers still agree on order.
+- **`noam-tovi` is back in**, despite the Nave Davidi caption conflict. Excluding it from this
+  page would have hidden a problem that already ships on the home page rather than fixing it.
+  Kept, flagged in place, and still gated behind noindex. The label still needs the client.
+
+**Two smaller things fixed while in there:**
+
+- `elyashiv-engineering` is a company, not a person, so its `role` is empty. `CardBody` now
+  holds the role line open with a non-breaking space and `aria-hidden`, matching
+  `sections/Testimonials.tsx:299`, so the card keeps the same height as a one-line role instead
+  of collapsing.
+- **Pronouns removed from every placeholder.** The first drafts said "he has approved no
+  wording" and "said by him". Nobody here has been told these clients' pronouns, and one of the
+  six is a company. Naming the client and writing around the pronoun costs nothing and cannot
+  misgender anyone.
+
+---
+
+## 2026-08-12 — The content pass. Nine parallel agents, and the two things that nearly went wrong
+
+Every user-visible string on `/product` is now clix's. Detail in FEATURE.md; this records what
+was learned rather than what was written.
+
+### ⚠️ Character count does not decide wrapping. Word boundaries do.
+
+Every agent was told to stay within 10% of the string it replaced, and every agent complied.
+It was not sufficient. The stepper title I wrote by hand was **62 characters against the
+capture's 63**, comfortably inside the rule, and it wrapped to **three lines at 390 where the
+capture takes two**: +30px on one `<h3>`, which pushed **645 elements** down the page.
+
+The before/after harness caught it in one run; no screenshot would have, because the page still
+looked entirely plausible. Fixed by measuring candidate strings in the real rendered face at
+each tier and picking one whose LINE COUNT matches at 390, 1024 and 1440. The measured counts
+are recorded above `TITLE` in `ProductStepper.tsx`.
+
+**Rule for next time: fit headline-class strings by rendered line count, not by character
+count.** Character count is a useful first filter and nothing more.
+
+### ⚠️ I measured the wrong element first, which is the repo's oldest trap in a new coat
+
+The first fitting run queried `section h3` and reported that all candidates were fine. They
+were fine, for the **intro** headline, which is full-width. The stepper title lives in a 472px
+column. `block-diff.js`'s header already warns "filter every query on width > 0" for hidden
+tier variants; this was the same mistake with the filter correct and the SELECTOR wrong.
+Disambiguated by font size (the stepper h3 is the only 28px h3 on the page).
+
+### Parallel agents cannot see each other, and it shows in the copy
+
+Two independent passes produced "Eight Services, One Platform" as the hero h1 and "Eight
+Services, One Integrated Platform Built to Run Your Business" as the stepper title, a few
+hundred px apart. Neither was wrong alone. **Budget a reconciliation pass after any parallel
+copy fan-out**; per-file correctness does not compose into page-level coherence.
+
+### What the agents caught that the brief got wrong
+
+- **Unit G refused a bad instruction, correctly.** I told it `SOURCES`' second tuple element
+  was a pill width to re-fit. It is a bar fill length against a fixed 271px track on a separate
+  row, and does not scale with text. Re-fitting would have replaced five values measured off
+  the source SVG with five invented ones. It left them and wrote the reasoning into the file.
+- **Unit H solved the 4-into-5 problem by subtraction.** rogo's grid is a 2x2 of four badges;
+  clix has five practice statements. It dropped "Encrypted in transit and at rest" because the
+  `LIST` two columns left already says "End to end encryption", and because at 32 chars it was
+  the only one that would have wrapped to three lines and collided with the mark. Border matrix
+  unchanged.
+- **Unit I refused to cast two of the six clients.** `elyashiv-engineering` is a company with
+  no named speaker and `achituv`'s role is flagged unsourced in this repo. Putting either behind
+  a face and a job title would invent the thing that component exists to prevent.
+- **Unit I found false image metadata.** The code hardcoded `width={781} height={1024}` for all
+  three portraits, which was rogo's headshot size. clix's are 720x1014 and 720x1272.
+
+### The identity problem, found by reading a photograph
+
+`noam-tovi.jpg` carries a burned-in caption reading `אני נווה דוידי` (Nave Davidi) while the repo
+labels it Noam Tovi. Slot 3 moved to `nevo-yahaloman`. **Unresolved, needs the client.** This
+surfaced only because the portraits were opened and looked at; no automated check would have
+found it.
+
+### Also on the record
+
+- Two of clix-lp's nine system recordings are **leaking personal data in public**: `v04` shows
+  a client logo, a named person and a phone number; `v06` shows two leads with live mobile
+  numbers. Reported to the user; not this repo's to fix.
+- Six clean frames vendored to `public/product/screens/` and not yet mounted.
+- The horizontal-overflow detector's "150 offenders" is a false positive: they are
+  `whitespace-nowrap` items inside the nav ticker's `w-max` marquee, in an `overflow-hidden`
+  parent. `scrollWidth === clientWidth` at all four tiers, which is the real assertion.
+
+---
+
+## 2026-08-12 — Committed, pushed (unintentionally), dev server up
+
+`04595ef` — the whole page in one commit, 44 files, working tree clean. The message carries
+the `robots` warning, the two plan corrections, the Block 6 capture-vs-live findings and the
+three open contrast failures, so `git show` alone tells the next person what matters.
+
+**Correction on the record: it is on the public remote.** See the state block above. Verified
+with `git ls-remote`, not inferred from the tracking ref.
+
+Autoplay removal (yesterday's last change) shipped inside that commit: the original's 6.0s
+cadence stays measured and documented, the restore recipe sits above `STEP_MS`, and it is
+verified off by 90 samples over 23s showing one distinct track position.
+
+Dev server: `npm run dev` → **port 3001**, pinned in `package.json`. All four routes 200.
+
+**One probe artifact to remember**, because it will recur the moment anything else loses a
+timer: with autoplay gone, a "wait until the track is stationary" settle loop exits on its
+first pass and can drive a synthesised drag **before React hydrates** — which reads as
+"nothing moved at all", i.e. looks exactly like a broken feature. It needs a fixed settle
+after the loop, not instead of it. Two zero-movement readings were that, not a fault.
+
+---
+
 ## 2026-08-11 — Blocks 5, 6 and 7: the page is structurally complete
 
 ### Block 5 — `Security`

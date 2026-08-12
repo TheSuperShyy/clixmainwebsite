@@ -50,7 +50,16 @@ One-section page. Spec + memory in [features/news-page/](../features/news-page/)
 
 ## Page: `/product` (clone of `rogo.com/product`)
 
-Started 2026-08-11. Capture: `docs/reference/target/rogo-product-2026-08-11.{html,css}`.
+Started 2026-08-11, complete 2026-08-11, committed `04595ef` 2026-08-12.
+Capture: `docs/reference/target/rogo-product-2026-08-11.{html,css}`.
+**Content pass 2026-08-12 on branch `product-content`: all copy is now clix's own and 17
+borrowed assets are deleted.** `noindex` still stands, now for a different reason — Block 6's
+placeholder quotes are attributed to real named clients. See `features/product-page/FEATURE.md`.
+
+⚠️ **The earlier clone commit is on the PUBLIC remote.** `noindex` guards the rendered route, not the
+repository — the three real-person photographs, the vendor marks and the certification
+badges are public as source. Flagged for a deliberate call; see
+`features/product-page/CONTEXT.md`.
 Spec + all measured values: [features/product-page/](../features/product-page/).
 
 ⚠️ **Copy is rogo's verbatim by decision ("clone now, rewrite after") — route is `noindex`.**

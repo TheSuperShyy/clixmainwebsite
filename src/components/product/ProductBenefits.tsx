@@ -13,7 +13,10 @@
  * `Single Tenant Deployment` are the two a byte-slice misses — the same class of mistake as
  * the section inventory itself. Count against the render, not the file.
  *
- * ⚠️ Copy is rogo's verbatim. The route is noindex.
+ * ⚠️ COPY IS CLIX'S. Rewritten 2026-08-12 from the target's six finance differentiators to
+ * clix's own, in the same register and within ±10% of each original's character count so the
+ * measured layout below still holds (the 84px description well fits 1–4 lines and no more).
+ * Layout, tiers and the `Art` references are untouched. The route is noindex.
  *
  * TIER MAP — probed live at 1440 / 1024 / 390:
  *
@@ -39,47 +42,53 @@ import {
   ArtTenant,
 } from "@/components/product/benefitArt";
 
-/* Verbatim from the capture, in the original's order. */
+/* clix's six, in the capture's order and in its slots. Titles 1 and 3–6 are generic enough to
+   stand as written; only #2 moved, because its art now lists workflows rather than prompts.
+   Bodies 1–4 are adapted from `WhyRogo.tsx`'s `TENANTS`, which already carries these services
+   in the right register — the same words, cut to this card's shorter measure. */
 const BENEFITS = [
   {
     title: "Integrations",
     body:
-      "Connect seamlessly with your existing providers and file systems. Enhance your " +
-      "workflows by interacting with internal & external data sources.",
+      "Connect the payments, accounting, marketing and support tools you already run. We " +
+      "wire them into one stack, with webhooks, middleware and monitoring.",
     Art: ArtIntegrations,
   },
   {
-    title: "Prompt Library",
+    title: "Ready Workflows",
     body:
-      "Choose from our library of professionally written prompts aimed at automating your " +
-      "common workflows end-to-end.",
+      "Choose from a library of built workflows aimed at automating the jobs your team " +
+      "repeats every week, end to end.",
     Art: ArtPrompts,
   },
   {
+    /* ⚠️ The original credentialled this card with "ex-bankers and private equity investors",
+       which is the target's own team, not ours. clix's real equivalent, per
+       docs/reference/clixsolutions/README.md, is Unit 8200 and Technion alumni. */
     title: "Guided Implementation",
     body:
-      "White-glove engagement and implementation with our team of ex-bankers and private " +
-      "equity investors.",
+      "White-glove engagement and implementation with our Tel Aviv team of Unit 8200 and " +
+      "Technion alumni.",
     Art: ArtGuided,
   },
   {
     title: "Custom-Trained Models",
     body:
-      "Custom-trained LLMs built for finance, using professionally labeled data tailored to " +
-      "the workflows and precision standards of investment banking.",
+      "Models trained on your own data, your tone of voice and your processes, so every " +
+      "agent answers the way your best person would, at your standard.",
     Art: ArtCustomModels,
   },
   {
     title: "Governance & Permissions",
     body:
       "Granular permission controls, role-based access management, comprehensive audit " +
-      "trails, and customizable governance policies to streamline compliance and safeguard " +
-      "your data.",
+      "trails, and customizable governance policies, so every agent acts inside the limits " +
+      "you set.",
     Art: ArtGovernance,
   },
   {
     title: "Single Tenant Deployment",
-    body: "Flexible deployment options to meet your security and infrastructure needs.",
+    body: "Run it in our cloud or inside yours, on the security terms your business sets.",
     Art: ArtTenant,
   },
 ] as const;
@@ -96,9 +105,9 @@ export default function ProductBenefits() {
         className="w-full font-display text-[32px] font-normal text-ink tablet:text-[40px] desktop:text-[44px]"
         style={{ lineHeight: "110%", letterSpacing: "-0.05em" }}
       >
-        AI That Learns How Your
+        One Platform That Learns
         <br />
-        <span className="text-muted">Firm Thinks and Works</span>
+        <span className="text-muted">How Your Team Works</span>
       </h3>
 
       {/* `.framer-3qeold` — grid, gap 16, 1 → 2 → 3 columns. */}

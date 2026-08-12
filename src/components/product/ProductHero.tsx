@@ -6,7 +6,9 @@
  * Capture: docs/reference/target/rogo-product-2026-08-11.html (+ .css).
  * Spec: features/product-page/FEATURE.md · memory: features/product-page/CONTEXT.md
  *
- * ⚠️ Copy is rogo's verbatim by decision ("clone now, rewrite after"). The route is noindex.
+ * Copy in THIS block is clix's own as of 2026-08-12 (headline, subhead, CTA, typed prompts);
+ * the geometry around it is still rogo's, measured. Sibling product blocks may still be
+ * running rogo's strings, which is why the route stays noindex.
  *
  * TIER MAP — three sizes, not four. XL (>=1600) and desktop (1200-1599.98) share every value
  * in this block; the capture has no `min-width:1600px` rule for any class here. Only tablet
@@ -20,16 +22,23 @@
 
 import { useEffect, useState, useSyncExternalStore } from "react";
 
-/* The hero prompt's typed phrases, recovered verbatim from the lazily-loaded code component in
-   bundle ZcAf3VKJXH9VIfxmp-FSCoIZYOjifs-KtG_IUJebwsE.Cbu-MJq3.mjs (2026-08-11), along with
-   `typeSpeed: 30` and `showCursor: true`. The SSR HTML renders an EMPTY span plus the cursor,
-   so this list is not in the capture — it came from grepping the 33 site modules. Worth
-   recording: the equivalent list on /clix (ClixHero's rotating word) was never recovered. */
+/* The hero prompt's typed phrases. CLIX'S OWN (2026-08-12). Four things an owner actually
+   asks for, one per capability family: agent follow-up, WhatsApp intake, call summaries,
+   invoice chasing. Held to rogo's character lengths (37/48/44/34 vs 36/50/43/35) because the
+   typing loop is time-driven, not length-driven: a longer phrase just sits on screen longer,
+   and above ~50 chars it wraps to a third line in the phone field, whose box is a fixed h-11.
+
+   The original's list ("benchmark revenue estimates for AAPL" and three siblings) was
+   recovered from the lazily-loaded code component in bundle
+   ZcAf3VKJXH9VIfxmp-FSCoIZYOjifs-KtG_IUJebwsE.Cbu-MJq3.mjs (2026-08-11), which is also where
+   `typeSpeed: 30` and `showCursor: true` came from; the SSR HTML renders an EMPTY span plus
+   the cursor, so none of it is in the capture. Kept on record because the timings below are
+   still the original's measured values. */
 const PROMPTS = [
-  "benchmark revenue estimates for AAPL",
-  "analyze impact of rising rates on financial sector",
-  "expected ebitda figures for NVDA in q3 2024",
-  "compare valuation multiples of MSFT",
+  "follow up with every lead from friday",
+  "route every whatsapp inquiry to the right person",
+  "turn every sales call into a written summary",
+  "send and chase invoices without me",
 ];
 const TYPE_SPEED_MS = 30; /* measured: typeSpeed 30 */
 /* Not in the bundle payload: the hold at the end of a phrase and the delete rate. Both are
@@ -234,7 +243,7 @@ export default function ProductHero() {
                          desktop:text-[64px]"
               style={{ lineHeight: "100%", letterSpacing: "-0.06em" }}
             >
-              Built for Real Financial Work
+              Eight Services, One Platform
             </h1>
             {/* Subtitle 18/18/16/16, weight 400, -0.02em, 130%, max-w 540, balanced.
                 The preset's colour is #383838 (ink-soft) but the element overrides it inline
@@ -244,8 +253,8 @@ export default function ProductHero() {
                          font-normal text-muted desktop:text-[18px]"
               style={{ lineHeight: "130%", letterSpacing: "-0.02em" }}
             >
-              Accelerate firm productivity, automate workflows, and unify financial data at
-              scale with one secure platform
+              AI agents, automations, CRM and custom software, built as one system around
+              how your team already works
             </p>
           </div>
 
@@ -268,10 +277,12 @@ export default function ProductHero() {
                 style={{ transitionTimingFunction: "var(--ease-rogo)" }}
               />
               {/* The original's DESKTOP button has NO href and its MOBILE twin points at
-                  ./demo — the same authoring slip the site footer already carries. Ours uses
-                  /demo at every tier; logged as a deliberate deviation in FEATURE.md. */}
+                  ./demo, the same authoring slip the site footer already carries. Ours points
+                  at `#contact` at every tier, which is clix's one CTA destination sitewide
+                  (Hero.tsx, Footer.tsx) and resolves IN-PAGE here: Footer carries
+                  `id="contact"` and /product renders it. Deviation logged in FEATURE.md. */}
               <a
-                href="/demo"
+                href="#contact"
                 className="flex h-10 w-full items-center justify-center gap-2 overflow-hidden
                            rounded-[6px] border border-transparent bg-ink px-4 py-2
                            transition-opacity duration-300 hover:opacity-90
@@ -287,7 +298,7 @@ export default function ProductHero() {
                     className="font-sans text-[16px] font-medium whitespace-pre text-paper"
                     style={{ lineHeight: "1em", letterSpacing: "-0.01em" }}
                   >
-                    Request a Demo
+                    Let&rsquo;s start
                   </span>
                 </span>
               </a>

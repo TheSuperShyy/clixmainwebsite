@@ -84,15 +84,19 @@ function IconFolder() {
  * a fixed card overlay on the middle slot. The middle label sits behind the opaque card.
  */
 
+/* The seven sources a clix system actually reads from. Rewritten 2026-08-12 from the
+   capture's finance sources; the ICONS ARE UNCHANGED and each label was chosen for the glyph
+   already in its slot: globe for inbound web forms, link for the connected CRM, table for
+   spreadsheets, folder for the calendar and notes store. Lengths are held within 10% of the
+   capture's, because a longer label truncates against the 88px label inset. */
 const SOURCES = [
-  { label: "Investor presentations", Icon: IconDeck },
-  { label: "Real-time Web", Icon: IconGlobe },
-  { label: "External connections", Icon: IconLink },
-  { label: "Decks, memos", Icon: IconDocs },
-  { label: "Models & spreadsheets", Icon: IconTable },
-  /* Both read off the user's close-ups; neither was in any earlier pass. */
-  { label: "Data rooms, meeting notes", Icon: IconFolder },
-  { label: "Filings and earnings", Icon: IconDocs },
+  { label: "WhatsApp conversations", Icon: IconDeck },
+  { label: "Website forms", Icon: IconGlobe },
+  { label: "Connected CRM records", Icon: IconLink },
+  { label: "Email threads", Icon: IconDocs },
+  { label: "Spreadsheets, reports", Icon: IconTable },
+  { label: "Calendars, meeting notes", Icon: IconFolder },
+  { label: "Invoices and receipts", Icon: IconDocs },
 ];
 
 /* ⚠️ MUST MATCH the -62px travel in the `rows-up` keyframe in globals.css. Parameterising the
@@ -205,7 +209,10 @@ export function PanelSources({ animate }: { animate: boolean }) {
 /* ---- Panel 02 — "Transparent, auditable sources" ------------------------------------
  * Reference: a paragraph of generated prose in which a figure is highlighted and carries a
  * numbered citation chip, with the cited source card floating over it — the point being that
- * every number traces back to a filing.
+ * every answer traces back to the record it came from.
+ *
+ * The scenario is deliberately generic: an order, an invoice, a CRM record. No real company
+ * is named and no figure is presented as fact, because this is mock UI.
  */
 
 export function PanelCitations() {
@@ -218,12 +225,12 @@ export function PanelCitations() {
         className="font-sans text-[15px] text-mark"
         style={{ lineHeight: "1.55em", letterSpacing: "-0.01em" }}
       >
-        The Q4 FY2025 EBITDA reported shows a significant increase over the earlier quarter,
-        reflecting continued expansion across the data centre segment and a favourable product
-        mix. Margins held despite higher input costs, and management reiterated guidance for
-        the full year. Based on consensus estimates for NVIDIA, the expected figure for Q3
+        The order was confirmed in the WhatsApp thread and matches the invoice raised in the
+        same week, so the account is settled and nothing on it is outstanding. The customer
+        has now asked to move the next shipment and wants the new date in writing. According
+        to the order record in the CRM, the agreed delivery date
         is{" "}
-        <span className="rounded-[2px] bg-brand-green/15 px-1 font-medium text-ink">$20,811M</span>
+        <span className="rounded-[2px] bg-brand-green/15 px-1 font-medium text-ink">14 April</span>
         <span className="ml-1 inline-flex h-[18px] w-[18px] translate-y-[3px] items-center justify-center rounded-[3px] bg-brand-green text-[11px] font-medium text-paper">
           2
         </span>
@@ -231,9 +238,9 @@ export function PanelCitations() {
       {/* The floating source card. Overlaps the middle of the prose, as in the reference. */}
       <div className="absolute top-[24%] left-[20%] w-[56%] rounded-[4px] bg-paper p-3 shadow-[0_2px_10px_rgba(0,0,0,0.10),0_0_0_1px_var(--color-hairline)]">
         <div className="mb-2 flex items-center gap-2">
-          <span className="font-sans text-[13px] font-medium text-ink">NVDA</span>
-          <span className="rounded-[3px] bg-surface px-1.5 py-0.5 font-sans text-[11px] text-ink">10-K</span>
-          <span className="font-sans text-[13px] text-mark">FY 2024</span>
+          <span className="font-sans text-[13px] font-medium text-ink">4182</span>
+          <span className="rounded-[3px] bg-surface px-1.5 py-0.5 font-sans text-[11px] text-ink">CRM</span>
+          <span className="font-sans text-[13px] text-mark">Q2 2026</span>
         </div>
         {/* Skeleton rows — the reference greys the table out and shows only the cited cell. */}
         <div className="flex flex-col gap-1.5">
@@ -245,7 +252,7 @@ export function PanelCitations() {
           <div className="flex items-center gap-1.5">
             <span className="block h-2 flex-1 rounded-[2px] bg-surface" />
             <span className="rounded-[2px] bg-brand-green/15 px-1.5 font-sans text-[11px] font-medium text-ink">
-              $20,811M
+              14 April
             </span>
             <span className="block h-2 flex-1 rounded-[2px] bg-surface" />
           </div>
@@ -265,10 +272,10 @@ export function PanelDocuments() {
     <div className="flex w-full flex-col gap-3">
       <div className="flex items-center gap-2 rounded-[4px] bg-paper p-1.5 pl-3 shadow-[0_0_0_1px_var(--color-hairline)]">
         <span className="min-w-0 flex-1 truncate font-sans text-[14px] text-mark" style={{ letterSpacing: "-0.01em" }}>
-          Analyze the attached CIM
+          Check the attached invoice
         </span>
         <span className="shrink-0 rounded-[4px] bg-brand-green/70 px-3 py-1.5 font-sans text-[13px] font-medium text-paper">
-          Ask Rogo
+          Ask Clix
         </span>
       </div>
       <div className="relative flex h-[92px] items-center justify-center rounded-[4px] border border-brand-green/45">
@@ -281,7 +288,7 @@ export function PanelDocuments() {
             <IconFolder />
           </span>
           <span className="font-sans text-[14px] text-ink" style={{ letterSpacing: "-0.01em" }}>
-            Project ACME
+            Client files
           </span>
         </span>
       </div>
