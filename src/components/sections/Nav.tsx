@@ -96,19 +96,34 @@ const LINKS: { label: string; href: string | null }[] = [
   { label: "Clix", href: "/clix" },
   /* Live as of 2026-08-11: `/product` exists (clone of rogo.com/product). Same rule — the
      slot gets its href the moment its page does. Second ROUTE in this list.
-     ⚠️ /product is `noindex` while its copy is still rogo's verbatim; that is a crawler
-     directive, not a reason to hide it from the nav — the page is reachable and real. */
+     ⚠️ /product is `noindex`. That was because its copy was rogo's verbatim; the content pass
+     on 2026-08-12 cleared that, and the guard now stands on the placeholder testimonial quotes
+     attributed to real named clients. Either way it is a crawler directive, not a reason to
+     hide it from the nav — the page is reachable and real. */
   { label: "Product", href: "/product" },
   /* ROOT-RELATIVE, not bare hashes (2026-08-09). These were `#security` / `#testimonials`
      while this was a one-page site; `/clix` made the nav shared, and a bare hash there points
      at nothing — the sections live on `/`. `/#x` still scrolls rather than reloads when you
      are already on `/`, so the home behaviour is unchanged. */
   { label: "Security", href: "/#security" },
-  { label: "Company", href: null },
+  /* Live as of 2026-08-12: `/company` exists (clone of rogo.com/company). Same rule — the slot
+     gets its href the moment its page does. Third ROUTE in this list.
+     ⚠️ /company is `noindex`, but for a thinner reason than /product's: every string on it is
+     already clix's own. It is guarded pending two answers, the Unit 8200 credential and the
+     placeholder photograph. See src/app/company/page.tsx. A crawler directive is not a reason
+     to hide a real, reachable page from the nav. */
+  { label: "Company", href: "/company" },
   { label: "Customers", href: "/#testimonials" },
   /* Live since 2026-08-11 — /news is the rogo.com/news clone carrying the AI digest. */
   { label: "News", href: "/news" },
-  { label: "Careers", href: null },
+  /* Live as of 2026-08-12: `/careers` exists (clone of rogo.com/careers). Same rule — the slot
+     gets its href the moment its page does. Fourth ROUTE in this list, and the last `null` in
+     it apart from none: every label now resolves.
+     ⚠️ /careers is `noindex` for two content reasons, neither of them design: the hero and
+     mission copy are still rogo's verbatim, and the three job rows are invented. A job listing
+     solicits an application, so an invented one is worse than an invented testimonial — but
+     that is a crawler directive, not a reason to hide a reachable page from the nav. */
+  { label: "Careers", href: "/careers" },
 ];
 
 /* Each page section declares which of these it is, via `data-nav-theme`. Anything the nav
@@ -491,7 +506,7 @@ export default function Nav({
               className="flex w-full flex-col gap-1 bg-ink px-4 pt-2 pb-6"
               aria-label="Main"
             >
-              {/* Keyed on label, not href — five of the seven now share a null href. */}
+              {/* Keyed on label, not href — inert items share a null href. */}
               {LINKS.map((l) => {
                 const style = {
                   lineHeight: "1.5em",
@@ -578,7 +593,7 @@ export default function Nav({
                        items-center justify-center gap-3 overflow-hidden"
               aria-label="Main"
             >
-              {/* Keyed on label, not href — five of the seven now share a null href.
+              {/* Keyed on label, not href — inert items share a null href.
                 The inert ones render the SAME box (`h-9 px-3 py-2`) as the links, because
                 the row's spacing was measured against seven equal items; swapping one for a
                 narrower element would shift the whole centred row. */}

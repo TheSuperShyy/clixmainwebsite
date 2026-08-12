@@ -101,8 +101,45 @@ settled it. `Workflows Scroller` likewise is not a block: it is feature 03's ani
 
 Still **not scoped** — see the open question in [PROJECT.md](PROJECT.md).
 
-`Security` · `Company` · `Customers` · `Careers` · `Log in`
-(`News` and `Product` left this list 2026-08-11 — both built above.)
+`Security` · `Customers` · `Log in`
+(`News` and `Product` left this list 2026-08-11, `Company` on 2026-08-12 — all built above.
+`Careers` is being built concurrently in a separate session.)
+
+## Page: /company
+
+Started and complete 2026-08-12, on `dev` (no feature branch, at the user's instruction).
+Capture: `docs/reference/target/rogo-company-2026-08-12.{html,css}`.
+Spec: [features/company-page/FEATURE.md](../features/company-page/FEATURE.md).
+
+**Design cloned 1:1, content clix's from the first commit.** Unlike `/product` this page was
+never built with the target's copy in it, so no third-party logo, founder name or staff
+photograph ever entered the repo and there is nothing to strip later.
+
+⚠️ **`noindex`**, for a thinner reason than `/product`'s: every string is already clix's own
+and the four-item gate is clear. It is guarded pending two answers, both the user's — whether
+the "Unit 8200 and Technion" credential is substantiable, and the placeholder photograph in
+Block 5. One line lifts it.
+
+⚠️ **Six bands, not five.** `Video` is a sibling of `Hero`, not a child.
+
+| # | Framer name | Component | Status |
+|---|---|---|---|
+| 1 | `Hero` | `CompanyHero` | `review` |
+| 2 | `Video` | `CompanyHero` (same file) | `review` |
+| 3 | `Mission` | `CompanyMission` | `review` |
+| 4 | `Team` → eight services | `CompanyServices` | `review` |
+| 5 | `Investors` → twelve tools | `CompanyTools` | `review` |
+| 6 | `Reiteration` | `CompanyCareers` | `review` |
+| 7 | `Footer` | shared `Footer` | `review` |
+
+**Every band height matches the target to 0.00px at 1600 / 1440 / 1024 / 390**, and `<main>`
+totals match exactly (4497.16 at 1440, 6451.88 at 390). Verified with a before/after harness,
+not by eye.
+
+⚠️ **The document is still 43.8px taller at 1440 and 234px at 390, and none of it is this
+page.** The whole delta is the shared `Footer`, which is that much taller than rogo's on every
+route. Pre-existing, almost certainly `FooterMap.tsx`'s map embed, which rogo's footer has no
+equivalent of. Not fixed here.
 
 ## Order of work
 

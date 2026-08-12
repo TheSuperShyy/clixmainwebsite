@@ -3,6 +3,28 @@
 Real assets taken from the target, per the **1:1 fidelity policy** in
 [docs/PROJECT.md](../docs/PROJECT.md). Nothing here is a substitute, a trace, or a redraw.
 
+## `company/` — 1 file (added 2026-08-12)
+
+| File | What | Provenance |
+|---|---|---|
+| `tel-aviv-band.jpg` | 1920×758, 199 KB. Block 5's full-bleed band on `/company` | A frame at t=4.5s from `video/hero-tel-aviv.mp4`, cropped `1920x758` and graded once (`saturation 0.55, contrast 1.04, brightness 0.02`) |
+
+> ⚠️ **This is a PLACEHOLDER for a team photograph, and it is not one.** It is Old Jaffa, a
+> landmark. The original's slot holds a photograph of rogo's own staff; **no photograph of
+> clix's team exists anywhere in this repo**, and the seven team images on clixsolutions.info
+> were never fetched. Both stock sources refused automated download (Pexels 403, Unsplash 401),
+> so per CLAUDE.md §7's two-source ceiling the work stopped and the user was asked. It is named
+> for what it is rather than what it stands in for. **Replace it when a real photo exists**; it
+> is a one-line swap in `src/components/company/CompanyCareers.tsx`.
+>
+> The ungraded frame is a hot pink-orange sunset, far too saturated for a page that is
+> otherwise white, bone and grey. Hence the single grade pass.
+
+**This also corrects a stale note below.** `video/hero-tel-aviv.mp4` and its poster were
+documented as "in use" but had been **unreferenced since 2026-08-09**, when `Hero.tsx` moved to
+`hero-israel.mp4` — 6.9 MB of dead weight. `/company` now uses the mp4 for Block 1's video and
+this frame for Block 5, so the claim is true again, for different reasons.
+
 ## `fonts/` — 57 files, 1.0 MB
 
 Pulled from the original's `@font-face` sources (`framerusercontent.com` and

@@ -63,7 +63,11 @@ const GROUPS: LinkGroup[] = [
   {
     title: "Company",
     links: [
-      { label: "About", href: "/about" },
+      /* Repointed 2026-08-12: was `/about`, which never existed and 404'd. `/company` is the
+         clone of rogo.com/company and is the page this label means. The nav calls the same
+         route "Company"; the labels differ because each list keeps its own capture's wording.
+         The other eight links in this footer still point at routes this repo does not have. */
+      { label: "About", href: "/company" },
       { label: "Insights", href: "/insights" },
       { label: "Playground", href: "/playground" },
     ],
