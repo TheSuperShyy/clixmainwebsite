@@ -45,7 +45,7 @@
  * is baked into rogo's own video frame, not a DOM element. Nothing to reproduce.
  */
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useSyncExternalStore } from "react";
 
 /* The two corner brackets that frame the CTA. 14x20 each, ink fill, path data verbatim
    from the capture's <use> defs #svg-1980836134_494 (Left) and #svg5446185_500 (Right).
@@ -95,43 +95,62 @@ function BracketRight({ className, style }: { className?: string; style?: React.
   );
 }
 
-/* Play glyph, 29x29 in a 0 0 24 24 box — the capture's def #3535238546, kept verbatim
-   including its `translate(5.75 5.75)` offset and its OUTLINED triangle (fill transparent,
-   1.5px round-joined stroke). It is not the solid triangle Testimonials.tsx uses.
-   The original strokes pure rgb(0,0,0); ours inherits `text-ink` (#151515) from the button
-   so no stray hex enters the component. The delta is 21/255 on a 1.5px stroke. */
-function PlayGlyph() {
-  return (
-    <svg width="29" height="29" viewBox="0 0 24 24" fill="none" className="h-[29px] w-[29px]" aria-hidden="true">
-      <path
-        d="M 12.5 6.25 L 0 0 L 0 12.5 Z"
-        transform="translate(5.75 5.75)"
-        fill="transparent"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
+/* Duplicated verbatim from ProductHero.tsx / ProductStepper.tsx / ProductTestimonials.tsx
+   rather than extracted. The repo has no shared hooks module and four copies of this already
+   exist; adding a fifth keeps the file self contained, which is the established pattern here.
+   The server snapshot is `false`, so SSR renders the autoplaying markup and a reduced-motion
+   client corrects it on hydration. */
+function usePrefersReducedMotion() {
+  return useSyncExternalStore(
+    (onChange) => {
+      const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+      mq.addEventListener("change", onChange);
+      return () => mq.removeEventListener("change", onChange);
+    },
+    () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    () => false,
   );
 }
 
 export default function CompanyHero() {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  /* One-way latch. Once the user has pressed play the native chrome owns the clip, so a
-     later pause must NOT bring the overlay back — that would fight the controls the user
-     is currently holding. Same idiom as Testimonials.tsx. */
-  const [playing, setPlaying] = useState(false);
+  /* AUTOPLAY, AND THAT MAKES THIS HOOK LOAD BEARING (2026-08-12, user: "make the video auto
+     play in company remove the play button").
 
-  const handlePlay = () => {
+     The previous build was click to play, and its comment argued that reduced motion needed
+     no special case BECAUSE nothing moved until someone asked. That reasoning died with the
+     play button. An autoplaying looping clip is exactly the motion a reduced-motion user has
+     asked not to be shown, and globals.css's rule cannot help: it targets `.hero-video` only.
+
+     So the preference is honoured in JS instead, and it DEGRADES rather than removes: a
+     reduced-motion visitor gets the poster plus native controls, so the clip is still theirs
+     to watch on purpose. Hiding it outright, which is what globals.css does to the home
+     hero, would be wrong here — that one is decorative background, this one is content. */
+  const reduced = usePrefersReducedMotion();
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  /* ⚠️ THE `autoPlay` PROP ALONE DOES NOT HONOUR THE PREFERENCE, and the first version of
+     this shipped that bug. Measured, not theorised: with reduce emulated, the attribute
+     correctly read false and `controls` true, and the clip was playing anyway, currentTime
+     advancing 4.05 -> 6.05.
+
+     The cause is hydration order. `usePrefersReducedMotion`'s server snapshot is `false`, so
+     SSR emits the autoplaying markup and the browser starts the clip while parsing. React
+     then hydrates and drops the attribute, but `autoplay` is only consulted when playback
+     BEGINS: removing it never pauses an element that is already running.
+
+     So the pause has to be imperative. This also covers the live case, someone toggling the
+     OS setting with the page open, which the attribute would not handle either. */
+  useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
-    setPlaying(true);
-    /* play() returns a promise that rejects on an unsupported codec or a revoked gesture.
-       There is nothing to roll back to — the controls are already up, so the user can
-       retry with native chrome — but an unhandled rejection would still hit the console. */
+    if (reduced) {
+      video.pause();
+      return;
+    }
+    /* play() rejects on a revoked gesture or an unsupported codec. Nothing to roll back to,
+       and an unhandled rejection would still reach the console. */
     void video.play().catch(() => {});
-  };
+  }, [reduced]);
 
   return (
     <section
@@ -239,12 +258,14 @@ export default function CompanyHero() {
           here rather than reproduced. */}
       <div className="flex w-full flex-col items-center justify-center gap-24 overflow-hidden bg-paper px-4 tablet:px-10">
         <div className="relative aspect-[1.78344] w-full max-w-[var(--container-max)] overflow-hidden">
-          {/* The original is `loop preload="none" playsinline`, NOT autoplay and NOT muted:
-              its variant is literally named "Paused" and it waits for a press. Ours matches.
-              Because playback is user initiated rather than automatic, prefers-reduced-motion
-              needs no special case here — nothing moves until someone asks it to. Worth
-              stating: globals.css does carry a reduced-motion rule, but it targets
-              `.hero-video` only and would not have covered this element.
+          {/* ⚠️ OURS, NOT THE CAPTURE'S. The original is `loop preload="none" playsinline`,
+              NOT autoplay and NOT muted: its variant is literally named "Paused" and it waits
+              for a press. We autoplay at the user's explicit request, which is a deliberate
+              departure from the target on this one point.
+
+              `muted` is REQUIRED, not decoration. Browsers block unmuted autoplay outright,
+              so without it the promise rejects and nothing ever plays. It costs nothing here
+              because the clip carries no audio track at all (verified with ffprobe).
 
               ⚠️ THE CLIP IS 9:16 PORTRAIT IN A 16:9 BOX, and that is a real compromise, not an
               oversight. Swapped in on 2026-08-12 at the user's request, replacing the Pexels
@@ -264,42 +285,23 @@ export default function CompanyHero() {
               `object-contain` (leaves ~877px of empty ground either side) or giving the band
               its own aspect ratio, which breaks the clone and moves every band below it.
 
-              Still no audio track on this clip (verified), so leaving it unmuted, faithful to
-              the original which sets neither `muted` nor `autoplay`, cannot surprise anyone. */}
+              `preload` moved from `none` to `metadata`: `none` fights autoplay, since the
+              browser has to fetch before it can start. Not `auto` — that would pull the whole
+              1.3 MB on every page load whether or not the band is ever scrolled to. */}
           <video
             ref={videoRef}
             src="/company/boss-lecture.mp4"
             poster="/company/boss-lecture-poster.jpg"
             aria-label="Footage of a Clix talk, a speaker addressing a seated audience in a studio space"
-            preload="none"
+            preload="metadata"
+            autoPlay={!reduced}
+            muted
             loop
             playsInline
-            controls={playing}
+            controls={reduced}
             className="absolute inset-0 h-full w-full object-cover"
             style={{ objectPosition: "50% 50%" }}
           />
-          {/* 56x56, centred, white, radius 43.2px (a circle at that size). The capture also
-              carries a Pause button at the same position, swapped by variant; here the
-              native controls take that job the moment playback starts, so the overlay
-              unmounts instead. The hover scale is OURS — the original sets only
-              `cursor:pointer` on hover, and the repo's definition of done wants a visible
-              hover and focus state on every control. */}
-          {!playing && (
-            <button
-              type="button"
-              onClick={handlePlay}
-              aria-label="Play the video"
-              className="absolute top-1/2 left-1/2 z-[1] flex h-14 w-14 -translate-x-1/2
-                         -translate-y-1/2 items-center justify-center overflow-hidden
-                         rounded-full bg-paper text-ink transition-transform duration-300
-                         hover:scale-105 focus-visible:scale-105 focus-visible:ring-2
-                         focus-visible:ring-paper focus-visible:ring-offset-2
-                         focus-visible:ring-offset-ink focus-visible:outline-none"
-              style={{ transitionTimingFunction: "var(--ease-rogo)" }}
-            >
-              <PlayGlyph />
-            </button>
-          )}
         </div>
       </div>
     </section>

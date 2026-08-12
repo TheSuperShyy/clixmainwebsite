@@ -27,6 +27,53 @@ clean; `npx tsc --noEmit` clean across the project.
 
 ---
 
+## 2026-08-12 — Block 1's video autoplays, and the obvious implementation was wrong
+
+User: *"make the video auto play in company remove the play button"*. A deliberate departure
+from the target on this one point: the capture's variant is literally named `Paused` and waits
+for a press.
+
+`muted` is **required**, not decoration. Browsers block unmuted autoplay outright, so without
+it the promise rejects and nothing ever plays. It costs nothing because the clip has no audio
+track. `preload` moved `none` → `metadata`: `none` fights autoplay, `auto` would pull the whole
+1.3 MB on every page load whether or not anyone scrolls to the band.
+
+### ⚠️ `autoPlay={!reduced}` DOES NOT HONOUR THE PREFERENCE. The first version shipped that bug.
+
+Autoplay is exactly the motion a reduced-motion visitor has asked not to see, and
+`globals.css`'s rule cannot help — it targets `.hero-video` only. So the preference was wired
+through the existing `usePrefersReducedMotion` hook … and it did not work.
+
+**Caught by measuring rather than reasoning.** With reduce emulated over CDP, the attribute read
+`autoplay false` and `controls true`, exactly as intended, **and the clip was playing anyway**,
+`currentTime` advancing 4.05 → 6.05.
+
+The cause is hydration order. The hook's server snapshot is `false`, so SSR emits the
+autoplaying markup and the browser starts the clip while parsing. React then hydrates and drops
+the attribute, but **`autoplay` is only consulted when playback BEGINS** — removing it never
+pauses an element that is already running.
+
+Fixed with an imperative `useEffect` that pauses on `reduced`. That also covers a case the
+attribute never could: someone toggling the OS setting with the page already open.
+
+Verified after the fix, both modes:
+
+| | paused | muted | autoplay | controls | currentTime |
+|---|---|---|---|---|---|
+| no-preference | false | true | true | false | 4.20 → 6.21, advancing |
+| reduce | **true** | true | false | **true** | 0.06 → 0.06, frozen |
+
+It **degrades rather than removes**: a reduced-motion visitor gets the poster plus native
+controls, so the clip is still theirs to watch on purpose. Hiding it outright, which is what
+`globals.css` does to the home hero, would be wrong here — that one is decorative background,
+this one is content.
+
+**Rule worth carrying: a media attribute driven by a client-only hook is not a preference
+guarantee.** SSR renders the default, the browser acts on it before hydration, and only an
+imperative call undoes it. `PlayGlyph` and the click-to-play latch were removed as dead code.
+
+---
+
 ## 2026-08-12 — Both media slots replaced with the user's own assets
 
 ### Block 5: stock photograph in, Old Jaffa placeholder out
