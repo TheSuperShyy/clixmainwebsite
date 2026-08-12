@@ -149,7 +149,10 @@ Present in the Framer project, zero uses on the home page. Recorded so a later p
 doesn't cause them to be re-derived — **do not use them on home-page sections**.
 
 `#0071c1` blue · `#d94636` terracotta · `#1c1c1c` ·
-`#ffffff00` transparent · `#ffffffcc` white 80% · `#737373` (duplicate token, same value)
+`#ffffff00` transparent · `#737373` (duplicate token, same value)
+
+`#ffffffcc` left this list on 2026-08-12 — it is `paper-soft`, and `/security` uses it in every
+one of its three bands. Zero uses on home, and not to be introduced there.
 
 `#19a26c` left this list on 2026-08-12 — it is `signal-green`, the "N open positions" status
 dot on `/careers`. Zero uses on home, and not to be introduced there.
@@ -175,6 +178,33 @@ over CDP, not sampled from a screenshot. All three are wired into the `@theme` b
 
 `glyph` is deliberately not `mark` (`#8b8b8b`): the original paints the arrow two steps
 lighter than the label beside it, and collapsing the pair flattens the row's hierarchy.
+
+## Added 2026-08-12 — `/security`
+
+One colour, and it is the only one that page needed. Measured off the live page over CDP.
+
+| Token | Value | Where it is used | Contrast |
+|---|---|---|---|
+| `paper-soft` | `#ffffffcc` | hero subtitle · all six benefit bodies · the "Built To Be Trusted" paragraph | **11.84:1** on `ink` — AAA (it flattens to `#d0d0d0` over that ground) |
+
+It is the light-on-dark counterpart of `ink-soft`, and that is why it is its own token rather
+than `paper` at an opacity: white headings and 80% bodies appear **together** in all three of
+that page's bands, so the pair is a real typographic step, not a one-off softening.
+
+**Everything else on `/security` resolved to existing tokens** — `ink` (the ground, for the
+whole page), `paper` (h1, both h3s, the CTA fill, the four corner brackets), `muted` (the
+compliance h3's second line, and the five cell labels), `hairline-light` `#ffffff26` (the
+dashed cell rules, which the target writes as `rgba(255,255,255,0.15)` — the same colour).
+
+⚠️ **One inherited AA failure, the same one already awaiting a call on home, footer, `/product`
+and `/careers`:** the five 14px cell labels are `muted` on `ink` = **3.85:1**. Shipped as
+measured, flagged in `features/security-page/FEATURE.md`.
+
+The failure is confined to those five labels, and the reason is worth keeping: the body text on
+this page is `paper-soft`, not `muted`. `muted` appears in exactly two places here, and the other
+one — the compliance heading's second line — is 44/40/32px, i.e. **large text**, where 3.85:1
+passes AA. So this route adds one failing pair, not two, and `mark` `#8b8b8b` at 5.36:1 would
+close it with a single token change.
 
 **Everything else on `/careers` resolved to existing tokens** — `ink` (page type, and the
 roles band ground), `paper`, `muted` (the h3's second line, and the row index), `surface`

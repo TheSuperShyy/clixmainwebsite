@@ -101,11 +101,13 @@ const LINKS: { label: string; href: string | null }[] = [
      attributed to real named clients. Either way it is a crawler directive, not a reason to
      hide it from the nav — the page is reachable and real. */
   { label: "Product", href: "/product" },
-  /* ROOT-RELATIVE, not bare hashes (2026-08-09). These were `#security` / `#testimonials`
-     while this was a one-page site; `/clix` made the nav shared, and a bare hash there points
-     at nothing — the sections live on `/`. `/#x` still scrolls rather than reloads when you
-     are already on `/`, so the home behaviour is unchanged. */
-  { label: "Security", href: "/#security" },
+  /* Live as of 2026-08-12: `/security` exists (clone of rogo.com/security). Was `/#security`,
+     the home page's own dark band, for as long as there was no page to point at. Home's
+     `#security` section is untouched and still carries that anchor — it just no longer has to
+     stand in for a route. Fourth ROUTE in this list, and the first one that is NOT `noindex`:
+     every string on `/security` is clix's own and it ships no certification seal, so nothing
+     guards it. */
+  { label: "Security", href: "/security" },
   /* Live as of 2026-08-12: `/company` exists (clone of rogo.com/company). Same rule — the slot
      gets its href the moment its page does. Third ROUTE in this list.
      ⚠️ /company is `noindex`, but for a thinner reason than /product's: every string on it is

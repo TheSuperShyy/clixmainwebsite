@@ -101,6 +101,21 @@
      paints, and it is what shows if that SVG ever fails to load. */
   --color-control-scrim: #00000033;
 
+  /* ---- /security, added 2026-08-12 ------------------------------------------------------
+     White at 80%. The Framer project declares it as `--token-2a466810` and DESIGN-SYSTEM.md
+     has listed it since 2026-08-02 under "defined but unused" — true of every page counted
+     until now, and no longer true. `/security` is the page that uses it: the hero subtitle,
+     all six benefit bodies and the "Security At Our Core" paragraph are all `rgba(255,255,255,
+     0.8)` on `ink`. Same shape of correction as `brand-green`, `forest-deep`, `bone` and
+     `signal-green` before it — a zero-use count is a fact about the pages counted, not a
+     verdict.
+     It is the light-on-dark counterpart of `ink-soft`, which is why it carries that name and
+     is not folded into `paper`: the two appear TOGETHER in every block on that page (white
+     headings over 80% bodies), so collapsing them would flatten a real step.
+     Flattens to #d0d0d0 over `ink`, which is 11.84:1 — AAA, and comfortably clear of the
+     `muted`-on-`ink` pairing beside it at 3.85:1. */
+  --color-paper-soft: #ffffffcc;
+
   /* REMOVED 2026-08-08: `--color-quote-up` (#4ade80) and `--color-quote-down` (#f87171).
      They existed for the banner's stock ticker's green/red day change; the banner now lists
      LLM list prices, which have no up or down — a list price is a constant until the lab

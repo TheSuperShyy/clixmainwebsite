@@ -97,12 +97,50 @@ settled it. `Workflows Scroller` likewise is not a block: it is feature 03's ani
 | — | **page order** | **`review`** | ⚠️ **The sections are not in DOM order below 1200.** `#features` order 1, `#testimonials` order 2, `#security` order 3 at both sub-1200 tiers; unset (source order) above. So **security sits above testimonials on desktop and below them on tablet and phone**. `<main>` is `flex flex-col` for that reason alone and the two components carry the `order-*` classes. Verified in the rendered DOM at 1600/1440/1024/390 — the flip lands exactly at 1200. Page-wide: zero horizontal overflow at all four tiers, `data-nav-theme` contiguous end to end (no gaps, so the nav never falls back), every control keyboard-reachable with a visible ring. |
 | 7 | `Footer` | `todo` | **Reuse** the site `Footer`. |
 
+## Page: `/security` (clone of `rogo.com/security`)
+
+Started and complete 2026-08-12, on `dev` (no feature branch), built with 4 parallel agents one
+file each. Capture: `docs/reference/target/rogo-security-2026-08-12.{html,css}` — 374 KB HTML,
+**five** inline `<style>` blocks.
+Spec + all measured values: [features/security-page/](../features/security-page/).
+
+✅ **NOT `noindex` — the first cloned route to ship without the guard**, and deliberately so.
+All four gate items that hold `/product`, `/company` and `/careers` are clear: no third-party
+trademark, no certification clix does not hold, no real person quoted, and every string is
+clix's own from the first commit. `/news` is the precedent. Do not add a `robots` block as part
+of unrelated work.
+
+⚠️ **PRACTICES, NOT SEALS** (user's call). The target's compliance grid ships SOC2 / CCPA /
+ISO 27001 / GDPR / EU AI Act — two of them **audited certifications clix does not hold**, and
+the exact set removed from home on 2026-08-05. The five cells carry home's own practice
+statements and its five `practice-*.svg` marks instead, and **the heading moved with them**
+("Compliant With / Industry Standards" → "Built On / Practices We Keep"), because none of these
+is a standard anyone certifies. `sections/Security.tsx`'s standing instruction applies here too.
+
+⚠️ **THREE BANDS, NOT FOUR.** "Security At Our Core" reads as a fourth section and is the
+**second direct child of `#features-1`**, separated from the badge grid by that band's own 120px
+gap. Probed on the live DOM before anything was built — the same mistake `/product` made twice
+by reading byte offsets as nesting. It is why `SecurityCore` is not a `<section>`. The target's
+fourth Framer band, `Reiteration`, is inside `Footer` here as it is there.
+
+⚠️ **THE WHOLE PAGE IS `ink`**, which no other route is. All four `[data-nav-theme]` regions
+declare `dark`, so the nav bar is solid ink from the first pixel to the last.
+
+| # | Framer name | id | Component | Status | Notes |
+|---|---|---|---|---|---|
+| 1 | `Hero` | `#first` | `SecurityHero` | **`review`** | ⚠️ **Height is `70vh`, not a content sum** — 198 + 302 + 80 = 580 and the band is 630 at a 900px viewport (`min-content` below 810, where the sum does close at 521.19). h1 `88/72/64`, 95%, `-0.06em` except phone `-0.05em` — the same preset `/careers` and `/news` carry. Subtitle 18/16 at 130% in the new `paper-soft`. CTA is the **Inverted** variant (white fill, ink label) and its `<a>` is **220 × 36 inside a 220 × 40 frame**, unlike `/careers`' which fills its frame. Brackets `dx −28 / dy −12` at every tier — a **third independent measurement** of `/product`'s and `/careers`' numbers. ⚠️ **The first headline failed the diff**: "Your Data Never Leaves You." sets 3 lines at 390 and cost 60.79px; seven candidates were measured live before "Your Keys. Your Data." was chosen. |
+| 2 | `Benefits` | `#features` | `SecurityBenefits` | **`review`** | Six items, 3 → 2 → 1 columns, gap 40 → 40 → 32, uniform rows 185 / 182.39 / 150.39. Item gap steps **64 → 32** at the phone tier, which is most of why that row is 32px shorter. ⚠️ **Every title is 1 line and every body exactly 2, at every tier** — the rows are uniform, so a 3-line body moves all six; all twelve strings were pre-fitted by rendered line count before the build. Six 36 × 36 line glyphs inlined from the capture's defs, `fill="white"` → `currentColor`. Card 6 replaces rogo's "Audited & tested", which is the same class of claim as the SOC 2 seal. |
+| 3 | `Compliance` row 1 | `#features-1` | `SecurityCompliance` | **`review`** | Two-tone centred h2 (**one element; the `<br>` IS the colour boundary**, paper span over the h2's own `muted`) over a 5 → 2 → 1 grid, gap 0, cells 240 tall at ≥810 and `aspect-ratio: 1.40909` at phone. ⚠️ **The rules are a dashed `::after` overlay, not borders** — a real border takes layout space and moves the 104px mark 1px, the exact bug `/product` Block 3 shipped. ⚠️ **The matrix is ragged and not derivable**: at 390 cell 3 draws `0/1/0/1`, no top *and* no bottom, while cell 4 draws all four. Reproduced verbatim; it also **disagrees with home's grid on cell 4**, which is genuine divergence between two separately-probed pages. Both corner marks are **the same 21 × 33 SVG**, BR at `rotate(180deg)`, hung 5px outside the grid. |
+| 4 | `Compliance` row 2 | — | `SecurityCore` | **`review`** | Not a section: the band's second child. Row + gap 64 at ≥810, column + gap 24 below; left column `flex:1 0 0` capped 450 → 280 → none. ⚠️ **The body is ONE `<p>` with two `<br/>`** — the blank line between the paragraphs is a real line, and two `<p>`s with a margin is a different measurement. ⚠️ **`Explore security portal` is dropped** (user's call; rogo's points at `trust.rogo.ai`), measured first at 190.06 × 32 so it is on record. |
+| 5 | `Reiteration` + `Footer` | — | shared `Footer` | **`review`** | **Reused unchanged.** The target keeps its closing CTA inside the footer, exactly as ours does. |
+| — | verification | | | **`review`** | **Block-diff `ALL MATCH` at 1600 / 1440 / 1024 / 390 — 60 keys per tier.** Build clean (13 routes, `/security` prerendered), `tsc` and `eslint` clean on the new files. Four nav-theme regions contiguous with every gap 0.00; zero horizontal overflow; one focusable in `<main>` with a visible ring; outline h1 → h2 → h3. ⚠️ **The band delta is TWO terms**: −64px at every tier from the dropped link, plus −20.79 at 1024 and −20.80 at 390 from **one line of our own paragraph**. Page totals then reconcile from exactly three terms — those two plus the shared `Footer` being +43.8px / +234px taller than rogo's, the pre-existing `FooterMap` difference. ⚠️ Five 14px labels are `muted` on `ink` = **3.85:1, fail AA** — inherited, the same failure open on four other routes, needs one token change to close them all. |
+
 ## Other pages
 
 Still **not scoped** — see the open question in [PROJECT.md](PROJECT.md).
 
-`Security` · `Customers` · `Log in`
-(`News` and `Product` left this list 2026-08-11, `Company` and `Careers` on
+`Customers` · `Log in`
+(`News` and `Product` left this list 2026-08-11, `Company`, `Careers` and `Security` on
 2026-08-12 — all built above.)
 
 ## Page: /company

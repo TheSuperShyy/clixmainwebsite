@@ -290,11 +290,12 @@ export default function ProductSecurity() {
               </ul>
             </div>
 
-            {/* ⚠️ DEVIATION: the original points at `./security`, a page rogo has and this
-                site does not. Pointed at the home page's own security section instead of
-                shipping a 404. Logged in FEATURE.md — retarget it if /security is built. */}
+            {/* DEVIATION RESOLVED 2026-08-12. The original points at `./security`; this site
+                had no such route, so this pointed at the home page's own security band rather
+                than ship a 404. `/security` now exists (clone of rogo.com/security), so the
+                link goes where the original's does. The FEATURE.md deviation row is retired. */}
             <Link
-              href="/#security"
+              href="/security"
               className="relative flex w-full flex-row items-center gap-3 text-mark no-underline transition-opacity duration-300 ease-[var(--ease-rogo)] hover:opacity-70 focus-visible:ring-2 focus-visible:ring-paper focus-visible:ring-offset-2 focus-visible:ring-offset-ink focus-visible:outline-none tablet:w-min"
             >
               <p className="font-sans text-[14px] leading-[130%] tracking-[-0.01em] whitespace-pre text-paper">

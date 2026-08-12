@@ -10,6 +10,16 @@ Frozen copy of the target site. **This is the measurement source of record.**
 | `rogo-felix-2026-08-09.css` | The five inline `<style>` blocks, concatenated — 129 KB |
 | `rogo-product-2026-08-11.html` | Full served HTML of <https://rogo.com/product>, 612 KB |
 | `rogo-product-2026-08-11.css` | The five inline `<style>` blocks, concatenated — 180 KB |
+| `rogo-careers-2026-08-12.html` | Full served HTML of <https://rogo.com/careers>, 577 KB |
+| `rogo-careers-2026-08-12.css` | **Six** inline `<style>` blocks, concatenated — 149 KB |
+| `rogo-company-2026-08-12.html` | Full served HTML of <https://rogo.com/company>, 381 KB |
+| `rogo-company-2026-08-12.css` | The inline `<style>` blocks, concatenated — 146 KB |
+| `rogo-security-2026-08-12.html` | Full served HTML of <https://rogo.com/security>, 374 KB |
+| `rogo-security-2026-08-12.css` | The five inline `<style>` blocks, concatenated — 150 KB |
+
+⚠️ **The block count is not a constant.** Five pages captured, and `/careers` has six inline
+`<style>` blocks where the others have five. Count them per capture; a hardcoded slice loses a
+stylesheet silently.
 
 **One host, not two.** `rogo.ai/product` 301s to `rogo.com/product` and serves a
 byte-identical document (612,563 bytes, 129 `data-framer-name` values, both hosts checked
