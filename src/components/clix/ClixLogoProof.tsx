@@ -14,6 +14,12 @@
  *
  * Tier map: 4 columns >=1200, 3 at tablet, 2 on phone — and the phone tier also grows the
  * grid from 436px to 600px, because 12 tiles in 2 columns is 6 rows instead of 3.
+ *
+ * THE LOCKUP INSIDE THE TILE IS OURS, AND IT SCALES; THE TILE AROUND IT DOES NOT. The grid,
+ * its fixed height and its gap are rogo's measured values and stay frozen. The glyph+name
+ * pair is 24/16 on phone, 28/18 at tablet, 32/20 at desktop, at weight 600 throughout
+ * (2026-08-13, user: "bigger and little bolder") — see the note at the lockup for why the
+ * phone tier is the one that cannot grow.
  */
 
 import { getDict } from "@/lib/i18n/server";
@@ -96,21 +102,39 @@ export default function ClixLogoProof() {
                   ⚠️ Contrast: #8b8b8b on the tile computes to ~2.97:1 — below AA for body
                   text, same as rogo's own grid. Acceptable ONLY because these are brand
                   names (logotypes are exempt); do not reuse this grey for prose. */}
-              <div className="flex items-center justify-center gap-[10px] px-3">
+              {/* ⚠️ THE LOCKUP IS WIDTH-BOUND ON PHONE, AND ONLY ON PHONE. `whitespace-pre`
+                  means the name cannot wrap, and the tile is `overflow-clip`, so anything
+                  wider than the tile is silently cut rather than reflowed. The binding case
+                  is `Google Calendar` — the longest of the twelve — in a 2-column tile:
+                  at 390px that tile is 175px wide. Measured from discovery-var at wght 600,
+                  16px, -0.01em: 114.6px of text, so the padding and gap around it are the
+                  whole budget. That is why the phone tier grows the WEIGHT but not the SIZE,
+                  and why phone padding/gap are TIGHTER than tablet's rather than equal:
+                    · phone   px-2 + 24 glyph + gap-2 + 114.6  = 162.6 of 175  ✓ 12px spare
+                    · tablet  px-3 + 28 glyph + gap-3 + 128.9  = 192.9 of 238  ✓ (worst case
+                                                                 is 810px, the narrowest 3-col)
+                    · desktop px-3 + 32 glyph + gap-3 + 143.2  = 211.2 of 274  ✓ (worst case
+                                                                 is 1200px, the narrowest 4-col)
+                  This is 8px MORE phone slack than the pre-2026-08-13 medium/px-3/gap-10
+                  lockup had, which is deliberate: that one sat at 170.4 of 175 and clipped
+                  outright below ~382px. If a longer tool name is ever added, re-measure this
+                  first — the phone tier is where it breaks, and it breaks silently. */}
+              <div className="flex items-center justify-center gap-2 px-2 tablet:gap-3 tablet:px-3">
                 <svg
                   viewBox="0 0 24 24"
                   /* Eleven marks are `currentColor` and follow `color`. monday.com's three
                      shapes carry their own `fill` attributes, which lose to ANY css rule —
                      `[&_*]:fill-current` greys it without touching the others (whose
                      stroke-drawn paths a blanket fill override would flood). */
-                  className={`h-6 w-6 flex-none text-mark ${t.mono ? "" : "[&_*]:fill-current"}`}
+                  className={`h-6 w-6 flex-none text-mark tablet:h-7 tablet:w-7 desktop:h-8 desktop:w-8 ${t.mono ? "" : "[&_*]:fill-current"}`}
                   fill={t.mono ? "currentColor" : undefined}
                   aria-hidden="true"
                 >
                   {t.glyph}
                 </svg>
                 <span
-                  className="font-sans text-[16px] font-medium whitespace-pre text-mark"
+                  className="font-sans text-[16px] font-semibold whitespace-pre text-mark
+                             tablet:text-[18px] desktop:text-[20px]"
                   style={{
                     letterSpacing: "-0.01em",
                     lineHeight: "1em",

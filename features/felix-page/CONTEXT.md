@@ -34,7 +34,8 @@ deleted** — a `noindex` left behind afterwards is a live page nobody can find.
 **Two things block specific blocks and cannot be measured from the capture:**
 1. the fixed backdrop's **scroll-driven colour** — the Manifesto is white-on-dark and the only
    dark thing available is that layer. Blocks 4, probably 6.
-2. **assets** — video, 3 photos, 24 logos, all rogo's property. Blocks 2, 3, 5.
+2. **assets** — 3 photos and 24 logos, still rogo's property. Blocks 3, 5. **Block 2's video
+   is closed as of 2026-08-13** — it plays clix's own `clix-demo.mp4`, not a borrowed clip.
 
 **Status:** `review`
 **Next action:** look at it at all four tiers — nothing here has been pixel-diffed. Then the
@@ -44,6 +45,69 @@ pass.
 ---
 
 ## Log
+
+### 2026-08-13 — the integrations lockup scales; the tile it sits in does not
+
+User: "make these tools text and logo bigger and little bolder." **The grid is rogo's and
+stays frozen** — 4/3/2 columns, 436/600px height, 8px gap, `#15151508` tiles, 6px radius all
+untouched. Only the glyph+name lockup inside each tile changed, to **24/16 phone, 28/18
+tablet, 32/20 desktop, weight 500 → 600 throughout**.
+
+**⚠️ THE PHONE TIER COULD NOT GROW, AND THAT IS MEASURED, NOT CAUTION.** `whitespace-pre` +
+`overflow-clip` means an over-wide name is cut silently, never wrapped. Binding case is
+`Google Calendar`, the longest of the twelve, in a 2-column tile — **175px at 390**. Widths
+taken from `discovery-var.woff2` instanced at wght 600 with `-0.01em` applied per char:
+
+| tier | tile | px + glyph + gap + text | total |
+|---|---|---|---|
+| phone 390 | 175 | 16 + 24 + 8 + 114.6 | **162.6** |
+| tablet 810 (narrowest 3-col) | 238 | 24 + 28 + 12 + 128.9 | **192.9** |
+| desktop 1200 (narrowest 4-col) | 274 | 24 + 32 + 12 + 143.2 | **211.2** |
+
+So phone keeps 16px and buys its slack back from padding and gap instead
+(`px-3`→`px-2`, `gap-[10px]`→`gap-2`, tablet restores both).
+
+**This FIXED a pre-existing clip rather than causing one.** The old medium/`px-3`/`gap-10`
+lockup measured **170.4 of 175** — inside spec at 390 by 4.6px, but cut outright below ~382px
+viewport, i.e. on every 375px and 360px phone. It is now 162.6, which clears 372px.
+
+Measuring needed one workaround worth keeping: `instantiateVariableFont` **throws
+`KeyError: 'vhea'`** on this font because MVAR references a vertical-metrics table it doesn't
+ship. `del ft['MVAR']` before instancing; horizontal advances are unaffected.
+
+`/company` imports the same `TOOL_MARKS` but has its own component and is **not** affected.
+
+Verified: `npm run build` clean, 20 static routes. Not visually diffed at the four tiers —
+the user took the render check (see the working-preference note in the global log).
+
+### 2026-08-13 — Block 2 plays clix's own demo; the last borrowed asset on this page is gone
+
+**`ClixVideo` now sources `public/video/clix-demo.mp4`**, the user's product demo, replacing
+`hero-clix.mp4` — which was never this block's footage, only the home hero's clip reused
+because the target's mp4 is rogo's. One path swap, exactly as the file's header said it would
+be. Nothing about the box moved: 16:9 container, 80px gap, section padding and the mute
+toggle's geometry are still the measured originals.
+
+**It needs no crop.** The clip is **1920×1080** — the container's `aspectRatio: 1.77778`
+verbatim — so `object-cover` has nothing to cut. 40.2s, 30fps (the house cadence, unlike
+`/product`'s 25fps master), 4.7MB, which is 0.1MB *under* the clip it replaces despite being
+longer.
+
+**The poster is frame 0 of the same file**, generated with
+`ffmpeg -vf select=eq(n\,0) -frames:v 1 -q:v 3` → `public/video/clix-demo-poster.jpg`
+(18KB). Poster and first painted frame are therefore the same image and the start of playback
+is invisible. Carrying `hero-clix-poster.jpg` forward would have flashed the Tel Aviv skyline
+before cutting to the demo — the one thing a poster exists to prevent.
+
+`public/video/hero-clix.mp4` and its poster are **left in place**: nothing in `src/` references
+them now (`grep -rn hero-clix src/` → 0 hits), but they are the home hero's ancestry and
+deleting an unreferenced asset is a separate call.
+
+**Not a `noindex` unblocker.** The route's `robots` block is held by the fabricated
+testimonials, not by assets; this changes nothing there.
+
+Verified: `npm run build` clean, 20 static routes.
+
 
 ### 2026-08-11 — DM Serif Display picked and shipped as the wordmark's face
 
