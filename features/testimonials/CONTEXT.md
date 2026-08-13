@@ -522,3 +522,166 @@ page"*.
   Framer's variant set implies.
 - The mobile card gap is `96px` (`.framer-v-sgdn6k`), which leaves ~290px-tall closed cards
   at 1024. Verbatim from the capture, but worth a look at a real tablet width.
+
+## 2026-08-13 — English quote copy: the "warm" tic removed
+
+All six carousel quotes are translations of the Hebrew originals in `quote.md`. Five of the
+six ended on בחום / בנעימות, which had been carried over literally — *"Warmly recommended!"*,
+*"a warm recommendation from me"*, *"recommend them warmly!"*, *"with real warmth"*, *"I warmly
+recommend it to everyone!"*. Idiomatic in Hebrew, but in English it reads as machine-translated,
+and repeating it across five of six slides makes the whole set look authored by one hand.
+
+Replacements (EN only — `src/lib/i18n/en/home.ts`):
+
+| Slide | Was | Now |
+|---|---|---|
+| Asaf Peretz | Warmly recommended! | Highly recommended! |
+| Nevo Yahaloman | a warm recommendation from me | a strong recommendation from me |
+| Noam Tovi | I recommend them warmly! | I highly recommend them! |
+| Achituv | with real warmth | with real care |
+| Elyashiv Engineering | I warmly recommend it to everyone! | I recommend it to everyone! |
+
+⚠️ **These strings are a layout input.** `SLIDE_STYLE.quoteDesktop` in `QuoteCarousel.tsx`
+picks a per-slide desktop font size from character count — 32px past ~260 chars, 36px below.
+Counts were re-measured (script over the concatenated string literals), not eyeballed:
+
+    207 / 289 / 174 / 189 / 267 / 140   (was 207 / 289 / 172 / 189 / 269 / 147)
+
+Only slide 3 grew, by 2 characters, and it sits in the 36px tier whose binding case is 207 —
+so nothing crosses the ~260 boundary in either direction and no font size changes. The
+`LENGTH IS LAYOUT` comment above `slides` carries the new numbers.
+
+**Hebrew deliberately untouched.** The tic is an artefact of translation; בחום is the natural
+register in the source and changing it would edit real customers' words. HE is also shorter in
+every slot, so EN remains the binding case for sizing.
+
+Copy-only change: no component, CSS, or token touched.
+
+
+## 2026-08-13 — The carousel's photo column became a player
+
+The six "portraits" in the >=1200 slideshow were never portraits: they are poster frames cut
+from the clients' own testimonial videos, and those videos have sat in
+`public/testimonials/<id>.mp4` (0.9–9.4MB, 19–69s) unused since the accordion was retired.
+On the user's call the column is now a play target.
+
+**Behaviour.** At rest it is *exactly* what shipped before — same file, same crop, same 360px
+box — plus a 56px play badge. Click: the column widens **360 → 480px over 400ms** on
+`--ease-rogo`, the clip crossfades in over 300ms and plays **with sound**. Pause, end, Escape,
+either arrow, a committed flick, or a resize under 1200 all collapse it back to the poster.
+No native `controls`; clicking the video pauses it (user's decision).
+
+**Scope, decided not defaulted.** >=1200 only. The 810–1199 tier has no photo column at all
+(`hidden desktop:block`, the whole difference between the original's two slideshow variants)
+and the <=809 static stack is quote-only. A `display:none` `<video>` with `preload="none"` and
+no autoplay does nothing, so those two tiers needed no gate beyond the class already there.
+
+**480px is fixed for all six, and that was a choice against the alternative.** The clips are
+720x1014 (asaf), 464x704 (elyashiv) and 720x1272–1280 (the other four), so their uncropped
+widths at 694px tall would have been 493 / 457 / 390–393 — a different distance and a different
+quote reflow on every slide. Presented to the user with those numbers; they took the uniform
+480 over per-clip natural width. The cost is real and stated: at 480 the 9:16 clips lose ~79px
+off the top and bottom to `object-cover`. **If a burned-in Hebrew caption gets clipped on any
+of them, the one-line escape hatch is a per-clip `objectPosition` in `SLIDE_STYLE`** — not a
+change to the width.
+
+### Four load-bearing decisions
+
+1. **Exactly one `<video>`, mounted at `pos`, `preload="none"`.** `LOOP` renders 18 `<li>`
+   (6 slides x 3 copies). One video per slide is 18 elements and, above `preload="none"`, the
+   six clips fetched three times over — ~68MB.
+2. **`play()` is called inside the click handler**, which is *why* the element is mounted
+   rather than created on click. Deferring it behind a mount + effect puts it one macrotask
+   past the gesture: Chrome forgives that, Safari does not, and the failure is silent.
+   Correspondingly `playing` is set by the element's own `play` **event**, not by the promise —
+   `preload="none"` means the promise resolves only after the first bytes land, which would
+   leave the button dead for the whole first buffer. (`Testimonials.tsx` can safely drive off
+   the promise because native `controls` back it up; here nothing does.)
+3. **`go()` stops the clip synchronously, before `setPos` — not in an effect keyed on `pos`.**
+   That is the opposite of what `Testimonials.tsx:414` does, and the reason is the remount: by
+   the time such an effect ran, React would have unmounted the video from the old `<li>` and
+   mounted a fresh one in the new, so the ref would point at the new **silent** element while
+   the old **detached** one carried on playing audio with nothing holding a reference to it.
+   It also sets `playing` itself rather than waiting for the `pause` event, which is queued as
+   a task and would land after the listeners were torn down.
+4. **`stopPropagation` on the button's `pointerdown`.** The viewport calls `setPointerCapture`
+   on itself; capture retargets `pointerup`, so the browser computes `click` at the common
+   ancestor and fires it on the **viewport** — `onClick` would never run at all.
+   ⚠️ **Stated cost: the portrait is no longer a drag surface at >=1200** (360 of 1280px, 28%).
+   Accepted — those pixels must be a click target, and a surface that drags at rest but clicks
+   while playing would be worse than one that never drags.
+
+### State shape
+
+`playing` is a **boolean, not an index**. The video only exists at `pos` and every path that
+changes `pos` stops it first, so "which slide is playing" is not an independent fact. An index
+would make `playingIndex !== pos` representable with no behaviour behind it; per-slide the flag
+is derived (`const expanded = i === pos && playing`).
+
+`ended` **does not fire `pause`** (per spec the ended playback algorithm leaves `paused` false),
+so `onEnded` collapses on its own and resets `currentTime = 0` so the next click restarts rather
+than re-ending instantly. A pause keeps its position — collapsing is not giving up. Both
+handlers are idempotent, so the older WebKit builds that fire both cost one render.
+
+Two effects added, both touching state only from inside a **listener**, never an effect body
+(`react-hooks/set-state-in-effect`): Escape anywhere on the page, and a
+`matchMedia("(min-width: 1200px)")` guard — `display:none` does **not** stop playback, so
+without it a resize leaves audio running from an element nobody can see.
+
+### The measured risk: quote overflow
+
+The card is `flex-1 w-px` beside a `flex-none` column, so it absorbs the whole 120px and
+**nothing else moves** — the track's transform is a percentage of a width that does not change,
+and `h-[694px]` is untouched. No page reflow.
+
+Vertical budget inside the card: `694 - 96 (p-12) - 80 (gap-20) - 47 (author block) = 471px`
+for the blockquote = **10 lines at 36px, 11 at 32px**.
+
+| viewport | container | card at rest | card playing | measure |
+|---|---|---|---|---|
+| >=1360 | 1280 | 904 | 784 | 688 |
+| 1200 | 1120 (`tablet:px-10`, no desktop override) | 744 | **624** | **528** |
+
+Binding cell is **`adir-peretz`, 289 English chars at 32px, at exactly 1200px**: it overflows
+only below ~26 chars/line (0.63em average advance); Discovery runs ~0.50em, so expect ~10 lines
+of the 11 available — **~1.3 lines of headroom**. Computed, **not yet observed**.
+
+⚠️ Failure mode if copy ever grows: the quote block has `min-height: auto`, so it pushes the
+author block down and `overflow-hidden` clips from the **bottom** — the role line goes first,
+then the name. The quote itself never clips, so the regression is invisible unless looked for.
+Runtime check, with a clip playing:
+
+    const c = document.querySelector('#testimonials li[aria-hidden="false"] > div');
+    c.scrollHeight - c.clientHeight;   // > 0 => the author block is being clipped
+
+### One button, not two
+
+The play and pause affordances are **one** `<button className="absolute inset-0">` whose label
+and glyph swap. Not two: the pause target *is* the whole column, so a second control would be
+the same absolute box written twice — and unmounting the button on play (which is what
+`Testimonials.tsx` does) drops focus to `<body>`, leaving a keyboard user who pressed Space to
+play unable to press Space to pause. That is harmless in the accordion because native
+`controls` appear and take over; here nothing takes over. The badge fades out while playing and
+returns on hover/focus. `bg-transparent` at rest, not the accordion's permanent `bg-ink/10`
+scrim, because the resting column has to look exactly like the photograph that shipped before.
+
+`ml-[2px]` on the play triangle stays **physical** and is not mirrored in RTL — transport
+glyphs are never mirrored (only skip-forward/back are, because only those mean "the direction
+reading goes"); a left-pointing play button on /he would read as rewind. The pause bars are
+symmetric so they get no nudge at all.
+
+### i18n
+
+New `chrome.a11y.pauseTestimonial`, declared in `dictionary.ts` first so both locale files fail
+loudly until filled. EN `"Pause {name}'s testimonial"`. ⚠️ **HE `"השהיית עדות של {name}"` is AUTHORED and unread
+by a native speaker** — unlike `playTestimonial` directly above it, which is sourced from the
+real site's own aria-label. The capture has no pause control anywhere (its players hand off to
+native `controls`), so there was nothing to lift. Verbal-noun form chosen to parallel the play
+label rather than the imperative.
+
+### Status
+
+`npm run build` clean, `tsc` clean, eslint clean on all four changed files; 18 static routes.
+**Not visually verified at any tier** — per the user's standing preference, handed over for
+their own check. Open: the adir/1200 cell above; whether 480px clips any burned-in caption; and
+the Hebrew label.

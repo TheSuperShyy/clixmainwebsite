@@ -93,7 +93,7 @@ export const chrome: ChromeDict = {
   },
 
   a11y: {
-    /* AUTHORED ×7. Screen-reader strings; no counterpart in the capture, which ships one
+    /* AUTHORED ×8. Screen-reader strings; no counterpart in the capture, which ships one
        relevant example: aria-label="הפעלת עדות של <name>" on its testimonial play buttons —
        which is exactly `playTestimonial` below, so that one IS sourced. */
     home: "clix — לדף הבית",
@@ -102,6 +102,13 @@ export const chrome: ChromeDict = {
     mainLandmark: "ראשי",
     /* SOURCED — the real site's own aria-label pattern for this exact control. */
     playTestimonial: "הפעלת עדות של {name}",
+    /* ⚠️ AUTHORED, NOT SOURCED — unlike `playTestimonial` directly above it. The capture has no
+       pause control anywhere: its testimonial players hand off to native `controls` the moment
+       they start, so there is no real-site string to lift. `השהיה` is the standard Hebrew UI
+       term for pause, and the verbal-noun form `השהיית` is chosen to parallel `הפעלת`
+       above rather than the imperative `השהה`, so the two labels read as one pair.
+       UNREAD BY A NATIVE SPEAKER. */
+    pauseTestimonial: "השהיית עדות של {name}",
     slideOfTotal: "{n} מתוך {total}",
     previous: "הקודם",
     next: "הבא",

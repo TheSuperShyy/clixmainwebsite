@@ -106,6 +106,8 @@ export interface ChromeDict {
     readonly mainLandmark: string;
     /** `interpolate()` template. Placeholder: {name} */
     readonly playTestimonial: string;
+    /** `interpolate()` template. Placeholder: {name} */
+    readonly pauseTestimonial: string;
     /** `interpolate()` template. Placeholders: {n} {total} */
     readonly slideOfTotal: string;
     readonly previous: string;

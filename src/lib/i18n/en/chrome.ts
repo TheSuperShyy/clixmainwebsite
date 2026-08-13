@@ -60,6 +60,7 @@ export const chrome: ChromeDict = {
     closeMenu: "Close menu",
     mainLandmark: "Main",
     playTestimonial: "Play {name}’s testimonial",
+    pauseTestimonial: "Pause {name}’s testimonial",
     slideOfTotal: "{n} of {total}",
     previous: "Previous",
     next: "Next",

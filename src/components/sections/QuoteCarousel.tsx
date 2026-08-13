@@ -41,6 +41,36 @@
  * here. Flagged for the user. If a client would rather be quoted in Hebrew on the English page,
  * or has their own English wording, that wording wins.
  *
+ * ✅ THE PHOTO COLUMN PLAYS SINCE 2026-08-13. Those six "portraits" were always poster frames
+ * cut from the clients' own testimonial videos, and the videos have been sitting unused in
+ * `public/testimonials/<id>.mp4` since the accordion was retired. At ≥1200 the column is now a
+ * play target: click it and it widens 360 → 480px over 400ms while the clip plays with SOUND;
+ * pause, end, Escape, an arrow, a committed flick, or a resize under 1200 all collapse it back
+ * to the poster. Below 1200 nothing changed — the column is `display:none` there and always was.
+ *
+ * FOUR THINGS ABOUT IT ARE LOAD-BEARING, each argued where it is written:
+ *   1. exactly ONE `<video>` exists, mounted at `pos`, `preload="none"` — `LOOP` renders 18
+ *      `<li>` and a video per slide would be ~68MB of clips fetched three times over
+ *   2. `play()` is called INSIDE the click handler, which is why the element is mounted rather
+ *      than created on click — Safari does not forgive a deferred gesture
+ *   3. `go()` stops the clip SYNCHRONOUSLY before `setPos`, not in an effect — an effect runs
+ *      after React has remounted the video into the incoming `<li>`, leaving the OLD detached
+ *      element playing audio with nothing holding a reference to it
+ *   4. `stopPropagation` on the button's `pointerdown` — the viewport's pointer CAPTURE
+ *      retargets `pointerup` and the click would fire on the viewport, never on the button.
+ *      The cost: the portrait is no longer a drag surface at ≥1200
+ *
+ * THE QUOTE GETS 120px NARROWER WHILE A CLIP RUNS, AND THAT WAS MEASURED, NOT ASSUMED. The card
+ * is `flex-1 w-px` beside a `flex-none` column, so it absorbs the whole 120px; nothing else on
+ * the page moves. Vertical budget inside the card: 694 − 96 (`p-12`) − 80 (`gap-20`) − 47
+ * (author block) = 471px for the blockquote, i.e. 10 lines at 36px or 11 at 32px. The binding
+ * cell is `adir-peretz` — 289 English characters at 32px — at exactly 1200px viewport, where
+ * the section's `tablet:px-10` puts the container at 1120 and the measure at 528px. It runs ~10
+ * lines with ~1.3 lines to spare. ⚠️ IF COPY EVER GROWS, RE-MEASURE THAT CELL: the quote block
+ * has `min-height:auto` so it pushes the author block down and `overflow-hidden` clips from the
+ * BOTTOM — the role line vanishes first, then the name, and the quote itself never clips, so
+ * the regression is invisible unless you look for it.
+ *
  * ⚠️ WHAT STILL GUARDS THIS. The switch in sections/Testimonials.tsx is DERIVED from whether
  * these six strings are non-empty — it is not a flag, and a flag would not have worked. Read
  * the block above `CLIP_IDS` there before changing it: `PageDictProvider` serialises the whole
@@ -427,6 +457,16 @@ function Arrow({ back }: { back: boolean }) {
    — and it skipped a tick while `gesture.current` was set, so it never yanked the track out
    from under a finger. Everything else about the block stays as measured. */
 const STEP_MS = 1100;
+/* ⚠️ AUTHORED, NOT MEASURED — AND THERE IS NOTHING TO MEASURE. The capture's slideshow has no
+   video column at all; the thing beside the quote there is a static headshot. So this is the
+   one duration on this component that was written rather than read off the live page, and it
+   is sized against the two that were read: the site's 300ms link preset (Nav, Footer,
+   globals.css) and this track's own 1100ms step. 400ms sits between them on purpose — fast
+   enough that widening the portrait does not read as a page change, slow enough that the quote
+   reflowing underneath it reads as one movement instead of a jump.
+   `--ease-rogo` and NOT the track's `cubic-bezier(.25,1,.5,1)`: that curve is a fitted stand-in
+   for a measured SPRING on the track, and it means nothing outside that one job. */
+const EXPAND_MS = 400;
 /* Drag commit — fitted, see the header note. `dx` is the pointer travel, `v` the release
    velocity in px/s; a slide is the track's own width. */
 const FLICK_PROJECTION_S = 0.15;
@@ -469,13 +509,75 @@ export default function QuoteCarousel() {
      decide a gesture on. */
   const gesture = useRef<{ startX: number; lastT: number; samples: { x: number; t: number }[] } | null>(null);
   const viewport = useRef<HTMLDivElement>(null);
+  /* ⚠️ ONE `<video>` FOR THE WHOLE CAROUSEL, and this ref points at it. `LOOP` renders 18
+     `<li>`; a video per slide would be 18 elements and, on anything above `preload="none"`, the
+     six clips fetched three times over — ~68MB. So exactly one is mounted, in the `<li>` at
+     `pos`, and it is REMOUNTED on every index change (different parent — React cannot move a
+     DOM node across parents). That costs nothing: an unplayed `preload="none"` video fetches no
+     media at all. */
+  const video = useRef<HTMLVideoElement>(null);
+  /* ⚠️ A BOOLEAN, NOT AN INDEX. The video only ever exists at `pos`, and every path that
+     changes `pos` stops it first (see `go`), so "which slide is playing" is not an independent
+     fact — it is always `pos`. Storing an index would make `playingIndex !== pos` representable,
+     and there is no behaviour for that state. Per-slide the flag is DERIVED in the map below,
+     the same move `sections/Testimonials.tsx` makes with its `playing`. */
+  const [playing, setPlaying] = useState(false);
+
+  /* Pause AND collapse. Only ever called from an event handler or a listener — never from an
+     effect body, which is what `react-hooks/set-state-in-effect` forbids and what bit
+     sections/Testimonials.tsx (see its note above `play`).
+     Idempotent by construction: `pause()` on an already-paused element fires no event, and
+     `setPlaying(false)` when it is already false is a React bail-out. */
+  const stop = useCallback(() => {
+    video.current?.pause();
+    setPlaying(false);
+  }, []);
+
+  /* ⚠️ `play()` IS CALLED HERE, INSIDE THE CLICK HANDLER, and that is the entire reason the
+     element is MOUNTED rather than created on click. Deferring it behind a mount + effect puts
+     it one macrotask past the gesture; Chrome forgives that, Safari does not, and the failure is
+     silent — a rejected promise over a frozen poster.
+     `playing` is deliberately NOT set here. The element's own `play` event sets it, and that
+     fires the moment `paused` flips to false, BEFORE a single byte arrives. Setting it off the
+     promise instead (which is what Testimonials.tsx does, safely, because native `controls` back
+     it up) would leave the button dead for as long as the first buffer takes — and with
+     `preload="none"` the fetch only starts on this call. */
+  const toggle = useCallback(() => {
+    const el = video.current;
+    if (!el) return;
+    if (!el.paused) {
+      el.pause();
+      return;
+    }
+    /* Rejects on an untrusted gesture, a missing file, or — routinely — an AbortError when an
+       arrow is hit before the first frame lands and `go()` pauses the pending play. All three
+       want the same thing: stay collapsed, stay on the poster. */
+    void el.play().catch(() => setPlaying(false));
+  }, []);
 
   /* Every index change clears the drag offset — arrows, autoplay and a committed flick all
-     go through here, which is exactly how the original re-aligns. */
+     go through here, which is exactly how the original re-aligns.
+
+     ⚠️ AND IT STOPS THE VIDEO, SYNCHRONOUSLY, BEFORE `setPos`. Not in an effect keyed on
+     `pos`, which is what sections/Testimonials.tsx does and what does NOT work here: by the time
+     such an effect ran, React would already have unmounted the video from the old `<li>` and
+     mounted a fresh one in the new, so `video.current` would point at the new SILENT element
+     while the old, DETACHED one carried on playing audio with nothing left holding a reference
+     to it. Pausing here, still inside the click/pointer handler, catches the element while it is
+     mounted and the ref is valid. It also has to set `playing` itself rather than wait for the
+     `pause` event, which is queued as a task and would land after React had torn the element's
+     listeners down — leaving the incoming column stuck at 480px over a poster.
+     Setting state in an EVENT HANDLER is fine; it is an effect BODY the lint rule forbids.
+
+     This is also what makes `playing` safe as a bare boolean: it establishes the invariant
+     "playing ⇒ `pos` has not changed since play began". The clone-snap effect's own `setPos` is
+     exempt — it only runs when `pos` is outside the middle copy, which only happens after a
+     `go()`, which already stopped. */
   const go = useCallback((delta: number) => {
+    stop();
     setPos((p) => p + delta);
     setDrag(0);
-  }, []);
+  }, [stop]);
 
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (e.pointerType === "mouse" && e.button !== 0) return;
@@ -523,6 +625,37 @@ export default function QuoteCarousel() {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
     const sync = () => setStill(mq.matches);
     sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+
+  /* Escape stops the clip, from anywhere on the page. The button is usually focused — it was
+     just clicked or Entered — but it need not be, and a `window` listener is the only thing
+     that covers a mouse user who has since clicked elsewhere. Nothing else on this page claims
+     Escape while a video runs: Nav's own handler requires its menu to be open.
+     `stop()` runs inside the LISTENER, not in the effect body, so the setState lint rule holds. */
+  useEffect(() => {
+    if (!playing) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") stop();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [playing, stop]);
+
+  /* ⚠️ `display:none` DOES NOT STOP PLAYBACK. Resizing under 1200 hides the whole column, and
+     without this the audio keeps running from an element nobody can see or click. This is the
+     one place the tier has to be known in JS — everywhere else `hidden desktop:block` does the
+     entire job and no `matchMedia` gate is needed.
+     Touches the ELEMENT ONLY; the resulting `pause` event flips `playing` through the handler on
+     the <video>, so there is no setState in this effect body.
+     1200 is `--breakpoint-desktop`, and a media-query string cannot read a custom property — if
+     that tier ever moves, move both. */
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1200px)");
+    const sync = () => {
+      if (!mq.matches) video.current?.pause();
+    };
     mq.addEventListener("change", sync);
     return () => mq.removeEventListener("change", sync);
   }, []);
@@ -631,6 +764,11 @@ export default function QuoteCarousel() {
               {LOOP.map((slide, i) => {
                 const copy = t.slides[slide];
                 const style = SLIDE_STYLE[slide];
+                /* The one live slide. 17 of the 18 <li> are clones; only this one owns the
+                   video, and only its play button does anything. */
+                const active = i === pos;
+                /* DERIVED, not stored — see the note on `playing`. */
+                const expanded = active && playing;
                 return (
                 <li
                   key={`${style.id}-${i}`}
@@ -651,19 +789,51 @@ export default function QuoteCarousel() {
                       quoteSize={`text-[28px] ${style.quoteDesktop}`}
                     />
                   </div>
-                  {/* The portrait: 360px wide, full height. Hidden below 1200 — that is the
-                      whole difference between the original's `Desktop` and `Mobile`
-                      slideshow variants.
+                  {/* The portrait: 360px wide at rest, full height. Hidden below 1200 — that
+                      is the whole difference between the original's `Desktop` and `Mobile`
+                      slideshow variants, and it is also the only gate the video needs: a
+                      `display:none` <video> with `preload="none"` and no autoplay does nothing,
+                      so the two lower tiers are covered by the class alone.
+
+                      ⚠️ IT PLAYS SINCE 2026-08-13, AND THE RESTING STATE IS UNCHANGED BY
+                      CONSTRUCTION. The <img> below is the one that shipped before, untouched;
+                      the <video> is layered ON TOP of it at `opacity-0` and only crossfades in
+                      once playback has actually started. The poster, the crop and the 360px box
+                      are exactly where they were. What is new at rest is one badge.
+
+                      ⚠️ THE WIDTH IS THE ONLY THING THAT ANIMATES, AND THE CARD ABSORBS IT.
+                      The <li> is `w-full flex-none` and the card beside this is `flex-1 w-px`,
+                      so 360 → 480 takes 120px out of the card and NOTHING out of the track: the
+                      ul's transform is a percentage of its own width, which does not change, and
+                      `h-[694px]` two levels up is untouched. No page reflow, no track shift. The
+                      quote reflows narrower and taller — measured, see the vertical budget in
+                      the header note.
+
+                      ⚠️ 480 IS FIXED FOR ALL SIX, not derived from each clip's aspect ratio.
+                      The files run 720 × 1014 through 720 × 1280, so a per-clip width would move
+                      the column a different distance on every slide and reflow the quote by a
+                      different amount — inconsistent motion for no gain, since `object-cover`
+                      crops either way.
 
                       ⚠️ `object-position` is CENTRE, not left. The capture's inline style
                       says `object-position:left center`; the hydrated component computes
                       `50% 50%`, and centre is what the live page shows. Reading the capture
                       alone gets this wrong, and it is visible — the crop lands on a
                       different part of the frame. That matters more here than it did with the
-                      capture's studio headshots: these three files are POSTER FRAMES pulled
-                      from the clients' testimonial videos, framed for a 9:16 phone clip, not
-                      portraits shot for a 360 × 694 slot. */}
-                  <div className="relative hidden h-full w-[360px] flex-none desktop:block">
+                      capture's studio headshots: these files are POSTER FRAMES pulled from the
+                      clients' testimonial videos, framed for a 9:16 phone clip, not portraits
+                      shot for a 360 × 694 slot. The video carries the same pair, so the swap at
+                      the moment of play is invisible. */}
+                  <div
+                    className={`relative hidden h-full flex-none desktop:block ${
+                      expanded ? "w-[480px]" : "w-[360px]"
+                    }`}
+                    /* Inline rather than a `transition-[width]` class for one reason: `still`
+                       has to make it INSTANT, and this is the same shorthand the track above
+                       already reads by. NO `overflow-hidden` — both children are `w-full` so
+                       there is nothing to clip, and it would eat the button's focus ring. */
+                    style={{ transition: still ? "none" : `width ${EXPAND_MS}ms var(--ease-rogo)` }}
+                  >
                     {/* No `width`/`height` attributes, deliberately. The capture's three
                         headshots shared one intrinsic size (781 × 1024) and could state it;
                         ours do not (720 × 1014 for asaf, 720 × 1272 for the other two), so a
@@ -686,6 +856,139 @@ export default function QuoteCarousel() {
                       draggable={false}
                       className="block h-full w-full object-cover object-center"
                     />
+
+                    {/* ⚠️ THE ONLY <video> IN THE CAROUSEL — see the note on the `video` ref.
+                        Mounted, not created on click, because `play()` has to run inside the
+                        click handler itself; `preload="none"` is what makes mounting free.
+
+                        `poster` is set even though this is invisible until it plays: without it
+                        the element paints transparent-to-black between `play()` returning and
+                        the first frame decoding, and the crossfade would show that flash. Same
+                        URL as the <img> above, so it is a cache hit, not a second download.
+
+                        NOT muted — AUDIO IS THE POINT. NO `controls` — the button below is the
+                        entire transport, by decision. No `tabIndex={-1}` either: a <video>
+                        without `controls` is not in the tab order in any engine, so the
+                        attribute would be inert. */}
+                    {active && (
+                      <video
+                        ref={video}
+                        src={`/testimonials/${style.id}.mp4`}
+                        poster={style.photo}
+                        preload="none"
+                        playsInline
+                        /* STATE MIRRORS THE ELEMENT, IT DOES NOT PREDICT IT. `play` fires the
+                           instant `paused` flips to false — before any data — so the column
+                           starts widening on the click rather than on the first buffer. `pause`
+                           catches every stop we did not initiate as well: an OS media key, a
+                           headphone button, another tab taking audio focus. */
+                        onPlay={() => setPlaying(true)}
+                        onPause={() => setPlaying(false)}
+                        /* ⚠️ `ended` DOES NOT FIRE `pause`. Per spec the ended playback
+                           algorithm fires `timeupdate` + `ended` and leaves `paused` FALSE, so
+                           `onPause` above will not run and this handler has to collapse on its
+                           own. (Some older WebKit builds fire both; both handlers are idempotent
+                           `setPlaying(false)`, so a double fire is one render.)
+                           `currentTime = 0` so the next click restarts the clip rather than
+                           re-ending instantly, and so the frame under the crossfade is frame 0
+                           and not the last one. A PAUSE keeps its position by contrast —
+                           collapsing is not the same as giving up. */
+                        onEnded={(e) => {
+                          e.currentTarget.currentTime = 0;
+                          setPlaying(false);
+                        }}
+                        className={`absolute inset-0 block h-full w-full object-cover object-center ${
+                          playing ? "opacity-100" : "opacity-0"
+                        }`}
+                        style={{ transition: still ? "none" : "opacity 300ms var(--ease-rogo)" }}
+                      />
+                    )}
+
+                    {/* ONE BUTTON, INSET-0, LABEL AND GLYPH SWAPPING. Not two elements: the
+                        pause target IS the whole column, so a separate pause control would be
+                        this same absolute box written twice — and swapping the two would unmount
+                        the focused element, drop focus to <body>, and leave a keyboard user who
+                        pressed Space to play unable to press Space to pause. sections/
+                        Testimonials.tsx can unmount its button safely because native `controls`
+                        appear and take over; here nothing takes over.
+
+                        ⚠️ RENDERED ON ALL EIGHTEEN <li>, LIVE ON ONE. Rendering it only at `pos`
+                        would pop the badge in and out mid-transition — neighbours are visibly on
+                        screen for the whole 1100ms step, and permanently after a slow drag rests
+                        the track off-grid. So it is drawn everywhere and the handler is gated on
+                        `active`; `tabIndex` follows the <li>'s own `aria-hidden`, so the 17
+                        clones stay out of the tab order.
+
+                        ⚠️ `stopPropagation` ON POINTERDOWN, AND IT IS LOAD-BEARING TWICE OVER.
+                        The viewport above owns onPointerDown/Move/Up and calls
+                        `setPointerCapture` on itself. Capture RETARGETS the pointerup — and the
+                        compatibility mouseup with it — to the viewport, so the browser computes
+                        `click` at the common ancestor and fires it on the VIEWPORT: onClick here
+                        would simply never run. Left unstopped it would also start a drag under
+                        every tap.
+                        THE COST, STATED: the portrait is no longer a drag surface at ≥1200 —
+                        360 of 1280px, 28%. Accepted, because while playing those pixels MUST be
+                        a click target by decision, and a surface that drags at rest but clicks
+                        while playing would be worse than one that never drags. The card beside
+                        it is the other 72% and is the natural place to grab. */}
+                    <button
+                      type="button"
+                      onPointerDown={(e) => e.stopPropagation()}
+                      onClick={() => {
+                        if (active) toggle();
+                      }}
+                      tabIndex={active ? 0 : -1}
+                      /* The accessible name carries the person, not just "play" — a screen
+                         reader user moving through the carousel needs to know whose. Both are
+                         `interpolate()` templates from `chrome.a11y` rather than assembled here,
+                         because the Hebrew word order is not "Play X's Y". `playTestimonial` is
+                         SOURCED from the real site's own aria-label; `pauseTestimonial` is
+                         authored — see the note in he/chrome.ts. */
+                      aria-label={interpolate(
+                        expanded ? a11y.pauseTestimonial : a11y.playTestimonial,
+                        { name: copy.name },
+                      )}
+                      /* `bg-transparent` at rest, NOT the permanent `bg-ink/10` scrim
+                         sections/Testimonials.tsx paints: the resting column has to look exactly
+                         like the photograph that shipped before. The scrim is hover-only. */
+                      className="group absolute inset-0 flex cursor-pointer items-center justify-center bg-transparent transition-colors duration-300 hover:bg-ink/10 focus-visible:ring-2 focus-visible:ring-paper focus-visible:outline-none"
+                      style={{ transitionTimingFunction: "var(--ease-rogo)" }}
+                    >
+                      {/* Fades out while playing so a running clip is clean, and comes back on
+                          hover or keyboard focus so the pause stays discoverable. 56px rather
+                          than the accordion's 48px: that badge sits on a 186px-wide clip, this
+                          one on 360–480. */}
+                      <span
+                        aria-hidden="true"
+                        className={`flex h-14 w-14 items-center justify-center rounded-full bg-paper/90 backdrop-blur-sm transition-[transform,opacity] duration-300 group-hover:scale-110 group-hover:opacity-100 group-focus-visible:scale-110 group-focus-visible:opacity-100 ${
+                          expanded ? "opacity-0" : "opacity-100"
+                        }`}
+                        style={{ transitionTimingFunction: "var(--ease-rogo)" }}
+                      >
+                        {expanded ? (
+                          /* NO `ml-[2px]` HERE, AND THAT IS NOT AN OVERSIGHT. The nudge on the
+                             play triangle is an optical correction for a shape whose visual mass
+                             sits toward its flat edge; the pause bars are symmetric about their
+                             own centre, so the same nudge would push them 2px OFF centre. */
+                          <svg viewBox="0 0 24 24" className="h-5 w-5 fill-ink">
+                            <path d="M7 4.5h3.5v15H7zM13.5 4.5H17v15h-3.5z" />
+                          </svg>
+                        ) : (
+                          /* ⚠️ `ml-[2px]` IS PHYSICAL ON PURPOSE — DO NOT MIGRATE IT TO `ms-`,
+                             and do not add `rtl:-scale-x-100` to the glyph. Two reasons pointing
+                             the same way. (1) Play/pause are MEDIA-TRANSPORT glyphs and no
+                             platform mirrors them; only skip-forward/back mirror, because only
+                             those mean "the direction reading goes" — a left-pointing play
+                             button on /he would read as rewind. (2) The nudge is an optical
+                             correction tied to the un-mirrored artwork's visual mass, so it has
+                             to stay on the physical side that mass is on. Same decision, same
+                             wording, as sections/Testimonials.tsx. */
+                          <svg viewBox="0 0 24 24" className="ml-[2px] h-5 w-5 fill-ink">
+                            <path d="M8 5.14v13.72a1 1 0 0 0 1.54.84l10.3-6.86a1 1 0 0 0 0-1.68L9.54 4.3A1 1 0 0 0 8 5.14Z" />
+                          </svg>
+                        )}
+                      </span>
+                    </button>
                   </div>
                 </li>
                 );
