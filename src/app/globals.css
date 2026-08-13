@@ -288,7 +288,7 @@ html {
 }
 
 /* RTL mirror of the marquee above (2026-08-12). Consumed by the same two rows —
-   clix/ClixTestimonial.tsx and product/WorkflowsScroller.tsx — with nothing to change on
+   clix/ClixCapabilities.tsx and product/WorkflowsScroller.tsx — with nothing to change on
    their side: only `animation-name` is swapped here, and both of those rows set
    `animation-duration` and `animation-direction` inline, so their inline values keep winning.
 

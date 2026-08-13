@@ -30,6 +30,14 @@ real words, then do a copy pass as a separate step. So the page currently says "
 describes an investment-banking product, and (once the Testimonial block lands) will carry 11
 quotes praising a product that is not clix's.
 
+**Update 2026-08-13 — block 6's copy is done, and it is no longer a testimonial.** The ten
+fabricated endorsements were replaced with capability cards describing what clix builds
+(`clix.capabilities` in both locales); the component is now `ClixCapabilities` and the section
+id is `#clix-capabilities`. The block's **geometry is untouched** and still clones the target's
+`Testimonial`, which is why the measured spec below still describes it under that name. The
+route keeps `robots: { index: false, follow: false }` — that is the user's call to lift, not a
+side effect of the copy change.
+
 **This is a staging state, not a claim.** It must not go to a public URL as-is — and the repo
 now auto-deploys `main` to Vercel, so that is a live hazard, not a hypothetical. The copy pass
 is the open question at the bottom of this file.
@@ -106,7 +114,7 @@ height:min-content; overflow:clip`, so only the differences are listed.
 | 3 | `Logo Proof` | `framer-s22g2m` | 108 | `40px 40px 164px` | `40px 16px` | ✅ `ClixLogoProof` |
 | 4 | `Manifesto` | `framer-tyl85t` | 80 | `164px 40px 64px` → **ships `164px 40px 164px`** | `128px 16px` | ✅ `ClixManifesto` |
 | 5 | `Product Visuals` | `framer-19mhri2` | 80 | `256px 40px 96px` | `128px 16px 0` | ❌ **not built** |
-| 6 | `Testimonial` | `framer-h1knkl` | 80 | `128px 40px 96px` | `80px 16px` | ✅ `ClixTestimonial` |
+| 6 | `Testimonial` | `framer-h1knkl` | 80 | `128px 40px 96px` | `80px 16px` | ✅ `ClixCapabilities` (was `ClixTestimonial`; box unchanged, content replaced 2026-08-13) |
 | 7 | `CTA` | `framer-4o5umq` | 80 | `96px 40px` | `80px 16px` | ✅ `ClixCTA` |
 | 8 | `Felix Footer` | `framer-17a2nid` | 108 | `96px 40px 80px` (tablet `64px 40px`) | `128px 16px 40px` | ✅ `ClixFelixFooter` |
 
@@ -131,6 +139,12 @@ always wraps to two lines. Body `20px`, **`-0.2px` absolute** (not em), `140%`,
 row gap 20, each masked `linear-gradient(90deg,#0000 0%,#000 5% 95%,#0000 100%)` — a 5%
 proportional fade, not a pixel ramp. Title `56 / 48 / 36px` at `max-width:500px` (`350px`
 phone). Quote `24px`, `-0.03em`, `130%`, left. Attribution is a `gap:6px` column.
+
+  Our card now carries a capability rather than a quote, and it fits the same three slots with
+  no CSS change: the 24px line is the job, the 14px ink caption is the surface, the 14px muted
+  one is the systems it touches. **The phone card's 272px content box (320 less 2×24 padding)
+  is the binding measure for the two caption lines**, not the tablet card's 372px, because both
+  are `whitespace-pre` and cannot wrap.
 
 **`CTA`** — inner panel has a **hard `400px` height** at ≥810 (`min-content` on phone); that
 is what makes the block read as a band. Radius 6, gap 32. Title `80 / 72 / 56px`, `-0.05em`,
@@ -228,7 +242,7 @@ fact. `prefers-reduced-motion` freezes on the first word.
 | Page title | `Rogo | Meet Felix` | `clix | Meet Felix` | Same call already recorded for the root layout — the `<title>` names the build, not the clone target. |
 | Nav / footer shell | the target's own light nav + a `by Rogo` footer | this build's shared `Nav`, **banner off**, height reserved in flow | One site, one shell — but the *placement* is now the target's. Amended 2026-08-09: the ticker strip is gone on this route only, and the nav no longer overlays the hero. See "The nav is IN FLOW on this page" above. |
 | Nav row height in flow | the target's own bar | `--nav-row-h` — `74px` <1200, `70px` ≥1200 | Ours is the clix nav, so the reserved height is ours too. Derived from fixed-height boxes, not measured off the target; the *mechanism* is the target's. |
-| Nav hash links | n/a | `#security` → `/#security`, `#testimonials` → `/#testimonials`, CTA `#contact` → `/#contact` | The nav became shared the moment a second route existed; a bare hash on `/clix` points at nothing. `/#x` still scrolls rather than reloads when already on `/`. |
+| Nav hash links | n/a | `#security` → `/#security`, `#testimonials` → `/#testimonials` (the HOME page's section, unrelated to block 6's renamed id), CTA `#contact` → `/#contact` | The nav became shared the moment a second route existed; a bare hash on `/clix` points at nothing. `/#x` still scrolls rather than reloads when already on `/`. |
 | **Manifesto background** | shared fixed backdrop, colour **animated on scroll** from JS | same — the shared backdrop animates | *Row rewritten 2026-08-10.* It briefly painted its own `forest` ground while the sequence was unobserved; a live screenshot settled it and the mechanism now matches. `ClixBackdrop.tsx` holds the timing, the evidence, and what is still ours (the exit, which the target runs through block 5's padding). |
 | **Manifesto bottom padding** | `64px` at ≥810 | `164px`, matching its own top | **Deliberate, 2026-08-10, user's call** — *"a white space similar and equal to the space on top … add it on the bottom as well"*. Compensating for block 5: the target's dark runway after the last paragraph is this block's 64px **plus** `Product Visuals`' 256px top padding = 320px. Ours runs straight into `Testimonial` (`pt` 128), so 64px gave only 192px. 164px gives 292px without touching block 6's measured padding. **Revert to `pb-16` when block 5 lands** or it overshoots by 100px. Phone was already symmetric at 128px and is untouched. |
 | **Backdrop's LIGHT state** | `rgb(247,247,247)` — `canvas` | `paper` `#ffffff` | **Deliberate, 2026-08-10, user's call.** Our `body` is `paper` and every section from the Testimonial down paints an opaque `bg-paper`, so a `canvas` backdrop left the page grey above the green block and white below it — a visible step exactly where the crossfade should remove one. Matching our own body beats matching the target's near-white when they disagree. |
@@ -236,6 +250,7 @@ fact. `prefers-reduced-motion` freezes on the first word.
 | **Logo fill** | 12 dark logo SVGs | the 14 vendored **white** SVGs, rendered as CSS masks with an `ink/70` fill | The vendored set was cut for the home page's dark hero. A mask reuses one asset at either polarity rather than shipping a second recoloured copy of all twelve. All 12 names the target lists were already vendored — nothing new was fetched or redrawn. |
 | **Footer wordmark** | a 2008×859 PNG on framerusercontent.com | set in type at the same `2.3376` aspect | Rogo's artwork. Box shape preserved so the block's height is the original's; only the glyphs are ours. |
 | Testimonial card box | a Framer component | `320/420px` wide, `24px` padding, `#15151508` fill | **Estimated** — the card's own width/padding/fill did not survive extraction. Quote type, attribution gap and row gap ARE measured. |
+| **Block 6's content** | ten customer quotes | ten capability cards, `clix.capabilities` | **Deliberate, 2026-08-13, user's call.** The quotes were fabricated (rogo's real endorsements reattributed to invented firms) and the finance framing was the target's business, not clix's. The box is unchanged; only the payload and the heading are. Hebrew is authored and **unread by a native speaker** — open below. |
 | Marquee cycle | unknown | `90s`, both rows | **Estimated.** A static capture cannot encode a rate. |
 | Hero button count | ships twice (48px ≥1200 / 44px below) | one element, responsive height | See above. The CTA's button is 48px at every tier — the 44px variant is hero-specific. |
 
@@ -259,7 +274,9 @@ fact. `prefers-reduced-motion` freezes on the first word.
 ## Open questions
 
 - [ ] **The backdrop's scroll-driven colour.** Sequence, offsets and easing are all JS-side.
-      Blocks the Manifesto (white text) and probably the Testimonial. **Needs live observation.**
+      Blocks the Manifesto (white text) and probably block 6. **Needs live observation.** The
+      fade below now keys off `#clix-capabilities`; the selector is optional by design, so a
+      missed rename would fail silently rather than throw.
 - [ ] **The rotating word list.** Two words observed. The chunk is lazy-loaded; the main JS
       bundle (146 KB) has none of the strings and six cache-busted fetches all returned
       `investor`. Ten seconds on the live page would settle it.
@@ -270,4 +287,15 @@ fact. `prefers-reduced-motion` freezes on the first word.
       have `public/video/hero-clix.mp4` and 14 vendored logo SVGs to reuse; the other 10 logos
       and the 3 photos have no source yet. **Needs the user's call.**
 - [ ] **The copy pass.** See the warning at the top. Non-optional before this page is public.
+      Block 6 is now done (2026-08-13); block 1's rotating words and block 2's video captions
+      have not been re-read since the rename.
+- [ ] **Block 6's Hebrew has not been read by a native speaker.** The ten capability lines in
+      `he/clix.ts` are AUTHORED, and unlike the block they replaced, their line counts were not
+      measured against the 372px / 272px content boxes. Both caption lines are `whitespace-pre`
+      and cannot wrap, so a long string overflows silently. **User to read and to confirm the
+      real integration names** — `CRM · Calendar · Billing` is generic on purpose because
+      clix's actual stack was not known when this was written.
 - [ ] **Should `/clix` be in `sitemap`/indexable?** Not addressed; there is no sitemap yet.
+      Block 6's replacement removed the *stated* reason for `robots: { index: false }`, and the
+      flag was deliberately **left on** — lifting it is a launch decision, and block 5 is still
+      missing and block 2's video is still rogo's.

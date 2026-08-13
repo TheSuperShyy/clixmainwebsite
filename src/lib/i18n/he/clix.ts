@@ -18,9 +18,11 @@
  * route, deliberately. The manifesto is the clearest case: all five of its paragraphs are
  * rebuilt out of the real services page and the real methodology block.
  *
- * ⚠️ ONE BLOCK IS THE OPPOSITE OF A RESTORATION. `testimonial.quotes` is fabrication, in
- * Hebrew, and translating it made it worse rather than better. Read the warning above it before
- * touching this route's `robots` metadata.
+ * ⚠️ ONE BLOCK USED TO BE THE OPPOSITE OF A RESTORATION. `testimonial.quotes` was
+ * fabrication, in Hebrew, and translating it made it worse rather than better. It was replaced
+ * by `capabilities` on 2026-08-13, which describes what clix builds instead of quoting people
+ * who never said it. That block is still AUTHORED rather than sourced, and its own note asks
+ * the user to read it. The route's `robots: { index: false }` was deliberately left on.
  *
  * ⚠️ H1 STRINGS ARE NEVER LIFTED FROM content.json — its extractor walked per-word spans and
  * concatenated without separators, so every H1 there has lost its spaces. The one H1 this file
@@ -194,94 +196,96 @@ export const clix: Translated<ClixDict> = {
     ],
   },
 
-  testimonial: {
-    /* AUTHORED, recombined from two SOURCED phrases rather than lifted from either:
-       "שמעו את זה ישירות" opens home.headings[4] and "הלקוחות שלנו" closes the same section's
-       kicker "בקולם של הלקוחות שלנו". Neither survives alone at this size — the full sourced
-       headline sets 3 lines at every tier and the bare kicker sets 1. This recombination is the
-       only candidate measured at 2 lines at all three of the h2's states (36px/350px,
-       48px/500px, 56px/500px), which is what English does. */
-    title: "שמעו את זה ישירות מהלקוחות שלנו.",
-    /*
-     * ⚠️⚠️  FABRICATED ENDORSEMENTS, AND HEBREW MAKES THEM WORSE.  ⚠️⚠️
-     *
-     * These are ten REAL quotes from REAL people about rogo, reattributed to invented firms and
-     * pointed at clix, now also translated. Nothing here was sourced and nothing here COULD be:
-     * docs/reference/clixsolutions/README.md:283 records that the real company's endorsements
-     * are four 9:16 videos and that "No quote text exists anywhere in the markup".
-     *
-     * SO THIS IS NOT A RESTORATION. It is fabrication delivered in the audience's own first
-     * language, where it reads as MORE credible, not less. Before the 2026-08-10 rename these
-     * read as obvious placeholder text, which was safe; in fluent Hebrew under a clix wordmark
-     * they do not. The user asked for the translation with that stated.
-     *
-     * ⚠️ /he/clix MUST KEEP `robots: { index: false, follow: false }`, exactly as /clix does.
-     * Translating this block cleared no part of the reason it is there. The fix is real clix
-     * references with permission, or deleting the block — not another rename and not another
-     * language.
-     *
-     * Every string below is AUTHORED. Measured: at the 420px card (372px content box) the
-     * Hebrew quotes set 1 to 3 lines against English's 1 to 4, so the tablet+ marquee row is
-     * one 31.2px line SHORTER than English's; at the 320px card both peak at 4 lines and the
-     * rows match. Card heights are equalised by `items-stretch` on the track, so the loop is
-     * unaffected either way. Every role and firm line was checked against the 272px content box
-     * as well, because both are `whitespace-pre` and cannot wrap: the widest is
-     * "בנק השקעות אמריקאי מחמשת הגדולים" at 215.5px, 56.5px clear.
-     */
-    quotes: [
+  /*
+   * מה clix בונה. This block replaced ten FABRICATED ENDORSEMENTS on 2026-08-13, in step with
+   * en/clix.ts. Read the long note over `capabilities` there for why they went; the short form
+   * is that they were rogo's real quotes reattributed to invented finance firms, and Hebrew
+   * made them worse rather than better, since fluent endorsements in the audience's own first
+   * language read as MORE credible, not less.
+   *
+   * ⚠️ THIS IS STILL NOT A RESTORATION, and the reason is unchanged:
+   * docs/reference/clixsolutions/README.md:283 records that the real company's endorsements are
+   * four 9:16 videos and that "No quote text exists anywhere in the markup". There was nothing
+   * to source before and there is nothing to source now. The difference is that these strings
+   * no longer put words in anyone's mouth — they describe what clix builds, which is a claim
+   * the company can stand behind or correct.
+   *
+   * ⚠️ AUTHORED, NOT TRANSLATED WORD FOR WORD, per this file's standing rule. The English
+   * cards are the brief; the Hebrew is written to read as Hebrew.
+   *
+   * ⚠️ THE USER SHOULD READ THESE. They are the copy that matters most to the actual audience
+   * and they were drafted, not sourced. Flagged in features/felix-page/CONTEXT.md as open.
+   *
+   * NO DASHES, per 2026-08-10. The one carve-out this file already has stands: the Hebrew
+   * prefix hyphen in forms like ה-AI and ה-CRM is orthography, not punctuation.
+   *
+   * ⚠️ LINE COUNTS HERE ARE UNVERIFIED, unlike the block this replaced, whose Hebrew was
+   * measured against the 372px and 272px content boxes. `label` and `stack` are still
+   * `whitespace-pre` and still cannot wrap; the longest is "Webhooks ותשתית ביניים" at 22
+   * characters, which has room to spare in 272px, but nobody has put a ruler on it.
+   */
+  capabilities: {
+    /* AUTHORED. Echoes the SOURCED services H1, "אנחנו בונים את המנגנונים השקטים שמניעים עסקים
+       מודרניים", without reusing its noun: the manifesto H2 immediately above already opens on
+       "המנגנונים", and two headings running on the same word reads as a copy error rather than
+       a motif. This one carries the "בשקט" half instead.
+       ⚠️ NOT MEASURED. English sets 2 lines at 500px/48px; this is expected to as well at 33
+       characters, but it has not been checked in the browser. */
+    title: "מה clix מריץ עבורכם בלי שתשימו לב",
+    cards: [
       {
-        q: "נראה שב-Clix בנו את סוכן ה-AI הטוב ביותר שיש. פשוט מדהים.",
-        role: "מנהל בכיר",
-        firm: "בנק בוטיק, אסיה פסיפיק",
+        line: "עונה ומסנן כל ליד בוואטסאפ, בעברית, גם בשתיים בלילה.",
+        label: "סוכן AI",
+        /* Product name, left in Latin exactly as English has it. */
+        stack: "WhatsApp Business API",
       },
       {
-        q: "Clix עקף את הציפיות שלי לגמרי, והחזיר תוצר חזק במשימה שהנחתי שלא יסתדר איתה.",
-        role: "מנהל בכיר",
-        firm: "בנק בוטיק, אסיה פסיפיק",
+        line: "רודף אחרי התשובה שאף אחד לא זכר לשלוח.",
+        label: "אוטומציית מעקב",
+        stack: "CRM · אימייל",
       },
       {
-        q: "אחד הכלים הבודדים שבאמת מתאים לאופן שבו בנקאים חושבים ובונים תוצרים",
-        role: "סגן נשיא",
-        firm: "בנק השקעות אמריקאי מחמשת הגדולים",
+        line: "ה-CRM, היומן והחיוב שלכם סוף סוף מספרים את אותו הסיפור.",
+        label: "אינטגרציות",
+        stack: "CRM · יומן · חיוב",
       },
       {
-        /* English has " - " here, which the no-dashes rule forbids reproducing; a full stop
-           carries the same beat. */
-        q: "זה כלי ה-AI המועיל ביותר שניסיתי. הוא מבין איך אנחנו עובדים",
-        role: "מנהל בכיר",
-        firm: "בנק השקעות אמריקאי מחמשת הגדולים",
+        line: "קובע את הפגישה בזמן שהלקוח עוד מקליד.",
+        label: "סוכן תיאום פגישות",
+        stack: "יומן · וואטסאפ",
       },
       {
-        q: "Clix מצוין. מרשים ברצינות",
-        role: "עמית",
-        firm: "בנק השקעות אמריקאי מחמשת הגדולים",
+        line: "הופך תיבת מייל מלאה בהזמנות לשורות שאף אחד לא הקליד.",
+        label: "קליטת מסמכים",
+        stack: "אימייל · גיליונות",
       },
       {
-        q: "Clix מביא עבודה אמיתית 90 אחוז מהדרך",
-        role: "סגן נשיא",
-        firm: "בית מחקר אמריקאי מעשרת הגדולים",
+        line: "דשבורד אחד לנתונים שהיו פזורים בארבעה טאבים.",
+        label: "דשבורדים פנימיים",
+        stack: "פיתוח ייעודי",
       },
       {
-        q: "Clix שילש את התפוקה של הצוות שלי בלי להוסיף אף תקן",
-        role: "ראש חטיבה",
-        firm: "בנק השקעות בוטיק בתחום TMT",
+        line: "הכלי הפנימי שאף מוצר מדף לא באמת התאים לו.",
+        label: "תוכנה בהתאמה אישית",
+        stack: "ווב · מובייל",
       },
       {
-        q: "ניסיתי את כל כלי ה-AI שיש בשוק, ו-Clix הוא ללא ספק הסוכן המתקדם ביותר שעבדתי איתו",
-        role: "מנהל השקעות",
-        firm: "קרן פרייבט אקוויטי גדולה",
+        /* "רב לשוניים" is deliberately unhyphenated. The maqaf here would be punctuation, which
+           the no-dashes rule covers; the file's carve-out is only for the prefix hyphen before
+           Latin strings. */
+        line: "מדבר בשפה של הלקוח שלכם, באפליקציה שכבר פתוחה אצלו.",
+        label: "סוכנים רב לשוניים",
+        stack: "עברית · ערבית · אנגלית",
       },
       {
-        q: "Clix עשה יותר מכל דבר אחר שהטמענו",
-        role: "ראש תחום AI",
-        firm: "קרן PE גלובלית מחמש הגדולות",
+        line: "ניסיונות חוזרים והתראות, כי אוטומציה שאף אחד לא סומך עליה גרועה מכלום.",
+        label: "ניטור",
+        stack: "מובנה כברירת מחדל",
       },
       {
-        /* English closes on "Mind-blowing." — a Latin compound, not a dash used as punctuation.
-           Hebrew has no equivalent compound, so it is one word. */
-        q: "פרומפט של עשר מילים? וזה מה שיצא? מדהים.",
-        role: "שותף",
-        firm: "קרן צמיחה אירופית",
+        line: "כל העברה בין המערכות שלכם, באחריות ברורה ועם תיעוד.",
+        label: "Webhooks ותשתית ביניים",
+        stack: "API · תורים",
       },
     ],
   },

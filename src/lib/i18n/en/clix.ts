@@ -122,80 +122,103 @@ export const clix = {
     ],
   },
 
-  testimonial: {
-    /* `max-w` 350px on phone, 500px at tablet+, at 36/48/56px. `h-auto`, so a longer string
-       grows the box rather than overflowing: the constraint is line count, not fit. */
-    title: "What leading finance teams have to say",
+  /*
+   * WHAT CLIX BUILDS. This block replaced ten FABRICATED ENDORSEMENTS on 2026-08-13, at the
+   * user's direction ("what do you think we can put here? we dont have that much details for
+   * that kindof stuff").
+   *
+   * What was here: ten real quotes from real people about rogo, a real product that is not
+   * this one, reattributed to invented finance firms and pointed at clix. It was the one
+   * block on the page that was not merely unfinished but actively misleading, and the stated
+   * reason /clix and /he/clix carry `robots: { index: false }`. The old warning is gone
+   * because it is no longer true of this key. THE `robots` FLAG WAS DELIBERATELY LEFT ON:
+   * lifting it is a launch decision for the user, not a side effect of a copy change.
+   *
+   * The finance framing went with it. "What leading finance teams have to say" was inherited
+   * from the clone target, whose product is banking research; the manifesto directly above
+   * this section sells WhatsApp assistants, CRM/calendar/billing integrations and custom
+   * internal tools. The heading now picks up that paragraph's own phrase, "the quiet
+   * mechanisms".
+   *
+   * ⚠️ TEN CARDS IS STRUCTURAL, not editorial. ClixCapabilities renders this list, then a
+   * duplicate of it, and the counter-rotating second row renders it reversed. Fewer items and
+   * the same card comes back around inside one screen width; the loop arithmetic itself does
+   * not care, but the eye does.
+   *
+   * ⚠️ `label` AND `stack` ARE `whitespace-pre` AND CANNOT WRAP. The binding measure is the
+   * PHONE card, not the tablet one: 320px less 2x24px padding = a 272px content box (tablet is
+   * 420 - 48 = 372). Nothing here is close — the longest is "Hebrew · Arabic · English" at 25
+   * characters, on the order of 170px at Inter 14. Estimated rather than measured in the
+   * browser, unlike the Hebrew block in he/clix.ts, because the margin is that wide. A longer
+   * string added later must be measured.
+   *
+   * NO DASHES, per the user's 2026-08-10 rule: no em dash, no en dash, no hyphen standing in
+   * for one. "off the shelf" and "built in" are unhyphenated here for that reason.
+   *
+   * ⚠️ VENDOR NAMES ARE DELIBERATELY GENERIC. `CRM · Calendar · Billing`, not
+   * `HubSpot · Google Calendar · Stripe`. Clix's actual stack was not known when this was
+   * written and inventing one repeats the mistake this block exists to undo. Naming the real
+   * integrations reads stronger and should replace these once the user confirms them.
+   */
+  capabilities: {
+    /* Same box as the heading it replaced: `max-w` 350px on phone, 500px at tablet+, at
+       36/48/56px, `h-auto`. Sets 2 lines at 500px/48px, which is what the old string did. */
+    title: "What clix quietly runs for you",
     /*
-     * FABRICATED ENDORSEMENTS. IN BOTH LOCALES. READ BEFORE LAUNCH.
-     *
-     * These are ten REAL quotes from REAL people about rogo, a real product that is not this
-     * one, reattributed to invented firms and pointed at clix. ClixTestimonial.tsx carries the
-     * full history; this is the short form.
-     *
-     * THERE IS NOTHING TO SOURCE, and that is settled rather than assumed:
-     * docs/reference/clixsolutions/README.md:283 records that the real company's endorsements
-     * are four 9:16 VIDEOS and that "No quote text exists anywhere in the markup". So the
-     * Hebrew here is not a restoration and cannot be one. It is fabrication delivered in the
-     * audience's own language, where it reads as MORE credible, not less.
-     *
-     * THIS BLOCK IS THE SINGLE REASON `robots: { index: false, follow: false }` MUST STAY ON
-     * BOTH /clix AND /he/clix. Translating it clears nothing. The fix is real clix references
-     * with permission, or deleting the block. Not another rename.
-     *
-     * Ten cards, a tuple: each marquee row renders this list and then a duplicate of it, and
-     * the counter-rotating row renders it reversed.
+     * The card keeps the three-part shape the testimonial had, so no CSS moved: `line` is the
+     * 24px quote slot, `label` the 14px ink caption, `stack` the 14px muted one. Read as
+     * "the job / the surface it runs on / the systems it touches".
      */
-    quotes: [
+    cards: [
       {
-        q: "Clix may have just created the greatest AI Agent ever. It is incredible.",
-        role: "Managing Director",
-        firm: "APAC Boutique Bank",
+        line: "Answers and qualifies every lead on WhatsApp, in Hebrew, at 2am.",
+        label: "AI agent",
+        stack: "WhatsApp Business API",
       },
       {
-        q: "Clix completely blew past my expectations, delivering a strong output on a task I assumed it wouldn’t handle.",
-        role: "Managing Director",
-        firm: "APAC Boutique Bank",
+        line: "Chases the reply nobody remembered to send.",
+        label: "Follow up automation",
+        stack: "CRM · Email",
       },
       {
-        q: "One of the few tools that actually fits how bankers think and structure outputs",
-        role: "Vice President",
-        firm: "Top 5 U.S. BB Investment Bank",
+        line: "Your CRM, your calendar and your billing finally tell the same story.",
+        label: "Integrations",
+        stack: "CRM · Calendar · Billing",
       },
       {
-        q: "This is the most helpful AI tool I’ve tried - it gets how we work",
-        role: "Managing Director",
-        firm: "Top 5 U.S. BB Investment Bank",
+        line: "Books the meeting while the customer is still typing.",
+        label: "Scheduling agent",
+        stack: "Calendar · WhatsApp",
       },
       {
-        q: "Clix is stellar. Seriously impressive",
-        role: "Associate",
-        firm: "Top 5 U.S. BB Investment Bank",
+        line: "Turns an inbox of orders into rows nobody had to type.",
+        label: "Document intake",
+        stack: "Email · Spreadsheets",
       },
       {
-        q: "Clix can get real work 90% of the way there",
-        role: "Vice President",
-        firm: "Top 10 U.S. Equity Research Firm",
+        line: "One dashboard for the numbers that were living in four browser tabs.",
+        label: "Internal dashboards",
+        stack: "Custom build",
       },
       {
-        q: "Clix tripled my team's output with no headcount additions",
-        role: "Group Head",
-        firm: "Boutique TMT Investment Bank",
+        line: "The internal tool no off the shelf product was ever going to fit.",
+        label: "Custom software",
+        stack: "Web · Mobile",
       },
       {
-        q: "I’ve tried all the AI tools available out there and Clix is by far the most advanced model / agent I’ve used",
-        role: "Principal",
-        firm: "Mega Fund Private Equity",
+        line: "Speaks your customer’s language, on the app they already have open.",
+        label: "Multilingual agents",
+        stack: "Hebrew · Arabic · English",
       },
       {
-        q: "Clix has done more than anything else we've deployed",
-        role: "Head of AI",
-        firm: "Top 5 Global PE Firm",
+        line: "Retries and alerts, because an automation nobody trusts is worse than none.",
+        label: "Monitoring",
+        stack: "Built in as standard",
       },
       {
-        q: "10 word prompt? And it did all of that? Mind-blowing.",
-        role: "Partner",
-        firm: "European Growth Equity Firm",
+        line: "Every handoff between your systems, owned and logged.",
+        label: "Webhooks and middleware",
+        stack: "API · Queues",
       },
     ],
   },
