@@ -52,8 +52,14 @@ export default function HeRootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   seedLocale("he");
 
+  /* `data-scroll-behavior="smooth"` DECLARES the `html { scroll-behavior: smooth }` rule in
+     globals.css to Next. Without it `disableSmoothScrollDuringRouteTransition` takes its
+     "no smooth scrolling configured" branch, so every ROUTE change animates its scroll instead
+     of arriving — and Next logs a warning about exactly this in dev. It does not affect
+     in-page anchors: same-route hash changes short-circuit that helper, which is why the rule
+     still does the job it was added for. */
   return (
-    <html lang={HTML_LANG.he} dir={DIRECTION.he}>
+    <html lang={HTML_LANG.he} dir={DIRECTION.he} data-scroll-behavior="smooth">
       <body>
         <I18nProvider locale="he" chrome={DICTIONARIES.he.chrome}>
           <ViewTransitionProvider>{children}</ViewTransitionProvider>

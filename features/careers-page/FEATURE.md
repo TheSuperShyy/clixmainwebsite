@@ -1,11 +1,22 @@
-# Feature: Careers page (`/careers`, clone of `rogo.com/careers`)
+# Feature: Careers page (`/careers`, clone of `rogo.com/careers`) — **REMOVED**
+
+> ⚠️ **THE PAGE THIS SPECIFIES NO LONGER EXISTS.** Removed whole on 2026-08-13 (user: "also
+> remove the whole careers route and page"). **This file is now a measured archive, not a
+> spec** — every number in it was true of a real render on 2026-08-12 and is worth keeping
+> for that reason, but nothing here is work to pick up. Do not tick anything below; do not
+> treat the acceptance checklist as outstanding.
+>
+> **If it is ever rebuilt**, this file plus the commit before the removal is everything
+> needed — the components, the photographs, the dictionaries and the three colour tokens all
+> came out in that one commit. See `CONTEXT.md` for what was deleted and where each piece
+> went.
 
 | | |
 |---|---|
 | Slug | `careers-page` |
-| Route | `/careers` |
-| Order on page | Nav (fixed) → Hero → Gallery → About → Footer — ⚠️ **`Roles` removed 2026-08-12** |
-| Status | `review` |
+| Route | ~~`/careers`~~ — **deleted 2026-08-13** |
+| Order on page | Nav (fixed) → Hero → Gallery → About → Footer — ⚠️ **`Roles` removed 2026-08-12**, whole page removed 2026-08-13 |
+| Status | **`removed`** (was `review`) |
 | Reference | `docs/reference/target/rogo-careers-2026-08-12.{html,css}` (577,355 B HTML · **six** inline `<style>` blocks → 149,428 B CSS · 581 `data-framer-name` nodes, 83 unique) + live CDP probe 2026-08-12 |
 | Screenshots | `assets/ref-{1600,1440,1024,390}-{top,about,roles}.png` |
 | Original Framer names | `Hero` (`#hero`) · `Gallery` (`#gallery`) · `About` (`id="about™"`) · `Careers` (`#roles`) · `Footer` |

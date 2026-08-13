@@ -3,7 +3,7 @@ import ClixHero from "@/components/clix/ClixHero";
 import ClixVideo from "@/components/clix/ClixVideo";
 import ClixLogoProof from "@/components/clix/ClixLogoProof";
 import ClixManifesto from "@/components/clix/ClixManifesto";
-import ClixTestimonial from "@/components/clix/ClixTestimonial";
+import ClixCapabilities from "@/components/clix/ClixCapabilities";
 import ClixCTA from "@/components/clix/ClixCTA";
 import ClixFelixFooter from "@/components/clix/ClixFelixFooter";
 import ClixBackdrop from "@/components/clix/ClixBackdrop";
@@ -43,7 +43,7 @@ export default function ClixRoute({ locale }: { locale: Locale }) {
           <ClixVideo />
           <ClixLogoProof />
           <ClixManifesto />
-          <ClixTestimonial />
+          <ClixCapabilities />
           <ClixCTA />
         </main>
         <ClixFelixFooter />

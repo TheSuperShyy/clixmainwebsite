@@ -27,6 +27,63 @@ clean; `npx tsc --noEmit` clean across the project.
 
 ---
 
+## 2026-08-13 — Block 3's eight tiles got marks
+
+User: *"in the company section, you have to add icons in this section, be creative with it"*.
+
+**What changed.** New file `src/components/company/serviceGlyphs.tsx` — eight hand-drawn SVG
+marks — plus a 32px icon slot above the label in each `CompanyServices` tile. Nothing measured
+moved: same 164px tile, same 4 → 4 → 1 grid, same 16px gaps, same `#73737326` rule overlay,
+same band padding. The tile was already a centred column with `gap: 10px`, so the mark drops
+into the slot the label was already using and the 344px / 1424px grid boxes still check out.
+
+**The artwork is a design decision, not a measurement, and is documented as one.** rogo's
+`Team` band holds employer logos and no icons at all, so there is nothing in the capture to
+copy for this. Recorded here rather than in FEATURE.md's measured tables for that reason.
+
+**One construction grid across all eight**, which is what makes them a set rather than eight
+clip-art picks: 32×32 viewBox, artwork inside 3.5 → 28.5, stroke `currentColor` at **1.5**,
+round cap + join, `fill: none`, and at most one solid fill per mark (a dot or counter-shape).
+Corner radii 1.5–3 — the softest curve a square-cornered design system tolerates.
+
+- 1 AI Agents — chip wired on four sides, spark in the die
+- 2 WhatsApp Automation — message bubble with a bolt
+- 3 CRM Implementation — record list: header bar, two contact rows
+- 4 Integrations — two half-links closed by a shared bar
+- 5 Web Development — browser frame with `< / >`
+- 6 Mobile Development — handset with centred app content
+- 7 Custom Software — three identical modules and one circle
+- 8 AI Strategy — target with N/E/S/W ticks
+
+**MONOCHROME, and `forest` was considered and rejected.** A green accent dot per mark was the
+obvious creative move. `forest` is /clix's colour — globals.css:35 calls it "the one brand
+colour anywhere in this build" — and spending it on eight dots in a /company band would put it
+somewhere it was never measured. The marks are `muted` at rest so the label stays the loudest
+thing in the tile, `ink` on hover.
+
+**Hover is new behaviour on a tile that has none in the capture.** The tiles are not links and
+the original's logos are inert, so this is additive: colour `muted` → `ink` plus a 2px lift,
+300ms on `var(--ease-rogo)`, the site's own link preset. `motion-reduce` kills both.
+
+⚠️ **RTL: all eight are PHYSICAL, and seven of them by construction.** Same rule as
+`ui/WhyRogoIcons.tsx` — mirror only glyphs whose meaning *is* a direction. Rather than argue
+that case eight times, seven are drawn **symmetrical about the vertical axis**, so mirroring
+would be a no-op anyway. Two marks were redrawn to get there: the browser lost its three
+traffic-light dots for a centred address pill, and the handset's content rules are centred
+rather than left-set. The one exception is the chat bubble, whose tail and bolt are both
+asymmetric; a bubble tail is a picture of a bubble, not a reading direction.
+
+⚠️ **The roster is INDEXED, not keyed by label.** `company.services.items` is eight *different*
+strings on /he, so a `Record<string, Glyph>` lookup would have rendered nothing in Hebrew and
+failed silently. `SERVICE_GLYPHS` is positional, and its type is a literal **eight-slot tuple**
+rather than `Glyph[]` — same reasoning as the dictionary's own tuple, the count is the grid, so
+a ninth service fails the build instead of the eye.
+
+**Verified:** `npx tsc --noEmit` clean. **Not looked at in a browser at any tier** — the user
+asked to skip headless verification and is checking the render themselves.
+
+---
+
 ## 2026-08-12 — Block 1's clip: 4K master in, and a reversal on how it is framed
 
 User supplied `boss-vid.mp4`, *"its more hd, right now its horizontal make it vertical"*.

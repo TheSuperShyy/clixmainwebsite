@@ -6,9 +6,23 @@ Newest entry on top. Append after every task — never rewrite past entries.
 
 ## Current state
 
-**Status:** `/product` is built AND its copy is clix's own. Branch **`product-content`**, off
-`dev`. **41 files staged, NOT committed, NOT merged, NOT pushed.** Build, typecheck and eslint
-clean. Blocks 1, 2a–2d, 3, 4, 5, 6 in `review`; Block 7 is the shared `<Footer/>`.
+**Status:** `/product` is built AND its copy is clix's own. ⚠️ **THE BLOCK LIST CHANGED ON
+2026-08-13** — the page is now **Hero → Features (2a–2d, 3, 4) → Footer**. Blocks **5
+(Security) and 6 (Testimonials) were REMOVED** on the user's call; Block 6 was not deleted but
+**relocated to the landing page**. See the 2026-08-13 entry below. Build, typecheck and eslint
+clean (eslint at the one pre-existing `ClixHero.tsx` error).
+
+### ⚠️ The noindex gate is now FULLY cleared, and the guard moved
+
+All four items hold as of 2026-08-13 — item 3 ("no real person quoted, INCLUDING the
+placeholders") was cleared by Block 6 leaving the route. **The `robots` block is still in
+`src/app/(en)/product/page.tsx` and was deliberately left there**: lifting it is an outward-
+facing call for the user to make, not a side effect of moving a section. Raise it with them.
+
+✅ **And the placeholders are gone entirely** — the user supplied all six real quotes the same
+day, so nothing fabricated exists in any namespace. The **derived** switch in
+`sections/Testimonials.tsx` (`hasQuotes`) stays anyway; see the 2026-08-13 entry for why it is
+derived rather than a flag, and why it is not scaffolding to remove now that it has passed.
 
 ### ⚠️ Pick this up first: the branch is uncommitted
 
@@ -17,28 +31,33 @@ anything else, or a stray `checkout` loses the whole pass.
 
 ### Open decisions, all the user's, none blocking a commit
 
-1. **Burned-in subtitles.** `asaf-peretz.jpg` and `adir-peretz.jpg` are 9:16 video stills with
-   Hebrew subtitle captions baked in; the 360x694 portrait slot crops Asaf's mid-word through
-   "SalesIQ". Fine as video thumbnails, which is what they were vendored for. NOT cropped
-   unilaterally because the files are shared with `sections/Testimonials.tsx`, so a crop
-   changes the home page too.
-2. **`noam-tovi.jpg` may not be Noam Tovi.** Burned-in caption reads Nave Davidi. Ships on both
-   pages already. Needs the client, not a code change.
+1. **Burned-in subtitles — ⚠️ MORE URGENT SINCE 2026-08-13.** `asaf-peretz.jpg` and
+   `adir-peretz.jpg` are 9:16 video stills with Hebrew subtitle captions baked in; the 360x694
+   portrait slot crops Asaf's mid-word through "SalesIQ". That was tolerable when the carousel
+   was on `noindex` /product. It is now on the **indexed landing page**, and in the English
+   locale, where a Hebrew subtitle across a portrait is conspicuous. Still NOT cropped
+   unilaterally: the files are shared with the video accordion in the same section, so a crop
+   changes both treatments. The user's call, and worth making now.
+2. **`noam-tovi.jpg` may not be Noam Tovi.** Burned-in caption reads Nave Davidi. Same escalation
+   as item 1 — it is on the landing page now. Needs the client, not a code change.
+2b. **The English quotes are TRANSLATIONS written here**, not the clients' own words — they
+   spoke Hebrew (`quote.md`). `he/home.ts` is verbatim; `en/home.ts` is a faithful rendering and
+   is the one thing on this section the user has not read. Their own English wording wins.
 3. **Six screenshots vendored but NOT mounted**, in `public/product/screens/`. Wave 2 of the
    plan was gated on the user seeing wave 1 first, and it never ran.
-4. **`End to end encryption`** (Block 5 `LIST` item 3) is a stronger claim than "encrypted in
-   transit and at rest". Flagged by the agent that wrote the block, left as captured. Worth
-   confirming against what clix actually ships.
+4. ~~**`End to end encryption`** (Block 5 `LIST` item 3)~~ — **MOOT ON THIS ROUTE as of
+   2026-08-13**: Block 5 was deleted. The claim may still be live elsewhere; check
+   `sections/Security.tsx` and `src/components/security/*` before ticking it off for good.
 5. Three inherited AA contrast failures (`muted` on `bone` 4.24, `surface` 4.35, `ink` 3.85),
    pre-existing and still awaiting a call. This pass added no new colour pair; `globals.css` is
    untouched.
 
-### The noindex gate: 3 of 4 cleared
+### ~~The noindex gate: 3 of 4 cleared~~ — superseded 2026-08-13, see Current state above
 
-`robots: { index: false, follow: false }` in `src/app/product/page.tsx` stays. Trademarks,
-badges and rogo strings are all gone. What holds it shut now is Block 6's **placeholder quotes
+Left for the record: this read "what holds it shut now is Block 6's **placeholder quotes
 attributed to real named clients**. Fix is real quotes, or restructure onto the video accordion
-`sections/Testimonials.tsx` already implements.
+`sections/Testimonials.tsx` already implements." The second option is effectively what happened
+— Block 6 moved to the landing page and now sits *behind* that accordion until real quotes land.
 
 ### Next scope: the Company section
 
@@ -54,6 +73,265 @@ tier map and nav mechanics that apply to any new route.
 ⚠️ **No team photographs exist in this repo.** Seven people are named on the live site; their
 images live only there. That is the same shape of gap Block 6 hit, so decide the approach
 BEFORE building a team block, not after.
+
+---
+## 2026-08-13 — Five changes on the user's call: two blocks deleted, two animated, one video open
+
+Scope came from the user as a five-item list. Four are done and verified in a real browser at
+1600 / 1440 / 1024 / 390 in both locales; the fifth is waiting on their pick.
+
+### 1 · Block 5 (Security) deleted from the route
+
+`ProductSecurity.tsx` deleted, `product.security` deleted from both locale files (type decl and
+value; 18 + 23 + 44 lines). It was rendered by `ProductRoute` and nothing else, and its dict was
+read by that component and nothing else — both checked before deleting, not assumed.
+
+**NOT touched:** `sections/Security.tsx` (home's own, a different section), `src/components/
+security/*` (the `/security` route), and `public/badges/practice-*.svg`, which home still uses.
+
+### 2 · Block 6 (Testimonials) moved to the landing page
+
+`product/ProductTestimonials.tsx` → `sections/QuoteCarousel.tsx`, dict `product.testimonials` →
+`home.testimonials` (merged with the `heading`/`clips` already there). The carousel **lost its
+`<section>` wrapper**: `sections/Testimonials.tsx` owns the section, the `id`, the
+`data-nav-theme` and the `<h2>`, and swaps only the BODY between the video accordion and the
+carousel. Both treatments sit under "In our clients' own words", which reads true of either.
+
+⚠️ **The arrows' `-top-20` is a dependency on the PARENT, and it survived by luck plus a check.**
+They are pinned 80px above the carousel and render outside it. On /product that space was the
+section's `tablet:pt-[124px]`; on home it is the width container's `gap-20`, which is exactly
+80px. Verified in the browser. Change that gap and the arrows collide with the heading.
+
+### ⚠️ 3 · THE FINDING WORTH KEEPING: a render flag CANNOT guard dictionary copy
+
+The move first shipped behind `const SHOW_QUOTES = false`, with the accordion rendering. That
+looked correct and was not. **`curl localhost:3001/ | grep "PLACEHOLDER QUOTE"` returned SEVEN
+hits** — six slides plus `phoneLeadQuote` — in the public source of the *indexed* landing page,
+under real clients' real names and photographs.
+
+The cause is structural, not a bug: `PageDictProvider` serialises the **whole `home` namespace**
+into the RSC payload. Not rendering a string does not keep it off the page. Nor would a
+`noindex` have helped — that hides a page from a crawler, not from a reader, and on the home
+page it is a bad trade for the SEO it costs.
+
+**So the only real guard is that the fabricated text does not exist.** The seven strings in
+`{en,he}/home.ts` are now `""`, and the switch is **DERIVED** from them:
+
+```ts
+const hasQuotes = t.phoneLeadQuote.trim() !== "" && t.slides.every((s) => s.quote.trim() !== "");
+```
+
+No quotes → accordion, by construction. Pasting the real quotes in IS the act of turning the
+carousel on; the two states cannot get out of step, and a half-finished copy pass cannot put a
+blank card or a fabricated one on the landing page. Re-verified: 0 hits on `/`, `/he`, `/product`.
+
+### ✅ AND THE REAL QUOTES LANDED THE SAME DAY — the carousel is live
+
+The user supplied all six in `quote.md` at the repo root, in the clients' own **Hebrew**. So:
+
+- **`he/home.ts` carries them VERBATIM**, including `קליקס` spelled in Hebrew letters where the
+  rest of the repo writes `clix` in Latin, and the `...` in two of them. A testimonial is
+  quoted, not normalised.
+- **`en/home.ts` carries TRANSLATIONS written here.** ⚠️ **These are the only strings on the
+  landing page that are neither the client's words nor sourced from anywhere.** Faithful, but
+  they are mine and the user should read them. If a client has their own English wording, or
+  would rather be quoted in Hebrew on the English page, that wins.
+
+Two follow-through steps that a copy drop invites you to skip, both done:
+
+1. **`phoneLeadQuote` DELETED from both locales.** It existed to reproduce the capture's quirk
+   of a *different* sentence in slot 1 at ≤809. The real copy is one sentence per client, and
+   inventing a phone-only variant of a real endorsement is exactly what the placeholders existed
+   to prevent. Duplicating Asaf's one quote into a second key would have been worse — two
+   strings to keep in step for nothing.
+2. **`quoteDesktop` RE-FITTED** (step 3 of the old warning block's checklist). It is a per-quote
+   size fitted to character count, and the 32px belonged to a ~290-char placeholder that sat in
+   SLOT 1. Left alone it would have shrunk the *shortest* real quote and let the longest
+   overflow. Measured EN counts: `asaf 207 · adir 289 · nevo 172 · noam 189 · achituv 269 ·
+   elyashiv 147`, so 32px moved to **adir and achituv** and the other four take 36. The count of
+   32s is unchanged, only which slides carry them.
+
+**Knock-on that had to be fixed:** phone card 1's `h-[505px]` was 171px taller than the rest
+*because* of the longer lead quote. With that gone it held ~250px of dead space over the author
+block and read as a layout bug. Normalised to the other five (`h-[334px] p-6 gap-5`) — a
+**documented divergence from the capture**, and the honest one: the measurement was correct for
+copy this page no longer has. Card 1 stays distinguishable by its `cream` fill.
+
+Verified by cycling all six slides in a real browser, both locales at 1440. Every quote fits its
+card with room to spare — EN 5/5/4/4/5/3 lines, HE 3/4/3/3/4/2 — and the phone stack clips
+nothing at 390.
+
+⚠️ **STILL OPEN, AND NOW MORE VISIBLE THAN IT WAS.** Two portraits carry burned-in Hebrew
+subtitles from the source videos (`asaf-peretz.jpg`, `adir-peretz.jpg`), and `noam-tovi.jpg`'s
+caption names a DIFFERENT person. These were logged when the block was on `noindex` /product;
+they are now on the indexed landing page, in English, where a Hebrew subtitle across a portrait
+is conspicuous. Not cropped unilaterally — the `.jpg`s are shared with the video accordion, so a
+crop changes both treatments. The user's call.
+
+### 4 · Stepper numerals → icons
+
+The badge — the 36×36 square with a circle **subtracted**, path verbatim from the capture — is
+UNCHANGED. Only what sits in the circular cutout changed: a 16px line icon instead of the 14px
+numeral. Zero layout movement. Grid / link / flow-nodes / speech-bubble, positional to the four
+steps, kept local rather than shared with `benefitArt`'s glyphs.
+
+⚠️ **`STEP_NUMBERS` survives as `STEP_KEYS` because it was never only display text.** It supplies
+`.length` for the auto-advance modulo AND builds the React `key` that remounts a row to restart
+its `step-fill` sweep. Deleting the strings would have silently killed the progress bar.
+Both render paths updated — the `desktop:flex` stepper and the `desktop:hidden` stack.
+
+⚠️ The 16px box is **explicit**. The numeral was optically centred by its own line box; a square
+icon with no box fills the badge and overruns the corner slivers.
+
+### 5 · Block 4 (Benefits): one idle loop inside each of the six artworks
+
+The ask was explicitly *not* a card-level scroll reveal — "the info inside them… in Single Tenant
+Deployment the line moves and link to the circle square stuff". So each illustration animates
+what it already depicts. Nothing was added to a picture to have something to animate.
+
+| # | Graphic | Loop | Cycle |
+|---|---|---|---|
+| 1 | Integrations | highlight travels the six tool tiles | 7200ms, delay `i × 1200` |
+| 2 | Ready Workflows | pills drift up through the existing mask | 30000ms linear |
+| 3 | Guided Implementation | the three avatars breathe | 5000ms, delay `i × 600` |
+| 4 | Custom-Trained Models | trail falls into the mark; green cells shimmer | 4000 / 3600ms |
+| 5 | Governance & Permissions | bars sweep out, hold, clear | 8000ms, delay `i × 140` |
+| 6 | Single Tenant Deployment | tie-line draws, target cell lights | 5200ms, phase-locked |
+
+**CSS keyframes, in `globals.css`, no GSAP and no `"use client"`.** `ArtPrompts` and
+`ArtGovernance` read the dictionary server-side; converting them to client components to run a
+tween would cost more than the decoration does. Transform/opacity only — six loops run whenever
+the block is on screen.
+
+⚠️ **THE INVARIANT THAT MAKES ALL SIX SAFE: every keyframe's BASE state is the shipped static
+design**, and the loop departs from and returns to it. Reduced motion is then an exact no-op for
+free — the global clamp cuts the animations and each element snaps back to the measured artwork.
+Proven, not asserted: two frames 2s apart under `prefers-reduced-motion: reduce` are
+**byte-identical**, and the frozen frame shows all 11 trail dots, all 5 bars at 270/248/213/187/157
+and the tie-line drawn. Three frames without it are all distinct.
+
+This is why card 6's selection is `opacity: 1` animated 0→1→0 rather than declared 0 and animated
+up: written the other way a reduced-motion visitor gets the tenant grid with **no cell selected**,
+which is the one thing that card exists to say.
+
+Two measured details behind the code:
+- **Card 1's glyphs are now `text-ink` at `opacity: .6`, and the render did not move.** ink
+  `#151515` over the tile's white at 60% composites to `#737373` = `--color-muted` exactly. The
+  colour moved into the alpha channel so the highlight could be pure opacity.
+- **Card 2's `-50%` is only a seamless loop because the track is sized to make it one.** The
+  track holds two copies of the nine pills on the source's 38-unit pitch and is given an explicit
+  `2 × 9 × 38 = 684` units, so `-50%` is 342 = one full copy. Percentage translates resolve
+  against the element's own border box, which is what avoids a `var()` inside the keyframe — see
+  the `rows-up` cautionary note in `globals.css`.
+- ⚠️ **The window is 357 units and one loop is 342**, so a ~15-unit sliver of duplicate label is
+  always on screen. It lands inside the mask's fade (opaque only 14%–84%), so both copies read as
+  ghosted. Checked at 390, where it is most visible, and it reads as intentional.
+
+Card 5's `transform-origin` needed a `[dir="rtl"]` rule — there is no logical keyword for it, and
+the bar is placed with `inset-inline-start`, so a `left` origin would grow it away from its own
+anchor. Verified at `/he/product`: bars grow from the right edge.
+
+### ✅ 6 · Hero video — CLOSED. The user supplied the clip.
+
+Two rounds of stock candidates were shown and both rejected. Round 1 (Mixkit: an overhead
+operations floor, and traffic light-trails at dusk) was too busy. The user's direction was
+**"something static not many happening"**, so round 2 went to the calm end — silhouettes at a
+highrise window, and a near-black abstract. Then the user supplied their own file, which is the
+right outcome and the one the CLAUDE.md §7 ceiling is designed to reach quickly.
+
+**What ships:** an empty modern office — desks, monitors, a pendant lamp, bright windows, a slow
+camera drift and nobody in frame. On-niche without being literal, and genuinely static.
+
+- **Master:** `features/product-page/assets/product-hero-master.mp4`, 3840×2160 / 25fps / 11.7s /
+  10.6MB, supplied as `public/product/product-hero.mp4`. ⚠️ **MOVED OUT OF `public/`** — nothing
+  referenced it there, so it was 10.6MB shipping to every visitor for nothing. Moved rather than
+  deleted: it is the source for any future re-encode, and it was the user's own upload.
+  ⚠️ **AND IT IS NOT IN GIT.** `.gitignore:53` already carries `features/*/assets/*.mp4` — this
+  repo's standing rule that video masters live on disk, not in history. Discovered at commit
+  time, when the file silently did not stage; the rule predates this work and the placement
+  happens to match it. **A fresh clone will not have this file**, so a future re-encode means
+  asking the user for it again. The 1.1MB JPG master beside it IS tracked — the ignore rule is
+  mp4-only.
+- **Shipped:** `public/video/hero-product.mp4`, 1280×720 / 25fps / **2.3MB** — half the 4.6MB
+  clip it replaces. Poster at t=5s.
+
+⚠️ **25fps, NOT the 30 the other three hero clips carry, and that is deliberate.** It is the
+master's own cadence. Resampling 25 → 30 duplicates every fifth frame, which puts judder into a
+slow drifting shot — exactly the quality this clip was chosen for. A documented divergence from
+the house encode, not an oversight.
+
+**Provenance changed with it.** The old clip was rogo's own hotlink to Pexels 5941931, so the
+route carried public stock; it now carries the user's own footage. Recorded in ProductHero.tsx.
+
+Verified in the real band at 1440 and 390. The one thing to keep an eye on: this clip is
+**brighter** than everything that preceded it, and the prompt card is white. It reads correctly
+at both tiers — the card's shadow and the two darkening layers carry it — but it is the least
+contrast this band has had, so a future grade change should be checked against the card and not
+just the picture.
+
+**Cleanup done in the same pass:** both round-2 candidates and their posters deleted, and
+`public/_hero-compare.html` — the temporary side-by-side review page — removed.
+
+### 7 · Block 2d card 3: "Reports On Demand" → "Answered Or Handed Over"
+
+User's call, and the reasoning is worth keeping because it applies to the rest of this clone:
+*"change this to something we actually do, be creative"*.
+
+**What was wrong with it.** The card sold decks, summaries and spreadsheets, and its mock drew a
+slide deck over two download rows (`.pptx`, `.xlsx`). That is structurally the capture's own,
+and correctly so — the target is a research tool for finance teams, where producing decks IS
+the product. clix does not do it. The card was advertising a capability we would have had to
+invent to honour, which is the same class of problem as the vendor logos and the placeholder
+quotes, just quieter: nobody was going to notice it was false.
+
+**Why the WhatsApp assistant, and not something else.** The other two cards already cover the
+plumbing ("Automations Built To Fit") and the querying ("Ask Your Own Data"). The gap is the
+CUSTOMER-FACING end, which is also clix's signature offering per its own site: *"assistants on
+WhatsApp Business that book, sell, support and follow up … handing off to a person the moment
+one is needed."* The thread was already running through this route — the hero types "route every
+whatsapp inquiry to the right person" and mock 1 runs "Qualify Inbound WhatsApp Leads" — so this
+closes it rather than introducing a new idea.
+
+**⚠️ THE MOCK IS BUILT AROUND THE HANDOFF, NOT THE ANSWER, and that is the whole creative call.**
+Three messages establish the assistant doing real work (a slot offered, a slot taken), then the
+customer asks for a discount and it *stops*: a rule, an avatar, "Maya · Sales", and
+"Discount requested · handed over". Every AI screenshot in the market shows a bot succeeding.
+The differentiating half of what clix sells is the other one — "human approval wherever it
+matters" — and `handoffReason` is therefore copy, not decoration. Deleting it would turn the
+mock back into a generic chatbot demo.
+
+**Geometry is unchanged and deliberately so.** Same 922×1040 artwork, same centred crop, same
+two-card stack at x=102 (header 150/130, body 338/564), same `Card`/`MarkTile`/`Line`/`--u`
+idiom. A content swap, not a re-measure, so mocks 1–3 still align along the top.
+
+**⚠️ IT MIRRORS FOR FREE.** The bubbles are `Box`es, so every x is an `inset-inline-start`, and
+under rtl the inbound bubbles move to the right edge and the assistant's to the left — exactly
+what a Hebrew WhatsApp thread looks like. Verified at /he/product. A flex row with physical
+alignment would have needed a second, mirrored variant. The bubble tails use
+`borderEndStartRadius`/`borderEndEndRadius` for the same reason.
+
+**⚠️ BUBBLE WIDTHS ARE HAND-FITTED AND THE TEXT CANNOT WRAP.** `Line` is `whitespace-nowrap`
+with no width, so an over-long string does not reflow, it runs out of its bubble. ~16 units per
+character at size 34, derived from the old mock (a 37-char line filled its 610-unit measure at
+size 36). English is binding; Hebrew is shorter in all four strings.
+
+Two Hebrew decisions: `אפשר לשמור` is impersonal where the English says "I can hold one",
+because Hebrew would otherwise force יכול/יכולה on a piece of software and invite the reader
+to gender it; and `handoffReason` uses `·` rather than an em dash, per the file's own rule.
+
+`Maya · Sales` is invented mock chrome, the same category the `.pptx` filenames were — a first
+name in a product screenshot, not a claim about an employee.
+
+### Method note: driving a real browser with no Playwright in the repo
+
+There is no Playwright or Puppeteer here and installing one for a look-and-see was not worth it.
+Node 24 ships a global `WebSocket`, so headless Chrome was driven over CDP directly with a ~30
+line script — enough for device metrics, scroll-to-selector, `Emulation.setEmulatedMedia` for the
+reduced-motion check, and frame-diffing by hash to prove motion. Worth reaching for again.
+
+⚠️ **One trap: `v.src = …` via `Runtime.evaluate` does not stick on this page.** `ProductHero`'s
+`TypedPrompt` re-renders every 30ms, and React reconciles the `src` attribute straight back. The
+video swap had to be a real file edit, not an imperative one.
 
 ---
 ## 2026-08-12 (later) — Block 6 carries all SIX clients, not three

@@ -60,12 +60,15 @@ export const news: Translated<NewsDict> = {
        money and risks reads as regulation, so "והרגולציה" rather than a flat "והכללים". */
     subtitle:
       "עדכון יומי על כל מה שצריך לדעת על ה-AI: המודלים, הכסף, הסיכונים והרגולציה.",
-    /* "צרו קשר" is SOURCED — contact.bodyText, and the footer heading on every page of the
-       real site. The qualifier "עם צוות התקשורת" is AUTHORED; there is no real press desk.
+    /* AUTHORED. On 2026-08-13 this stopped being a contact CTA: the button now leaves for
+       the Clix AI tools site (see NewsRoute.tsx), so the label announces a destination
+       rather than an enquiry. The product name stays in Latin script — that is how Clix
+       writes itself everywhere else on the Hebrew pages, including the nav.
        ⚠️ THE ONE TIGHT STRING ON THIS ROUTE. It renders inside `whitespace-pre` in a
        `width: min-content` anchor, so it CANNOT WRAP: it has to stay under 358 − 32 = 326px
-       at the 390 tier. Measured, it clears. Do not lengthen it without re-measuring. */
-    cta: "צרו קשר עם צוות התקשורת",
+       at the 390 tier. This is shorter than the string it replaced, so it clears with room.
+       Do not lengthen it without re-measuring. */
+    cta: "כניסה ל-Clix News",
   },
 
   /* AUTHORED ×5. These are FILTER LABELS, not the categories themselves — NewsBoard keeps the

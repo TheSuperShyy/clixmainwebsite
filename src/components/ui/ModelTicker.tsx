@@ -11,13 +11,27 @@
  * models it renders `null` and the banner collapses, rather than showing a plausible-looking
  * strip of numbers that are not true.
  *
- * ⚠️ THE SPARKLINE AND THE ±% ARE GONE, and it is not an oversight. Both need a time series
- * per row, and there is no such thing for a list price: a model costs what it costs until the
- * lab changes it. Drawing a trend line under a flat number, or a "+1.2%" against a baseline
- * that was never recorded, would be exactly the invented-figure failure the data layer exists
- * to prevent. The strip is monochrome as a result. If a signal is wanted back in that slot it
- * has to be something real — cheapest-in-set, or price-changed-since-last-poll with actual
- * history behind it — not a shape.
+ * ⚠️ THE ±% AND THE TREND LINE ARE STILL GONE, and it is still not an oversight. Both need a
+ * time series per row, and there is no such thing for a list price: a model costs what it
+ * costs until the lab changes it. Drawing a trend line under a flat number, or a "+1.2%"
+ * against a baseline that was never recorded, would be exactly the invented-figure failure
+ * the data layer exists to prevent.
+ *
+ * WHAT CAME BACK INTO THAT SLOT (2026-08-13, user: *"add a small graph beside the token price
+ * if they are up or down, green if up red if down"*). The request was for the stock-ticker
+ * signal; the honest half of it is buildable and the other half is not, so this is the half —
+ * taken back to the user before it was built rather than after, with the constraint stated.
+ * `PriceRank` plots the strip's OWN nine prices, sorted cheap-to-dear, and lights this row's
+ * column. Every pixel of it is a live figure already on the page; there is no second data
+ * source, no baseline, and nothing retained between polls. It answers "where does this one sit
+ * in the field", which is a real question with a real answer, instead of "which way did it
+ * move", which has neither.
+ *
+ * ⚠️ GREEN IS THE CHEAP END, WHICH IS THE OPPOSITE OF A STOCK TICKER (2026-08-13, user's call
+ * when asked). On an equity green means the number went up; on a price sheet a number going up
+ * is bad news for whoever is reading it. The tokens carry the inversion in their names —
+ * `--color-price-low` / `--color-price-high`, not `up` / `down` — precisely so a later call
+ * site cannot pick the wrong one by reaching for the familiar word.
  *
  * MARQUEE. Same technique as `LogoCarousel`, and for the same reason: nine items do not fit a
  * 390px phone, and the page already speaks this idiom. The cycle is MEASURED (item 0 to item
@@ -47,7 +61,7 @@
  * Nothing here reads `useDirSign()` and nothing needs to.
  */
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import type { ModelPrice } from "@/lib/models";
@@ -95,6 +109,232 @@ function formatContext(n: number) {
 }
 
 /**
+ * WHERE EACH MODEL SITS IN THE FIELD — the whole of the chart's data layer.
+ *
+ * THE SCALAR IS `input + output`, i.e. what a million tokens in plus a million out costs. Both
+ * prices are already on the row and this adds them; it is the only summary of the pair that
+ * carries NO invented weighting. The obvious alternative — a blend weighted to some assumed
+ * input:output ratio — would be us asserting a usage pattern we have not measured, on a strip
+ * whose entire premise is that it asserts nothing.
+ *
+ * ⚠️ THE SCALE IS LOGARITHMIC, AND IT WAS MEASURED, NOT PREFERRED. The 2026-08-13 poll came
+ * back $0.90 (Llama 4 Maverick) to $35.00 (GPT-5.6 Sol) — a 39.1x spread — and the two scales
+ * were computed side by side against it before this one was picked:
+ *
+ *     $0.90  $2.00  $3.50  $8.00  $8.00  $9.00  $18.00  $30.00  $35.00
+ *  log  2.0    4.2    5.7    8.0    8.0    8.3    10.2    11.6    12.0  px
+ *  lin  2.0    2.3    2.8    4.1    4.1    4.4     7.0    10.5    12.0  px
+ *
+ * Linearly the six cheapest models span 2.4px of the twelve available and the chart reads as
+ * two tall bars beside seven identical stubs — it would say only that GPT and Opus are
+ * expensive, which the price beside it already says. Log spacing is what makes $0.90 against
+ * $3.50 a visible difference at this size.
+ *
+ * The median came back $8.00 with a tie ON it, so `<=` rather than `<` is load-bearing: five
+ * columns read green and four red, where `<` would have called the median itself dear.
+ *
+ * `total <= 0` is a FREE model, which OpenRouter does list (`:free` variants). It is excluded
+ * from the min/max so one of them cannot drag `Math.log` to -Infinity and flatten every other
+ * column, and it plots at the floor, which is where a free model belongs.
+ */
+type Field = {
+  /** This model's rank in the set, cheapest first, zero-based. Carried for the sr-only text. */
+  rank: number;
+  /** At or below the set's median. Sets the walk's drift — see `PriceRank`. */
+  low: boolean;
+  /** Seeds the candle walk, derived from this model's own prices. See `PriceRank`. */
+  seed: number;
+};
+
+function buildField(models: ModelPrice[]): Map<string, Field> {
+  const out = new Map<string, Field>();
+  /* One model is not a field — there is nothing to be cheap relative to, and a lone column is
+     a chart of itself. The caller renders no chart at all in that case. */
+  if (models.length < 2) return out;
+
+  const totals = models.map((m) => ({
+    id: m.id,
+    total: m.inputPerM + m.outputPerM,
+    /* Seeded from the model's OWN figures rather than from a counter, so a chart is a property
+       of the model and not of its position in the list: reorder `MODEL_IDS` and every row keeps
+       the shape it had.
+
+       ⚠️ IT MUST STAY A PURE FUNCTION OF THE DATA. `Math.random()` here would give the server
+       and the client different candles and React would report a hydration mismatch on every
+       visit — and a chart that reshuffled on refresh would advertise itself as noise. */
+    seed:
+      Math.round(m.inputPerM * 1000) * 7919 +
+      Math.round(m.outputPerM * 1000) * 104729 +
+      m.context,
+  }));
+  const paid = totals.filter((t) => t.total > 0).map((t) => t.total);
+  if (!paid.length) return out;
+
+  const sorted = [...totals].sort((a, b) => a.total - b.total);
+  const mid = sorted.length / 2;
+  const median =
+    sorted.length % 2
+      ? sorted[Math.floor(mid)].total
+      : (sorted[mid - 1].total + sorted[mid].total) / 2;
+
+  sorted.forEach((t, rank) => {
+    out.set(t.id, { rank, low: t.total <= median, seed: t.seed });
+  });
+  return out;
+}
+
+/* 20 candles on a 3px pitch — 2px body, 1px gutter, 0.75px wick — so the row measures 59px
+   and stands 20px tall. The height is the ceiling rather than a choice: `ROW_H` is 21px and it
+   is PINNED, because the banner measures 45px (21px line box + 12px padding each side) and the
+   header's hide-on-scroll transform travels exactly that far. A taller chart grows the banner
+   and moves the header with it. 20 takes all of it bar the 1px that stops the svg becoming the
+   line box. */
+const CANDLES = 20;
+const PITCH = 3;
+const BODY_W = 2;
+const WICK_W = 0.75;
+const CHART_H = 20;
+const CHART_W = CANDLES * PITCH - (PITCH - BODY_W);
+/* Shortest a body may draw. A doji — open equal to close — is a zero-height rect and vanishes;
+   real candle charts draw it as a rule, so this does too. */
+const MIN_BODY = 0.75;
+
+/**
+ * ⚠️⚠️ THESE CANDLES ARE DECORATION. THE NUMBERS BESIDE THEM ARE NOT. ⚠️⚠️
+ *
+ * READ THIS BEFORE TOUCHING ANYTHING IN THIS FUNCTION.
+ *
+ * There is no price history behind this chart and there cannot be. `/api/v1/models` returns
+ * what a model costs right now and nothing else; there is no history endpoint, this site has
+ * no database, and a list price has no time series in any case — it is a constant until the lab
+ * changes it. A candlestick asserts four observations per period (open, high, low, close) over
+ * some fifty periods. None of those observations exist. **Every candle here is generated.**
+ *
+ * IT SHIPPED THAT WAY ON AN EXPLICIT DECISION, NOT BY DRIFT. The constraint was put to the user
+ * three times across 2026-08-13 — first as a choice of three options before anything was built,
+ * again when the zigzag line went in, and again when the candlestick reference arrived — and
+ * the answer was *"you can just invent graph, no need to be faithful to the data"*. That is
+ * theirs to make and it is made. What follows is the boundary that keeps it from spreading.
+ *
+ * ⚠️ THE RULE, AND IT IS NOT NEGOTIABLE: NOTHING MAY EVER BE ANNOTATED ONTO THIS CHART. No axis,
+ * no tick, no gridline, no tooltip, no hover readout, no "+2.4%", no date, no legend, no
+ * caption. The instant a NUMBER is attached to one of these candles it stops being ornament and
+ * becomes a fabricated figure sitting beside real vendor pricing — which is the exact failure
+ * the standing note at the top of `src/lib/models.ts` exists to prevent, and which took the old
+ * stock sparkline off this strip on 2026-08-08. Shape is decoration. A number is a claim.
+ *
+ * ⚠️ AND THE PRICES STAY REAL. `$5 → $30 /M` beside this chart is live vendor list pricing and
+ * the whole data layer is built to keep it that way. Do not "simplify" by generating those too,
+ * and do not read this function as permission to.
+ *
+ * ---------------------------------------------------------------------------------------
+ *
+ * WHAT IT ACTUALLY DRAWS. A seeded random walk, 20 candles, wicks and bodies, green when the
+ * candle closed up and red when it closed down — the stock convention, because that is what the
+ * shape is quoting.
+ *
+ * TWO THINGS ARE STILL TIED TO THE DATA, and they are worth keeping because they cost nothing:
+ *
+ *   · THE SEED is the model's own prices, so each row draws its own distinctive chart, the same
+ *     one on every render and every reload (2026-08-13, user: *"why all has the same design or
+ *     graph, add some randomness"*). It must stay a pure function — see `buildField`.
+ *   · THE DRIFT follows the row's verdict. A model at or below the strip's median trends UP
+ *     across the twenty candles and a dearer one trends DOWN, so a green-heavy chart still
+ *     means "cheap for this field" the way the very first version of this slot did. It is a
+ *     tendency rather than a reading, which is all a decorative chart can carry.
+ *
+ * NORMALISED TO ITS OWN RANGE after the walk, so every chart fills the 20px box regardless of
+ * how far that particular walk wandered. Without it a low-volatility seed draws a flat line in
+ * the middle of an empty rectangle.
+ *
+ * NOT MIRRORED IN RTL. A generated shape has no reading direction to mirror, and the price
+ * expression beside it is already pinned to an LTR isolate (see `Item`), so the pair stays a
+ * single unit in both locales.
+ *
+ * `aria-hidden`, and unlike every previous version of this slot that is now the ONLY correct
+ * value — there is nothing here to describe. The sr-only sentence carries the model's real
+ * rank in the field, which comes from `buildField` and not from anything drawn here.
+ */
+
+/* Deterministic 32-bit LCG (glibc's constants). `Math.random()` cannot be used — see the seed
+   note in `buildField` — and this needs no statistical quality, only repeatability. */
+function walker(seed: number) {
+  let s = Math.abs(Math.trunc(seed)) % 2147483647 || 1;
+  return () => {
+    s = (s * 1103515245 + 12345) % 2147483648;
+    return s / 2147483648;
+  };
+}
+
+/* The walk lives OUTSIDE the component on purpose. Each candle opens where the last one closed,
+   so the loop has to carry a running value — and doing that with a `let` in the component body
+   trips `react-hooks/immutability` ("cannot reassign after render completes"), which is a fair
+   catch even though this particular variable never escapes the render. In its own function the
+   carry is an ordinary local and the component stays a pure function of `field`. */
+function buildWalk(seed: number, low: boolean) {
+  const rand = walker(seed);
+  /* Per-candle move and wick length, as a fraction of the walk's own units. Tuned against the
+     reference: bodies that mostly overlap their neighbours, wicks about half a body again, and
+     enough drift that twenty candles clearly go somewhere. */
+  const drift = (low ? 1 : -1) * 0.055;
+  const out = [];
+  let last = 0;
+  for (let i = 0; i < CANDLES; i++) {
+    const open = last;
+    const close = open + drift + (rand() - 0.5) * 0.28;
+    out.push({
+      open,
+      close,
+      high: Math.max(open, close) + rand() * 0.11,
+      low: Math.min(open, close) - rand() * 0.11,
+    });
+    last = close;
+  }
+  return out;
+}
+
+function PriceRank({ field }: { field: Field }) {
+  const candles = buildWalk(field.seed, field.low);
+
+  /* Fit the whole walk to the box. Extremes come off the wicks, not the bodies, or the tips
+     clip. */
+  const top = Math.max(...candles.map((c) => c.high));
+  const bottom = Math.min(...candles.map((c) => c.low));
+  const range = top - bottom || 1;
+  const y = (v: number) => ((top - v) / range) * CHART_H;
+
+  return (
+    <svg
+      width={CHART_W}
+      height={CHART_H}
+      viewBox={`0 0 ${CHART_W} ${CHART_H}`}
+      className="flex-none"
+      aria-hidden="true"
+    >
+      {candles.map((c, i) => {
+        const x = i * PITCH;
+        const up = c.close >= c.open;
+        const tone = up ? "fill-price-low" : "fill-price-high";
+        const bodyTop = y(Math.max(c.open, c.close));
+        const bodyH = Math.max(MIN_BODY, y(Math.min(c.open, c.close)) - bodyTop);
+        return (
+          <g key={i} className={tone}>
+            {/* Wick behind the body, so the body's corners stay square over it. */}
+            <rect
+              x={x + (BODY_W - WICK_W) / 2}
+              y={y(c.high)}
+              width={WICK_W}
+              height={Math.max(MIN_BODY, y(c.low) - y(c.high))}
+            />
+            <rect x={x} y={bodyTop} width={BODY_W} height={bodyH} />
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+/**
  * Row height. The banner measured 45px with the old text (14px on a 1.5em line box = 21px,
  * plus 12px padding each side) and the header's hide-on-scroll transform travels exactly that
  * far. `bannerH` is what the transform uses and it is the number recorded in the nav's spec,
@@ -123,7 +363,7 @@ const ROW_H = 21;
  * differ by 5x on some models and not at all on others, so a single figure would misrepresent
  * whichever it omitted. The arrow is what buys the room to keep them.
  */
-function Item({ m }: { m: ModelPrice }) {
+function Item({ m, field }: { m: ModelPrice; field?: Field }) {
   return (
     <li
       className="flex flex-none items-center gap-3 whitespace-nowrap"
@@ -165,6 +405,9 @@ function Item({ m }: { m: ModelPrice }) {
         {formatUsd(m.inputPerM)} → {formatUsd(m.outputPerM)}
         <span className="text-paper/55"> /M</span>
       </span>
+      {/* Absent rather than empty when there is no field to plot — a one-model strip, or a
+          shape change upstream that leaves every price at zero. See `buildField`. */}
+      {field && <PriceRank field={field} />}
     </li>
   );
 }
@@ -191,6 +434,11 @@ export default function ModelTicker({ initial }: { initial: ModelPrice[] }) {
      name, both prices, the context window) is Latin or numeric in both locales. */
   const a11y = useChrome().a11y;
   const [models, setModels] = useState<ModelPrice[]>(initial);
+  /* Memoised because the track renders `passes x models.length` items — three to five copies
+     of the same nine rows — and every one of them would otherwise rebuild the identical map.
+     The field is a property of the SET, so it is computed once here rather than inside `Item`;
+     a row cannot know where it sits without seeing the other eight. */
+  const fields = useMemo(() => buildField(models), [models]);
   const [passes, setPasses] = useState(BASE_PASSES);
   const root = useRef<HTMLDivElement>(null);
   const track = useRef<HTMLUListElement>(null);
@@ -352,6 +600,15 @@ export default function ModelTicker({ initial }: { initial: ModelPrice[] }) {
                 ? interpolate(a11y.tickerContext, {
                     ctx: formatContext(m.context),
                   })
+                : "") +
+              /* The chart is `aria-hidden`, so this clause IS the chart for anyone not looking
+                 at it. `rank + 1` because `Field.rank` is a zero-based column index and "the
+                 0th cheapest" is not a thing anyone says. */
+              (fields.has(m.id)
+                ? interpolate(a11y.tickerRank, {
+                    rank: String((fields.get(m.id)?.rank ?? 0) + 1),
+                    total: String(models.length),
+                  })
                 : ""),
           )
           .join("; ")}
@@ -384,7 +641,9 @@ export default function ModelTicker({ initial }: { initial: ModelPrice[] }) {
           style={{ gap: `${GAP}px`, margin: 0, padding: 0 }}
         >
           {Array.from({ length: passes }, (_, pass) =>
-            models.map((m) => <Item key={`${pass}-${m.id}`} m={m} />),
+            models.map((m) => (
+              <Item key={`${pass}-${m.id}`} m={m} field={fields.get(m.id)} />
+            )),
           )}
         </ul>
       </div>

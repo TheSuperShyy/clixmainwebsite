@@ -80,16 +80,20 @@
  *
  * BOTH NEIGHBOURS LEAVE WITH THE GROUND. `#integrations` above (2026-08-09, user: "i dont
  * want to make the icons or the words any of the tools visible when the green is active") and
- * `#clix-testimonials` below (2026-08-10, user: "I don't want any transparency animation or
+ * `#clix-capabilities` below (2026-08-10, user: "I don't want any transparency animation or
  * transparency design on the bottom part just like on the top"). Both ride the ground's own
  * sub-progress on the same expression, so the top and bottom edges of the dark stretch behave
  * identically.
  *
  * They need it because every block on this page is transparent — that is measured, all eight
  * of the target's paint nothing. So the moment the ground goes dark, a neighbour's content is
- * sitting on dark green: coloured tool glyphs above, ink-dark quotes below. The quotes are the
- * worse of the two, being invisible rather than merely wrong, which reads as a rendering fault
- * rather than a design.
+ * sitting on dark green: coloured tool glyphs above, ink-dark marquee cards below. The cards
+ * are the worse of the two, being invisible rather than merely wrong, which reads as a
+ * rendering fault rather than a design.
+ *
+ * ⚠️ `#clix-capabilities` WAS `#clix-testimonials` UNTIL 2026-08-13. The id is renamed here
+ * and in the section itself; the querySelector below is optional by design, so a half-done
+ * rename would not throw, it would silently stop fading the block underneath.
  *
  * FALLBACK. This renders `bg-paper` and the Manifesto ships its own dark background, so with
  * JS off, before hydration, or under `prefers-reduced-motion` the page is the static
@@ -146,7 +150,7 @@ export default function ClixBackdrop() {
     const dark = document.querySelector<HTMLElement>("#manifesto");
     /* Optional on purpose: the fade must not depend on these existing, only use them. */
     const grid = document.querySelector<HTMLElement>("#integrations");
-    const below = document.querySelector<HTMLElement>("#clix-testimonials");
+    const below = document.querySelector<HTMLElement>("#clix-capabilities");
     const content = document.querySelector<HTMLElement>("#manifesto-content");
     if (!ground || !dark) return;
 

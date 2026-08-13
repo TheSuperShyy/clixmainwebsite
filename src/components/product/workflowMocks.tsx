@@ -240,34 +240,14 @@ function GlyphBenchmark() {
   );
 }
 
-function GlyphDownload() {
+/* The handoff row's avatar. A person, not the clix mark: the whole point of that row is that
+   the thread stopped being handled by software. Filled rather than stroked so it still reads
+   as a face at the 56 units it renders. */
+function GlyphPerson() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-full w-full">
-      <path d="M12 3v13M6.5 10.5 12 16l5.5-5.5M4 20h16" />
-    </svg>
-  );
-}
-
-/**
- * File-type badges. The original shows the actual PowerPoint and Excel product icons; these
- * are generic lettered badges in the same two colours. At 48px they read identically, and
- * redrawing Microsoft's marks is not something this clone needs to do.
- */
-function GlyphFile({ letter, fill }: { letter: string; fill: string }) {
-  return (
-    <svg viewBox="0 0 24 24" className="h-full w-full">
-      <rect x="2" y="2" width="20" height="20" rx="3" fill={fill} />
-      <text
-        x="12"
-        y="16.8"
-        textAnchor="middle"
-        fill="#ffffff"
-        fontSize="13"
-        fontWeight="700"
-        fontFamily="system-ui, sans-serif"
-      >
-        {letter}
-      </text>
+    <svg viewBox="0 0 24 24" fill="currentColor" className="h-full w-full">
+      <circle cx="12" cy="8.5" r="4" />
+      <path d="M3.6 20.5a8.4 8.4 0 0 1 16.8 0Z" />
     </svg>
   );
 }
@@ -467,66 +447,134 @@ export function MockTable() {
  * y413.5 · caption at y586 · two 612x106 export rows at y622 and y744, 48px badge at x178,
  * label at x248, download glyph at x702.
  */
-/* The two file badges. Letter and fill are POSITIONAL artwork and stay here; the names live in
-   the dictionary (`mocks.material.exports`).
-   ⚠️ EXTENSIONS ARE NOT TRANSLATED IN ANY LOCALE: `.pptx` and `.xlsx` are keyed to these P and
-   X badges and stop making sense without them. Only the stem translates. */
-const EXPORT_BADGES = [
-  { letter: "P", fill: "#c03b1c" },
-  { letter: "X", fill: "#10743e" },
-] as const;
+/* ---- Mock 3 — Answered Or Handed Over -------------------------------------------------
+ *
+ * ⚠️ THIS REPLACED `MockMaterial` ON 2026-08-13, on the user's call. That mock drew a slide
+ * deck and two download rows (`.pptx`, `.xlsx`) — structurally the capture's own, because the
+ * target is a research tool for finance teams and producing decks IS its product. clix does not
+ * do that, so the card was showing a capability we would have had to invent.
+ *
+ * THE FRAME AND EVERY MEASURED CONSTANT ARE KEPT: same 922×1040 artwork, same centred crop,
+ * same two-card stack at x=102 (header 150/130, body 338/564), same `Card`, `MarkTile`, `Line`
+ * and `--u` idiom as mocks 1 and 2. Only what sits inside the lower card changed, so this is
+ * a content swap and not a re-measure.
+ *
+ * ⚠️ THE SUBJECT IS THE HANDOFF, NOT THE ANSWER. Three messages establish that the assistant is
+ * doing real work — a slot offered, a slot taken — and then the customer asks for a discount
+ * and it stops. The strip at the bottom names who it went to and WHY. Every AI screenshot shows
+ * a bot succeeding; this one shows it declining to decide, which is the honest and the
+ * differentiating half of what clix sells ("human approval wherever it matters").
+ *
+ * ⚠️ IT MIRRORS FOR FREE, AND THAT IS WHY THE BUBBLES USE `Box` RATHER THAN A FLEX ROW. Every
+ * x here is an `inset-inline-start` (see `Box`), so under rtl the inbound bubbles move to the
+ * right edge and the outbound bubble to the left — which is exactly what a Hebrew WhatsApp
+ * thread looks like. A physical `left`/`right` layout would have needed a mirrored variant.
+ *
+ * ⚠️ BUBBLE WIDTHS ARE HAND-FITTED TO THEIR STRINGS AND CANNOT WRAP. `Line` is
+ * `whitespace-nowrap` with no width, so a long string does not reflow — it runs out of its
+ * bubble. Roughly 16 units per character at size 34 (derived from the old mock: a 37-character
+ * line filled its 610-unit measure at size 36). English is the binding case; Hebrew is shorter
+ * in all four strings. Re-measure, do not re-count, if any of them change.
+ */
 
-export function MockMaterial() {
-  const t = getDict().product.mocks.material;
+/** One chat bubble. `tail` is the flat corner that points at its own side of the thread. */
+function Bubble({
+  x,
+  y,
+  w,
+  h,
+  outbound = false,
+  children,
+}: {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  /** Outbound = the assistant. Filled `brand-green` with `paper` text, as the channel does it. */
+  outbound?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <Box
+      x={x}
+      y={y}
+      w={w}
+      h={h}
+      radius={18}
+      className={outbound ? "bg-brand-green text-paper" : "bg-surface text-ink"}
+      style={
+        outbound
+          ? /* Square off the bottom INLINE-END corner. Logical, so it follows the mirror. */
+            { borderEndEndRadius: u(4) }
+          : { borderEndStartRadius: u(4) }
+      }
+    >
+      {children}
+    </Box>
+  );
+}
+
+export function MockHandoff() {
+  const t = getDict().product.mocks.handoff;
   return (
     <MockFrame cropLeft={CROP_CENTRED}>
+      {/* Header strip — identical geometry to the one it replaces. */}
       <Card x={102} y={150} w={716} h={130}>
         <MarkTile x={52} y={40} />
         <Line x={126} cy={64} size={36} className="text-muted">
-          {t.assembling}
+          {t.channel}
         </Line>
       </Card>
 
       <Card x={102} y={338} w={716} h={564}>
-        {/* Three explicit lines at the measured 48-unit pitch, so the breaks are the
-            reference's rather than the browser's. */}
-        <Line x={53} cy={75.5} size={36} className="text-ink">
-          {t.prose[0]}
-        </Line>
-        <Line x={53} cy={123.5} size={36} className="text-ink">
-          {t.prose[1]}
-        </Line>
-        <Line x={53} cy={171.5} size={36} className="text-ink">
-          {t.prose[2]}
-        </Line>
-        <Line x={53} cy={248} size={31} className="text-muted">
-          {t.exportsLabel}
-        </Line>
+        {/* 1 · the customer opens. 440 wide: 23 chars ≈ 359 units inside a 388-unit measure. */}
+        <Bubble x={36} y={36} w={440} h={84}>
+          <Line x={26} cy={42} size={34}>
+            {t.inbound1}
+          </Line>
+        </Bubble>
 
-        {t.exports.map((name, i) => (
-          <Box
-            key={name}
-            x={52}
-            y={284 + 122 * i}
-            w={612}
-            h={106}
-            radius={9}
-            className="bg-paper"
-            style={{ boxShadow: `inset 0 0 0 ${u(1)} var(--color-mock-line)` }}
-          >
-            <Box x={24} y={29} w={48} h={48}>
-              <GlyphFile letter={EXPORT_BADGES[i].letter} fill={EXPORT_BADGES[i].fill} />
-            </Box>
-            {/* 454 units of room before the download glyph at x=548. Measured: English 359/386,
-                Hebrew 333/309. */}
-            <Line x={94} cy={53} size={36} className="text-ink">
-              {name}
-            </Line>
-            <Box x={548} y={40} w={26} h={26} className="text-muted">
-              <GlyphDownload />
-            </Box>
+        {/* 2 · the assistant answers, two explicit lines on a 48-unit pitch so the break is
+               ours. Right-aligned by arithmetic: 716 − 36 − 500 = 180 from the inline start. */}
+        <Bubble x={180} y={140} w={500} h={132} outbound>
+          <Line x={26} cy={44} size={34}>
+            {t.outbound[0]}
+          </Line>
+          <Line x={26} cy={92} size={34}>
+            {t.outbound[1]}
+          </Line>
+        </Bubble>
+
+        {/* 3 · and the customer asks for something the assistant will not decide. */}
+        <Bubble x={36} y={292} w={490} h={84}>
+          <Line x={26} cy={42} size={34}>
+            {t.inbound2}
+          </Line>
+        </Bubble>
+
+        {/* The rule under the thread. Everything below it is system chrome, not conversation —
+            that separation is what makes the handoff read as a state change. */}
+        <Box x={36} y={414} w={644} h={1} className="bg-mock-line" />
+
+        {/* The handoff. */}
+        <Box
+          x={36}
+          y={452}
+          w={56}
+          h={56}
+          radius={28}
+          className="flex items-center justify-center bg-ink-soft text-paper"
+        >
+          <Box x={14} y={12} w={28} h={32}>
+            <GlyphPerson />
           </Box>
-        ))}
+        </Box>
+        <Line x={110} cy={466} size={34} weight={500} className="text-ink">
+          {t.handoffTo}
+        </Line>
+        <Line x={110} cy={510} size={30} className="text-muted">
+          {t.handoffReason}
+        </Line>
       </Card>
     </MockFrame>
   );

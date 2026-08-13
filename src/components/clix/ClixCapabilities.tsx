@@ -1,6 +1,13 @@
 /**
- * ClixTestimonial — clone of rogo.com/felix `Testimonial` (`.framer-h1knkl`).
- * Measured from the 2026-08-09 capture. Spec: features/felix-page/FEATURE.md.
+ * ClixCapabilities — the marquee cloned from rogo.com/felix `Testimonial` (`.framer-h1knkl`),
+ * carrying clix's own content. Measured from the 2026-08-09 capture; spec:
+ * features/felix-page/FEATURE.md.
+ *
+ * ⚠️ THE NAME CHANGED ON 2026-08-13, THE GEOMETRY DID NOT. This was ClixTestimonial and it
+ * rendered ten fabricated endorsements; it now renders ten capability cards from
+ * `clix.capabilities`. Every measurement, mask, margin and loop note below is unchanged and
+ * still describes the target's `Testimonial` block, because the box is the target's box. The
+ * dictionary keys carry the history of the content swap.
  *
  * TWO ROWS, MOVING IN OPPOSITE DIRECTIONS. The original names them `Ticker` and
  * `Ticker Opposite` — that is the whole design, and a single row would read as a different
@@ -34,37 +41,32 @@
 
 import { getDict } from "@/lib/i18n/server";
 
-/* ⚠️⚠️  THESE ARE FABRICATED ENDORSEMENTS, IN BOTH LOCALES. READ BEFORE LAUNCH.  ⚠️⚠️
+/* WHAT THIS SECTION SAYS NOW, AND WHAT IT USED TO SAY.
  *
- * The text moved to src/lib/i18n/{en,he}/clix.ts on 2026-08-12 as `clix.testimonial.quotes`.
- * Moving it changed nothing about what it is, so the warning stays here, where a reader of the
- * component lands, as well as beside the strings.
+ * Until 2026-08-13 this rendered ten FABRICATED ENDORSEMENTS in both locales: rogo's real
+ * quotes from real people, reattributed to invented finance firms and pointed at clix. It was
+ * the only content on the page that was not merely unfinished but actively misleading, and it
+ * was the stated reason /clix and /he/clix carry `robots: { index: false, follow: false }`.
  *
- * The names were changed to Clix on 2026-08-10 with the rest of the page ("change all of
- * Clix into clix"). The WORDS are still rogo's: ten real quotes from real people about a
- * real product that is not this one, now attributed to plausible-sounding firms and pointed
- * at clix. Before the rename they read as obvious placeholder text, which was safe. They no
- * longer do.
+ * It was replaced, at the user's direction, with cards describing what clix actually builds.
+ * Nothing here now puts words in anyone's mouth. Two things did NOT change with it, and both
+ * are deliberate:
  *
- * ⚠️ AND HEBREW MAKES IT WORSE, NOT BETTER. There was nothing to source: the real company's
- * endorsements are four 9:16 VIDEOS and docs/reference/clixsolutions/README.md:283 records
- * that "No quote text exists anywhere in the markup". So /he/clix is not a restoration of
- * anything — it is the same fabrication delivered in the audience's own first language, where
- * it reads as MORE credible, not less. Translating it cleared no part of the problem.
+ *   1. `robots: { index: false }` STAYS until the user lifts it. Removing the misleading block
+ *      removes the reason it went on; it does not make the page launched.
+ *   2. The Hebrew is AUTHORED, not sourced, and has not been read by a native speaker. See the
+ *      note over `capabilities` in src/lib/i18n/he/clix.ts.
  *
- * ⚠️ THIS BLOCK IS THE SINGLE REASON `robots: { index: false, follow: false }` MUST STAY ON
- * BOTH /clix AND /he/clix. It is the only content on the page that is not merely unfinished
- * but actively misleading.
- *
- * THE FIX IS NOT ANOTHER RENAME OR ANOTHER TRANSLATION. It is real clix references, with
- * permission, or deleting the block. Flagged to the user at the time of the change and left in
- * place at their direction, on a staging URL that is not indexed and has not launched. */
+ * The full history of the swap lives beside the strings in src/lib/i18n/{en,he}/clix.ts. */
 
-/* Structural, so no dictionary import is needed — the shape is checked at the call sites. */
-type Quote = {
-  readonly q: string;
-  readonly role: string;
-  readonly firm: string;
+/* Structural, so no dictionary import is needed — the shape is checked at the call sites.
+   `line` is the 24px slot the quote used to occupy, `label` the 14px ink caption (was the
+   role), `stack` the 14px muted one (was the firm). The three-part shape is why the swap
+   needed no CSS. */
+type Capability = {
+  readonly line: string;
+  readonly label: string;
+  readonly stack: string;
 };
 
 /* ESTIMATED. A static capture cannot encode a rate. 90s for a full cycle of ten cards reads
@@ -78,7 +80,7 @@ const CYCLE_S = 90;
    Framer component whose box did not survive extraction. 420px / 24px / ink@3% matches the
    logo tiles' fill and keeps two-and-a-bit cards visible at 1440, which is what the
    reference screenshot shows. */
-function Card({ q, role, firm }: Quote) {
+function Card({ line, label, stack }: Capability) {
   return (
     <figure
       /* `me-5` was `mr-5`. It resolves to `margin-right` in LTR, so English is unchanged; it
@@ -98,21 +100,21 @@ function Card({ q, role, firm }: Quote) {
         className="h-auto w-full flex-none text-start font-sans text-[24px] text-ink"
         style={{ letterSpacing: "-0.03em", lineHeight: "130%" }}
       >
-        {q}
+        {line}
       </blockquote>
       <figcaption className="flex h-min w-min flex-none flex-col items-start justify-center gap-[6px]">
         <span className="h-auto w-auto flex-none whitespace-pre font-sans text-[14px] text-ink">
-          {role}
+          {label}
         </span>
         <span className="h-auto w-auto flex-none whitespace-pre font-sans text-[14px] text-muted">
-          {firm}
+          {stack}
         </span>
       </figcaption>
     </figure>
   );
 }
 
-function Row({ items, reverse }: { items: readonly Quote[]; reverse?: boolean }) {
+function Row({ items, reverse }: { items: readonly Capability[]; reverse?: boolean }) {
   return (
     <div
       className="relative flex h-min w-full flex-row items-start justify-start overflow-hidden"
@@ -136,7 +138,7 @@ function Row({ items, reverse }: { items: readonly Quote[]; reverse?: boolean })
           animationDirection: reverse ? "reverse" : "normal",
         }}
       >
-        {/* Duplicated track. `aria-hidden` on the copy so a screen reader hears ten quotes,
+        {/* Duplicated track. `aria-hidden` on the copy so a screen reader hears ten cards,
             not twenty. */}
         {items.map((t, i) => (
           <Card key={`a${i}`} {...t} />
@@ -151,8 +153,8 @@ function Row({ items, reverse }: { items: readonly Quote[]; reverse?: boolean })
   );
 }
 
-export default function ClixTestimonial() {
-  const t = getDict().clix.testimonial;
+export default function ClixCapabilities() {
+  const t = getDict().clix.capabilities;
 
   return (
     /* NO BACKGROUND, and that is measured: every block on the target is transparent —
@@ -162,7 +164,7 @@ export default function ClixTestimonial() {
          ground, so the dark runway the target shows after the manifesto could not exist.
          See ClixBackdrop.tsx. */
     <section
-      id="clix-testimonials"
+      id="clix-capabilities"
       data-nav-theme="light"
       className="relative z-[1] flex h-min w-full flex-col items-center justify-center gap-20
                  overflow-clip px-4 py-20
@@ -182,8 +184,8 @@ export default function ClixTestimonial() {
 
         {/* Ticker wrapper — column, gap 20, full width */}
         <div className="relative flex h-min w-full flex-col items-center justify-center gap-5">
-          <Row items={t.quotes} />
-          <Row items={t.quotes.slice().reverse()} reverse />
+          <Row items={t.cards} />
+          <Row items={t.cards.slice().reverse()} reverse />
         </div>
       </div>
     </section>

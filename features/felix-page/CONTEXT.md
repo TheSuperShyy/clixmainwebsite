@@ -18,23 +18,27 @@ photos that are rogo's, and there is no substitute source yet.
 in the served HTML). The Manifesto is clix's own words about clix's own services; hero, CTA
 and footer are renamed.
 
-**⚠️ ONE BLOCK IS NOW WORSE THAN UNFINISHED.** The ten testimonials were renamed rather than
-rewritten, at the user's direction. They are real quotes from real people about rogo's
-product, now pointed at clix and attributed to plausible-sounding firms: **fabricated
-endorsements**. Before the rename they read as obvious placeholder text and were safe; they
-no longer do. This is the single reason `robots: { index: false }` must stay on the route.
-The fix is real references or deleting the block, not another rename.
+**✅ THE FABRICATED ENDORSEMENTS ARE GONE, AS OF 2026-08-13.** Block 6 was ten real quotes
+from real people about rogo's product, reattributed to invented firms and pointed at clix. It
+now renders ten **capability cards** describing what clix builds (`clix.capabilities`, both
+locales), in the same box. Nothing on the page puts words in anyone's mouth any more. Two
+things it did NOT resolve: the Hebrew is authored and **unread by a native speaker**, and the
+integration names are generic placeholders (`CRM · Calendar · Billing`) because clix's real
+stack is unknown.
 
-**It is live and deliberately `noindex`.** Pushed to `main` on 2026-08-09, which auto-deploys;
-the route carries `robots: { index: false, follow: false }`. Originally that was because the
-whole page carried the target's words. After the 2026-08-10 copy pass the reason narrowed to
-one block, the testimonials above. **Remove the `robots` block only when those are replaced or
-deleted** — a `noindex` left behind afterwards is a live page nobody can find.
+**It is live and still deliberately `noindex`.** Pushed to `main` on 2026-08-09, which
+auto-deploys; the route carries `robots: { index: false, follow: false }`. That flag's stated
+reason was the fabricated block, and it was **left on anyway** — removing the misleading copy
+is not the same as launching the page, and block 5 is still missing while block 2's video was
+only just replaced. **Lifting it is the user's call**, and now a cheap one.
 
 **Two things block specific blocks and cannot be measured from the capture:**
 1. the fixed backdrop's **scroll-driven colour** — the Manifesto is white-on-dark and the only
-   dark thing available is that layer. Blocks 4, probably 6.
-2. **assets** — video, 3 photos, 24 logos, all rogo's property. Blocks 2, 3, 5.
+   dark thing available is that layer. Blocks 4, probably 6. Its lower fade now keys off
+   `#clix-capabilities` (renamed from `#clix-testimonials` on 2026-08-13); that `querySelector`
+   is optional by design, so a missed rename degrades silently rather than throwing.
+2. **assets** — 3 photos and 24 logos, still rogo's property. Blocks 3, 5. **Block 2's video
+   is closed as of 2026-08-13** — it plays clix's own `clix-demo.mp4`, not a borrowed clip.
 
 **Status:** `review`
 **Next action:** look at it at all four tiers — nothing here has been pixel-diffed. Then the
@@ -44,6 +48,132 @@ pass.
 ---
 
 ## Log
+
+### 2026-08-13 — block 6 stops being a testimonial
+
+User, on the section: *"what do you think we can put here? we dont have that much details for
+that kindof stuff"*. The honest answer was that the missing detail was the smaller half of the
+problem — the ten quotes were **fabricated endorsements**, rogo's real quotes reattributed to
+invented finance firms, and the only content on the page that was actively misleading rather
+than merely unfinished. Offered four directions; user chose **capability cards in the same
+marquee**.
+
+**THE GEOMETRY DID NOT MOVE. This was a payload swap, not a rebuild.** Card box, 320/420px
+width, 24px padding, `#15151508` fill, 20px trailing margin, 90s cycle, the 5% edge mask, the
+two counter-rotating rows and the `-50%` loop arithmetic are all exactly as measured. The
+reason it cost no CSS is that the testimonial card was already three slots — 24px line, 14px
+ink caption, 14px muted caption — and a capability fits them as *job / surface / systems it
+touches*.
+
+**Ten items is structural, not editorial.** Each row renders the list then a duplicate, and
+the second row renders it reversed; below ten, the same card returns inside one screen width.
+
+**⚠️ THE BINDING MEASURE IS THE PHONE CARD, NOT THE TABLET ONE.** `label` and `stack` are
+`whitespace-pre` and cannot wrap, and the narrow card's content box is **272px** (320 less
+2×24 padding) against tablet's 372px. English's longest is `Hebrew · Arabic · English`, 25
+characters, on the order of 170px at Inter 14 — comfortable, but **estimated, not measured in
+the browser**, unlike the Hebrew block this replaced, which had been. Any longer string added
+later has to be measured.
+
+**The heading changed too, and that was the target's framing rather than ours.** *"What
+leading finance teams have to say"* came from rogo, whose product is banking research; the
+manifesto directly above sells WhatsApp assistants, integrations and custom internal tools.
+EN is now *"What clix quietly runs for you"*, picking up that paragraph's own "quiet
+mechanisms". **HE deliberately avoids the noun**: the Hebrew manifesto H2 already opens on
+"המנגנונים", so a second heading on the same word reads as a copy error, not a motif — HE
+carries the "בשקט" half instead, `"מה clix מריץ עבורכם בלי שתשימו לב"`. Its 2-line count at
+500px/48px is **expected, not verified**.
+
+**⚠️ THE HEBREW IS AUTHORED AND UNREAD.** It is the copy that matters most to the actual
+audience and it was drafted here, not sourced — the real company published no quote text at
+all (`docs/reference/clixsolutions/README.md:283`: four 9:16 videos, "No quote text exists
+anywhere in the markup"), so there was nothing to restore before and nothing to restore now.
+The difference is that a description of what clix builds is a claim the company can confirm or
+correct, which an invented endorsement never was. **Open, flagged in FEATURE.md.**
+
+**⚠️ VENDOR NAMES ARE GENERIC ON PURPOSE.** `CRM · Calendar · Billing`, not
+`HubSpot · Google Calendar · Stripe`. Clix's actual stack was unknown at the time of writing
+and inventing one repeats the exact mistake this change undoes. Naming the real integrations
+reads stronger and should replace these on the user's word.
+
+**`robots: { index: false, follow: false }` LEFT ON, deliberately.** This block was its stated
+reason, so the flag is now cheap to lift — but that is a launch decision, not a side effect of
+a copy edit, and it was not taken here.
+
+Renames, all mechanical: `ClixTestimonial.tsx` → `ClixCapabilities.tsx` (`git mv`, history
+kept), dict key `testimonial` → `capabilities`, fields `q/role/firm` → `line/label/stack`,
+section id `#clix-testimonials` → `#clix-capabilities`. **The id is load-bearing** —
+`ClixBackdrop.tsx:149` queries it for the lower fade, and that selector is optional by design,
+so a half-done rename fails silently. Updated there and in the globals.css marquee comment.
+The home page's own `#testimonials` section and the nav's `/#testimonials` link are a
+different section entirely and were not touched.
+
+`tsc` clean, `npm run build` clean, 18 static routes. `npm run lint` reports 7 errors + 1
+warning, **all pre-existing in `ClixHero.tsx`** (`react-hooks/refs`), none in any file this
+touched. **Not visually verified at any tier** — handed to the user to look at.
+
+### 2026-08-13 — the integrations lockup scales; the tile it sits in does not
+
+User: "make these tools text and logo bigger and little bolder." **The grid is rogo's and
+stays frozen** — 4/3/2 columns, 436/600px height, 8px gap, `#15151508` tiles, 6px radius all
+untouched. Only the glyph+name lockup inside each tile changed, to **24/16 phone, 28/18
+tablet, 32/20 desktop, weight 500 → 600 throughout**.
+
+**⚠️ THE PHONE TIER COULD NOT GROW, AND THAT IS MEASURED, NOT CAUTION.** `whitespace-pre` +
+`overflow-clip` means an over-wide name is cut silently, never wrapped. Binding case is
+`Google Calendar`, the longest of the twelve, in a 2-column tile — **175px at 390**. Widths
+taken from `discovery-var.woff2` instanced at wght 600 with `-0.01em` applied per char:
+
+| tier | tile | px + glyph + gap + text | total |
+|---|---|---|---|
+| phone 390 | 175 | 16 + 24 + 8 + 114.6 | **162.6** |
+| tablet 810 (narrowest 3-col) | 238 | 24 + 28 + 12 + 128.9 | **192.9** |
+| desktop 1200 (narrowest 4-col) | 274 | 24 + 32 + 12 + 143.2 | **211.2** |
+
+So phone keeps 16px and buys its slack back from padding and gap instead
+(`px-3`→`px-2`, `gap-[10px]`→`gap-2`, tablet restores both).
+
+**This FIXED a pre-existing clip rather than causing one.** The old medium/`px-3`/`gap-10`
+lockup measured **170.4 of 175** — inside spec at 390 by 4.6px, but cut outright below ~382px
+viewport, i.e. on every 375px and 360px phone. It is now 162.6, which clears 372px.
+
+Measuring needed one workaround worth keeping: `instantiateVariableFont` **throws
+`KeyError: 'vhea'`** on this font because MVAR references a vertical-metrics table it doesn't
+ship. `del ft['MVAR']` before instancing; horizontal advances are unaffected.
+
+`/company` imports the same `TOOL_MARKS` but has its own component and is **not** affected.
+
+Verified: `npm run build` clean, 20 static routes. Not visually diffed at the four tiers —
+the user took the render check (see the working-preference note in the global log).
+
+### 2026-08-13 — Block 2 plays clix's own demo; the last borrowed asset on this page is gone
+
+**`ClixVideo` now sources `public/video/clix-demo.mp4`**, the user's product demo, replacing
+`hero-clix.mp4` — which was never this block's footage, only the home hero's clip reused
+because the target's mp4 is rogo's. One path swap, exactly as the file's header said it would
+be. Nothing about the box moved: 16:9 container, 80px gap, section padding and the mute
+toggle's geometry are still the measured originals.
+
+**It needs no crop.** The clip is **1920×1080** — the container's `aspectRatio: 1.77778`
+verbatim — so `object-cover` has nothing to cut. 40.2s, 30fps (the house cadence, unlike
+`/product`'s 25fps master), 4.7MB, which is 0.1MB *under* the clip it replaces despite being
+longer.
+
+**The poster is frame 0 of the same file**, generated with
+`ffmpeg -vf select=eq(n\,0) -frames:v 1 -q:v 3` → `public/video/clix-demo-poster.jpg`
+(18KB). Poster and first painted frame are therefore the same image and the start of playback
+is invisible. Carrying `hero-clix-poster.jpg` forward would have flashed the Tel Aviv skyline
+before cutting to the demo — the one thing a poster exists to prevent.
+
+`public/video/hero-clix.mp4` and its poster are **left in place**: nothing in `src/` references
+them now (`grep -rn hero-clix src/` → 0 hits), but they are the home hero's ancestry and
+deleting an unreferenced asset is a separate call.
+
+**Not a `noindex` unblocker.** The route's `robots` block is held by the fabricated
+testimonials, not by assets; this changes nothing there.
+
+Verified: `npm run build` clean, 20 static routes.
+
 
 ### 2026-08-11 — DM Serif Display picked and shipped as the wordmark's face
 

@@ -45,6 +45,129 @@ live site for the mobile menu, the scroll flip point, and the `Indicator` elemen
 
 ## Log
 
+### 2026-08-13 — a decorative candlestick chart in the ticker's signal slot
+
+User: *"add a small graph beside the token price if they are up or down, green if up red if
+down"*, with a stock chart attached. Six iterations later it is a generated candlestick chart.
+**The whole point of this entry is the boundary that ended up around it**, so read to the end.
+
+**THE CONSTRAINT, WHICH IS PERMANENT.** `/api/v1/models` returns what a model costs right now
+and nothing else. No history endpoint, no database, and a list price has no time series in any
+case — it is a constant until the lab changes it. So "up or down" has no number behind it, and
+a candlestick is worse: it asserts four observations (open/high/low/close) per period across
+fifty periods, none of which exist. This is why the old stock sparkline came off on 2026-08-08.
+
+**IT WAS PUT TO THE USER THREE TIMES BEFORE ANYTHING FABRICATED SHIPPED.** (1) Before the first
+build, as a choice of three options — field position, delta vs. a dated baseline, or a
+decorative sparkline — with the trade stated; user chose field position and chose CHEAPER =
+GREEN. (2) Again when the zigzag went in, where the wobble was isolated to the middle of the
+line and the endpoints kept real. (3) Again on the candlestick reference, answered with what
+was and was not buildable. The user's answer: ***"you can just invent graph, no need to be
+faithful to the data"***. That is theirs to make, and it is made.
+
+**WHAT SHIPPED.** `PriceRank` — a seeded 20-candle random walk, wicks and bodies, 59x20px,
+green up / red down (stock convention, since that is what the shape quotes). Normalised to its
+own range after the walk so every chart fills the box.
+
+**TWO THINGS ARE STILL TIED TO THE DATA and they cost nothing:**
+- **The seed is the model's own prices**, so each row draws its own chart and the same one on
+  every reload (user: *"why all has the same design or graph, add some randomness"*). ⚠️ **It
+  must stay a pure function** — `Math.random()` would desync server and client and throw a
+  hydration mismatch on every visit.
+- **The drift follows the row's verdict** — at or below the strip's median trends up, dearer
+  trends down. So a green-heavy chart still means "cheap for this field", which is the signal
+  the user originally asked for.
+
+**⚠️ THE RULE, WRITTEN INTO THE FILE IN CAPITALS: NOTHING MAY BE ANNOTATED ONTO THESE CANDLES.**
+No axis, tick, gridline, tooltip, hover readout, percentage, date, legend or caption. Shape is
+ornament; a NUMBER is a claim, and `$5 → $30 /M` sits four pixels away and is live vendor
+pricing. The prices stay real and `src/lib/models.ts`'s standing note still governs them.
+
+**FIVE MARKS WERE BUILT AND DISCARDED BEFORE THIS ONE.** Recorded because each was rejected for
+a reason worth not rediscovering, and because four of the five were fully honest — the loss of
+that is the cost of the decision above, not an accident:
+
+| # | Mark | Rejected because |
+|---|---|---|
+| 1 | 9-bar field column chart, log scale, one lit | user wanted a line chart |
+| 2 | Line through the sorted field | *"add some zigzag curves"* — sorted data is monotonic, it cannot zigzag |
+| 3 | 3-octave sine wobble on a real trend | *"the curves are too small"* → widened to 112px, which was the wrong axis |
+| 4 | Triangle-wave /\/ legs, full-height ramp | *"i dont like them, maybe just change them to bar chart"* |
+| 5 | Per-row relative bars (each model vs. this one) | *"tell me if you can make them look like [candlesticks]"* |
+
+**Measurements from those passes that survive and would cost real work to redo:**
+- **The field spans $0.90 → $35.00, a 39.1x spread** (2026-08-13 poll), which is why anything
+  plotting these prices must use a LOG scale. Computed both: linearly the six cheapest models
+  occupy **2.4px of twelve**, i.e. seven stubs beside two tall bars.
+- **The median is $8.00 with a TIE sitting on it** (Grok 4.5 and Qwen3.8 Max). `total <= median`
+  rather than `<` is therefore load-bearing — 5 green / 4 red, where `<` calls the median dear.
+- ⚠️ **Seed multipliers must be mutually irrational.** At 0.7/1.9/3.1, DeepSeek and Grok drew
+  visually identical curves: their seeds differ by 62.88 and, because 7/19/31 share a
+  denominator, that one delta put every term within a rounding error of a whole cycle.
+- ⚠️ **`ROW_H` (21px) is the hard ceiling on chart height.** The banner measures 45px and the
+  header's hide-on-scroll transform travels exactly that far, so a taller chart moves the
+  header. 20px is the most that fits.
+- ⚠️ **The walk builder lives outside the component.** Each candle opens where the last closed,
+  and carrying that in a `let` inside the component body trips
+  `react-hooks/immutability` — a fair catch, since the compiler cannot see that it never escapes.
+
+**Colour.** Two tokens, `--color-price-low` (#4ade80) / `--color-price-high` (#f87171) — the
+hexes that were `--color-quote-up`/`--color-quote-down` until 2026-08-08, reinstated at the
+values the removal note preserved. Both cleared **AA on `--color-banner`** (10.6:1 and 6.4:1)
+and that background is unchanged. ⚠️ **The names say low/high, not up/down**, because the
+project-wide meaning is inverted — green is the CHEAP end, a price rising being bad news for
+the reader. On the candles themselves green is the stock sense (closed up); the drift is what
+reconciles the two. See `docs/DESIGN-SYSTEM.md`.
+
+**A11y.** Chart is `aria-hidden`, which is now the only correct value — there is nothing here
+to describe. New `chrome.a11y.tickerRank` carries the model's REAL rank in the field, which
+comes from `buildField` and not from anything drawn. ⚠️ **The Hebrew is authored and unread by a
+native speaker.**
+
+Build + `tsc` + eslint clean. **Not viewed in a browser by me** — the user checked each pass.
+
+### 2026-08-13 — `Customers` reached the home page but not the section
+
+**Symptom.** From any route other than `/`, clicking `Customers` (`/#testimonials`) landed at
+the TOP of the home page. `#security` had the same defect; it was never noticed because that
+slot became a route on 2026-08-12.
+
+**Root cause, and it is not a missing anchor.** `#testimonials` exists (`Testimonials.tsx`),
+`AppLink` classifies the href correctly, and Next's `ScrollAndFocusHandler` does find the node
+and call `scrollIntoView()` on it. The scroll fires — it is just **SMOOTH**, because
+`globals.css` sets `html { scroll-behavior: smooth }` and Next only neutralises that when
+`<html>` carries `data-scroll-behavior="smooth"`, which this app never set. So the browser
+begins a one-to-two-second animated scroll from the OLD route's offset, and roughly one frame
+later `ViewTransitions.tsx` resolves its commit promise, at which point the browser captures
+the post-update snapshot for the crossfade. **The snapshot is frame one — the top of the page**
+— and the crossfade then paints it over the live document for 300ms. What looked like "no
+scroll" was a slow scroll that got photographed at its start.
+
+Reading `node_modules/next/dist/client/components/layout-router.js` also shows the attribute
+alone would not have been enough: in the `hashFragment` branch Next `return`s straight after
+`scrollIntoView()`, and it passes `dontForceLayout: true`, so the reflow Chrome needs to pick up
+a just-changed `scroll-behavior` never happens. The hash has to be landed by us.
+
+**Fix, two parts.**
+1. `ViewTransitions.tsx` records the fragment of the href it is navigating to, and in the
+   `usePathname` effect — after the route commits, before `resolve()` — calls
+   `scrollIntoView({ behavior: "instant" })` on it. `"instant"` overrides the CSS rule
+   per-call, so no reflow dance. Ordering matters twice: child effects run before parent ones,
+   so Next's own attempt has already happened and ours supersedes it; and scrolling before
+   `resolve()` is what makes the browser photograph the page **already at the section**.
+   The fragment is also cleared by the 1500ms safety valve, so a navigation that never commits
+   cannot leave a stale target for the next one.
+2. `data-scroll-behavior="smooth"` on `<html>` in **both** layouts. This is what Next asks for
+   (it warns about the exact omission in dev) and it fixes the same defect for plain route
+   changes, which were animating their scroll-to-top instead of arriving.
+
+**In-page anchors are untouched.** `AppLink` returns early for a hash on the current route, so
+those never reach `ViewTransitions`; and Next's helper short-circuits on `onlyHashChange`. The
+smooth rule still does the job it was added for on 2026-08-05.
+
+**Not visually verified** — build + eslint clean, handed over.
+
+
 ### 2026-08-12 (third pass) - the fade WAS the white flash; replaced with a real crossfade
 
 **Trigger:** user, with a screenshot of `/company` washed out to near-white mid-navigation -

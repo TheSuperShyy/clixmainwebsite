@@ -47,6 +47,7 @@
 
 import { useEffect, useRef, useSyncExternalStore } from "react";
 import { usePageDict } from "@/lib/i18n/LocaleProvider";
+import AppLink from "@/components/ui/AppLink";
 
 /* The two corner brackets that frame the CTA. 14x20 each, ink fill, path data verbatim
    from the capture's <use> defs #svg-1980836134_494 (Left) and #svg5446185_500 (Right).
@@ -244,13 +245,16 @@ export default function CompanyHero() {
                   `right` are both 0px and the box is 610–830 in BOTH locales. `top-1/2` with
                   `-translate-y-1/2` is the vertical centring idiom for the same reason.
                   The original points at ./demo and reads "Request a Demo". Ours is clix's
-                  one CTA destination sitewide: `#contact`, the anchor Footer.tsx owns, so
-                  it resolves in page on this route. Deviation logged in FEATURE.md.
+                  one CTA destination sitewide, which became `/contact` on 2026-08-13 — a real
+                  page with a real form, where it used to be `#contact`, a scroll to the footer.
+                  That is why the element is `AppLink` and not an `<a>`: an internal route needs
+                  `localeHref` (/he/contact on the Hebrew route), the client-side crossfade, and
+                  freedom from `no-html-link-for-pages`. Deviation logged in FEATURE.md.
                   No border: the capture declares a 1px border at rgba(168,162,158,0) and
                   paints it with [data-border]::after, so it is both invisible AND costs no
                   layout box. Reproducing it as a real border would push the box past 36. */}
-              <a
-                href="#contact"
+              <AppLink
+                href="/contact"
                 className="absolute top-1/2 left-0 flex w-full -translate-y-1/2 items-center
                            justify-center gap-2 overflow-hidden rounded-[6px] bg-ink px-4 py-2
                            transition-opacity duration-300 hover:opacity-90 active:opacity-80
@@ -270,7 +274,7 @@ export default function CompanyHero() {
                     {t.ctaLabel}
                   </span>
                 </span>
-              </a>
+              </AppLink>
             </div>
           </div>
         </div>

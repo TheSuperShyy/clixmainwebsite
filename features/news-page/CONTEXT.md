@@ -11,11 +11,45 @@ Built 2026-08-11 in one pass: hero + pills + grid live at `/news`, populated wit
 12-story AI-news digest dated 2026-08-10/11. **Card art replaced 2026-08-12** — the
 source-name placeholder tiles are gone; every story now carries one of rogo's three real
 card templates. Status: `review` — never pixel-diffed, like the rest of the site. Detail
-in the log below.
+in the log below. **Hero CTA repointed 2026-08-13** — it is now "Enter Clix News", an
+external link to `clix-ai-tools.vercel.app`, not a press contact.
 
 ---
 
 ## Log
+
+### 2026-08-13 — the hero CTA leaves the site: "Enter Clix News" -> clix-ai-tools.vercel.app
+
+**Trigger:** user, with a screenshot of the hero — *"in news section, change the link of this
+button and the text of it, it should be Enter Clix News or something better, the link is
+https://clix-ai-tools.vercel.app"*.
+
+**What changed.** `NewsRoute.tsx`'s hero anchor now points at `https://clix-ai-tools.vercel.app`
+with AppLink's `external` flag; `news.hero.cta` reads **"Enter Clix News"** (en) and
+**"כניסה ל-Clix News"** (he). Nothing else on the route moved — same button anatomy, same
+tokens, same 40px/radius-6/ink-fill.
+
+**The `external` flag is load-bearing, not decoration.** AppLink routes on href shape:
+`external === true` -> `<a target="_blank" rel="noreferrer">`; leading `/` -> `<Link>`;
+anything else -> plain `<a>`. An absolute `https://` URL would have fallen through to the
+third branch and worked, but in the same tab and without `rel="noreferrer"`. The flag is what
+makes it open away from the site, which is the intent for a different product.
+
+**This CTA is no longer a contact.** It was a `mailto:clixteam579@gmail.com` at build time,
+then briefly `/contact` when every CTA on the site was pointed at the new form (2026-08-13,
+earlier the same day). The press-inbox open question in `features/contact-page/FEATURE.md` —
+*should press get its own address rather than the general form?* — is **moot for this route**:
+nothing on `/news` contacts anyone now. If a press CTA is ever wanted back, it is a new
+element, not a revert of this href.
+
+**Hebrew:** the product name stays in Latin script (`Clix News`), matching how Clix writes
+itself elsewhere on the RTL pages including the nav. The string is **shorter than the one it
+replaced**, so the route's one tight constraint — `whitespace-pre` inside a `width: min-content`
+anchor, must stay under 326px at the 390 tier — clears with room. The he dict carries that
+warning inline; do not lengthen without re-measuring.
+
+**Not verified:** build not run (user took the commit before it finished) and no browser check —
+a two-string + one-href change with no new imports or types.
 
 ### 2026-08-12 — real card art: rogo runs THREE templates, not one
 

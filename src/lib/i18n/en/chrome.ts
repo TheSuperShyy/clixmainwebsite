@@ -1,5 +1,6 @@
 /**
- * English shared chrome — Nav + Footer, rendered on all 7 routes.
+ * English shared chrome — Nav + Footer, rendered on all 6 routes (7 until /careers was
+ * removed on 2026-08-13).
  *
  * Every string here is EXTRACTED VERBATIM from the component it used to live in. This file
  * introduces no new copy and changes no existing copy: the English render must stay
@@ -11,7 +12,8 @@ import type { ChromeDict } from "../dictionary";
 
 export const chrome: ChromeDict = {
   nav: {
-    /* Seven slots, in Nav.tsx's own order. `Clix` is the brand and is Latin in every locale. */
+    /* Six slots, in Nav.tsx's own order. `Clix` is the brand and is Latin in every locale.
+       `Careers` was the seventh and came out with its route on 2026-08-13. */
     labels: [
       "Clix",
       "Product",
@@ -19,7 +21,6 @@ export const chrome: ChromeDict = {
       "Company",
       "Customers",
       "News",
-      "Careers",
     ],
     cta: "Let’s start",
   },
@@ -59,6 +60,7 @@ export const chrome: ChromeDict = {
     closeMenu: "Close menu",
     mainLandmark: "Main",
     playTestimonial: "Play {name}’s testimonial",
+    pauseTestimonial: "Pause {name}’s testimonial",
     slideOfTotal: "{n} of {total}",
     previous: "Previous",
     next: "Next",
@@ -66,5 +68,6 @@ export const chrome: ChromeDict = {
     tickerIntro: "Frontier model pricing, US dollars per million tokens:",
     tickerRow: "{model}, {in} input and {out} output",
     tickerContext: ", {ctx} context",
+    tickerRank: ", {rank} cheapest of {total}",
   },
 };

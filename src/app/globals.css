@@ -82,34 +82,6 @@
      `brand-green` and `forest-deep` before it. */
   --color-bone: #f5f2eb; /* x2 — /product testimonial card fill */
 
-  /* ---- /careers, added 2026-08-12 -------------------------------------------------------
-     Three colours the careers clone needs that no existing token covers. All measured off
-     the live page, not sampled from a screenshot.
-
-     ⚠️ TWO OF THE THREE WENT IDLE THE SAME DAY. `signal-green` and `glyph` existed only for
-     the `#roles` band, and that band was removed on the user's call ("remove this section we
-     dont need job offering for now"). They are KEPT rather than deleted: both are the target's
-     own measured values, the band is restorable from commit bbf10b1, and re-deriving them
-     would mean re-probing a live site to recover two hex codes. An idle token in `@theme`
-     emits one CSS custom property and no utilities, so the cost is a line. Same reasoning the
-     rest of this file uses for its declared-but-unused colours. `control-scrim` is still live
-     — the gallery's Prev/Next buttons use it. */
-
-  /* The "N open positions" status dot, 8x8 at radius 20. This value was ALREADY recorded in
-     DESIGN-SYSTEM.md as one of the target's declared-but-unused greens; /careers is the page
-     that uses it. Same shape of correction as `brand-green`, `forest-deep` and `bone`.
-     Decorative only — it carries no meaning the adjacent text does not already state, so it
-     is exempt from the contrast floor. */
-  --color-signal-green: #19a26c;
-  /* The 24x24 corner-turn arrow at the head of each role row. Icon-only, 8.25:1 on `ink`.
-     Deliberately NOT `mark` (#8b8b8b): the original paints the glyph two steps lighter than
-     the label beside it, and collapsing them flattens the row's hierarchy. */
-  --color-glyph: #afafaf;
-  /* The scrim behind the carousel's 40x40 Prev/Next buttons. In practice invisible — the
-     button's SVG is an opaque white circle that covers it — but it is what the original
-     paints, and it is what shows if that SVG ever fails to load. */
-  --color-control-scrim: #00000033;
-
   /* ---- /security, added 2026-08-12 ------------------------------------------------------
      White at 80%. The Framer project declares it as `--token-2a466810` and DESIGN-SYSTEM.md
      has listed it since 2026-08-02 under "defined but unused" — true of every page counted
@@ -125,13 +97,21 @@
      `muted`-on-`ink` pairing beside it at 3.85:1. */
   --color-paper-soft: #ffffffcc;
 
-  /* REMOVED 2026-08-08: `--color-quote-up` (#4ade80) and `--color-quote-down` (#f87171).
-     They existed for the banner's stock ticker's green/red day change; the banner now lists
-     LLM list prices, which have no up or down — a list price is a constant until the lab
-     changes it. Deleted rather than left dangling, since the site has no other semantic
-     colour and a dead token invites a decorative use it was never measured for. If a real
-     signal ever earns that slot back, both values cleared AA on `--color-banner` (10.6:1 and
-     6.4:1) and can be reinstated as-is. */
+  /* The banner ticker's price-rank chart, 2026-08-13. These are the two hexes that were
+     `--color-quote-up` / `--color-quote-down` until 2026-08-08, reinstated at the values the
+     removal note preserved for exactly this case — both cleared AA on `--color-banner`
+     (10.6:1 and 6.4:1) when they were measured, and the background has not changed since.
+
+     ⚠️ RENAMED, BECAUSE THE MEANING INVERTED. They used to mean up/down on a stock day
+     change, where green is the number rising. Here they rank a PRICE, and a price rising is
+     bad news for the reader — so green is the CHEAP end and red the dear end (2026-08-13,
+     user's call when asked). A component reaching for "up = green" would now get the colour
+     backwards, which is why the old names could not be restored along with the values.
+
+     They are semantic, not decorative: nothing may use them for an accent. The site's one
+     brand colour is `--color-forest` and it belongs to /clix. */
+  --color-price-low: #4ade80; /* x1 — cheaper than the ticker set's median */
+  --color-price-high: #f87171; /* x1 — dearer than the ticker set's median */
 
   /* Type — ONE face sitewide as of 2026-08-08. All three tokens now resolve to Discovery.
 
@@ -316,7 +296,7 @@ html {
 }
 
 /* RTL mirror of the marquee above (2026-08-12). Consumed by the same two rows —
-   clix/ClixTestimonial.tsx and product/WorkflowsScroller.tsx — with nothing to change on
+   clix/ClixCapabilities.tsx and product/WorkflowsScroller.tsx — with nothing to change on
    their side: only `animation-name` is swapped here, and both of those rows set
    `animation-duration` and `animation-direction` inline, so their inline values keep winning.
 
@@ -451,6 +431,182 @@ html {
   to {
     width: 100%;
   }
+}
+
+/* ---- /product Block 4 · the six benefit-card loops (2026-08-13) -------------------------
+ *
+ * One idle loop per card, INSIDE the artwork — the user's ask was "the info inside them…
+ * in Single Tenant Deployment the line moves and links to the circle square stuff", i.e. each
+ * illustration animating what it already depicts, not a card-level scroll reveal. Applied in
+ * src/components/product/benefitArt.tsx; read that file for which loop belongs to which card.
+ *
+ * ⚠️ THE INVARIANT THAT MAKES ALL SIX SAFE: **EVERY KEYFRAME'S BASE STATE IS THE SHIPPED
+ * STATIC DESIGN.** Each animation departs from the measured render and returns to it, rather
+ * than the render being some midpoint of the loop. Two things fall out of that, and both are
+ * load-bearing:
+ *
+ *   1. REDUCED MOTION IS A FREE, EXACT NO-OP. The global clamp at the end of this file cuts
+ *      every animation to 0.01ms with `animation-iteration-count: 1`, and none of these sets
+ *      `animation-fill-mode`, so each element snaps back to its unanimated CSS — which IS the
+ *      measured artwork. That is why, e.g., `benefit-target` runs 0 -> 1 -> 0 opacity over a
+ *      base of `opacity: 1` rather than being declared `opacity: 0` and animated up: written
+ *      the other way, a reduced-motion visitor would see the tenant grid with NO cell
+ *      selected, which is the one thing that card exists to show.
+ *   2. SSR AND FIRST PAINT ARE THE FINISHED PICTURE. Nothing depends on JS or on the
+ *      animation having started; the same reasoning CountUp.tsx applies to its own SSR text.
+ *
+ * ⚠️ TRANSFORM AND OPACITY ONLY. Six loops run whenever the block is on screen, so every one
+ * is compositor-only — no width, no colour, no box-shadow animation. `benefit-integration`
+ * fades an `ink` glyph to .6 rather than animating `muted` -> `ink` for exactly this reason,
+ * and .6 is not a guess: ink #151515 over the tile's white at 60% resolves to #737373, which
+ * is `--color-muted` to the byte. So the resting glyph is the same pixel it always was.
+ *
+ * The block is NOT viewport-gated. There is no IntersectionObserver and no `"use client"`:
+ * two of the six artworks (`ArtPrompts`, `ArtGovernance`) read the dictionary server-side, and
+ * converting them to client components to gate decoration would cost more than the loops do.
+ */
+
+/* 1 · Integrations — a highlight travelling across the six tool tiles. Applied to the GLYPH,
+   not the tile: the tile is a white card on `surface` and fading it would blend it into the
+   card. Six tiles x 1200ms delay = one 7200ms cycle, so exactly one glyph is lit at a time. */
+@keyframes benefit-integration {
+  0%,
+  18%,
+  100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  9% {
+    opacity: 1;
+    transform: scale(1.12);
+  }
+}
+
+/* 2 · Ready Workflows — the nine prompt pills drift upward. The Stage was ALREADY built for
+   this and never used it: it carries `overflow-hidden` plus a top/bottom `linear-gradient`
+   mask, which is the source SVG's own alpha mask restated in CSS.
+   ⚠️ -50% IS THE SEAMLESS LOOP DISTANCE, AND ONLY BECAUSE THE TRACK IS SIZED TO MAKE IT ONE.
+   The track holds TWO copies of the nine pills on the same 38-unit pitch and is 684 units
+   tall (2 x 9 x 38), so -50% is exactly 342 units — one full copy. A percentage translate
+   resolves against the element's own border box, which is why this needs no `var()` in the
+   keyframe; see the `rows-up` note above for what happens when a keyframe IS parameterised. */
+@keyframes benefit-marquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(0, -50%, 0);
+  }
+}
+
+/* 3 · Guided Implementation — the three overlapping avatars breathe, staggered.
+   The 8px ring between them is a `box-shadow`, so it scales with the circle and the gaps stay
+   even; that is why this is a scale and not a width change. */
+@keyframes benefit-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.045);
+  }
+}
+
+/* 4a · Custom-Trained Models — the eleven trail dots fall INTO the mark tile below them.
+   The source already draws the trail between the grid and the mark; this gives it direction.
+   Translations are in px against a stage scaled 0.9976, so px and source units are the same
+   thing here to within a quarter of a percent. */
+@keyframes benefit-trail {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -5px, 0);
+  }
+  25%,
+  65% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(0, 12px, 0);
+  }
+}
+
+/* 4b · …and the green cells in the 7x3 grid shimmer, suggesting training passes. Deliberately
+   shallower and slower than the trail so the two loops on this one card do not compete. */
+@keyframes benefit-cell {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* 5 · Governance & Permissions — the five bars sweep out, hold, and clear.
+   ⚠️ THE FILL LENGTHS ARE NOT ANIMATED. Each bar keeps its measured width (270 / 248 / 213 /
+   187 / 157 against the 271 track) and is scaled 0 -> 1 inside that width, so the descending
+   series the source draws is preserved exactly; only its arrival is staged.
+   The opacity clear at 97% is what lets 100% -> 0% loop without a visible snap-back: the bar
+   is already invisible when the transform resets to zero width. */
+@keyframes benefit-bar {
+  0% {
+    transform: scaleX(0);
+    opacity: 1;
+  }
+  20%,
+  85% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+  97%,
+  100% {
+    transform: scaleX(1);
+    opacity: 0;
+  }
+}
+
+/* 6 · Single Tenant Deployment — THE USER'S OWN EXAMPLE: "the line moves and link to the
+   circle square stuff". The tie-line draws down from the mark tile, the target cell lights up
+   behind it, both hold, both release. `benefit-tie` and `benefit-target` share one 5200ms
+   duration and are phase-locked by their percentages — the line reaches the cell at 22%, the
+   cell answers at 30%. Do not retune one without the other. */
+@keyframes benefit-tie {
+  0% {
+    transform: scaleY(0);
+  }
+  22%,
+  88% {
+    transform: scaleY(1);
+  }
+  100% {
+    transform: scaleY(0);
+  }
+}
+
+@keyframes benefit-target {
+  0% {
+    opacity: 0;
+  }
+  30%,
+  88% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* The governance bar's growth edge. `transform-origin` has no logical keyword, and the bar is
+   placed with `inset-inline-start`, so under rtl it is anchored to the RIGHT and a `left`
+   origin would grow it away from its own anchor. Same `[dir="rtl"]`-scoped idiom the clix
+   marquee and the model ticker already use. */
+.benefit-bar {
+  transform-origin: left center;
+}
+[dir="rtl"] .benefit-bar {
+  transform-origin: right center;
 }
 
 /* Page transition (2026-08-12, second pass). Driven by

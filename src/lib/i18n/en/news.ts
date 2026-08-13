@@ -146,7 +146,7 @@ export const news = {
        which JSX collapses to a single space — so this is the rendered string, not the source. */
     subtitle:
       "Daily signals on everything you need to know about AI: the models, the money, the risks and the rules.",
-    cta: "Contact Media Team",
+    cta: "Enter Clix News",
   },
 
   filters,

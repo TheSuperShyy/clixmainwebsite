@@ -32,18 +32,19 @@ export const chrome: ChromeDict = {
       /* AUTHORED — the brand, Latin in every locale. Not transliterated: the wordmark two rows
          up is Latin, and "קליקס" beside a Latin lockup reads as two different companies. */
       "Clix",
-      /* AUTHORED ×6. The real site's IA is different (שירותים/תעשיות/פרויקטים/תובנות/
+      /* AUTHORED ×5. The real site's IA is different (שירותים/תעשיות/פרויקטים/תובנות/
          פלייגראונד/אודותינו), so only its register transfers, not its labels.
-         ⚠️ These seven have a SUM constraint, not a per-string one: they sit in an absolutely
+         ⚠️ These have a SUM constraint, not a per-string one: they sit in an absolutely
          centred row that must clear the logo and the CTA at the 1200–1599 tier. Measured
-         against the real face, the Hebrew row is 467px against English's 552px — 85px of extra
-         clearance, so this set is safe. Re-measure if any label grows. */
+         against the real face at seven slots, the Hebrew row was 467px against English's 552px
+         — 85px of clearance. Dropping קריירה/Careers on 2026-08-13 took ~54px off the Hebrew
+         row and ~65px off the English one, so both got SHORTER and the margin only grew.
+         Re-measure if any label grows. */
       "מוצר",
       "אבטחה",
       "החברה",
       "לקוחות",
       "חדשות",
-      "קריירה",
     ],
     /* SOURCED verbatim — about.links[9].text, and the CTA on every page of the real site.
        Measured at 70.9px against English's 70.6px, so the button does not move. */
@@ -92,7 +93,7 @@ export const chrome: ChromeDict = {
   },
 
   a11y: {
-    /* AUTHORED ×7. Screen-reader strings; no counterpart in the capture, which ships one
+    /* AUTHORED ×8. Screen-reader strings; no counterpart in the capture, which ships one
        relevant example: aria-label="הפעלת עדות של <name>" on its testimonial play buttons —
        which is exactly `playTestimonial` below, so that one IS sourced. */
     home: "clix — לדף הבית",
@@ -101,6 +102,13 @@ export const chrome: ChromeDict = {
     mainLandmark: "ראשי",
     /* SOURCED — the real site's own aria-label pattern for this exact control. */
     playTestimonial: "הפעלת עדות של {name}",
+    /* ⚠️ AUTHORED, NOT SOURCED — unlike `playTestimonial` directly above it. The capture has no
+       pause control anywhere: its testimonial players hand off to native `controls` the moment
+       they start, so there is no real-site string to lift. `השהיה` is the standard Hebrew UI
+       term for pause, and the verbal-noun form `השהיית` is chosen to parallel `הפעלת`
+       above rather than the imperative `השהה`, so the two labels read as one pair.
+       UNREAD BY A NATIVE SPEAKER. */
+    pauseTestimonial: "השהיית עדות של {name}",
     slideOfTotal: "{n} מתוך {total}",
     previous: "הקודם",
     next: "הבא",
@@ -112,5 +120,6 @@ export const chrome: ChromeDict = {
     tickerIntro: "מחירון מודלי חזית, בדולרים למיליון טוקנים:",
     tickerRow: "{model}, {in} קלט ו-{out} פלט",
     tickerContext: ", חלון הקשר {ctx}",
+    tickerRank: ", המחיר ה-{rank} מבין {total} מהזול ליקר",
   },
 };

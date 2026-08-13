@@ -6,12 +6,13 @@
  *
  * ⚠️ THE CLIP IS OURS, NOT THE TARGET'S. The original plays a Framer-hosted mp4 that is
  * rogo's property. This repo already removed rogo's `hero-original.mp4` once the repo went
- * public, for exactly that reason — so this reuses `public/video/hero-clix.mp4`, the clip the
- * home page's hero already ships. Every BOX value is still the original's: the 16:9
- * container, the 80px gap, the section padding, and the mute toggle's geometry.
+ * public, for exactly that reason. As of 2026-08-13 this plays `public/video/clix-demo.mp4`
+ * — our own product demo, 1920x1080 (exactly the 16:9 the container wants), 40s, 4.7MB —
+ * replacing the borrowed home-page hero clip. Every BOX value is still the original's: the
+ * 16:9 container, the 80px gap, the section padding, and the mute toggle's geometry.
  *
- * Per CLAUDE.md's effort ceiling for decorative assets: one reasonable source, no hunting,
- * show it and ask. If you want different footage here, that is a swap of one path.
+ * `clix-demo-poster.jpg` is frame 0 of that mp4, so the poster and the first painted frame
+ * are the same image and there is no visible swap when the clip starts.
  */
 
 import { useRef, useState } from "react";
@@ -45,8 +46,8 @@ export default function ClixVideo() {
           <video
             ref={ref}
             className="h-full w-full object-cover"
-            src="/video/hero-clix.mp4"
-            poster="/video/hero-clix-poster.jpg"
+            src="/video/clix-demo.mp4"
+            poster="/video/clix-demo-poster.jpg"
             autoPlay
             loop
             muted={muted}

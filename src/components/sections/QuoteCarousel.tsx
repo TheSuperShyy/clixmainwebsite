@@ -1,54 +1,87 @@
 "use client";
 
 /**
- * ProductTestimonials — clone of rogo.com/product's `Testimonials` block, Block 6.
- * Capture offset 401160, live class `.framer-h211wl`.
+ * QuoteCarousel — the draggable client-quote slideshow. Cloned from rogo.com/product's
+ * `Testimonials` block, Block 6; capture offset 401160, live class `.framer-h211wl`.
  *
  * Capture: docs/reference/target/rogo-product-2026-08-11.html (+ .css).
  * Spec: features/product-page/FEATURE.md · memory: features/product-page/CONTEXT.md
  *
- * ⚠️⚠️  THE THREE QUOTES BELOW ARE PLACEHOLDERS ATTRIBUTED TO REAL, NAMED CLIENTS.  ⚠️⚠️
+ * ⚠️ THIS WAS `product/ProductTestimonials.tsx` UNTIL 2026-08-13. On the user's call it left
+ * /product for the LANDING page, where it replaces the six-card video accordion under the
+ * existing "In our clients' own words" heading. Three things changed in the move and nothing
+ * else did:
+ *   1. it reads `usePageDict("home")`, and its copy moved to `src/lib/i18n/{en,he}/home.ts`
+ *   2. it no longer renders its own `<section>` — `sections/Testimonials.tsx` owns the section
+ *      wrapper, the `id`, the `data-nav-theme` and the `<h2>`, and calls this for the body
+ *   3. the `order-1`/`desktop:order-none` classes went with the wrapper; they existed only to
+ *      reorder this against /product's security block, which was deleted the same day
+ * The slideshow itself — the triple loop, the drag physics, the snap, both tiers — is
+ * untouched. Geometry below is still measured against the /product capture.
  *
- * Superseded 2026-08-12. This block used to carry Patrice Maffre (Nomura), Pieter Taselaar
- * (Lucerne Capital) and Sean Warneke (Schonfeld) verbatim from the capture, with their
- * headshots and Nomura's mark. All six of those things are gone. What stands here now is
- * clix's own clients, from public/testimonials/, and it is safer but it is NOT yet safe:
+ * ✅ THE QUOTES ARE REAL AS OF 2026-08-13. THIS BLOCK IS THE RECORD OF HOW THEY GOT HERE.
  *
- *   THE PEOPLE ARE REAL. THE PHOTOGRAPHS ARE REAL. THE WORDS ARE NOT THEIRS.
+ * The history matters because this component has now carried THREE generations of copy, two of
+ * which had to be thrown away:
  *
- * clix holds no written testimonial from anybody. Every endorsement it has exists on video
- * only, and no quotable sentence with a name attached exists anywhere, so the strings below
- * are scaffolding written to sit at roughly the length a real quote will occupy.
+ *   1. rogo's own, verbatim from the capture — Patrice Maffre (Nomura), Pieter Taselaar
+ *      (Lucerne Capital), Sean Warneke (Schonfeld), with their headshots and Nomura's mark.
+ *      Removed 2026-08-12: real endorsements of a different company, under a clix wordmark.
+ *   2. `[PLACEHOLDER QUOTE, NOT SOMETHING X SAID]` scaffolding under clix's OWN clients — real
+ *      people, real photographs, invented words. Safer, never safe. Held the /product route at
+ *      `noindex` for a day.
+ *   3. what ships now: one sentence from each of the six, supplied by the user on 2026-08-13.
  *
- * WHY THEY LOOK THE WAY THEY DO, AND WHY THAT MUST SURVIVE ANY COPY PASS. Each string opens
- * with a bracketed all caps tag naming the client it is NOT quoting, then talks about that
- * client in the THIRD PERSON. A real endorsement is first person, so the grammar alone
- * breaks the illusion before the reader reaches the second word, and the tag breaks it
- * before the first. The strings are also unquoted: the original wrapped every quote in
- * straight double quotes, and quotation marks are the visual cue that says "somebody said
- * this", which is the one thing these must never say.
+ * ⚠️ THE CLIENTS SPOKE HEBREW. THAT IS THE ONE THING LEFT TO REVIEW.
+ * `he/home.ts` carries each quote VERBATIM as given — including `קליקס` spelled in Hebrew
+ * letters where the rest of the repo writes `clix` in Latin, and including the `...` in two of
+ * them. A testimonial is quoted, not normalised; do not tidy either.
+ * `en/home.ts` carries TRANSLATIONS, and they are the only strings on this page that are
+ * neither the client's words nor sourced from anywhere — they are a faithful rendering written
+ * here. Flagged for the user. If a client would rather be quoted in Hebrew on the English page,
+ * or has their own English wording, that wording wins.
  *
- * Plausible marketing prose here would be worse than obvious filler. That is not a guess, it
- * is the failure already logged in src/components/clix/ClixTestimonial.tsx: placeholder text
- * that got renamed into fabricated endorsements and stopped reading as unfinished. Lorem
- * ipsum would be worse too, in the other direction, because it reads as broken rather than
- * as awaiting a real quote.
+ * ✅ THE PHOTO COLUMN PLAYS SINCE 2026-08-13. Those six "portraits" were always poster frames
+ * cut from the clients' own testimonial videos, and the videos have been sitting unused in
+ * `public/testimonials/<id>.mp4` since the accordion was retired. At ≥1200 the column is now a
+ * play target: click it and it widens 360 → 480px over 400ms while the clip plays with SOUND;
+ * pause, end, Escape, an arrow, a committed flick, or a resize under 1200 all collapse it back
+ * to the poster. Below 1200 nothing changed — the column is `display:none` there and always was.
  *
- * THE ROUTE MUST STAY `robots: { index: false, follow: false }` UNTIL THIS IS CLEARED.
- * It is set in src/app/product/page.tsx. Clearing it takes all four of these, not some:
+ * FOUR THINGS ABOUT IT ARE LOAD-BEARING, each argued where it is written:
+ *   1. exactly ONE `<video>` exists, mounted at `pos`, `preload="none"` — `LOOP` renders 18
+ *      `<li>` and a video per slide would be ~68MB of clips fetched three times over
+ *   2. `play()` is called INSIDE the click handler, which is why the element is mounted rather
+ *      than created on click — Safari does not forgive a deferred gesture
+ *   3. `go()` stops the clip SYNCHRONOUSLY before `setPos`, not in an effect — an effect runs
+ *      after React has remounted the video into the incoming `<li>`, leaving the OLD detached
+ *      element playing audio with nothing holding a reference to it
+ *   4. `stopPropagation` on the button's `pointerdown` — the viewport's pointer CAPTURE
+ *      retargets `pointerup` and the click would fire on the viewport, never on the button.
+ *      The cost: the portrait is no longer a drag surface at ≥1200
  *
- *   1. get a written sentence from each named client, in their own words, or their written
- *      approval to transcribe one from their video
- *   2. replace every string tagged `[PLACEHOLDER QUOTE ...]` in BOTH locale files —
- *      src/lib/i18n/{en,he}/product.ts, `testimonials.slides[*].quote` plus
- *      `testimonials.phoneLeadQuote`, which is slot 1's own copy at ≤809. The Hebrew keeps the
- *      tag in English capitals ON PURPOSE, so this step stays one grep
- *   3. recheck `quoteDesktop` per slide. It is a per quote font size fitted to that quote's
- *      character count, and real copy will not be the length of this filler
- *   4. delete this warning block. Only then may the robots block come off the route.
+ * THE QUOTE GETS 120px NARROWER WHILE A CLIP RUNS, AND THAT WAS MEASURED, NOT ASSUMED. The card
+ * is `flex-1 w-px` beside a `flex-none` column, so it absorbs the whole 120px; nothing else on
+ * the page moves. Vertical budget inside the card: 694 − 96 (`p-12`) − 80 (`gap-20`) − 47
+ * (author block) = 471px for the blockquote, i.e. 10 lines at 36px or 11 at 32px. The binding
+ * cell is `adir-peretz` — 289 English characters at 32px — at exactly 1200px viewport, where
+ * the section's `tablet:px-10` puts the container at 1120 and the measure at 528px. It runs ~10
+ * lines with ~1.3 lines to spare. ⚠️ IF COPY EVER GROWS, RE-MEASURE THAT CELL: the quote block
+ * has `min-height:auto` so it pushes the author block down and `overflow-hidden` clips from the
+ * BOTTOM — the role line vanishes first, then the name, and the quote itself never clips, so
+ * the regression is invisible unless you look for it.
  *
- * Until step 4, treat this section as unlaunched. It is not merely unfinished: it puts words
- * next to a real person's face.
+ * ⚠️ WHAT STILL GUARDS THIS. The switch in sections/Testimonials.tsx is DERIVED from whether
+ * these six strings are non-empty — it is not a flag, and a flag would not have worked. Read
+ * the block above `CLIP_IDS` there before changing it: `PageDictProvider` serialises the whole
+ * `home` namespace into the RSC payload, so emptying a string is the only thing that keeps it
+ * off the page. Blanking a quote here silently reverts the landing page to the video accordion,
+ * which is the intended failure mode.
+ *
+ * Two open items inherited from generation 2, neither introduced here:
+ *   · `noam-tovi.jpg` carries a burned-in caption reading a DIFFERENT name (נווה דוידי).
+ *   · `אחיטוב`/`ותחזנה` is an unverified transliteration in both directions.
+ * Both need the client, not a code change.
  *
  * NO CLIENT LOGOS, AND NOT BY OMISSION. The original ran Nomura's mark above its first
  * quote. clix has no client logos and the user's boss has ruled them out, so the `logo`
@@ -69,11 +102,14 @@
  * responsive variant of the other two and cannot be collapsed into them:
  *   · two testimonials, not three. The third slot (Sean Warneke there, Nevo Yahaloman here)
  *     is absent below 810.
- *   · slot 1's quote is **different copy** at this width, not a truncation but a different
- *     sentence: "Rogo is going to transform" there versus "Rogo transforms" above 810. The
- *     placeholders keep the quirk structurally, so it survives the real copy landing.
- *     `testimonials.phoneLeadQuote` carries slot 1's own string; every other card reuses its
- *     slide's, which is what the original does too.
+ *   · slot 1's quote was **different copy** at this width in the original — not a truncation
+ *     but a different sentence ("Rogo is going to transform" there versus "Rogo transforms"
+ *     above 810). ⚠️ **WE NO LONGER REPRODUCE THAT.** The quirk was carried through the
+ *     placeholder generation as `phoneLeadQuote` so it would survive the real copy landing; when
+ *     the real copy landed on 2026-08-13 it was one sentence per client, and there is no second
+ *     thing Asaf Peretz said. Inventing a phone-only variant of a real endorsement is precisely
+ *     what the placeholders existed to prevent, so the key was deleted from both locale files
+ *     and every card at every width now reads its own slide.
  *   · slot 1 is FIRST on phones (`order:0`) and second in the DOM everywhere else
  *   · no photos, no arrows, and its own paddings (24 / `32 24 24 24`) and gaps (20 / 80)
  *
@@ -228,23 +264,35 @@ import { interpolate } from "@/lib/i18n/format";
  *     EMPTY rather than an invented job title. `CardBody` holds the role line open with a
  *     non-breaking space so the card matches the others' height.
  */
+/* ⚠️ `quoteDesktop` IS FITTED TO THE QUOTE'S LENGTH, AND IT WAS RE-FITTED ON 2026-08-13 when
+   the real copy replaced the placeholders. This is step 3 of the old warning block's checklist,
+   and skipping it would have been a silent regression: the 32px size was fitted to a ~290
+   character placeholder that happened to sit in SLOT 1, so leaving it there would have shrunk
+   the SHORTEST real quote and let the longest overflow at 36.
+
+   Measured character counts of the shipped English strings:
+       0 asaf 207 · 1 adir 289 · 2 nevo 172 · 3 noam 189 · 4 achituv 269 · 5 elyashiv 147
+   The threshold is the placeholder's own: past ~260 characters a quote needs 32px to clear the
+   card at 1200+, below it 36px holds. So the two long ones (adir, achituv) take 32 and the
+   other four take 36 — the count of 32s is unchanged, only which slides carry them.
+   Hebrew is shorter than English in every slot, so English is the binding case at both sizes. */
 const SLIDE_STYLE = [
-  { id: "asaf-peretz", photo: "/testimonials/asaf-peretz.jpg", cream: true, quoteDesktop: "desktop:text-[32px]" },
-  { id: "adir-peretz", photo: "/testimonials/adir-peretz.jpg", cream: false, quoteDesktop: "desktop:text-[36px]" },
+  { id: "asaf-peretz", photo: "/testimonials/asaf-peretz.jpg", cream: true, quoteDesktop: "desktop:text-[36px]" },
+  { id: "adir-peretz", photo: "/testimonials/adir-peretz.jpg", cream: false, quoteDesktop: "desktop:text-[32px]" },
   { id: "nevo-yahaloman", photo: "/testimonials/nevo-yahaloman.jpg", cream: true, quoteDesktop: "desktop:text-[36px]" },
   { id: "noam-tovi", photo: "/testimonials/noam-tovi.jpg", cream: false, quoteDesktop: "desktop:text-[36px]" },
-  { id: "achituv", photo: "/testimonials/achituv.jpg", cream: true, quoteDesktop: "desktop:text-[36px]" },
+  { id: "achituv", photo: "/testimonials/achituv.jpg", cream: true, quoteDesktop: "desktop:text-[32px]" },
   { id: "elyashiv-engineering", photo: "/testimonials/elyashiv-engineering.jpg", cream: false, quoteDesktop: "desktop:text-[36px]" },
 ] as const;
 
 /**
  * ≤809 ONLY. A static stack, no arrows. Per-card MEASURED box, padding and gap.
  *
- * ⚠️ SLOT 1 CARRIES DIFFERENT COPY AT THIS WIDTH, and that is the capture's own editorial quirk
- * rather than a truncation: the original ships a different sentence, not a shortened one. The
- * dictionary models it as a single `phoneLeadQuote`, because only slot 1 differs — cards 2 to 6
- * reuse their slide's string, which is what the original does too. One string to replace per
- * client when the real wording lands.
+ * ⚠️ SLOT 1 USED TO CARRY DIFFERENT COPY AT THIS WIDTH — the capture's own editorial quirk,
+ * a different sentence rather than a shortened one, modelled here as a `phoneLeadQuote` key.
+ * DROPPED 2026-08-13 when the real quotes arrived: one sentence per client, so there is nothing
+ * to put in a phone-only variant that the client actually said. Every card now reads its own
+ * slide at every width. See the note at the `CardBody` call below.
  *
  * ⚠️ THE BOXES ARE FIXED HEIGHTS, SO A LONG QUOTE CLIPS RATHER THAN GROWING THE CARD. Measured
  * 505 and 334. With the fixed author block below it that leaves 12 lines for card 1 and 8 for
@@ -267,8 +315,18 @@ const SLIDE_STYLE = [
  * `text-transform: uppercase`, so it renders the same as the sentence-case one. Sentence case
  * everywhere here: identical output, one less thing to keep in step.
  */
+/* ⚠️ SLOT 1 WAS `h-[505px]` WITH ITS OWN PADDING AND AN 80px GAP, AND IT IS NOT ANY MORE.
+   That box was measured off the capture, and it was 171px taller than the rest for one reason:
+   in the original, slot 1 carried a LONGER, DIFFERENT quote at this width. We dropped that
+   `phoneLeadQuote` on 2026-08-13 because the real copy is one sentence per client and there is
+   no second thing Asaf Peretz said — so the tall box was left holding ~250px of dead space above
+   the author block, which is visible and reads as a layout bug rather than as air.
+   The height, padding and gap are therefore normalised to the other five. A DOCUMENTED
+   DIVERGENCE FROM THE CAPTURE, and the honest one: the measurement was correct for copy this
+   page no longer has. Card 1 stays distinguishable by its `cream` fill, as it always was.
+   Verified at 390 after the change: 6 lines in a 334px box, no clip, nothing else moved. */
 const PHONE_STYLE = [
-  { box: "h-[505px]", pad: "pt-8 pr-6 pb-6 pl-6", gap: "gap-20" },
+  { box: "h-[334px]", pad: "p-6", gap: "gap-5" },
   { box: "h-[334px]", pad: "p-6", gap: "gap-5" },
   { box: "h-[334px]", pad: "p-6", gap: "gap-5" },
   { box: "h-[334px]", pad: "p-6", gap: "gap-5" },
@@ -399,6 +457,16 @@ function Arrow({ back }: { back: boolean }) {
    — and it skipped a tick while `gesture.current` was set, so it never yanked the track out
    from under a finger. Everything else about the block stays as measured. */
 const STEP_MS = 1100;
+/* ⚠️ AUTHORED, NOT MEASURED — AND THERE IS NOTHING TO MEASURE. The capture's slideshow has no
+   video column at all; the thing beside the quote there is a static headshot. So this is the
+   one duration on this component that was written rather than read off the live page, and it
+   is sized against the two that were read: the site's 300ms link preset (Nav, Footer,
+   globals.css) and this track's own 1100ms step. 400ms sits between them on purpose — fast
+   enough that widening the portrait does not read as a page change, slow enough that the quote
+   reflowing underneath it reads as one movement instead of a jump.
+   `--ease-rogo` and NOT the track's `cubic-bezier(.25,1,.5,1)`: that curve is a fitted stand-in
+   for a measured SPRING on the track, and it means nothing outside that one job. */
+const EXPAND_MS = 400;
 /* Drag commit — fitted, see the header note. `dx` is the pointer travel, `v` the release
    velocity in px/s; a slide is the track's own width. */
 const FLICK_PROJECTION_S = 0.15;
@@ -415,8 +483,8 @@ const N = SLIDE_STYLE.length;
    layout and belongs at module scope, the strings are not. */
 const LOOP = Array.from({ length: N * 3 }, (_, i) => i % N);
 
-export default function ProductTestimonials() {
-  const t = usePageDict("product").testimonials;
+export default function QuoteCarousel() {
+  const t = usePageDict("home").testimonials;
   const a11y = useChrome().a11y;
   /* +1 in ltr, -1 in rtl. Stable for the lifetime of the mount — switching locale is a hard
      document navigation across two root layouts — so it needs no revert/rebuild path. */
@@ -441,13 +509,75 @@ export default function ProductTestimonials() {
      decide a gesture on. */
   const gesture = useRef<{ startX: number; lastT: number; samples: { x: number; t: number }[] } | null>(null);
   const viewport = useRef<HTMLDivElement>(null);
+  /* ⚠️ ONE `<video>` FOR THE WHOLE CAROUSEL, and this ref points at it. `LOOP` renders 18
+     `<li>`; a video per slide would be 18 elements and, on anything above `preload="none"`, the
+     six clips fetched three times over — ~68MB. So exactly one is mounted, in the `<li>` at
+     `pos`, and it is REMOUNTED on every index change (different parent — React cannot move a
+     DOM node across parents). That costs nothing: an unplayed `preload="none"` video fetches no
+     media at all. */
+  const video = useRef<HTMLVideoElement>(null);
+  /* ⚠️ A BOOLEAN, NOT AN INDEX. The video only ever exists at `pos`, and every path that
+     changes `pos` stops it first (see `go`), so "which slide is playing" is not an independent
+     fact — it is always `pos`. Storing an index would make `playingIndex !== pos` representable,
+     and there is no behaviour for that state. Per-slide the flag is DERIVED in the map below,
+     the same move `sections/Testimonials.tsx` makes with its `playing`. */
+  const [playing, setPlaying] = useState(false);
+
+  /* Pause AND collapse. Only ever called from an event handler or a listener — never from an
+     effect body, which is what `react-hooks/set-state-in-effect` forbids and what bit
+     sections/Testimonials.tsx (see its note above `play`).
+     Idempotent by construction: `pause()` on an already-paused element fires no event, and
+     `setPlaying(false)` when it is already false is a React bail-out. */
+  const stop = useCallback(() => {
+    video.current?.pause();
+    setPlaying(false);
+  }, []);
+
+  /* ⚠️ `play()` IS CALLED HERE, INSIDE THE CLICK HANDLER, and that is the entire reason the
+     element is MOUNTED rather than created on click. Deferring it behind a mount + effect puts
+     it one macrotask past the gesture; Chrome forgives that, Safari does not, and the failure is
+     silent — a rejected promise over a frozen poster.
+     `playing` is deliberately NOT set here. The element's own `play` event sets it, and that
+     fires the moment `paused` flips to false, BEFORE a single byte arrives. Setting it off the
+     promise instead (which is what Testimonials.tsx does, safely, because native `controls` back
+     it up) would leave the button dead for as long as the first buffer takes — and with
+     `preload="none"` the fetch only starts on this call. */
+  const toggle = useCallback(() => {
+    const el = video.current;
+    if (!el) return;
+    if (!el.paused) {
+      el.pause();
+      return;
+    }
+    /* Rejects on an untrusted gesture, a missing file, or — routinely — an AbortError when an
+       arrow is hit before the first frame lands and `go()` pauses the pending play. All three
+       want the same thing: stay collapsed, stay on the poster. */
+    void el.play().catch(() => setPlaying(false));
+  }, []);
 
   /* Every index change clears the drag offset — arrows, autoplay and a committed flick all
-     go through here, which is exactly how the original re-aligns. */
+     go through here, which is exactly how the original re-aligns.
+
+     ⚠️ AND IT STOPS THE VIDEO, SYNCHRONOUSLY, BEFORE `setPos`. Not in an effect keyed on
+     `pos`, which is what sections/Testimonials.tsx does and what does NOT work here: by the time
+     such an effect ran, React would already have unmounted the video from the old `<li>` and
+     mounted a fresh one in the new, so `video.current` would point at the new SILENT element
+     while the old, DETACHED one carried on playing audio with nothing left holding a reference
+     to it. Pausing here, still inside the click/pointer handler, catches the element while it is
+     mounted and the ref is valid. It also has to set `playing` itself rather than wait for the
+     `pause` event, which is queued as a task and would land after React had torn the element's
+     listeners down — leaving the incoming column stuck at 480px over a poster.
+     Setting state in an EVENT HANDLER is fine; it is an effect BODY the lint rule forbids.
+
+     This is also what makes `playing` safe as a bare boolean: it establishes the invariant
+     "playing ⇒ `pos` has not changed since play began". The clone-snap effect's own `setPos` is
+     exempt — it only runs when `pos` is outside the middle copy, which only happens after a
+     `go()`, which already stopped. */
   const go = useCallback((delta: number) => {
+    stop();
     setPos((p) => p + delta);
     setDrag(0);
-  }, []);
+  }, [stop]);
 
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (e.pointerType === "mouse" && e.button !== 0) return;
@@ -499,6 +629,37 @@ export default function ProductTestimonials() {
     return () => mq.removeEventListener("change", sync);
   }, []);
 
+  /* Escape stops the clip, from anywhere on the page. The button is usually focused — it was
+     just clicked or Entered — but it need not be, and a `window` listener is the only thing
+     that covers a mouse user who has since clicked elsewhere. Nothing else on this page claims
+     Escape while a video runs: Nav's own handler requires its menu to be open.
+     `stop()` runs inside the LISTENER, not in the effect body, so the setState lint rule holds. */
+  useEffect(() => {
+    if (!playing) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") stop();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [playing, stop]);
+
+  /* ⚠️ `display:none` DOES NOT STOP PLAYBACK. Resizing under 1200 hides the whole column, and
+     without this the audio keeps running from an element nobody can see or click. This is the
+     one place the tier has to be known in JS — everywhere else `hidden desktop:block` does the
+     entire job and no `matchMedia` gate is needed.
+     Touches the ELEMENT ONLY; the resulting `pause` event flips `playing` through the handler on
+     the <video>, so there is no setState in this effect body.
+     1200 is `--breakpoint-desktop`, and a media-query string cannot read a custom property — if
+     that tier ever moves, move both. */
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1200px)");
+    const sync = () => {
+      if (!mq.matches) video.current?.pause();
+    };
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+
   /* The snap. Once a step has carried the track outside the middle copy, wait for the
      transition to finish, then re-enter the middle copy with animation OFF — same slide on
      screen, different index, no visible movement. */
@@ -523,17 +684,21 @@ export default function ProductTestimonials() {
   }, [animate]);
 
   return (
-    <section
-      id="testimonials"
-      data-nav-theme="light"
-      /* `order-1` — see the note in ProductSecurity.tsx: below 1200 this block sits ABOVE
-         security, above 1200 below it. */
-      className="order-1 relative flex w-full flex-col items-center justify-start gap-10 overflow-hidden bg-paper px-4 pb-24 tablet:px-10 tablet:pt-[124px] desktop:order-none"
-    >
-      {/* `.framer-zrtsd2` — max-w 1280, gap 40. Only one of its two children is ever laid
-          out, so the gap is inert; kept because the original's nesting is what sets the
-          slideshow's width. */}
-      <div className="relative flex w-full max-w-[var(--container-max)] flex-col items-center gap-10">
+    /* ⚠️ NO `<section>`, NO `id`, NO `data-nav-theme` — sections/Testimonials.tsx owns all
+       three, plus the `<h2>` and the section padding. This returns the BODY only, so the two
+       testimonial treatments can be swapped under one heading without either of them owning
+       the landmark. On /product this element was the inner child of its own section; the
+       original's nesting is what sets the slideshow's width, so it survives the move intact.
+
+       ⚠️ THE ARROWS DEPEND ON WHAT IS ABOVE THIS ELEMENT. They are pinned `-top-20` (-80px)
+       and sit OUTSIDE this box, in whatever space the parent leaves. That worked on /product
+       because the section carried `tablet:pt-[124px]`; it works on the landing page because
+       the width container there is `gap-20` — 80px between the `<h2>` and this — which the
+       arrows land in exactly. Change that gap and the arrows collide with the heading.
+
+       `.framer-zrtsd2` — max-w 1280, gap 40. Only one of its two children is ever laid out,
+       so the gap is inert; kept because the original's nesting is load-bearing for width. */
+    <div className="relative flex w-full max-w-[var(--container-max)] flex-col items-center gap-10">
         {/* ---- ≥810: the slideshow. 694px tall at both tiers, full container width. ---- */}
         <div className="relative hidden h-[694px] w-full tablet:block">
           {/* The arrows live 40px ABOVE the box, flush to its right edge — the original
@@ -599,6 +764,11 @@ export default function ProductTestimonials() {
               {LOOP.map((slide, i) => {
                 const copy = t.slides[slide];
                 const style = SLIDE_STYLE[slide];
+                /* The one live slide. 17 of the 18 <li> are clones; only this one owns the
+                   video, and only its play button does anything. */
+                const active = i === pos;
+                /* DERIVED, not stored — see the note on `playing`. */
+                const expanded = active && playing;
                 return (
                 <li
                   key={`${style.id}-${i}`}
@@ -619,19 +789,51 @@ export default function ProductTestimonials() {
                       quoteSize={`text-[28px] ${style.quoteDesktop}`}
                     />
                   </div>
-                  {/* The portrait: 360px wide, full height. Hidden below 1200 — that is the
-                      whole difference between the original's `Desktop` and `Mobile`
-                      slideshow variants.
+                  {/* The portrait: 360px wide at rest, full height. Hidden below 1200 — that
+                      is the whole difference between the original's `Desktop` and `Mobile`
+                      slideshow variants, and it is also the only gate the video needs: a
+                      `display:none` <video> with `preload="none"` and no autoplay does nothing,
+                      so the two lower tiers are covered by the class alone.
+
+                      ⚠️ IT PLAYS SINCE 2026-08-13, AND THE RESTING STATE IS UNCHANGED BY
+                      CONSTRUCTION. The <img> below is the one that shipped before, untouched;
+                      the <video> is layered ON TOP of it at `opacity-0` and only crossfades in
+                      once playback has actually started. The poster, the crop and the 360px box
+                      are exactly where they were. What is new at rest is one badge.
+
+                      ⚠️ THE WIDTH IS THE ONLY THING THAT ANIMATES, AND THE CARD ABSORBS IT.
+                      The <li> is `w-full flex-none` and the card beside this is `flex-1 w-px`,
+                      so 360 → 480 takes 120px out of the card and NOTHING out of the track: the
+                      ul's transform is a percentage of its own width, which does not change, and
+                      `h-[694px]` two levels up is untouched. No page reflow, no track shift. The
+                      quote reflows narrower and taller — measured, see the vertical budget in
+                      the header note.
+
+                      ⚠️ 480 IS FIXED FOR ALL SIX, not derived from each clip's aspect ratio.
+                      The files run 720 × 1014 through 720 × 1280, so a per-clip width would move
+                      the column a different distance on every slide and reflow the quote by a
+                      different amount — inconsistent motion for no gain, since `object-cover`
+                      crops either way.
 
                       ⚠️ `object-position` is CENTRE, not left. The capture's inline style
                       says `object-position:left center`; the hydrated component computes
                       `50% 50%`, and centre is what the live page shows. Reading the capture
                       alone gets this wrong, and it is visible — the crop lands on a
                       different part of the frame. That matters more here than it did with the
-                      capture's studio headshots: these three files are POSTER FRAMES pulled
-                      from the clients' testimonial videos, framed for a 9:16 phone clip, not
-                      portraits shot for a 360 × 694 slot. */}
-                  <div className="relative hidden h-full w-[360px] flex-none desktop:block">
+                      capture's studio headshots: these files are POSTER FRAMES pulled from the
+                      clients' testimonial videos, framed for a 9:16 phone clip, not portraits
+                      shot for a 360 × 694 slot. The video carries the same pair, so the swap at
+                      the moment of play is invisible. */}
+                  <div
+                    className={`relative hidden h-full flex-none desktop:block ${
+                      expanded ? "w-[480px]" : "w-[360px]"
+                    }`}
+                    /* Inline rather than a `transition-[width]` class for one reason: `still`
+                       has to make it INSTANT, and this is the same shorthand the track above
+                       already reads by. NO `overflow-hidden` — both children are `w-full` so
+                       there is nothing to clip, and it would eat the button's focus ring. */
+                    style={{ transition: still ? "none" : `width ${EXPAND_MS}ms var(--ease-rogo)` }}
+                  >
                     {/* No `width`/`height` attributes, deliberately. The capture's three
                         headshots shared one intrinsic size (781 × 1024) and could state it;
                         ours do not (720 × 1014 for asaf, 720 × 1272 for the other two), so a
@@ -654,6 +856,139 @@ export default function ProductTestimonials() {
                       draggable={false}
                       className="block h-full w-full object-cover object-center"
                     />
+
+                    {/* ⚠️ THE ONLY <video> IN THE CAROUSEL — see the note on the `video` ref.
+                        Mounted, not created on click, because `play()` has to run inside the
+                        click handler itself; `preload="none"` is what makes mounting free.
+
+                        `poster` is set even though this is invisible until it plays: without it
+                        the element paints transparent-to-black between `play()` returning and
+                        the first frame decoding, and the crossfade would show that flash. Same
+                        URL as the <img> above, so it is a cache hit, not a second download.
+
+                        NOT muted — AUDIO IS THE POINT. NO `controls` — the button below is the
+                        entire transport, by decision. No `tabIndex={-1}` either: a <video>
+                        without `controls` is not in the tab order in any engine, so the
+                        attribute would be inert. */}
+                    {active && (
+                      <video
+                        ref={video}
+                        src={`/testimonials/${style.id}.mp4`}
+                        poster={style.photo}
+                        preload="none"
+                        playsInline
+                        /* STATE MIRRORS THE ELEMENT, IT DOES NOT PREDICT IT. `play` fires the
+                           instant `paused` flips to false — before any data — so the column
+                           starts widening on the click rather than on the first buffer. `pause`
+                           catches every stop we did not initiate as well: an OS media key, a
+                           headphone button, another tab taking audio focus. */
+                        onPlay={() => setPlaying(true)}
+                        onPause={() => setPlaying(false)}
+                        /* ⚠️ `ended` DOES NOT FIRE `pause`. Per spec the ended playback
+                           algorithm fires `timeupdate` + `ended` and leaves `paused` FALSE, so
+                           `onPause` above will not run and this handler has to collapse on its
+                           own. (Some older WebKit builds fire both; both handlers are idempotent
+                           `setPlaying(false)`, so a double fire is one render.)
+                           `currentTime = 0` so the next click restarts the clip rather than
+                           re-ending instantly, and so the frame under the crossfade is frame 0
+                           and not the last one. A PAUSE keeps its position by contrast —
+                           collapsing is not the same as giving up. */
+                        onEnded={(e) => {
+                          e.currentTarget.currentTime = 0;
+                          setPlaying(false);
+                        }}
+                        className={`absolute inset-0 block h-full w-full object-cover object-center ${
+                          playing ? "opacity-100" : "opacity-0"
+                        }`}
+                        style={{ transition: still ? "none" : "opacity 300ms var(--ease-rogo)" }}
+                      />
+                    )}
+
+                    {/* ONE BUTTON, INSET-0, LABEL AND GLYPH SWAPPING. Not two elements: the
+                        pause target IS the whole column, so a separate pause control would be
+                        this same absolute box written twice — and swapping the two would unmount
+                        the focused element, drop focus to <body>, and leave a keyboard user who
+                        pressed Space to play unable to press Space to pause. sections/
+                        Testimonials.tsx can unmount its button safely because native `controls`
+                        appear and take over; here nothing takes over.
+
+                        ⚠️ RENDERED ON ALL EIGHTEEN <li>, LIVE ON ONE. Rendering it only at `pos`
+                        would pop the badge in and out mid-transition — neighbours are visibly on
+                        screen for the whole 1100ms step, and permanently after a slow drag rests
+                        the track off-grid. So it is drawn everywhere and the handler is gated on
+                        `active`; `tabIndex` follows the <li>'s own `aria-hidden`, so the 17
+                        clones stay out of the tab order.
+
+                        ⚠️ `stopPropagation` ON POINTERDOWN, AND IT IS LOAD-BEARING TWICE OVER.
+                        The viewport above owns onPointerDown/Move/Up and calls
+                        `setPointerCapture` on itself. Capture RETARGETS the pointerup — and the
+                        compatibility mouseup with it — to the viewport, so the browser computes
+                        `click` at the common ancestor and fires it on the VIEWPORT: onClick here
+                        would simply never run. Left unstopped it would also start a drag under
+                        every tap.
+                        THE COST, STATED: the portrait is no longer a drag surface at ≥1200 —
+                        360 of 1280px, 28%. Accepted, because while playing those pixels MUST be
+                        a click target by decision, and a surface that drags at rest but clicks
+                        while playing would be worse than one that never drags. The card beside
+                        it is the other 72% and is the natural place to grab. */}
+                    <button
+                      type="button"
+                      onPointerDown={(e) => e.stopPropagation()}
+                      onClick={() => {
+                        if (active) toggle();
+                      }}
+                      tabIndex={active ? 0 : -1}
+                      /* The accessible name carries the person, not just "play" — a screen
+                         reader user moving through the carousel needs to know whose. Both are
+                         `interpolate()` templates from `chrome.a11y` rather than assembled here,
+                         because the Hebrew word order is not "Play X's Y". `playTestimonial` is
+                         SOURCED from the real site's own aria-label; `pauseTestimonial` is
+                         authored — see the note in he/chrome.ts. */
+                      aria-label={interpolate(
+                        expanded ? a11y.pauseTestimonial : a11y.playTestimonial,
+                        { name: copy.name },
+                      )}
+                      /* `bg-transparent` at rest, NOT the permanent `bg-ink/10` scrim
+                         sections/Testimonials.tsx paints: the resting column has to look exactly
+                         like the photograph that shipped before. The scrim is hover-only. */
+                      className="group absolute inset-0 flex cursor-pointer items-center justify-center bg-transparent transition-colors duration-300 hover:bg-ink/10 focus-visible:ring-2 focus-visible:ring-paper focus-visible:outline-none"
+                      style={{ transitionTimingFunction: "var(--ease-rogo)" }}
+                    >
+                      {/* Fades out while playing so a running clip is clean, and comes back on
+                          hover or keyboard focus so the pause stays discoverable. 56px rather
+                          than the accordion's 48px: that badge sits on a 186px-wide clip, this
+                          one on 360–480. */}
+                      <span
+                        aria-hidden="true"
+                        className={`flex h-14 w-14 items-center justify-center rounded-full bg-paper/90 backdrop-blur-sm transition-[transform,opacity] duration-300 group-hover:scale-110 group-hover:opacity-100 group-focus-visible:scale-110 group-focus-visible:opacity-100 ${
+                          expanded ? "opacity-0" : "opacity-100"
+                        }`}
+                        style={{ transitionTimingFunction: "var(--ease-rogo)" }}
+                      >
+                        {expanded ? (
+                          /* NO `ml-[2px]` HERE, AND THAT IS NOT AN OVERSIGHT. The nudge on the
+                             play triangle is an optical correction for a shape whose visual mass
+                             sits toward its flat edge; the pause bars are symmetric about their
+                             own centre, so the same nudge would push them 2px OFF centre. */
+                          <svg viewBox="0 0 24 24" className="h-5 w-5 fill-ink">
+                            <path d="M7 4.5h3.5v15H7zM13.5 4.5H17v15h-3.5z" />
+                          </svg>
+                        ) : (
+                          /* ⚠️ `ml-[2px]` IS PHYSICAL ON PURPOSE — DO NOT MIGRATE IT TO `ms-`,
+                             and do not add `rtl:-scale-x-100` to the glyph. Two reasons pointing
+                             the same way. (1) Play/pause are MEDIA-TRANSPORT glyphs and no
+                             platform mirrors them; only skip-forward/back mirror, because only
+                             those mean "the direction reading goes" — a left-pointing play
+                             button on /he would read as rewind. (2) The nudge is an optical
+                             correction tied to the un-mirrored artwork's visual mass, so it has
+                             to stay on the physical side that mass is on. Same decision, same
+                             wording, as sections/Testimonials.tsx. */
+                          <svg viewBox="0 0 24 24" className="ml-[2px] h-5 w-5 fill-ink">
+                            <path d="M8 5.14v13.72a1 1 0 0 0 1.54.84l10.3-6.86a1 1 0 0 0 0-1.68L9.54 4.3A1 1 0 0 0 8 5.14Z" />
+                          </svg>
+                        )}
+                      </span>
+                    </button>
                   </div>
                 </li>
                 );
@@ -676,16 +1011,26 @@ export default function ProductTestimonials() {
               }`}
             >
               <CardBody
-                /* Slot 1 alone has its own string at this width; the rest reuse their slide's. */
-                quote={i === 0 ? t.phoneLeadQuote : t.slides[i].quote}
+                /* ⚠️ SLOT 1 USED TO HAVE ITS OWN STRING HERE (`phoneLeadQuote`), REPRODUCING THE
+                   TARGET'S EDITORIAL QUIRK: the original ships a genuinely different sentence in
+                   this slot at ≤809, not a shortened one, and the placeholders kept the quirk
+                   structurally so it would survive the real copy landing.
+
+                   It did not survive, and it should not have. The real quotes arrived 2026-08-13
+                   as one sentence per client — there is no second thing Asaf Peretz said, and
+                   inventing a phone-only variant of a real endorsement is the exact failure the
+                   placeholders existed to prevent. Duplicating his one quote into a second key
+                   would have been worse still: two strings to keep in step, for nothing.
+                   So `phoneLeadQuote` is deleted from both locale files and every card at every
+                   width now reads its own slide. */
+                quote={t.slides[i].quote}
                 name={t.slides[i].name}
                 role={t.slides[i].role}
                 quoteSize="text-[20px]"
               />
             </div>
           ))}
-        </div>
       </div>
-    </section>
+    </div>
   );
 }

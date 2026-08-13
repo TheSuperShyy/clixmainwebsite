@@ -14,6 +14,7 @@
 
 import Nav from "@/components/sections/Nav";
 import NewsBoard from "@/components/news/NewsBoard";
+import AppLink from "@/components/ui/AppLink";
 import { fetchModels } from "@/lib/models";
 import type { Locale } from "@/lib/i18n/config";
 import { seedLocale, getDict } from "@/lib/i18n/server";
@@ -76,10 +77,18 @@ export default async function NewsRoute({ locale }: { locale: Locale }) {
               </p>
 
               {/* Same `Brand` button anatomy as everywhere: 40px here (8x16 padding, 20px
-                  inner line with 1px top nudge), radius 6, ink fill. mailto like the
-                  original's press contact. */}
-              <a
-                href="mailto:clixteam579@gmail.com"
+                  inner line with 1px top nudge), radius 6, ink fill.
+                  ⚠️ THIS IS THE ONE CTA ON THE SITE THAT LEAVES. It was a `mailto:` to
+                  clixteam579@gmail.com, then briefly /contact along with every other CTA; on
+                  2026-08-13 the user repointed it at the Clix AI tools app, so it is no longer
+                  a press-contact button at all — it is the way into Clix News, and the label
+                  says so. `external` is what makes AppLink render a target="_blank" anchor
+                  instead of handing an off-site URL to the router.
+                  The press-inbox open question in features/contact-page/FEATURE.md is now moot
+                  for this route: nothing here contacts anyone. */}
+              <AppLink
+                href="https://clix-ai-tools.vercel.app"
+                external
                 className="relative flex h-10 w-min flex-none cursor-pointer items-center
                            justify-center gap-2 overflow-hidden rounded-[6px] bg-ink px-4
                            py-2 no-underline transition-opacity duration-300 hover:opacity-90
@@ -98,7 +107,7 @@ export default async function NewsRoute({ locale }: { locale: Locale }) {
                     {t.cta}
                   </span>
                 </span>
-              </a>
+              </AppLink>
             </div>
 
             <NewsBoard />

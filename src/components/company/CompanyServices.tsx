@@ -50,6 +50,7 @@
  */
 
 import { getDict } from "@/lib/i18n/server";
+import { SERVICE_GLYPHS } from "./serviceGlyphs";
 
 export default function CompanyServices() {
   /* The eight labels, the heading and the intro all live in the dictionary now. Every
@@ -90,31 +91,44 @@ export default function CompanyServices() {
 
         {/* The grid. Semantic list, marker suppressed. 4 columns from 810 up, 1 below. */}
         <ul className="grid w-full list-none grid-cols-1 gap-4 tablet:grid-cols-4">
-          {t.items.map((service) => (
-            <li
-              key={service}
-              /* Tile: min-height 164, padding 0, centred column, gap 10. `relative` so the
-                 rule overlay below has something to anchor to. */
-              className="relative flex min-h-[164px] w-full flex-col items-center justify-center gap-[10px] p-0"
-            >
-              {/* Uniform top + inline-end rule, `#73737326`. Overlay, not a real border — see
-                  the file header for why. */}
-              <span
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-0 border-t border-e border-muted/15"
-              />
-              {/* ⚠️ THIS TYPE IS OURS, NOT MEASURED. rogo's tiles hold logo artwork and no
-                  text at all, so there is no computed style to copy for a label. Sized to
-                  sit where those logos sat: display face, weight 400, `ink`, centred, and
-                  the page's standard −0.02em tracking. */}
-              <span
-                className="relative text-center font-display text-[16px] font-normal text-ink desktop:text-[20px]"
-                style={{ lineHeight: "110%", letterSpacing: "-0.02em" }}
+          {t.items.map((service, i) => {
+            /* Positional pairing, not a name lookup — the Hebrew tuple is eight different
+               strings. See the roster note in serviceGlyphs.tsx. */
+            const ServiceGlyph = SERVICE_GLYPHS[i];
+            return (
+              <li
+                key={service}
+                /* Tile: min-height 164, padding 0, centred column, gap 10. `relative` so the
+                   rule overlay below has something to anchor to. `group` so the mark can
+                   answer a hover on the whole tile rather than only on itself. */
+                className="group relative flex min-h-[164px] w-full flex-col items-center justify-center gap-[10px] p-0"
               >
-                {service}
-              </span>
-            </li>
-          ))}
+                {/* Uniform top + inline-end rule, `#73737326`. Overlay, not a real border — see
+                    the file header for why. */}
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-0 border-t border-e border-muted/15"
+                />
+                {/* THE MARK. Also ours, also not measured — rogo's tiles hold a logo and
+                    nothing else, so there is no icon slot in the capture to copy. Drawn to
+                    sit where those logos sat: 32px square, `muted` at rest so the label stays
+                    the loudest thing in the tile, `ink` on hover with a 2px lift. Both
+                    transitions run on the site's own 300ms / `--ease-rogo` link preset.
+                    `aria-hidden` lives on the <svg> — the label below says the same thing. */}
+                <ServiceGlyph className="relative h-8 w-8 text-muted transition-[color,transform] duration-300 [transition-timing-function:var(--ease-rogo)] group-hover:-translate-y-0.5 group-hover:text-ink motion-reduce:transition-none motion-reduce:group-hover:translate-y-0" />
+                {/* ⚠️ THIS TYPE IS OURS, NOT MEASURED. rogo's tiles hold logo artwork and no
+                    text at all, so there is no computed style to copy for a label. Sized to
+                    sit where those logos sat: display face, weight 400, `ink`, centred, and
+                    the page's standard −0.02em tracking. */}
+                <span
+                  className="relative text-center font-display text-[16px] font-normal text-ink desktop:text-[20px]"
+                  style={{ lineHeight: "110%", letterSpacing: "-0.02em" }}
+                >
+                  {service}
+                </span>
+              </li>
+            );
+          })}
         </ul>
       </div>
     </section>

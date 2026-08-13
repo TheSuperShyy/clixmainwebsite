@@ -222,11 +222,6 @@ export const company: Translated<CompanyDict> = {
     body:
       "אנחנו מחפשים מפתחים, מהנדסים ואנשי מקצוע מוכשרים שרוצים לבנות מערכות שעסקים " +
       "אמיתיים סומכים עליהן. אם זה אתם, בואו נדבר.",
-    /* AUTHORED — the real site has no careers page, so no label to lift. 51.6px against
-       English's 81.9px: `whitespace-pre` inside a `min-w-[124px]` anchor cannot wrap, and this
-       is 30px shorter than the string the 124px was measured against, so the button holds its
-       measured width and nothing overflows. */
-    ctaLabel: "למשרות",
     /* AUTHORED — describes a stock photograph (CompanyCareers.tsx:44-56), and like the English
        it claims nothing about who the people in it are. */
     photoAlt:

@@ -14,8 +14,9 @@
  *
  * ⚠️ NO JSX, NO HTML, NO MARKUP. Where a `<br>` or an inner `<span>` IS a colour boundary, the
  * element stays in the component and the two runs come here as separately-named keys. There
- * are three on this route: `intro.muted`/`intro.ink`, `benefits.headingInk`/`headingMuted`,
- * `security.headingMuted`/`headingPaper`.
+ * are two on this route: `intro.muted`/`intro.ink` and `benefits.headingInk`/`headingMuted`.
+ * There was a third, `security.headingMuted`/`headingPaper`, until the security block was
+ * removed from this route on 2026-08-13.
  *
  * ⚠️ WHY AN EXPLICIT INTERFACE AND NOT `as const`, and this is not a style choice — `as const`
  * DOES NOT BUILD. With `as const`, `typeof product` is a tree of string LITERALS. `dictionary.ts`
@@ -193,15 +194,41 @@ export interface ProductDict {
       /** Three rows. The third is the dimmed one; the count is the measured 114-unit pitch. */
       readonly rows: readonly [string, string, string];
     };
-    readonly material: {
-      readonly assembling: string;
-      /** Three lines at measured y 75.5 / 123.5 / 171.5 on a 48-unit pitch. Tuple. */
-      readonly prose: readonly [string, string, string];
-      readonly exportsLabel: string;
-      /** Two export rows. ⚠️ The `.pptx` / `.xlsx` extensions stay Latin — they are keyed to
-          the P and X badges beside them and stop making sense without them. Only the stem
-          translates. */
-      readonly exports: readonly [string, string];
+    /**
+     * Mock 3 — a WhatsApp thread that the assistant handles and then HANDS OVER.
+     *
+     * ⚠️ REPLACED `material` ON 2026-08-13, on the user's call ("change this to something we
+     * actually do"). That mock showed a slide deck and two file exports — `.pptx` and `.xlsx`
+     * download rows lifted structurally from the capture, where the target is a research tool
+     * for finance teams and generating decks IS the product. It is not what clix does.
+     *
+     * What clix does, per its own site: "assistants on WhatsApp Business that book, sell,
+     * support and follow up, connected to your CRM, payments, calendar and catalogue, and
+     * handing off to a person the moment one is needed."
+     *
+     * ⚠️ THE MOCK IS BUILT AROUND THE HANDOFF, NOT AROUND THE ANSWER, and that is the point of
+     * the rewrite rather than a styling choice. Every competitor's screenshot shows a bot being
+     * clever. The line worth showing is the one where it stops: the thread runs
+     * booking → booking → a discount request → handed to a named person. `handoffReason` is
+     * what makes it read as judgement rather than failure, so it is copy, not decoration.
+     */
+    readonly handoff: {
+      /** The header strip's label, beside the mark tile. */
+      readonly channel: string;
+      /** Customer's opening message. Left bubble at ≤440 units — see the width note in
+          workflowMocks.tsx; these are `whitespace-nowrap` and CANNOT wrap, only overrun. */
+      readonly inbound1: string;
+      /** The assistant's reply. TWO lines at a measured 48-unit pitch, so the break is ours
+          and not the browser's. Tuple. */
+      readonly outbound: readonly [string, string];
+      /** Customer's second message — the one the assistant does not answer. */
+      readonly inbound2: string;
+      /** Who it went to. ⚠️ INVENTED MOCK CHROME, exactly as the old `.pptx` filenames were:
+          a first name and a team in a product screenshot, not a claim about an employee.
+          The `·` separator matches the Hebrew testimonial roles and needs no translation. */
+      readonly handoffTo: string;
+      /** WHY it went to a person. The load-bearing string in this mock. */
+      readonly handoffReason: string;
     };
   };
 
@@ -233,62 +260,12 @@ export interface ProductDict {
       readonly sources: readonly [string, string, string, string, string];
     };
   };
-
-  readonly security: {
-    readonly eyebrow: string;
-    /** `<h2>`, two colour runs across a `<br>`. Same contract as `benefits` above. */
-    readonly headingMuted: string;
-    readonly headingPaper: string;
-    /** Four practice statements, one per glyph. Tuple — the glyphs are positional. */
-    readonly list: readonly [string, string, string, string];
-    /**
-     * The 2 × 2 badge grid's labels. FOUR, and the count is hand-authored dashed-border
-     * geometry: growing it would mean re-deriving every cell edge at every tier.
-     *
-     * ⚠️ EACH SITS IN A 137px MEASURE ABOVE A CENTRED 104px MARK. Three lines collides with the
-     * mark at the phone tier's 220px cell, so two is the ceiling. Measured, both locales clear.
-     */
-    readonly badges: readonly [string, string, string, string];
-    readonly link: string;
-  };
-
-  readonly testimonials: {
-    /**
-     * Six clients. The count is content, but it is a tuple because the two tiers must agree on
-     * WHO and in WHAT ORDER — the phone stack reuses these strings by index.
-     *
-     * ⚠️⚠️ EVERY `quote` IS A PLACEHOLDER ATTRIBUTED TO A REAL, NAMED PERSON. Read the warning
-     * block at the top of ProductTestimonials.tsx before touching one. The
-     * `[PLACEHOLDER QUOTE, NOT SOMETHING X SAID]` tag is the mechanism that keeps the route's
-     * `noindex` justified, and it is preserved in BOTH locales.
-     */
-    readonly slides: readonly [
-      TestimonialCopy, TestimonialCopy, TestimonialCopy,
-      TestimonialCopy, TestimonialCopy, TestimonialCopy,
-    ];
-    /**
-     * ⚠️ THE PHONE TIER CARRIES DIFFERENT COPY FOR SLOT 1, and that is the capture's own quirk,
-     * not a truncation: the original ships a different sentence at ≤809. Only slot 1 differs;
-     * cards 2 to 6 reuse their slide's string, which is what the original does too. Hence one
-     * key rather than a parallel six.
-     */
-    readonly phoneLeadQuote: string;
-    readonly a11y: {
-      readonly controls: string;
-      /** `interpolate()` template. Placeholders: {name} {role} */
-      readonly portraitAlt: string;
-    };
-  };
 }
 
-export interface TestimonialCopy {
-  readonly quote: string;
-  readonly name: string;
-  /** May be empty: `elyashiv-engineering` is a COMPANY, not a person, so it has no job title
-      rather than an invented one. The component holds the line box open with an `aria-hidden`
-      non-breaking space. */
-  readonly role: string;
-}
+/* `TestimonialCopy` used to be declared here, for `testimonials.slides`. Both moved to
+   en/home.ts on 2026-08-13 when the quote carousel left this route for the landing page, and
+   the interface did not survive the move: `home` is authored `as const`, so its shape is
+   inferred and a hand-written interface would be a second source of truth for it. */
 
 /* ── the English copy ───────────────────────────────────────────────────────────────────── */
 
@@ -374,11 +351,21 @@ export const product: ProductDict = {
           "can trace back to the record.",
       },
       {
-        title: "Reports On Demand",
+        /* ⚠️ WAS "Reports On Demand" UNTIL 2026-08-13 — decks, summaries and spreadsheets.
+           That is the TARGET's product (a research tool for finance teams), not clix's, and the
+           user called it: "change this to something we actually do". This card now carries the
+           WhatsApp assistant, which is clix's own signature offering and the one capability the
+           other two cards do not touch — card 1 is the plumbing, card 2 is the querying, this
+           is the customer-facing end. The route's hero types "route every whatsapp inquiry to
+           the right person" a few hundred px above, and mock 1 runs "Qualify Inbound WhatsApp
+           Leads", so the thread was already there; this closes it.
+           Length held to the replaced string's: 184 characters against 199 here, inside the
+           ±10% the block's measured layout is fitted to. */
+        title: "Answered Or Handed Over",
         body:
-          "Decks, summaries and spreadsheets built from the same data your team works in. The " +
-          "numbers stay consistent, the template stays yours, and the source file ships " +
-          "alongside every export.",
+          "An assistant on WhatsApp Business that books, quotes and chases, wired to your " +
+          "calendar, CRM and payments. The moment a thread needs judgement it goes to a person, " +
+          "with the whole conversation attached.",
       },
     ],
     labels: [
@@ -422,15 +409,15 @@ export const product: ProductDict = {
       colClosed: "% of Pipeline Closed",
       rows: ["WhatsApp inbound", "Events", "Paid search"],
     },
-    material: {
-      assembling: "Assembling the deck...",
-      prose: [
-        "Here is your deck. I built it",
-        "on your own template, and attached",
-        "the source numbers behind every slide.",
-      ],
-      exportsLabel: "Exports (2)",
-      exports: ["Automation Rollout.pptx", "Workflow Run Backup.xlsx"],
+    handoff: {
+      channel: "WhatsApp Business",
+      inbound1: "Anything free Thursday?",
+      outbound: ["14:00 and 16:30 are open.", "I can hold one now."],
+      /* The turn the assistant does NOT take. A discount is a commercial decision, so this is
+         where it stops — which is the whole subject of the mock. */
+      inbound2: "16:30. Can you do 10% off?",
+      handoffTo: "Maya · Sales",
+      handoffReason: "Discount requested · handed over",
     },
   },
 
@@ -490,88 +477,4 @@ export const product: ProductDict = {
     },
   },
 
-  security: {
-    eyebrow: "Security",
-    headingMuted: "Built for your cloud",
-    headingPaper: "Secure by Design",
-    list: [
-      "No training on your data",
-      "Modern & secure data practices",
-      "End to end encryption",
-      "Reviewed & tested",
-    ],
-    /* ⚠️ THESE FOUR ARE PRACTICE STATEMENTS, NOT CERTIFICATIONS, AND THE DIFFERENCE IS THE
-       POINT. The cells shipped as SOC2 / CCPA / ISO 27001 / GDPR until 2026-08-12 and were
-       replaced because clix holds none of the audited ones — see the header of
-       ProductSecurity.tsx. Do not put a seal back in either locale. */
-    badges: [
-      "Your cloud, your accounts",
-      "Your data stays yours",
-      "Least-privilege access",
-      "You own the code",
-    ],
-    link: "Find out more",
-  },
-
-  testimonials: {
-    slides: [
-      {
-        quote:
-          "[PLACEHOLDER QUOTE, NOT SOMETHING ASAF PERETZ SAID] clix holds no written testimonial " +
-          "from this client and no wording has been approved. This paragraph is scaffolding, set " +
-          "at roughly the length a real quote will run, and it is here to be deleted the moment " +
-          "an approved sentence replaces it.",
-        name: "Asaf Peretz",
-        role: "Founder, SalesIQ",
-      },
-      {
-        quote:
-          "[PLACEHOLDER QUOTE, NOT SOMETHING ADIR PERETZ SAID] No approved wording exists for this " +
-          "client yet. This filler runs to about the length the real one should.",
-        name: "Adir Peretz",
-        role: "Owner, video and photography studio",
-      },
-      {
-        quote:
-          "[PLACEHOLDER QUOTE, NOT SOMETHING NEVO YAHALOMAN SAID] Nothing on this card was said " +
-          "by this client. The words are layout scaffolding and must be replaced before launch.",
-        name: "Nevo Yahaloman",
-        role: "Founder",
-      },
-      {
-        quote:
-          "[PLACEHOLDER QUOTE, NOT SOMETHING NOAM TOVI SAID] Placeholder text standing in for a " +
-          "sentence this client has never been asked for. Replace before launch.",
-        name: "Noam Tovi",
-        role: "Owner, investments",
-      },
-      {
-        quote:
-          "[PLACEHOLDER QUOTE, NOT SOMETHING ACHITUV SAID] Placeholder text standing in for a " +
-          "sentence this client has never been asked for. Replace before launch.",
-        name: "Achituv",
-        role: "Vtechezena",
-      },
-      {
-        quote:
-          "[PLACEHOLDER QUOTE, NOT SOMETHING ELYASHIV ENGINEERING SAID] Placeholder text standing " +
-          "in for a sentence this client has never been asked for. Replace before launch.",
-        name: "Elyashiv Engineering",
-        role: "",
-      },
-    ],
-    /* ⚠️ STRAIGHT apostrophes in `card's` and `client's`, where `hero.cta` above has a CURLY
-       one. That inconsistency is the component's own and it is the verbatim value — a
-       mechanical check against the pre-change source caught a "tidied" curly pair here. Do not
-       harmonise them. */
-    phoneLeadQuote:
-      "[PLACEHOLDER QUOTE, NOT SOMETHING ASAF PERETZ SAID] This is the phone card's own " +
-      "string, kept separate because the original ships different copy at this width. It is " +
-      "not a shortened version of the slide above, and it is not this client's wording " +
-      "either. Replace both before this route is indexed.",
-    a11y: {
-      controls: "Slideshow pagination controls",
-      portraitAlt: "{name}, {role}",
-    },
-  },
 };

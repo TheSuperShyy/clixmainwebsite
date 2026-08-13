@@ -18,13 +18,15 @@
  * | h3 box         | `490 × 96.8` 2ln | `944 × 88` 2ln   | `358 × 70.4` 2ln |
  * | p box          | `726 × 46.8` 2ln | `944 × 20.8` 1ln | `358 × 62.4` 3ln |
  * | image          | `1440 × 596`     | `1024 × 596`     | `390 × 300`      |
- * | `Top` height   | 316.8            | 348.8            | 372.8            |
+ * | `Top` height   | 316.8            | 288.8            | 312.8            |
  *
- * The three `Top` heights reconcile exactly, which is the check that the empty slot below is
- * real rather than a probe artefact:
- *   ≥1200   192 + max(20 + 8 + 96.8, 46.8 + 24 + 36)   = 192 + 124.8 = 316.8 ✓
- *   tablet  128 + (20 + 8 + 88) + 24 + (20.8 + 24 + 36) = 128 + 220.8 = 348.8 ✓
- *   phone   128 + (20 + 8 + 70.4) + 24 + (62.4 + 24 + 36) = 128 + 244.8 = 372.8 ✓
+ * The heights reconcile exactly, which is the check that the empty slot below is real rather
+ * than a probe artefact. The `+ 24 + 36` term each line USED to carry was the CTA's gap and
+ * button; it went with the button on 2026-08-13, which is why two of the three shrank by 60
+ * and the widest did not move at all:
+ *   ≥1200   192 + max(20 + 8 + 96.8, 46.8)   = 192 + 124.8 = 316.8 ✓ (was 316.8 — see below)
+ *   tablet  128 + (20 + 8 + 88) + 24 + 20.8  = 128 + 160.8 = 288.8 ✓ (was 348.8)
+ *   phone   128 + (20 + 8 + 70.4) + 24 + 62.4 = 128 + 184.8 = 312.8 ✓ (was 372.8)
  *
  * ⚠️ THE EMPTY 20px EYEBROW SLOT IS REAL AND STAYS. The capture has `.framer-bzskua`
  * (`min-height:20px`) above the h3, wrapped in `.framer-ye5kjr`, and it renders nothing at
@@ -34,12 +36,16 @@
  * the whole band. `ye5kjr`'s own `gap:20px` is inert — it has exactly one child — so the two
  * nested divs collapse into the single one below with no layout difference.
  *
- * ⚠️ `/careers` MAY NOT EXIST YET. It is being built concurrently by a separate session in
- * this same working tree (see the warning at the top of CONTEXT.md). The CTA points at
- * `/careers` regardless. If it 404s, that is the integration point, not a bug in this file —
- * and per the house rule recorded at Nav.tsx:79-84, repointing an unresolved slug at some
- * other destination would be "a wrong destination dressed up as a working link", which is
- * worse than a 404. Leave it.
+ * ⚠️ `/careers` NO LONGER EXISTS, AND THIS BAND HAS NO CTA. The route was built on
+ * 2026-08-12 and deleted on 2026-08-13 at the user's call; the "See Careers" button that
+ * pointed at it came out with it rather than being repointed. See the note where it used to
+ * sit for the reasoning and for what that did to the heights below.
+ *
+ * ⚠️ SO THE NAME OF THIS FILE NOW OVERSTATES IT. `CompanyCareers` is Block 5 of /company and
+ * it is still a recruiting band — headline, paragraph, photograph — but it is no longer the
+ * entrance to a careers PAGE, because there isn't one. It was left named after its Framer
+ * origin rather than renamed, since `Reiteration` is what the capture calls it and every
+ * reference in FEATURE.md and CONTEXT.md uses the current name.
  *
  * ⚠️ THE PHOTOGRAPH IS STOCK, NOT CLIX'S TEAM. Supplied by the user on 2026-08-12, replacing
  * the Old Jaffa placeholder that shipped in 7cd0e05 (both stock sources had refused an
@@ -62,7 +68,6 @@
  * there are no brackets here.
  */
 
-import AppLink from "@/components/ui/AppLink";
 import { getDict } from "@/lib/i18n/server";
 
 export default function CompanyCareers() {
@@ -139,9 +144,12 @@ export default function CompanyCareers() {
             </h2>
           </div>
 
-          {/* The paragraph-and-CTA column — gap 24, left-aligned, `flex:1 0 0` from 1200 up.
-              `items-start` is measured and load-bearing: the CTA's width is intrinsic, so
-              without it the button would stretch to the column. */}
+          {/* The paragraph column — gap 24, left-aligned, `flex:1 0 0` from 1200 up. It was
+              the paragraph-AND-CTA column until 2026-08-13; the gap is kept because it is the
+              measured value and the column can hold a second child again without re-deriving
+              it. `items-start` is measured; it was load-bearing for the CTA (whose width was
+              intrinsic and would otherwise have stretched to the column) and is now inert on a
+              `w-full` paragraph — kept for the same reason as the gap. */}
           <div className="flex w-full flex-col items-start justify-center gap-6 overflow-hidden desktop:w-px desktop:flex-[1_0_0]">
             {/* Body preset: 18px from 1200, 16 below; 130%, −0.02em. Unlike this page's other
                 intros this one is `ink`, not `muted` — the capture sets
@@ -158,51 +166,31 @@ export default function CompanyCareers() {
               {t.body}
             </p>
 
-            {/* The CTA. Measured `124 × 36` — the 40px the outer frame suggests is the Framer
-                container, not the button. Height is pinned with `h-9` so it lands on 36
-                exactly; `py-2` around the 20px label row would give the same 36 on its own,
-                and both are written because both are measured.
+            {/* ⚠️ THE CTA WAS HERE AND IS GONE (2026-08-13, user: "also remove the whole
+                careers route and page"). It read "See Careers" and pointed at `/careers`,
+                which was this band's whole funnel and the LAST link into that route from
+                anywhere on the site.
 
-                WIDTH IS `min-w`, NOT `w`. The capture's rule is literally `width: min-content`
-                and 124 is what min-content produced in rogo's Inter Medium; "See Careers" in
-                Discovery measures 113.13, so the rule alone lands 11px short of the reference
-                box. A hard `w-[124px]` would close that but is the wrong instrument on a
-                button that is `overflow:hidden` — any future label wider than 124 would be
-                silently clipped rather than show the mismatch. `min-w-[124px]` hits the
-                measured 124 today (the label has 5.4px of slack each side) and grows instead
-                of clipping if the label or the face ever changes.
+                It was REMOVED rather than REPOINTED, and that is this repo's own rule, not a
+                shortcut: Nav.tsx:79-84 says an unresolved slug aimed at some other
+                destination is "a wrong destination dressed up as a working link", which is
+                worse than a 404. There is no page this button could honestly go to now — the
+                paragraph already ends "come talk to us", and the nav CTA is the site's one
+                real contact path.
 
-                NO `border`. Framer paints this button's 1px `rgba(168,162,158,0)` edge with
-                `[data-border]::after`, so it costs no layout space and, being fully
-                transparent, paints nothing. A real border here would render the box 38 tall.
-                Same reading as the grid rules in CompanyServices.tsx.
-
-                An inert `width:auto; height:auto` Framer wrapper between the column and this
-                <a> is dropped rather than copied. */}
-            <AppLink
-              href="/careers"
-              className="flex h-9 w-fit min-w-[124px] shrink-0 cursor-pointer items-center justify-center
-                         gap-2 overflow-hidden rounded-[6px] bg-ink px-4 py-2 no-underline
-                         transition-opacity duration-300 hover:opacity-90 active:opacity-80
-                         focus-visible:ring-2 focus-visible:ring-ink
-                         focus-visible:ring-offset-2 focus-visible:ring-offset-paper
-                         focus-visible:outline-none"
-              /* `active:opacity-80` is the one state neither Footer.tsx nor ProductHero.tsx
-                 declares. It is the same property and the same easing as the hover they do
-                 declare, one stop further along, rather than a new mechanism. */
-              style={{ transitionTimingFunction: "var(--ease-rogo)" }}
-            >
-              {/* The site's fixed button-label anatomy: a 20px row with a 1px optical top
-                  nudge. `whitespace-pre` is required — the <a> is width:min-content. */}
-              <span className="flex h-5 items-center justify-center gap-[10px] pt-px">
-                <span
-                  className="font-sans text-[16px] font-medium whitespace-pre text-paper"
-                  style={{ lineHeight: "100%", letterSpacing: "-0.01em" }}
-                >
-                  {t.ctaLabel}
-                </span>
-              </span>
-            </AppLink>
+                ⚠️ THE MEASURED HEIGHTS ABOVE MOVED, AND ONLY AT TWO TIERS. Losing the 36px
+                button plus the column's 24px gap takes 60px out of this column:
+                  · ≥1200  UNCHANGED at 316.8 — the row is `items-end` and the TITLE column
+                           (124.8) was already the taller of the two, so the shorter column
+                           beside it never set the height. 46.8 replaces 106.8; 124.8 still
+                           wins.
+                  · tablet 348.8 → 288.8
+                  · phone  372.8 → 312.8
+                `items-end` is therefore still load-bearing at ≥1200 and now sits the
+                paragraph's last line on the headline's, which is the same device doing the
+                same job with a shorter partner. If a CTA ever comes back here, restore it
+                from git history — the measured `124 × 36` box, the `min-w` reasoning and the
+                no-border reading are all in the version of this file before 2026-08-13. */}
           </div>
         </div>
       </div>

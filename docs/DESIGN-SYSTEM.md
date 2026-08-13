@@ -48,6 +48,37 @@ uses 6** — the rest belong to other pages in the same Framer project.
 *(Still true. The `/clix` page below does have one — that is a per-page fact, not a licence
 to carry it onto home.)*
 
+### Added 2026-08-13 — the banner ticker's candlestick chart
+
+| Token | Value | Uses | Role |
+|---|---|---|---|
+| `price-low` | `#4ade80` | ×1 | candle that closed up; and the cheap end of the price scale |
+| `price-high` | `#f87171` | ×1 | candle that closed down; and the dear end |
+
+Both hexes are the ones measured for the old stock ticker's day-change in the 2026-08-08 pass
+and cleared AA on `banner` then — **10.6:1** and **6.4:1**; the background is unchanged, so the
+contrast carries over. They appear nowhere but inside `ModelTicker`'s 59×20px chart.
+
+⚠️ **THE TOKENS CARRY TWO READINGS, AND THE NAMES ARE PICKED FOR THE ONE THAT IS NOT OBVIOUS.**
+On the candles themselves green means *closed up*, the ordinary market convention. But across
+this project green means the **cheap** end of a price scale — because the number is a *price*,
+and a price going up is bad news for whoever is reading it (2026-08-13, user's call when
+asked). The names say `low`/`high` rather than `up`/`down` so a call site reaching for the
+familiar market word cannot silently get the project meaning backwards. The chart reconciles
+the two by drifting cheap models upward, so a green-heavy chart still reads "cheap for this
+field".
+
+⚠️ **THE CHART THEY COLOR IS DECORATION, NOT DATA**, on the user's explicit instruction after
+the constraint was put to them three times: a list price has no time series, so a candlestick's
+open/high/low/close are all generated. See `ModelTicker.tsx` and `features/nav/CONTEXT.md`.
+**Nothing may ever be annotated onto it** — no axis, tick, tooltip or percentage. That rule is
+the whole of what keeps these two colors decoration rather than a fabricated figure sitting
+beside real vendor pricing.
+
+**Regarding the "home page is monochrome" rule above:** this is a departure from it, taken
+knowingly and scoped to one 59×20px chart on the `banner` strip. It is not a licence for a
+second one. Anything that wants a green accent wants `forest`, and `forest` belongs to `/clix`.
+
 ### Added 2026-08-09 — `/clix` (clone of `rogo.com/felix`)
 
 | Token | Value | Uses | Role |
@@ -164,25 +195,29 @@ both live on `/clix`. Still zero uses on **home**, and still not to be introduce
 
 ---
 
-## Added 2026-08-12 — `/careers`
+## Added 2026-08-12, RETIRED 2026-08-13 — `/careers`
 
-Three colours the careers clone needs that nothing here covered. Measured off the live page
-over CDP, not sampled from a screenshot. All three are wired into the `@theme` block of
-`src/app/globals.css`.
+⚠️ **ALL THREE ARE OUT OF `@theme` AND THIS TABLE IS NOW THE ONLY RECORD OF THEM.** The route
+they were added for was deleted on 2026-08-13 (user: "also remove the whole careers route and
+page"), which took the last use of the last live one with it. **The values stay written down
+here on purpose** — that was the whole argument for keeping the two idle ones in `@theme` on
+2026-08-12 ("re-deriving them would mean re-probing a live site for two hex codes"), and it is
+satisfied better by a row in this file than by a dead custom property in the stylesheet.
 
-| Token | Value | Where it is used | Contrast |
+Measured off the live page over CDP, not sampled from a screenshot. **Restore from here, not
+from a fresh probe**, if `/careers` is ever rebuilt (its components are in commit `1cc9fda`'s
+parent; the `#roles` band that used the first two is one further back, in `bbf10b1`).
+
+| Token | Value | What it was | Contrast |
 |---|---|---|---|
-| `signal-green` | `#19a26c` | ⚠️ **IDLE since 2026-08-12** — was the 8×8 r20 status dot in `N open positions` | decorative; was exempt from the floor |
-| `glyph` | `#afafaf` | ⚠️ **IDLE since 2026-08-12** — was the 24×24 corner-turn arrow on each role row | 8.33:1 on `ink`, and it was an icon |
-| `control-scrim` | `#00000033` | **live** — behind the carousel's two 40×40 Prev/Next buttons | n/a — covered by an opaque white SVG circle |
+| `signal-green` | `#19a26c` | the 8×8 r20 status dot in `N open positions` — idle from 2026-08-12, gone 2026-08-13 | decorative; was exempt from the floor |
+| `glyph` | `#afafaf` | the 24×24 corner-turn arrow on each role row — idle from 2026-08-12, gone 2026-08-13 | 8.33:1 on `ink`, and it was an icon |
+| `control-scrim` | `#00000033` | behind the carousel's two 40×40 Prev/Next buttons — live until 2026-08-13 | n/a — covered by an opaque white SVG circle |
 
-⚠️ **`signal-green` and `glyph` went idle when the `#roles` band was removed** (user, same day:
-"remove this section we dont need job offering for now"). Both are kept in `@theme` rather than
-deleted — they are the target's own measured values, the band restores from commit `bbf10b1`,
-and re-deriving them would mean re-probing a live site for two hex codes. **Do not introduce
-them anywhere else** to justify their presence; that is how a palette drifts.
+**Do not reintroduce any of the three anywhere else** to justify keeping them; that is how a
+palette drifts. `#19a26c` returns to the "declared but unused" list it left on 2026-08-12.
 
-`glyph` is deliberately not `mark` (`#8b8b8b`): the original paints the arrow two steps
+`glyph` was deliberately not `mark` (`#8b8b8b`): the original paints the arrow two steps
 lighter than the label beside it, and collapsing the pair flattens the row's hierarchy.
 
 ## Added 2026-08-12 — `/security`

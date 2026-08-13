@@ -102,7 +102,8 @@ export const product: Translated<ProductDict> = {
        the English does not repeat itself there either.
        ⚠️ `ink` KEEPS ITS LEADING SPACE. It is the word gap across the colour boundary, and
        there is no `<br>` here: the two runs flow as one balanced sentence, so unlike the
-       `benefits` and `security` headings below, either fragment MAY wrap internally. */
+       `benefits` heading below, either fragment MAY wrap internally. (The `security` heading
+       was the other such case until that block left this route on 2026-08-13.) */
     muted: "כל עסק רץ על מאה העברות שאף אחד לא אחראי עליהן,",
     ink: " clix בונה את המערכות שמייתרות אותן.",
   },
@@ -211,12 +212,18 @@ export const product: Translated<ProductDict> = {
           "היום. שאלו אותה שאלה בשפה פשוטה וקבלו תשובה שאפשר להחזיר עד לרשומה עצמה.",
       },
       {
-        /* AUTHORED. */
-        title: "דוחות לפי דרישה",
-        /* AUTHORED. */
+        /* AUTHORED. ⚠️ WAS `דוחות לפי דרישה` (Reports On Demand) until 2026-08-13 — the
+           target's product, not clix's. See the English file for why the card changed.
+           `נציג` rather than `אדם`: the site's own register for a person on the other end of a
+           customer conversation, and it carries no gender for the customer to trip over. */
+        title: "נענה או מועבר לנציג",
+        /* AUTHORED. Vocabulary is the capture's own: `עוזר`, `יומן`, `מעקב` and `ב-WhatsApp`
+           all appear in services.bodyText / industries.bodyText.
+           ⚠️ THE PREFIX HYPHEN STAYS on `ב-WhatsApp`, `ל-CRM` — orthography, not style; see the
+           file header's carve-out to the no-dashes rule. */
         body:
-          "מצגות, סיכומים וגיליונות שנבנים מאותם נתונים שהצוות שלכם עובד בהם. המספרים נשארים " +
-          "עקביים, התבנית נשארת שלכם, וקובץ המקור נשלח לצד כל ייצוא.",
+          "עוזר ב-WhatsApp Business שקובע פגישות, שולח הצעות ועושה מעקב, מחובר ליומן, " +
+          "ל-CRM ולתשלומים שלכם. ברגע שנדרשת החלטה השיחה עוברת לנציג, עם כל ההתכתבות.",
       },
     ],
     /*
@@ -333,23 +340,25 @@ export const product: Translated<ProductDict> = {
       /* AUTHORED ×3 — acquisition channels, not company names, exactly as the English is. */
       rows: ["לידים מ-WhatsApp", "אירועים", "חיפוש ממומן"],
     },
-    material: {
-      /* AUTHORED. */
-      assembling: "מרכיב את המצגת...",
-      /* AUTHORED ×3 — three explicit lines at measured y 75.5 / 123.5 / 171.5. The break
-         positions are the reference's, so this is three strings and not one paragraph.
-         Measured 418 / 361 / 447 source units against a 610-unit measure. */
-      prose: [
-        "הנה המצגת שלכם. בניתי אותה",
-        "על התבנית שלכם, וצירפתי",
-        "את מקורות הנתונים לכל שקופית.",
-      ],
-      /* AUTHORED. The `(2)` is a numeral. */
-      exportsLabel: "ייצוא (2)",
-      /* AUTHORED ×2 — the STEM translates, the extension does not: `.pptx` and `.xlsx` are
-         keyed to the P and X badges rendered beside them. Measured 333 / 309 source units
-         against the 454 a label has before the download glyph at x=548. */
-      exports: ["הטמעת אוטומציות.pptx", "גיבוי הרצות תהליך.xlsx"],
+    handoff: {
+      /* NOT TRANSLATED — a product name, and the one the customer sees on their own phone. */
+      channel: "WhatsApp Business",
+      /* AUTHORED ×5 — a booking thread that ends in a handoff. Register is a real customer
+         texting a business: short, lowercase-feeling, no marketing voice.
+         ⚠️ THESE ARE `whitespace-nowrap` INSIDE FIXED-WIDTH BUBBLES and cannot wrap — they can
+         only run past the bubble's edge, which is why they are this short. Measured against the
+         bubble insets in workflowMocks.tsx; Hebrew is shorter than English in all four, so
+         English is the binding case and these clear it with room. */
+      inbound1: "יש משהו פנוי בחמישי?",
+      /* ⚠️ NO GENDERED VERB FOR THE ASSISTANT. `אפשר לשמור` is impersonal where the English
+         "I can hold one" is not — Hebrew would force יכול/יכולה on a piece of software and
+         invite the reader to assign it a gender. The impersonal form says the same thing. */
+      outbound: ["14:00 ו-16:30 פנויים.", "אפשר לשמור אחד עכשיו."],
+      inbound2: "16:30. אפשר 10% הנחה?",
+      /* Invented mock chrome, as the English is. `·` needs no translation. */
+      handoffTo: "מאיה · מכירות",
+      /* ⚠️ NO EM DASH — the `·` carries the break, matching the English and the file's own rule. */
+      handoffReason: "התבקשה הנחה · הועבר לנציג",
     },
   },
 
@@ -452,167 +461,4 @@ export const product: Translated<ProductDict> = {
     },
   },
 
-  security: {
-    /* AUTHORED — the same word he/chrome.ts uses for this route's nav slot. */
-    eyebrow: "אבטחה",
-    /* AUTHORED ×2. ⚠️ TWO FRAGMENTS ACROSS A `<br>` AND THE BREAK IS THE COLOUR BOUNDARY:
-       `muted` above, `paper` below. Neither fragment may wrap on its own. The tightest measure
-       is the phone tier's 310px at 32px (this heading is inside the dark card's own padding,
-       not the section's), and Hebrew sets 177.6px and 178.1px there against English's 217.8px
-       and 207.8px. Both one line at all three tiers, as English's two are.
-       `מהיסוד` for "by Design": a posture, not an audit claim, which is the whole reason the
-       English kept that half verbatim when the other half was rewritten. */
-    headingMuted: "נבנה לענן שלכם",
-    headingPaper: "מאובטח מהיסוד",
-    /* AUTHORED ×4 — practice statements, positional against four glyphs (padlock, cloud,
-       shield, `</>`). One line each at every tier in both locales.
-       ⚠️ `הצפנה מקצה לקצה` translates the English as written and inherits its flag: strictly,
-       end-to-end encryption is a stronger promise than "encrypted in transit and at rest", and
-       ProductSecurity.tsx says so. Translated, not corrected — the English is the thing to
-       confirm, and correcting it in one locale only would hide the question. */
-    list: [
-      "אין אימון על הנתונים שלכם",
-      "שיטות עבודה מודרניות ומאובטחות",
-      "הצפנה מקצה לקצה",
-      "נסקר ונבדק",
-    ],
-    /* AUTHORED ×4. ⚠️ PRACTICE STATEMENTS, NOT CERTIFICATIONS. The cells shipped as
-       SOC2 / CCPA / ISO 27001 / GDPR until 2026-08-12 and were replaced because clix holds
-       none of the audited ones. The capture DOES contain the string `SOC 2 · GDPR`
-       (services.bodyText, inside the AI-strategy mock) and it is deliberately NOT lifted here:
-       a seal on a security block is a claim, whatever it is in a mock.
-       Measured at 137px: two lines, two lines, one, one — against English's two, one, one, one.
-       Two is the ceiling; three would collide with the centred 104px mark. */
-    badges: [
-      "הענן שלכם, החשבונות שלכם",
-      "הנתונים שלכם נשארים שלכם",
-      "גישה בהרשאות מינימום",
-      "הקוד בבעלותכם",
-    ],
-    /* AUTHORED. `whitespace-pre`, so it cannot wrap: 79.7px against English's 80.0px, which is
-       as close as this pass gets to a free win. The real site's own equivalents
-       (`לכל היכולות שלנו`, `לכל העבודות שלנו`) both name a destination this link does not go
-       to, so neither is lifted. */
-    link: "לפרטים נוספים",
-  },
-
-  testimonials: {
-    /*
-     * ⚠️⚠️ THE QUOTES BELOW ARE PLACEHOLDERS ATTRIBUTED TO REAL, NAMED PEOPLE, EXACTLY AS THE
-     * ENGLISH ONES ARE. Read the warning block at the top of ProductTestimonials.tsx. The route
-     * stays `robots: { index: false, follow: false }` in BOTH locales until real, approved
-     * wording replaces every one of them.
-     *
-     * THE `[PLACEHOLDER QUOTE, NOT SOMETHING X SAID]` TAG IS KEPT IN ENGLISH, DELIBERATELY, and
-     * this is the one place in this file where an English run is the right answer:
-     *   · the tag is a warning to whoever ships this, not copy for a reader. English capitals
-     *     on a Hebrew page are unmistakable — it cannot be misread as content, which is the
-     *     entire function of the device.
-     *   · ProductTestimonials.tsx's four-step launch checklist says "replace every string
-     *     tagged `[PLACEHOLDER QUOTE ...]`". That is a grep. Translating the tag would take the
-     *     Hebrew strings out of it and they would be the ones left behind.
-     * The prose after the tag IS Hebrew, and it talks about the client in the THIRD PERSON with
-     * no quotation marks, so the grammar breaks the illusion in Hebrew too. NO PRONOUNS: two of
-     * the six are people whose pronouns nobody here has been told, and one is a company.
-     *
-     * NAMES AND ROLES ARE SOURCED — home.bodyText's own testimonial rail names four of these
-     * six clients with their roles, using `·` as the separator, which is why the Hebrew roles
-     * are not comma-joined the way the English ones are.
-     *
-     * MEASURED: the phone cards are FIXED-HEIGHT boxes (505px for slot 1, 334px for the rest)
-     * with the text pinned above a fixed author block, so a long quote clips. Caps are 12 lines
-     * and 8 lines at 20px/1.3em in a 310px measure. Hebrew sets 5 / 5 / 5 / 5 / 6 lines for
-     * cards 2 to 6 and 8 for card 1, against English's 5 / 6 / 5 / 5 / 6 and 9.
-     */
-    slides: [
-      {
-        /* AUTHORED (placeholder). */
-        quote:
-          "[PLACEHOLDER QUOTE, NOT SOMETHING ASAF PERETZ SAID] אין ל-clix עדות בכתב מהלקוח " +
-          "הזה ואף נוסח לא אושר. הפסקה הזאת היא פיגום פריסה, באורך שהציטוט האמיתי צפוי " +
-          "לתפוס, והיא נמצאת כאן כדי להימחק ברגע שמשפט מאושר יחליף אותה.",
-        /* SOURCED ×2 — home.bodyText, the testimonial rail: `אסף פרץ` / `מייסד · SalesIQ`. */
-        name: "אסף פרץ",
-        role: "מייסד · SalesIQ",
-      },
-      {
-        /* AUTHORED (placeholder). */
-        quote:
-          "[PLACEHOLDER QUOTE, NOT SOMETHING ADIR PERETZ SAID] אין נוסח מאושר ללקוח הזה. " +
-          "הטקסט הממלא הזה רץ בקירוב לאורך שהנוסח האמיתי אמור לתפוס.",
-        /* SOURCED ×2 — home.bodyText: `אדיר פרץ` / `בעלים · סטודיו וידאו וצילום`. */
-        name: "אדיר פרץ",
-        role: "בעלים · סטודיו וידאו וצילום",
-      },
-      {
-        /* AUTHORED (placeholder). */
-        quote:
-          "[PLACEHOLDER QUOTE, NOT SOMETHING NEVO YAHALOMAN SAID] שום דבר בכרטיס הזה לא נאמר " +
-          "על ידי הלקוח הזה. המילים הן פיגום פריסה ויש להחליף אותן לפני ההשקה.",
-        /* SOURCED ×2 — home.bodyText: `נבו יהלומן` / `מייסד`. */
-        name: "נבו יהלומן",
-        role: "מייסד",
-      },
-      {
-        /* AUTHORED (placeholder). */
-        quote:
-          "[PLACEHOLDER QUOTE, NOT SOMETHING NOAM TOVI SAID] טקסט ממלא מקום במקום משפט שהלקוח " +
-          "הזה מעולם לא התבקש לתת. להחליף לפני ההשקה.",
-        /* SOURCED ×2 — home.bodyText: `נועם תובי` / `בעלים · השקעות`.
-           ⚠️ THE PHOTOGRAPH MAY NOT BE THIS PERSON, and that is unresolved in BOTH locales: the
-           video's own burned-in caption reads `אני נווה דוידי`. See the note in
-           ProductTestimonials.tsx. The Hebrew name here is the repo's label, not a resolution
-           of that conflict. */
-        name: "נועם תובי",
-        role: "בעלים · השקעות",
-      },
-      {
-        /* AUTHORED (placeholder). */
-        quote:
-          "[PLACEHOLDER QUOTE, NOT SOMETHING ACHITUV SAID] טקסט ממלא מקום במקום משפט שהלקוח " +
-          "הזה מעולם לא התבקש לתת. להחליף לפני ההשקה.",
-        /* ⚠️ AUTHORED TRANSLITERATION, AND BOTH HALVES ARE UNVERIFIED. This client is NOT in
-           the capture's testimonial rail, and sections/Testimonials.tsx already flags the ROLE
-           as read off an uploaded filename rather than given. `אחיטוב` is the standard Hebrew
-           spelling of the given name and is safe; `ותחזנה` is a plausible reading of
-           "Vtechezena" and nothing here can confirm it. GET BOTH FROM THE CLIENT before this
-           route is indexed — it is on the same list as the placeholder quotes. */
-        name: "אחיטוב",
-        role: "ותחזנה",
-      },
-      {
-        /* AUTHORED (placeholder). */
-        quote:
-          "[PLACEHOLDER QUOTE, NOT SOMETHING ELYASHIV ENGINEERING SAID] טקסט ממלא מקום במקום " +
-          "משפט שהלקוח הזה מעולם לא התבקש לתת. להחליף לפני ההשקה.",
-        /* ✅ NOT A TRANSLITERATION AND NOT UNVERIFIED — corrected at reconciliation.
-           This string is the USER'S OWN, supplied 2026-08-08, and the English "Elyashiv
-           Engineering" is a rendering OF it rather than the other way round. See
-           sections/Testimonials.tsx:62-68: the clip arrived as an unlabelled WhatsApp video with
-           no burned-in caption, no name card and container metadata holding only
-           `language=und`, and the user gave the attribution as אלישיב הנדסה
-           (הנדסה is the word *engineering*). So on /he the user's original ships and
-           there is nothing to confirm. A THIRD provenance kind: user-supplied, neither
-           capture-sourced nor authored here. `אחיטוב`/`ותחזנה` above is genuinely
-           unverified and does still need the client. */
-        name: "אלישיב הנדסה",
-        role: "",
-      },
-    ],
-    /* AUTHORED (placeholder). Slot 1's own phone string — the original ships different copy at
-       ≤809 and the placeholders keep that quirk structurally so it survives the real wording. */
-    phoneLeadQuote:
-      "[PLACEHOLDER QUOTE, NOT SOMETHING ASAF PERETZ SAID] זה הטקסט הנפרד של כרטיס הטלפון, " +
-      "שנשמר בנפרד כי המקור מגיש כאן נוסח אחר ברוחב הזה. זו לא גרסה מקוצרת של השקופית " +
-      "שלמעלה, וגם לא הנוסח של הלקוח הזה. יש להחליף את שניהם לפני שהנתיב הזה מאונדקס.",
-    a11y: {
-      /* AUTHORED ×2. The arrows' own labels are NOT here — they come from `chrome.a11y.previous`
-         and `chrome.a11y.next`, which the spine already ships in both locales. */
-      controls: "פקדי ניווט במצגת",
-      /* The comma-space glue is identical in Hebrew, but it is a template rather than a
-         hard-coded `${name}, ${role}` in the component so the punctuation is a translator's
-         decision and not a developer's. */
-      portraitAlt: "{name}, {role}",
-    },
-  },
 };

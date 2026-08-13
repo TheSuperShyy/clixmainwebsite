@@ -119,9 +119,6 @@ export const company = {
     body:
       "We are looking for engineers who want to ship systems real businesses depend on. " +
       "If that is you, come talk to us.",
-    /* `whitespace-pre` inside a `min-w-[124px]` anchor that is also `overflow-hidden`: it grows
-       rather than clips, but it cannot wrap. */
-    ctaLabel: "See Careers",
     /* The full-bleed photograph. STOCK, not clix's team — see CompanyCareers.tsx:44-56. The
        `alt` describes what is depicted and claims nothing about who is in it. */
     photoAlt:

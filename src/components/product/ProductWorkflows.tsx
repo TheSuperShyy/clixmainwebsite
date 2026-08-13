@@ -21,7 +21,7 @@
  * than stretching. The three mocks live in workflowMocks.tsx.
  */
 
-import { MockWorkflow, MockTable, MockMaterial } from "@/components/product/workflowMocks";
+import { MockWorkflow, MockTable, MockHandoff } from "@/components/product/workflowMocks";
 import { getDict } from "@/lib/i18n/server";
 
 /* Copy lives in the dictionary (`workflows.title`, `workflows.cards`), written to the capture's
@@ -31,7 +31,7 @@ import { getDict } from "@/lib/i18n/server";
    The three ART components are POSITIONAL and stay here: they are mock UI, not copy, and
    pairing a card with the wrong illustration is a worse failure than any wording. Zipped with
    `workflows.cards` by index, which the tuple typing holds at three. */
-const ART = [MockWorkflow, MockTable, MockMaterial] as const;
+const ART = [MockWorkflow, MockTable, MockHandoff] as const;
 
 export default function ProductWorkflows() {
   const t = getDict().product.workflows;

@@ -65,8 +65,18 @@ import type { ModelPrice } from "@/lib/models";
    is the budget for any further growth — past ~38px the bar itself starts moving. */
 const MARK_SIZE = 28;
 
-/* Seven slots, deliberately — the row's spacing and its 1200px collapse were measured
-   against seven items, so the count is layout, not content.
+/* SIX slots as of 2026-08-13, seven before it — the row's spacing and its 1200px collapse
+   were measured against SEVEN items, so the count is layout, not content, and dropping one is
+   a layout change even though it looks like a content one.
+
+   ⚠️ WHAT CAME OUT AND WHY IT IS SAFE. `Careers` was slot 7; the user removed the route
+   ("also remove the whole careers route and page"), so the label had nowhere to go and a
+   label pointing at a 404 is worse than no label. The row is `absolute left-1/2
+   -translate-x-1/2` — centred on the bar, not packed against the logo — so removing an item
+   SHRINKS it symmetrically and can only increase the clearance the 1200-tier measurement was
+   protecting. That is why this needed no re-measure: the constraint is a maximum, and the row
+   moved away from it (~65px narrower in English, ~54px in Hebrew).
+   Re-measure the moment a slot is ADDED, which is the direction that can break.
 
    THE LABELS ARE THE TARGET'S OWN (2026-08-09, user: "follow the version of Rogo, which has
    the Felix product security company, customers, news, and careers. But instead of Felix,
@@ -81,7 +91,7 @@ const MARK_SIZE = 28;
    to the capture's 14px/60x24/Series-D; that would be undoing a decision, not completing one.
 
    `href: null` means INERT, and that is the point (2026-08-05, user: "make the navbar do
-   nothing for now or just scroll to each sections"). Only two of these seven have anything
+   nothing for now or just scroll to each sections"). Only two of these have anything
    on this page to go to, so those two scroll and the rest render as plain text — not as
    links to routes that would 404, and not as `#` which would jump to the top and look
    broken. An inert item is also not focusable, which is correct: there is nothing to
@@ -92,11 +102,18 @@ const MARK_SIZE = 28;
    section for — `#security`, and `#testimonials` which IS the customer-quote block. Carrying
    the old mapping across would have pointed `Clix` at `#services` and `Careers` at
    `#contact`, which is a wrong destination dressed up as a working link. `#services` and
-   `#contact` are now unreferenced from the link row; `#contact` is still the CTA's target. */
+   `#contact` are now unreferenced from the link row.
+
+   The CTA's own target changed on 2026-08-13, from `/#contact` to `/contact`: that anchor was
+   a scroll to the footer, and /contact is now a real page with a real form. AppLink applies
+   `localeHref`, so the Hebrew nav sends you to /he/contact. */
 /* LABELS MOVED TO THE DICTIONARY (2026-08-12, Hebrew locale). This array is now the
    DESTINATIONS and their order; the visible text comes from `chrome.nav.labels[i]`, which is a
-   fixed-length 7-tuple for exactly that reason — "seven slots, deliberately" is a type now, not
-   just a comment, so a locale that supplies six labels fails the build.
+   fixed-length TUPLE for exactly that reason — the slot count is a type, not just a comment,
+   so a locale that supplies the wrong number of labels fails the build. ⚠️ THE TUPLE IS THE
+   REASON A SLOT CANNOT BE DROPPED HERE ALONE: removing an entry from this array without
+   shortening `NavLabels` and BOTH locales' `labels` is a type error, which is exactly the
+   intent — the arity is checked, not trusted.
 
    `key` replaces `label` as the React key on purpose: a key that changed with the locale would
    remount every item on a language switch. */
@@ -129,14 +146,6 @@ const LINKS: { key: string; href: string | null }[] = [
   { key: "customers", href: "/#testimonials" },
   /* Live since 2026-08-11 — /news is the rogo.com/news clone carrying the AI digest. */
   { key: "news", href: "/news" },
-  /* Live as of 2026-08-12: `/careers` exists (clone of rogo.com/careers). Same rule — the slot
-     gets its href the moment its page does. Fourth ROUTE in this list, and the last `null` in
-     it apart from none: every label now resolves.
-     ⚠️ /careers is `noindex` for two content reasons, neither of them design: the hero and
-     mission copy are still rogo's verbatim, and the three job rows are invented. A job listing
-     solicits an application, so an invented one is worse than an invented testimonial — but
-     that is a crawler directive, not a reason to hide a reachable page from the nav. */
-  { key: "careers", href: "/careers" },
 ];
 
 /* Each page section declares which of these it is, via `data-nav-theme`. Anything the nav
@@ -578,7 +587,7 @@ export default function Nav({
                 {/* Panel is `bg-ink` in every theme state, so `light` is unconditionally false
                     here — the dark-surface palette always applies. */}
                 <LocaleToggle light={false} />
-                <NavButton variant="inverse" light={false} href="/#contact">
+                <NavButton variant="inverse" light={false} href="/contact">
                   {t.nav.cta}
                 </NavButton>
               </div>
@@ -626,7 +635,7 @@ export default function Nav({
             >
               {/* Keyed on label, not href — inert items share a null href.
                 The inert ones render the SAME box (`h-9 px-3 py-2`) as the links, because
-                the row's spacing was measured against seven equal items; swapping one for a
+                the row's spacing was measured against equal items; swapping one for a
                 narrower element would shift the whole centred row. */}
               {LINKS.map((l, i) => {
                 const box =
@@ -677,7 +686,7 @@ export default function Nav({
                   (`left-1/2 -translate-x-1/2` below), which its own comment says is deliberate
                   so the links stay optically centred however wide the button group gets. */}
               <LocaleToggle light={light} />
-              <NavButton variant="inverse" light={light} href="/#contact">
+              <NavButton variant="inverse" light={light} href="/contact">
                 {t.nav.cta}
               </NavButton>
             </div>

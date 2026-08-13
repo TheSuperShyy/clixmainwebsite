@@ -7,8 +7,28 @@ Reading this file plus `FEATURE.md` should be enough to resume work cold, with n
 
 ## Current state
 
-**Status:** `review` — built, measured, verified, and committed to `dev` on 2026-08-12
-(page + copy pass in one commit).
+**Status: `removed`.** ⚠️ **THE PAGE IS GONE AS OF 2026-08-13** — user: *"also remove the whole
+careers route and page"*. It was built, measured and verified on 2026-08-12 and lived for one
+day. Everything below the "## Log" heading describes a page that no longer renders; it is kept
+because the measurements are real and re-deriving them would mean re-probing a live site.
+
+**What was deleted, exhaustively** (one commit; the parent of that commit restores all of it):
+
+| | |
+|---|---|
+| routes | `src/app/(en)/careers/page.tsx`, `src/app/he/careers/page.tsx` |
+| body | `src/app/_routes/CareersRoute.tsx` |
+| components | `src/components/careers/` — `CareersHero`, `CareersGallery`, `CareersAbout`, `careersPhotos.ts` |
+| copy | `src/lib/i18n/{en,he}/careers.ts` + the `careers` field on `Dict` |
+| images | `public/careers/team-0{1..8}.jpg` |
+| nav | slot 7 in `Nav.tsx`'s `LINKS`, the label in both `chrome.ts`, and `NavLabels` 7-tuple → 6-tuple |
+| tokens | `signal-green` `#19a26c` · `glyph` `#afafaf` · `control-scrim` `#00000033` — out of `@theme`, **values preserved** in `docs/DESIGN-SYSTEM.md` |
+| elsewhere | `/company` Block 5's "See Careers" CTA — the last link into this route from anywhere on the site |
+
+**What was NOT deleted:** this folder, including `assets/` (12 reference screenshots at four
+tiers) and the measured spec in `FEATURE.md`. Also kept: `docs/reference/target/rogo-careers-2026-08-12.{html,css}`,
+the capture itself.
+
 **Branch:** `dev` (user's explicit instruction 2026-08-12: *"dont create a career branch just stay
 in dev"*).
 
@@ -59,6 +79,50 @@ surfaces any route's compile error on all of them — expect that, it is not you
 ---
 
 ## Log
+
+### 2026-08-13 — the page is deleted; this folder becomes the archive
+
+User: *"also remove the whole careers route and page"*. Removed in full — see the table under
+"Current state" for the exhaustive list. Build after: **18 static routes, down from 20**
+(`/careers` and `/he/careers` both gone), `tsc` clean, no dangling `/careers` href anywhere in
+`src/`.
+
+**⚠️ THE TUPLE TYPE DID ITS JOB, WHICH IS THE ONE THING WORTH KEEPING FROM THIS.** `NavLabels`
+is a fixed-length tuple precisely so a locale cannot supply the wrong number of nav labels.
+Dropping the slot from `Nav.tsx`'s `LINKS` alone is a **type error** until `NavLabels` goes
+7 → 6 and BOTH `chrome.ts` files drop their label. That is the arity guard working in the
+delete direction, not just the add direction — a key-only scheme would have shipped a nav with
+seven labels and six destinations.
+
+**The nav row needed no re-measure, and the reason is directional.** Hebrew's seven labels were
+fitted against a SUM constraint at the 1200–1599 tier (467px Hebrew vs 552px English, 85px of
+clearance). The row is `absolute left-1/2 -translate-x-1/2` — centred, not packed — so removing
+an item shrinks it symmetrically and moves it AWAY from the constraint: roughly −65px English,
+−54px Hebrew. Re-measure on ADD; never needed on remove.
+
+**`/company` Block 5 lost its button, and that changed a measured page.** The "See Careers" CTA
+was the last link into `/careers` anywhere on the site. It was removed rather than repointed,
+following this repo's own rule from `Nav.tsx` — an unresolved slug aimed elsewhere is "a wrong
+destination dressed up as a working link", worse than a 404. Losing the 36px button plus the
+column's 24px gap takes 60px out of that column, and the effect is tier-dependent because the
+row is `items-end`:
+  · **≥1200 UNCHANGED at 316.8** — the title column (124.8) already set the height, so the
+    shorter column beside it never did. 106.8 → 46.8 and 124.8 still wins.
+  · **tablet 348.8 → 288.8**, **phone 372.8 → 312.8** — there the column WAS the height.
+`/company`'s "every band matches the target to 0.00px" claim is now false at two tiers, by
+design, and `docs/SECTIONS.md` says so rather than quietly keeping the old number.
+
+**The three colour tokens came OUT of `@theme` rather than being kept idle**, which reverses
+the 2026-08-12 decision to keep two of them. That decision's actual argument was "re-deriving
+them would mean re-probing a live site for two hex codes" — and that is satisfied by the row in
+`docs/DESIGN-SYSTEM.md`, which records all three values, better than by a dead custom property
+in the stylesheet. `#19a26c` returns to that file's "declared but unused" list.
+
+**Two questions this closes for free.** `/careers` was `noindex` and the route header said
+lifting it was the user's call; there is no route to lift it on now. And the eight carousel
+photographs — neutral stock chosen on a "no clear frontal face" rule, with the licence question
+still open — are out of the repo entirely.
+
 
 ### 2026-08-12 — `#roles` band and hero CTA removed (later still)
 

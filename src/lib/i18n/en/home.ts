@@ -89,6 +89,88 @@ export const home = {
       achituv: { name: "Achituv", role: "Vtechezena" },
       "elyashiv-engineering": { name: "Elyashiv Engineering", role: "" },
     },
+    /**
+     * The six client quotes, in `CLIP_IDS` order, read by `sections/QuoteCarousel.tsx`.
+     *
+     * ⚠️⚠️ THESE ARE TRANSLATIONS, AND THEY ARE THE ONLY STRINGS ON THIS PAGE THAT ARE NEITHER
+     * THE CLIENT'S WORDS NOR SOURCED FROM ANYWHERE.
+     *
+     * Every one of these six clients spoke HEBREW. The user supplied their wording on
+     * 2026-08-13 (`quote.md`, repo root) and `he/home.ts` carries it verbatim — that file is
+     * the source of truth for what was actually said. What sits below is a faithful English
+     * rendering written in-repo, because the English page needs one.
+     *
+     * So the usual direction of this file is INVERTED here. Everywhere else the English is
+     * authored and the Hebrew is a translation of it; in this one block the Hebrew is the
+     * original. If a client supplies their own English wording, it replaces the string below
+     * and the Hebrew does not change.
+     *
+     * ⚠️ THE QUOTES ARE ALSO THE SWITCH. `sections/Testimonials.tsx` decides between the video
+     * accordion and this carousel by testing whether all six are non-empty — a render flag
+     * could not do that job, because `PageDictProvider` serialises this whole namespace into
+     * the RSC payload and an unrendered string still ships. **Emptying any one of these six
+     * silently reverts the landing page to the accordion.** That is the intended failure mode,
+     * not a bug; read the block above `CLIP_IDS` there before changing it.
+     *
+     * ⚠️ LENGTH IS LAYOUT. `SLIDE_STYLE.quoteDesktop` in QuoteCarousel.tsx sets a per-slide font
+     * size fitted to these character counts — 207 / 289 / 174 / 189 / 267 / 140 as shipped, with
+     * the two past ~260 taking 32px and the rest 36px. English is the binding case at both sizes
+     * (Hebrew is shorter in every slot). Re-measure, do not re-count, if any of these change.
+     */
+    slides: [
+      {
+        quote:
+          "The scoping itself and the way the process was carried out were at a very, very high "
+          + "standard. The prices were the best value I found, and the end product is the highest "
+          + "quality there is. Highly recommended!",
+        name: "Asaf Peretz",
+        role: "Founder, SalesIQ",
+      },
+      {
+        quote:
+          "I was looking for a system that would make my business more efficient and get it moving "
+          + "faster with AI, mainly to open a gap over my competitors. I joined clix and they gave me "
+          + "quality one-on-one guidance. Profits went up, turnover went up, and of course the "
+          + "clients were much happier too.",
+        name: "Adir Peretz",
+        role: "Owner, video and photography studio",
+      },
+      {
+        quote:
+          "They built me an automation that saved me a load of hours dealing with clients, and "
+          + "freed up and saved me a lot of time and money. So that is a strong recommendation from me.",
+        name: "Nevo Yahaloman",
+        role: "Founder",
+      },
+      {
+        quote:
+          "I came across them and I genuinely felt responsibility, professionalism and a fast, "
+          + "smart solution from their team. Thank you so much for everything you did for me. I "
+          + "highly recommend them!",
+        name: "Noam Tovi",
+        role: "Owner, investments",
+      },
+      {
+        quote:
+          "I wanted to say a big thank you for the amazing service and for the possibilities you "
+          + "opened up for me. Everything was done in good taste and with real care, from the first "
+          + "sales conversation through to the precise understanding of exactly what we are doing "
+          + "together.",
+        name: "Achituv",
+        role: "Vtechezena",
+      },
+      {
+        quote:
+          "A brilliant system. It saves us a lot of time and quite a few costs, and it brings sense "
+          + "and order to your head. I recommend it to everyone!",
+        name: "Elyashiv Engineering",
+        role: "",
+      },
+    ],
+    a11y: {
+      controls: "Slideshow pagination controls",
+      portraitAlt: "{name}, {role}",
+    },
   },
 
   whyRogo: {

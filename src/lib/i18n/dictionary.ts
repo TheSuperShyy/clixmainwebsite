@@ -5,10 +5,10 @@
  * WHY EXPLICIT INTERFACES AND NOT JUST `Translated<typeof en>`. Because two kinds of array
  * live in here and they need OPPOSITE guarantees, which one mechanism cannot give:
  *
- *   · STRUCTURAL arrays, where the count IS layout. Nav's links are "seven slots,
- *     deliberately — the count is layout, not content"; the footer has exactly four columns.
- *     These are typed as fixed-length TUPLES, so a Hebrew dictionary that supplied six nav
- *     labels fails the build instead of silently breaking the row.
+ *   · STRUCTURAL arrays, where the count IS layout. Nav's links are a fixed slot count — the
+ *     count is layout, not content; the footer has exactly four columns. These are typed as
+ *     fixed-length TUPLES, so a Hebrew dictionary that supplied the wrong number of nav labels
+ *     fails the build instead of silently breaking the row.
  *   · LINE-FITTING arrays, where the count is a consequence of how the language WRAPS. The
  *     footer tagline sets three runs in English and two in Hebrew — the real site closes on
  *     "תוכנה שעובדת, תוצאות שמדברות." and that phrase does not split three ways.
@@ -36,18 +36,18 @@ import { security as enSecurity } from "./en/security";
 import { security as heSecurity } from "./he/security";
 import { company as enCompany } from "./en/company";
 import { company as heCompany } from "./he/company";
-import { careers as enCareers } from "./en/careers";
-import { careers as heCareers } from "./he/careers";
 import { news as enNews } from "./en/news";
 import { news as heNews } from "./he/news";
 import { clix as enClix } from "./en/clix";
 import { clix as heClix } from "./he/clix";
+import { contact as enContact } from "./en/contact";
+import { contact as heContact } from "./he/contact";
 
-/* ── shared chrome: rendered on every one of the 7 routes ──────────────────────────────── */
+/* ── shared chrome: rendered on every one of the 6 routes ──────────────────────────────── */
 
-/** Seven slots. The count is layout — see Nav.tsx's own note. Tuple, deliberately. */
+/** Six slots since 2026-08-13, seven before it. The count is layout — see Nav.tsx's own note.
+    Tuple, deliberately: a locale that supplies the wrong number fails the build. */
 export type NavLabels = readonly [
-  string,
   string,
   string,
   string,
@@ -108,6 +108,8 @@ export interface ChromeDict {
     readonly mainLandmark: string;
     /** `interpolate()` template. Placeholder: {name} */
     readonly playTestimonial: string;
+    /** `interpolate()` template. Placeholder: {name} */
+    readonly pauseTestimonial: string;
     /** `interpolate()` template. Placeholders: {n} {total} */
     readonly slideOfTotal: string;
     readonly previous: string;
@@ -122,6 +124,8 @@ export interface ChromeDict {
     readonly tickerRow: string;
     /** Placeholder: {ctx} */
     readonly tickerContext: string;
+    /** The price-rank chart, which is painted and therefore invisible. Placeholders: {rank} {total} */
+    readonly tickerRank: string;
   };
 }
 
@@ -146,9 +150,14 @@ export interface Dict {
   readonly product: Translated<typeof enProduct>;
   readonly security: Translated<typeof enSecurity>;
   readonly company: Translated<typeof enCompany>;
-  readonly careers: Translated<typeof enCareers>;
   readonly news: Translated<typeof enNews>;
   readonly clix: Translated<typeof enClix>;
+  /* Added 2026-08-13 with /contact, the site's first page that is not a clone of a rogo route.
+     Note this namespace's own inversion: en/contact.ts is the translation and he/contact.ts is
+     the source, because the form was lifted off the real clix site. `Translated<typeof en>`
+     still points the right way — it widens the English literals so the Hebrew can differ, and
+     that is a statement about TYPES, not about which file was written first. */
+  readonly contact: Translated<typeof enContact>;
 }
 
 /** Every namespace except `chrome` — i.e. the ones scoped to a single route. */
@@ -161,9 +170,9 @@ export const DICTIONARIES: Record<Locale, Dict> = {
       product: enProduct,
       security: enSecurity,
       company: enCompany,
-      careers: enCareers,
       news: enNews,
       clix: enClix,
+      contact: enContact,
   },
   he: {
     chrome: heChrome,
@@ -171,8 +180,8 @@ export const DICTIONARIES: Record<Locale, Dict> = {
       product: heProduct,
       security: heSecurity,
       company: heCompany,
-      careers: heCareers,
       news: heNews,
       clix: heClix,
+      contact: heContact,
   },
 };
