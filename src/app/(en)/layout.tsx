@@ -48,8 +48,14 @@ export default function EnRootLayout({
      every _routes/*Route.tsx as well, so ordering can never matter. */
   seedLocale("en");
 
+  /* `data-scroll-behavior="smooth"` DECLARES the `html { scroll-behavior: smooth }` rule in
+     globals.css to Next. Without it `disableSmoothScrollDuringRouteTransition` takes its
+     "no smooth scrolling configured" branch, so every ROUTE change animates its scroll instead
+     of arriving — and Next logs a warning about exactly this in dev. It does not affect
+     in-page anchors: same-route hash changes short-circuit that helper, which is why the rule
+     still does the job it was added for. */
   return (
-    <html lang={HTML_LANG.en} dir={DIRECTION.en}>
+    <html lang={HTML_LANG.en} dir={DIRECTION.en} data-scroll-behavior="smooth">
       <body>
         <I18nProvider locale="en" chrome={DICTIONARIES.en.chrome}>
           <ViewTransitionProvider>{children}</ViewTransitionProvider>

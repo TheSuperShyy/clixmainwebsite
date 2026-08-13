@@ -45,6 +45,48 @@ live site for the mobile menu, the scroll flip point, and the `Indicator` elemen
 
 ## Log
 
+### 2026-08-13 — `Customers` reached the home page but not the section
+
+**Symptom.** From any route other than `/`, clicking `Customers` (`/#testimonials`) landed at
+the TOP of the home page. `#security` had the same defect; it was never noticed because that
+slot became a route on 2026-08-12.
+
+**Root cause, and it is not a missing anchor.** `#testimonials` exists (`Testimonials.tsx`),
+`AppLink` classifies the href correctly, and Next's `ScrollAndFocusHandler` does find the node
+and call `scrollIntoView()` on it. The scroll fires — it is just **SMOOTH**, because
+`globals.css` sets `html { scroll-behavior: smooth }` and Next only neutralises that when
+`<html>` carries `data-scroll-behavior="smooth"`, which this app never set. So the browser
+begins a one-to-two-second animated scroll from the OLD route's offset, and roughly one frame
+later `ViewTransitions.tsx` resolves its commit promise, at which point the browser captures
+the post-update snapshot for the crossfade. **The snapshot is frame one — the top of the page**
+— and the crossfade then paints it over the live document for 300ms. What looked like "no
+scroll" was a slow scroll that got photographed at its start.
+
+Reading `node_modules/next/dist/client/components/layout-router.js` also shows the attribute
+alone would not have been enough: in the `hashFragment` branch Next `return`s straight after
+`scrollIntoView()`, and it passes `dontForceLayout: true`, so the reflow Chrome needs to pick up
+a just-changed `scroll-behavior` never happens. The hash has to be landed by us.
+
+**Fix, two parts.**
+1. `ViewTransitions.tsx` records the fragment of the href it is navigating to, and in the
+   `usePathname` effect — after the route commits, before `resolve()` — calls
+   `scrollIntoView({ behavior: "instant" })` on it. `"instant"` overrides the CSS rule
+   per-call, so no reflow dance. Ordering matters twice: child effects run before parent ones,
+   so Next's own attempt has already happened and ours supersedes it; and scrolling before
+   `resolve()` is what makes the browser photograph the page **already at the section**.
+   The fragment is also cleared by the 1500ms safety valve, so a navigation that never commits
+   cannot leave a stale target for the next one.
+2. `data-scroll-behavior="smooth"` on `<html>` in **both** layouts. This is what Next asks for
+   (it warns about the exact omission in dev) and it fixes the same defect for plain route
+   changes, which were animating their scroll-to-top instead of arriving.
+
+**In-page anchors are untouched.** `AppLink` returns early for a hash on the current route, so
+those never reach `ViewTransitions`; and Next's helper short-circuits on `onlyHashChange`. The
+smooth rule still does the job it was added for on 2026-08-05.
+
+**Not visually verified** — build + eslint clean, handed over.
+
+
 ### 2026-08-12 (third pass) - the fade WAS the white flash; replaced with a real crossfade
 
 **Trigger:** user, with a screenshot of `/company` washed out to near-white mid-navigation -

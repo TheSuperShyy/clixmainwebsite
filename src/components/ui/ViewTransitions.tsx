@@ -38,6 +38,30 @@
  * FALLBACK: browsers without the API, and anyone on `prefers-reduced-motion: reduce`, get a
  * plain `router.push`. That is an instant swap with no flash — the correct degradation, since
  * the flash was the bug and the crossfade is the enhancement.
+ *
+ * THE HASH LANDING (2026-08-13). Nav's "Customers" points at `/#testimonials`. From any other
+ * route that is a real navigation, so it comes through here — and it arrived at the top of the
+ * home page instead of at the section. The cause is `html { scroll-behavior: smooth }` in
+ * globals.css. Next's own hash scroll (`ScrollAndFocusHandler` in layout-router) wraps its
+ * `scrollIntoView()` in `disableSmoothScrollDuringRouteTransition`, but that helper only
+ * neutralises smooth scrolling when `<html>` carries `data-scroll-behavior="smooth"` — and even
+ * with the attribute the hash branch returns before Next forces the reflow Chrome needs to pick
+ * the change up. So the scroll starts as a 1-2s ANIMATION, from the old page's offset, at the
+ * exact moment the browser is about to capture the post-update snapshot. The capture lands on
+ * frame one of that animation — the top of the page — and the crossfade paints it over the live
+ * document. The scroll is not missing; it is a slow scroll whose first frame got photographed.
+ *
+ * So the hash is landed HERE instead, explicitly and instantly:
+ *
+ *   · `behavior: "instant"` rather than toggling `style.scrollBehavior` — it overrides the CSS
+ *     rule per-call with no reflow dance, which is the failure mode above.
+ *   · in the pathname effect, i.e. AFTER the new route has committed (child effects run before
+ *     parent ones, so Next's own attempt has already happened and ours supersedes it) and
+ *     BEFORE `resolve()`, so the snapshot the browser takes is of the page already at the
+ *     section. Resolving first would photograph the top of the page again.
+ *   · same-page hashes never reach this file — AppLink returns early for them — so ordinary
+ *     in-page anchors keep the smooth scroll `globals.css` asks for. Only the cross-route
+ *     landing is instant, which is right: a route change should arrive, not travel.
  */
 
 import {
@@ -68,9 +92,25 @@ export function ViewTransitionProvider({
      writing it must not itself trigger a render, or the effect below would race the push. */
   const pendingCommit = useRef<(() => void) | null>(null);
 
+  /* The fragment the in-flight navigation is aiming at, without its `#`. Read-and-cleared by
+     the effect below. Also cleared by the safety valve, so a navigation that never commits
+     cannot leave a stale target for the NEXT one to jump to. */
+  const pendingHash = useRef<string | null>(null);
+
   /* Fires on every committed pathname change, including the initial mount — hence the null
-     guard, which is what makes "no transition in flight" the safe default. */
+     guards, which is what makes "nothing in flight" the safe default. */
   useEffect(() => {
+    const hash = pendingHash.current;
+    pendingHash.current = null;
+    if (hash) {
+      /* `getElementsByName` as well as `getElementById` for parity with Next's own resolver —
+         a hash may address a `name`. Missing target is not an error: `/#contact` pointing at a
+         section a route does not have should leave the page where it is, not throw. */
+      const target =
+        document.getElementById(hash) ?? document.getElementsByName(hash)[0];
+      target?.scrollIntoView({ behavior: "instant" });
+    }
+
     if (pendingCommit.current) {
       pendingCommit.current();
       pendingCommit.current = null;
@@ -82,6 +122,12 @@ export function ViewTransitionProvider({
       const reduced = window.matchMedia(
         "(prefers-reduced-motion: reduce)",
       ).matches;
+
+      /* Recorded for BOTH branches. The reduced-motion path has no snapshot to race, but it
+         inherits the same smooth-scroll problem — the page would still creep toward the
+         section over a second or two instead of arriving at it. */
+      const [, fragment] = href.split("#");
+      pendingHash.current = fragment || null;
 
       if (reduced || !document.startViewTransition) {
         router.push(href);
@@ -99,6 +145,7 @@ export function ViewTransitionProvider({
                  and installed its own resolver, and this timer must not end that one. */
               if (pendingCommit.current === resolve) {
                 pendingCommit.current = null;
+                pendingHash.current = null;
                 resolve();
               }
             }, COMMIT_TIMEOUT_MS);
