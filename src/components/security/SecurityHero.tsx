@@ -66,6 +66,7 @@
  */
 
 import { getDict } from "@/lib/i18n/server";
+import AppLink from "@/components/ui/AppLink";
 
 /* ---------------------------------------------------------------------------------------
  * The two corner brackets that frame the CTA. 14x20 each, path data verbatim from the
@@ -227,14 +228,18 @@ export default function SecurityHero() {
             bracket offsets). Collapsed to one element here; there is nothing to branch on.
 
             HREF — A RECORDED DEVIATION. The target's <a> has no `href` attribute at all, the
-            same fault /product's >=1200 CTA has. Ours points at `#contact`, the id the shared
-            Footer carries on its closing CTA block: a control that does nothing is a defect, and
-            reproducing a defect is not fidelity. Logged in FEATURE.md.
-            ⚠️ BARE FRAGMENT, NOT `/#contact`. FEATURE.md writes the destination as `/#contact`,
-            but Footer renders `id="contact"` on THIS route too, so the bare fragment is the same
-            destination without a full page navigation to `/` — and `/#contact` on an <a> trips
-            `@next/next/no-html-link-for-pages`, which is a live error in ClixCTA.tsx today.
-            /product and /company already ship the bare form for exactly this reason. */}
+            same fault /product's >=1200 CTA has. Ours points at the site's one CTA destination:
+            a control that does nothing is a defect, and reproducing a defect is not fidelity.
+            Logged in FEATURE.md.
+            ⚠️ REWRITTEN 2026-08-13, AND THE OLD NOTE HERE IS WORTH KNOWING. This used to be the
+            bare fragment `#contact` — deliberately not `/#contact`, because the shared Footer
+            renders `id="contact"` on this route too, so the bare form reached the same place
+            without a page navigation AND dodged `@next/next/no-html-link-for-pages`, which a
+            raw `<a>` to an internal path trips. /contact is now a real page with a real form, so
+            there is no in-page destination left to scroll to and the element is `AppLink`: it
+            routes client-side, applies `localeHref` (/he/contact on the Hebrew route), and is
+            not an `<a>`, so the lint rule never comes up. /product and /company moved the same
+            way and for the same reason. */}
         <div className="group relative flex h-10 w-[220px] shrink-0 items-center">
           <BracketLeft
             className="pointer-events-none absolute -top-3 -left-7 text-paper
@@ -263,8 +268,8 @@ export default function SecurityHero() {
               py-2 (8px) + the 20px label box + py-2 = 36, so the measured padding and the
               measured height agree rather than fight; both are kept.
               Focus ring is the dark-ground inverse of /careers': paper ring, ink offset. */}
-          <a
-            href="#contact"
+          <AppLink
+            href="/contact"
             className="flex h-9 w-full items-center justify-center overflow-hidden
                        rounded-[6px] bg-paper px-4 py-2
                        transition-opacity duration-300 hover:opacity-90
@@ -285,7 +290,7 @@ export default function SecurityHero() {
                 {t.cta}
               </span>
             </span>
-          </a>
+          </AppLink>
         </div>
       </div>
     </section>

@@ -14,6 +14,7 @@
 
 import Nav from "@/components/sections/Nav";
 import NewsBoard from "@/components/news/NewsBoard";
+import AppLink from "@/components/ui/AppLink";
 import { fetchModels } from "@/lib/models";
 import type { Locale } from "@/lib/i18n/config";
 import { seedLocale, getDict } from "@/lib/i18n/server";
@@ -76,10 +77,18 @@ export default async function NewsRoute({ locale }: { locale: Locale }) {
               </p>
 
               {/* Same `Brand` button anatomy as everywhere: 40px here (8x16 padding, 20px
-                  inner line with 1px top nudge), radius 6, ink fill. mailto like the
-                  original's press contact. */}
-              <a
-                href="mailto:clixteam579@gmail.com"
+                  inner line with 1px top nudge), radius 6, ink fill.
+                  ⚠️ WAS A `mailto:`, AND THE LABEL STILL SAYS "Contact Media Team".
+                  The original's press contact is a mailto and this reproduced it, pointing at
+                  clixteam579@gmail.com — a personal address, and not the one the rest of the
+                  site publishes. On 2026-08-13 the user asked for every CTA on the site to reach
+                  the new /contact form, this one included, so it now does; the form's "tell us"
+                  field is where a press enquiry says it is a press enquiry.
+                  OPEN QUESTION, logged in features/contact-page/FEATURE.md: if press should have
+                  its own inbox rather than the general one, this single href reverts to a mailto
+                  and nothing else on the route changes. */}
+              <AppLink
+                href="/contact"
                 className="relative flex h-10 w-min flex-none cursor-pointer items-center
                            justify-center gap-2 overflow-hidden rounded-[6px] bg-ink px-4
                            py-2 no-underline transition-opacity duration-300 hover:opacity-90
@@ -98,7 +107,7 @@ export default async function NewsRoute({ locale }: { locale: Locale }) {
                     {t.cta}
                   </span>
                 </span>
-              </a>
+              </AppLink>
             </div>
 
             <NewsBoard />

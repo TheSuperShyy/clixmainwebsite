@@ -1,0 +1,293 @@
+# Feature: Contact page
+
+| | |
+|---|---|
+| Slug | `contact-page` |
+| Page(s) | `/contact` · `/he/contact` |
+| Order on page | whole route: `ContactHero` then `ContactBody` (aside + form) |
+| Status | `review` |
+| Reference | **none of the usual kind** — see below |
+| Original Framer name | **n/a. There is no rogo original.** |
+| Component | `src/components/contact/{ContactHero,ContactBody,ContactAside,ContactForm}.tsx` |
+| Route | `src/app/_routes/ContactRoute.tsx` + two shells |
+| API | `src/app/api/contact/route.ts` |
+| Dictionary | `src/lib/i18n/{en,he}/contact.ts` |
+
+## Purpose
+
+The site's one CTA destination. Before 2026-08-13 all eleven "Let's start" buttons pointed at
+`#contact`, the `id` on `<footer>` — so clicking the primary CTA scrolled you to a footer whose
+own button pointed back at itself, and a visitor had no way to say anything to the business.
+This page takes an enquiry and mails it to `info@clix-solution.com`.
+
+---
+
+## ⚠️ READ THIS BEFORE TREATING THIS FILE LIKE THE OTHERS
+
+**This is the first route in the repo that is not a clone**, and the template below does not
+apply the way it does everywhere else.
+
+- **rogo has no contact page.** There is no `docs/reference/target/` capture, no
+  `data-framer-name`, no measured original, and no reference screenshot to diff against.
+- **The reference that does exist is a different kind of thing.**
+  `docs/reference/clixsolutions/pages/contact.html` is the user's OWN live site. It supplied
+  the **field list, the field order, the five placeholders, which three fields are `required`,
+  both pill vocabularies and both pill groups' ARIA semantics** — all read off the saved HTML,
+  so those are facts. It supplied **no pixels**: it is a rounded card with grey filled inputs
+  and a violet gradient pill button, and this design system has `--radius-none: 0px` as its
+  default, no shadows, no gradients and no blue.
+- **The visual design is ours, at the user's explicit instruction** (2026-08-13: "our own
+  design, also our own layout think of something better that match our system").
+
+So the repo's standing **"measure, don't eyeball"** rule has nothing to measure here. What
+replaces it: **no value on this page is invented that the site already has an answer for.**
+Every number in the spec below is either an existing site value reused — with the file it came
+from — or a decision recorded as a decision. Acceptance is therefore a **consistency** test,
+not a fidelity one.
+
+---
+
+## Spec
+
+### Layout
+
+Three tiers, not four: nothing on this page distinguishes ≥1600 from 1200–1599.
+
+| Property | Desktop ≥1200 | Tablet 810–1199 | Phone ≤809 |
+|---|---|---|---|
+| Container max-width | 1280 (`--container-max`) | 1280 | 1280 |
+| Horizontal padding | 40 (`tablet:px-10`) | 40 | 16 (`px-4`) |
+| Hero padding-top | **198** | 198 | 198 |
+| Hero padding-bottom | 96 (`desktop:py-24`) | 64 | 64 |
+| Body padding | 96 top/bottom | 64 | 64 |
+| Body columns | 2 — aside 300 + form `w-px flex-[1_0_0]`, cap 720 | 1 | 1 |
+| Body column gap | 64 (`desktop:gap-16`) | 48 (`gap-12`) | 48 |
+| Field grid | 2 columns, gap-x 32 / gap-y 24 | 2 columns | 1 column |
+| Group gap | 32 between groups, 24 inside | same | same |
+| Aside | `sticky`, `top-198` | static block above form | static |
+
+**Where 198 comes from:** `CompanyHero.tsx`'s own `pt-[198px]`, which its header records as
+"the FIXED nav's clearance, identical at every tier". Same nav, same `<Nav models={models} />`
+with no `spacer` prop, so the same number. Not re-derived. The aside's `top-[198px]` parks it
+under the same bar.
+
+### Typography
+
+| Element | Family | Size | Weight | Line-height | Letter-spacing | Color |
+|---|---|---|---|---|---|---|
+| Hero eyebrow | sans | 14 | 500 | 1.3em | −0.02em | `muted` |
+| Hero h1 | display | 48 / 48 / 44 | — | 1.1em | −0.05em | `paper-soft`, emphasis run `paper` |
+| Group numeral | **mono** | 12 | — | — | — | `mark` |
+| Group legend | sans | 14 | 500 | 1.3em | −0.02em | `ink` |
+| "Optional" badge | sans | 12 | — | 1.3em | −0.02em | `muted` |
+| Field label | sans | 14 | 500 | 1.3em | −0.02em | `muted` |
+| Field value | sans | 16 | — | — | −0.02em | `ink` |
+| Placeholder | sans | 16 | — | — | −0.02em | `muted` |
+| Field error | sans | 12 | — | 1.4em | −0.02em | `ink` |
+| Pill label | sans | 16 | — | 130% | −0.01em | `paper` on active / `muted` idle |
+| Consent | sans | 12 | — | 1.5em | −0.02em | `muted` |
+| Button label | sans | 16 | 500 | 1em | −0.01em | `paper` |
+| Success h2 | display | 32 | — | 1.1em | −0.05em | `ink` |
+| Aside label | sans | 14 | 500 | 1.3em | −0.02em | `muted` |
+| Aside value | sans 16, **mono 15** for email + phone | | | 1.5em | −0.02em | `ink` |
+
+The 48/44 display at −0.05em / 1.1em is **Footer's closing headline verbatim** — the nearest
+thing on the site to this one (a short address to the reader, white on a dark ground). The
+14 / 1.3em / −0.02em / medium / `muted` label is **Footer's group-title idiom**, reused for
+every small label on the page.
+
+### ⚠️ Mono has no Hebrew, and that constrains where it can appear
+
+`--font-mono` is Fragment Mono. Its `@font-face` blocks in `src/app/fonts.css` declare
+`unicode-range`s covering Latin, Greek and Cyrillic — **U+0590–05FF is not among them**. Hebrew
+set in it silently falls back to the OS monospace, mid-line, next to Discovery.
+
+So mono appears in exactly three places, all Latin-or-numeric in **both** locales:
+
+- the group numerals `01`–`04`
+- the aside's email address
+- the aside's phone number
+
+Everything else is `font-sans`, including `hoursValue`, which is `א׳–ה׳ · 09:00–18:00` in
+Hebrew. **Do not unify these by pushing mono onto the other rows.** This page is also the first
+use of `--font-mono` anywhere in the build; before it, the token was declared and unused.
+
+### Color & surface
+
+| Element | Property | Value |
+|---|---|---|
+| Hero band | background | `ink` |
+| Body band | background | `paper` |
+| Group / aside rule | border-top | `hairline` |
+| Text input | border-bottom | `hairline` 2px → `ink` on focus |
+| Textarea | border | `hairline` 1px, radius 6 → `ink` on focus |
+| Pill idle | border | **literal `rgba(24,24,24,0.1)`** |
+| Pill active | background | `ink`, label `paper` |
+| Submit | background | `ink`, label `paper`, radius 6 |
+
+No gradients. No shadows. **Zero new tokens** — nothing was added to
+`docs/DESIGN-SYSTEM.md` or to the `@theme` block for this page.
+
+The pill's idle border is the literal rgba and **not** the `hairline` token, because
+`NewsBoard.tsx` inlines that exact value for the same control and `hairline` is a warm grey that
+reads visibly different beside it.
+
+### Interactive states
+
+| Element | Hover | Focus-visible | Active | Disabled | Transition |
+|---|---|---|---|---|---|
+| Text input | — | underline `hairline` → `ink` | — | — | `border-color` 300ms `--ease-rogo` |
+| Textarea | — | border → `ink` | — | — | same |
+| Pill | border + label → `ink` | 2px `forest` ring, 2px `paper` offset | selected = filled `ink` | — | `colors` 300ms |
+| Submit | `opacity-90` | 2px `ink` ring, 2px `paper` offset | `opacity-80` | `opacity-50`, `not-allowed` | `opacity` 300ms |
+| Aside link | `ink` → `muted` | 2px `forest` ring | — | — | `color` 300ms |
+
+The underline **is** the text inputs' focus affordance — no ring. It is `border-b-2` in both
+states with only the colour changing: a 1px rule thickening to 2px moves the text inside a
+fixed-height box, which reads as a jitter on every focus.
+
+### Motion
+
+Nothing animates on entry, on scroll or on mount. Every transition is a 300ms
+`var(--ease-rogo)` colour or opacity change on a state the user caused. **`prefers-reduced-motion`
+therefore needs no special handling** — `globals.css:645-654` clamps all durations to zero and
+the base state of every element here IS the shipped design, so the clamp is an exact no-op. No
+`gsap`, no `framer-motion`.
+
+### Responsive behavior
+
+- **≥1200** — two columns; aside 300px and sticky at `top-198`; form capped at 720; fields in a
+  2-up grid; submit is content-width.
+- **810–1199** — one column, aside above the form; fields still 2-up; submit content-width.
+- **≤809** — one column; fields 1-up; submit full width; gutters 16.
+
+---
+
+## Tokens used
+
+`ink` · `paper` · `paper-soft` · `muted` · `mark` · `hairline` · `forest` (focus rings only) ·
+`--container-max` · `--measure` · `--font-sans` · `--font-display` · `--font-mono` ·
+`--ease-rogo` · `tablet:` / `desktop:` breakpoints.
+
+## Documented deviations
+
+| Property | System / reference would give | This page does | Why |
+|---|---|---|---|
+| Submit button | reference: violet gradient, pill radius, 56px | `bg-ink`, radius 6, h-11 | No blue exists in this build and the home page is stated monochrome. This is /product's and /company's own primary button. |
+| Inputs | reference: filled grey, radius 12 | transparent, 2px bottom rule, square | `--radius-none: 0px` is this system's default and there are no filled input surfaces anywhere in it. |
+| Form container | reference: bordered card, radius 16, padding 40 | no card; four hairline-ruled groups | Rules rather than boxes is what this site does with a list of things (Footer's divider, /product's row rules). |
+| Error state | a red | `ink` underline + message + `aria-invalid` | There is no red token. The two semantic colours the system ever had (`quote-up`/`quote-down`) were deleted 2026-08-08 for being dead tokens. WCAG 1.4.1 is met by the message, not the rule. |
+| Consent line | reference links Privacy + Terms | plain text, no links | `/privacy` and `/terms` are two of the eight dead footer links in this build. Two known 404s inside a legal sentence is worse than no link. **Open question.** |
+| `mark` on numerals | fails AA (3.41:1 on paper) | kept | `aria-hidden`, names nothing, restates the visible order of four groups. Same logotype-grey exemption /clix's logo grid takes. Every *informational* small grey on the page is `muted` (4.74:1). |
+| Hero `text-muted` on `ink` | fails AA (3.85:1) | kept | Pre-existing open item on four other routes. Used for a 6-character eyebrow that duplicates the h1 below it. Not a new deviation. |
+
+---
+
+## The email pipeline
+
+`POST /api/contact` — the project's **second** route handler (`api/models` says in its own
+header that it is the only one; that is now out of date).
+
+- **Recipient: `info@clix-solution.com`, one address.** The user first named two
+  (`ido.team@` and `info@`) then narrowed it to `info@` only, 2026-08-13. Overridable with
+  `CONTACT_TO`.
+- **Channel: Gmail SMTP via nodemailer**, chosen by the user over an n8n webhook and over a
+  transactional provider. `nodemailer` is **the first runtime dependency this project has ever
+  added** — five to six. Justified: the user picked SMTP and Node cannot speak SMTP without a
+  client. Server-only; reaches no browser bundle.
+- **Sending mailbox: `office@clix-solution.com`** — a Google Workspace account, already
+  provisioned in this repo's `.env` before the form existed. Not the `clixteam579@gmail.com`
+  originally assumed.
+- **Env, two accepted names per value.** `GMAIL_EMAIL` / `GMAIL_PASSWORD` (what `.env` already
+  had) are read first, then `GMAIL_USER` / `GMAIL_APP_PASSWORD` (nodemailer's and Google's own
+  vocabulary, what any deployment guide writes). Reading both means the existing `.env` works
+  untouched and a from-documentation deploy also works.
+- **`From` is the authenticated mailbox, always.** Gmail rewrites or rejects a `From` it does
+  not own, so the visitor's address goes in **`Reply-To`** — which is what makes hitting reply
+  work.
+- **Validation is duplicated** in `ContactForm.tsx` and in the route, deliberately: the client
+  copy saves a round trip, the server copy is the boundary. Bounds live in one `LIMITS` block in
+  each file. **Required: name, email, message** — matching the reference's own `required`
+  attributes.
+- **Both option vocabularies are re-declared in the route** rather than imported from the
+  dictionary. A locale file is copy; this is an allow-list at a trust boundary, and the two
+  should not be able to widen each other. **Adding an option means editing both.**
+- **Honeypot** — an `sr-only`, `aria-hidden`, `tabIndex={-1}` input named `website`. A filled
+  one answers **200 and sends nothing**: a bot that learns which requests get rejected learns
+  how to pass.
+- **Rate limit** — 3 per 10 min per IP, in-process, **best effort and documented as such**. Each
+  serverless instance has its own module scope, so a cold start resets it. Anything stronger
+  means Redis, i.e. infrastructure.
+- **HTML escaping on every interpolated value.** The body is concatenated from what a stranger
+  typed and rendered by a client that runs HTML; unescaped, a `message` full of markup becomes a
+  phishing link wearing the company's own notification email as a costume.
+- **CRLF stripped from `subject` and `replyTo`.** Headers are newline-delimited, so a name of
+  `Bob\nBcc: …` would otherwise add a recipient nobody chose.
+- **Transport errors never reach the browser** — they can carry the SMTP dialogue and the
+  credential state. `console.error` server-side, one generic sentence to the visitor.
+- **Not built, on purpose:** no captcha (a tax on every real visitor), no database (the inbox is
+  the record), no autoresponder (a second deliverability problem nobody asked for).
+
+---
+
+## Accessibility
+
+- Real `<label htmlFor>` on all five text controls; the textarea's is `sr-only` because the
+  group legend is its visible name.
+- Required fields: `required` + a decorative `*` + an `sr-only` "(required)".
+- Errors: `aria-invalid`, `aria-describedby` to the message, focus moved to the first bad field
+  on submit.
+- Needs group: `role="group"` + `aria-labelledby` the visible legend + an `sr-only` hint;
+  `aria-pressed` per pill (multi-select — the reference's own semantics).
+- Budget group: `role="radiogroup"` + `role="radio"` + `aria-checked`, **one tab stop** via
+  roving `tabIndex`, arrow keys move and select. **Horizontal arrows respect direction** via
+  `useDirSign()` — in Hebrew ArrowRight walks backwards through the array, which is forwards on
+  screen.
+- Whole-form failure is `role="alert" aria-live="assertive"`, always mounted so the region
+  exists before it has anything to say.
+- Success panel is `role="status" aria-live="polite"` with `tabIndex={-1}` and focus placed on
+  it — the form leaves the DOM, so focus would otherwise fall to `<body>`.
+- Contrast measured with `node docs/reference/contrast-check.js`: `muted` on `paper` 4.74:1
+  (AA), `ink` on `paper` 18.26:1 (AAA), `mark` on `paper` **3.41:1 (fails)** — which is why
+  placeholders and the "Optional" badge were moved off `mark` onto `muted`.
+
+---
+
+## Acceptance checklist
+
+- [x] `npm run build` clean — 20 static routes + `/api/contact` dynamic
+- [x] `npm run lint` — no new findings (7 errors + 1 warning are all pre-existing at HEAD:
+      `docs/reference/*.js` `require()` imports and `ClixHero`'s ref-during-render)
+- [x] `tsc --noEmit` clean; Hebrew dictionary satisfies the English shape
+- [x] Both routes return 200
+- [x] API: 415 on wrong content-type, 400 on malformed JSON, 400 + per-field map on invalid,
+      200-and-drop on honeypot, 429 + `Retry-After` past the rate limit
+- [x] Gmail SMTP credential verified by an `AUTH`-only handshake (no mail sent)
+- [x] One real end-to-end send confirmed `{"ok":true}`, addressed to `office@clix-solution.com`
+- [x] Spacing / type / colour from tokens, or the deviation is in the table above
+- [x] All interactive states implemented
+- [x] `prefers-reduced-motion` respected (vacuously — nothing animates unprompted)
+- [x] Zero new design tokens
+- [ ] **Visual check at 1600 / 1440 / 1024 / 390 — NOT DONE, handed to the user**
+- [ ] **Hebrew RTL mirroring not visually checked** — logical properties throughout, but unseen
+- [ ] **Keyboard walk-through not performed in a browser** — semantics are in place, unverified
+- [ ] Deployed send to the real recipient not attempted (needs the Vercel env vars)
+
+## Open questions
+
+- [ ] **Consent line links.** Ships as plain text. Linking Privacy and Terms means either
+      creating those two routes or accepting two 404s in a legal sentence.
+- [ ] **`/news` CTA.** Its label still reads "Contact Media Team" and it was a `mailto:` to
+      `clixteam579@gmail.com`. The user asked for every CTA to reach `/contact`, so it does. If
+      press wants its own inbox, that one href reverts and nothing else changes.
+- [ ] **`/clix` hero** now leaves the page for `/contact` instead of scrolling to its own
+      `#clix-contact` band. The band stays and its button also goes to `/contact`.
+- [ ] **The footer's closing CTA on `/contact` links to the page you are already on.** Same
+      shape as the nav's current-page link; left alone rather than special-cased in a component
+      every route renders.
+- [ ] **`id="contact"` on `<footer>` is now unreferenced.** Kept — it costs nothing and is the
+      kind of thing linked from outside the codebase.
+- [ ] **The budget ladder has a gap** (`up to ₪10k`, then `₪15k–₪25k`). The real site's own; not
+      ours to tidy.
+- [ ] Whether the sending mailbox should be `office@clix-solution.com` or a dedicated
+      no-reply. Currently whatever `.env` holds.

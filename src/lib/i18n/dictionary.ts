@@ -40,6 +40,8 @@ import { news as enNews } from "./en/news";
 import { news as heNews } from "./he/news";
 import { clix as enClix } from "./en/clix";
 import { clix as heClix } from "./he/clix";
+import { contact as enContact } from "./en/contact";
+import { contact as heContact } from "./he/contact";
 
 /* ── shared chrome: rendered on every one of the 6 routes ──────────────────────────────── */
 
@@ -150,6 +152,12 @@ export interface Dict {
   readonly company: Translated<typeof enCompany>;
   readonly news: Translated<typeof enNews>;
   readonly clix: Translated<typeof enClix>;
+  /* Added 2026-08-13 with /contact, the site's first page that is not a clone of a rogo route.
+     Note this namespace's own inversion: en/contact.ts is the translation and he/contact.ts is
+     the source, because the form was lifted off the real clix site. `Translated<typeof en>`
+     still points the right way — it widens the English literals so the Hebrew can differ, and
+     that is a statement about TYPES, not about which file was written first. */
+  readonly contact: Translated<typeof enContact>;
 }
 
 /** Every namespace except `chrome` — i.e. the ones scoped to a single route. */
@@ -164,6 +172,7 @@ export const DICTIONARIES: Record<Locale, Dict> = {
       company: enCompany,
       news: enNews,
       clix: enClix,
+      contact: enContact,
   },
   he: {
     chrome: heChrome,
@@ -173,5 +182,6 @@ export const DICTIONARIES: Record<Locale, Dict> = {
       company: heCompany,
       news: heNews,
       clix: heClix,
+      contact: heContact,
   },
 };

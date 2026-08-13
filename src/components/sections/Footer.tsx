@@ -28,6 +28,7 @@ import { Fragment } from "react";
 import AppLink from "@/components/ui/AppLink";
 import { getChrome } from "@/lib/i18n/server";
 import type { ChromeDict } from "@/lib/i18n/dictionary";
+import { CONTACT } from "@/lib/contact";
 import FooterMap from "./FooterMap";
 
 type FooterLink = {
@@ -51,15 +52,12 @@ type LinkGroup = { titleIndex: 0 | 1 | 2 | 3; links: FooterLink[] };
    same per-tier gating. Only the destinations moved.
 
    The four `#` placeholders left by the 2026-08-03 brand rename are gone — every link in
-   the Contact column now resolves to something clix actually owns, taken from
-   docs/reference/clixsolutions/. */
-const CONTACT = {
-  email: "mailto:info@clixsolution.com",
-  instagram: "https://www.instagram.com/clix_solution/",
-  /* +972 55-948-3457, in wa.me's digits-only form. */
-  whatsapp: "https://wa.me/972559483457",
-};
+   the Contact column now resolves to something clix actually owns.
 
+   The destinations themselves moved OUT of this file on 2026-08-13, to src/lib/contact.ts,
+   because /contact's aside lists the same four and two copies of a phone number drift. That
+   move also corrected the email to the hyphenated `info@clix-solution.com` — read that
+   file's header before assuming the old address was right. */
 const GROUPS: LinkGroup[] = [
   {
     titleIndex: 0,
@@ -98,7 +96,11 @@ const GROUPS: LinkGroup[] = [
   {
     titleIndex: 3,
     links: [
-      { key: "letsStart", href: "#contact" },
+      /* Was `#contact`, a same-page scroll to THIS footer — i.e. a "Let's start" link whose
+         destination was the block containing it. /contact exists as of 2026-08-13, so this
+         and the closing CTA below both point at it. AppLink prefixes the locale, so the
+         Hebrew footer sends you to /he/contact. */
+      { key: "letsStart", href: "/contact" },
       { key: "email", href: CONTACT.email },
       { key: "instagram", href: CONTACT.instagram, external: true },
       /* The original splits "Press" by tier — a mailto at >=1200, an x.com profile below —
@@ -154,9 +156,12 @@ export default function Footer() {
        Copyright's `16px` is the bottom. */
     <footer
       data-nav-theme="dark"
-      /* Anchor for the nav's "Contact" link and for every "Let's start" button on the page
-         (2026-08-05). The closing CTA lives inside this footer in the original, so this is
-         genuinely where a contact click should land — not a separate section. */
+      /* Was the destination of every "Let's start" button on the site (2026-08-05 to
+         2026-08-13). It no longer is: /contact is a real page with a real form, and all
+         eleven CTAs now point there instead — including the one inside this footer.
+         The id STAYS. It costs nothing, `scroll-mt-24` still holds, and it is the kind of
+         thing that gets linked from outside the codebase (a mail signature, an old post).
+         Removing it would 404-in-place every one of those. */
       id="contact"
       className="relative flex w-full scroll-mt-24 items-center justify-center gap-[10px] overflow-hidden bg-ink px-4 tablet:px-10"
     >
@@ -217,8 +222,14 @@ export default function Footer() {
               the nav's (8/16 padding around a 20px row with a 1px optical top nudge) but a
               16px label instead of 14px. */}
           <div className="relative h-11 w-full flex-none tablet:h-[42px] tablet:w-auto desktop:h-11">
-            <a
-              href="#contact"
+            {/* `AppLink`, not a raw `<a>`: this is an internal route now, so a bare anchor
+                would throw the document away on click (white flash, refetched fonts, Nav's
+                theme scanner re-initialising) AND trip
+                `@next/next/no-html-link-for-pages`. AppLink also applies `localeHref`, which
+                is what turns `/contact` into `/he/contact` on the Hebrew footer without this
+                component knowing the locale. */}
+            <AppLink
+              href="/contact"
               className="relative flex h-full w-full cursor-pointer flex-row items-center
                          justify-center gap-2 overflow-hidden rounded-[6px] border
                          border-[rgba(168,162,158,0)] bg-paper px-4 py-2 no-underline
@@ -232,7 +243,7 @@ export default function Footer() {
                   {t.cta}
                 </p>
               </div>
-            </a>
+            </AppLink>
           </div>
         </div>
 

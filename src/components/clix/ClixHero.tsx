@@ -43,6 +43,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 
 import { usePageDict } from "@/lib/i18n/LocaleProvider";
+import AppLink from "@/components/ui/AppLink";
 
 /* ⚠️ THE ROTATING WORDS MOVED TO src/lib/i18n/{en,he}/clix.ts ON 2026-08-12, as
    `clix.hero.words`. The list is read through `usePageDict` below, and everything the old
@@ -261,11 +262,16 @@ export default function ClixHero() {
               44px one below, each gated by `hidden-*`. Reproduced as one element with a
               responsive height, since nothing else differs between them and two DOM copies
               of the same link is a duplicate tab stop for no gain. */}
-          <a
-            /* The original's own `Request Access` points at this page's CTA. It went to the
-               home page's contact block while that section did not exist; repointed here on
-               2026-08-09 now that ClixCTA ships `id="clix-contact"`. */
-            href="#clix-contact"
+          <AppLink
+            /* THIS HAS MOVED TWICE, so the history is worth keeping. The original's own
+               `Request Access` points at this page's own CTA band. It went to the home page's
+               contact block while that band did not exist, was repointed to `#clix-contact` on
+               2026-08-09 once ClixCTA shipped that id, and on 2026-08-13 it goes to /contact —
+               the real form — because that is now the site's one CTA destination and the user
+               asked for every CTA to reach it. The band and its `id` stay exactly where they
+               are: its own button also goes to /contact, so the page still closes on the same
+               ask, and nothing that linked to `#clix-contact` breaks. */
+            href="/contact"
             className="group relative flex h-11 w-min flex-none cursor-pointer items-center
                        justify-center gap-2 overflow-hidden rounded-[6px]
                        border border-transparent bg-forest px-4 py-2 no-underline
@@ -288,7 +294,7 @@ export default function ClixHero() {
                 {t.cta}
               </span>
             </span>
-          </a>
+          </AppLink>
         </div>
       </div>
     </section>

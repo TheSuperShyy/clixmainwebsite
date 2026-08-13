@@ -22,6 +22,7 @@
 
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { usePageDict } from "@/lib/i18n/LocaleProvider";
+import AppLink from "@/components/ui/AppLink";
 
 /* The hero prompt's typed phrases live in the dictionary (`hero.prompts`). CLIX'S OWN
    (2026-08-12). Four things an owner actually asks for, one per capability family: agent
@@ -327,17 +328,17 @@ export default function ProductHero() {
               />
               {/* The original's DESKTOP button has NO href and its MOBILE twin points at
                   ./demo, the same authoring slip the site footer already carries. Ours points
-                  at `#contact` at every tier, which is clix's one CTA destination sitewide
-                  (Hero.tsx, Footer.tsx) and resolves IN-PAGE here: Footer carries
-                  `id="contact"` and /product renders it. Deviation logged in FEATURE.md.
-                  ⚠️ NEEDS NO LOCALE PREFIX, and that was checked rather than assumed: a BARE
-                  HASH is not an app-internal path, `localeHref` returns it untouched by its own
-                  documented contract, and /he/product renders the same Footer with the same
-                  `id`. So this resolves in-page on both locales. It is also the only `<a>` in
-                  this file — the one raw `next/link` on the route is in ProductSecurity.tsx and
-                  IS prefixed there. */}
-              <a
-                href="#contact"
+                  at `/contact` at every tier, which is clix's one CTA destination sitewide
+                  (Hero.tsx, Footer.tsx). Deviation logged in FEATURE.md.
+                  ⚠️ REWRITTEN 2026-08-13. This was the bare hash `#contact` — a same-page
+                  scroll to the footer, which needed no locale prefix precisely because it was
+                  not a path. /contact is a real page with a real form, so the destination is
+                  now app-internal and the element has to be `AppLink`: it applies `localeHref`
+                  (giving /he/contact on the Hebrew route), keeps the client-side crossfade, and
+                  avoids `@next/next/no-html-link-for-pages`, which a raw `<a>` to an internal
+                  route trips. There is now no raw `<a>` left in this file. */}
+              <AppLink
+                href="/contact"
                 className="flex h-10 w-full items-center justify-center gap-2 overflow-hidden
                            rounded-[6px] border border-transparent bg-ink px-4 py-2
                            transition-opacity duration-300 hover:opacity-90
@@ -356,7 +357,7 @@ export default function ProductHero() {
                     {t.cta}
                   </span>
                 </span>
-              </a>
+              </AppLink>
             </div>
           </div>
         </div>

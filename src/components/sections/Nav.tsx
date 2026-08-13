@@ -102,7 +102,11 @@ const MARK_SIZE = 28;
    section for — `#security`, and `#testimonials` which IS the customer-quote block. Carrying
    the old mapping across would have pointed `Clix` at `#services` and `Careers` at
    `#contact`, which is a wrong destination dressed up as a working link. `#services` and
-   `#contact` are now unreferenced from the link row; `#contact` is still the CTA's target. */
+   `#contact` are now unreferenced from the link row.
+
+   The CTA's own target changed on 2026-08-13, from `/#contact` to `/contact`: that anchor was
+   a scroll to the footer, and /contact is now a real page with a real form. AppLink applies
+   `localeHref`, so the Hebrew nav sends you to /he/contact. */
 /* LABELS MOVED TO THE DICTIONARY (2026-08-12, Hebrew locale). This array is now the
    DESTINATIONS and their order; the visible text comes from `chrome.nav.labels[i]`, which is a
    fixed-length TUPLE for exactly that reason — the slot count is a type, not just a comment,
@@ -583,7 +587,7 @@ export default function Nav({
                 {/* Panel is `bg-ink` in every theme state, so `light` is unconditionally false
                     here — the dark-surface palette always applies. */}
                 <LocaleToggle light={false} />
-                <NavButton variant="inverse" light={false} href="/#contact">
+                <NavButton variant="inverse" light={false} href="/contact">
                   {t.nav.cta}
                 </NavButton>
               </div>
@@ -682,7 +686,7 @@ export default function Nav({
                   (`left-1/2 -translate-x-1/2` below), which its own comment says is deliberate
                   so the links stay optically centred however wide the button group gets. */}
               <LocaleToggle light={light} />
-              <NavButton variant="inverse" light={light} href="/#contact">
+              <NavButton variant="inverse" light={light} href="/contact">
                 {t.nav.cta}
               </NavButton>
             </div>

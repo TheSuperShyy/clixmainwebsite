@@ -186,6 +186,33 @@ headlines**, where `/news` ships without a `robots` block *because* those headli
 **`/he/clix` must keep `noindex`** (its fabricated quotes read as *more* credible in Hebrew) · the
 `noam-tovi` / נווה דודי caption conflict becomes reader-visible in Hebrew.
 
+## Page: `/contact` — **NOT A CLONE**
+
+Built 2026-08-13. The first route in this repo with no rogo original: rogo has no contact page,
+so there is no capture, no `data-framer-name` and nothing to diff against. The reference is a
+different kind of thing — `docs/reference/clixsolutions/pages/contact.html`, the user's OWN live
+site — and it supplied the field list, the placeholders, the `required` flags, both pill
+vocabularies and both pill groups' ARIA semantics, but **no pixels**. The visual design is ours
+at the user's explicit instruction. Acceptance here is a consistency test, not a fidelity one.
+
+| # | Block | Status | Notes |
+|---|---|---|---|
+| 1 | `ContactHero` | **`review`** | **Built** → `src/components/contact/ContactHero.tsx`. Dark band, `data-nav-theme="dark"`. Mono-free eyebrow + a 48/44px display h1 at −0.05em with one `paper` emphasis run against `paper-soft`. `pt-[198px]` is CompanyHero's own fixed-nav clearance, reused not re-derived. |
+| 2 | `ContactBody` | **`review`** | **Built** → `ContactBody.tsx`. Light band, `data-nav-theme="light"`. Server component; two columns at ≥1200 (aside 300 + form capped 720), stacked below. Aside first in the DOM at every tier, no `order-*`, so reading order and tab order cannot disagree. |
+| 2a | `ContactAside` | **`review`** | **Built** → `ContactAside.tsx`. Four hairline rows — email, WhatsApp, hours, location — from `src/lib/contact.ts`, the same map Footer reads. Sticky at `top-198` on desktop. Survives a form failure, which is the argument for it. |
+| 2b | `ContactForm` | **`review`** | **Built** → `ContactForm.tsx`, the only client component and the only real form on the site. Four hairline-ruled numbered groups; underline inputs (`border-b-2`, colour-only focus); pills copied verbatim from `NewsBoard`'s filter row; needs = `aria-pressed` multi, budget = a real `radiogroup` with roving tabindex and direction-aware arrows. Monochrome errors. **Zero new tokens.** |
+| — | `Footer` | **`review`** | **Reused** unchanged. Keeps `id="contact"` although nothing points at it any more. |
+| — | `POST /api/contact` | **`review`** | **Built** → `src/app/api/contact/route.ts`, the project's SECOND route handler (`api/models`'s "only route handler" header is now stale). nodemailer over Gmail SMTP to `info@clix-solution.com`. Honeypot, 3-per-10-min best-effort rate limit, HTML escaping, CRLF-stripped headers, duplicated validation. **`nodemailer` is the first runtime dependency this project has ever added.** |
+
+⚠️ **Nobody has looked at this page.** Build, lint, typecheck and every API path are verified;
+no visual check at any width, no Hebrew RTL check, no browser keyboard walk-through. That is the
+whole of what stands between `review` and `done` — see
+[features/contact-page/FEATURE.md](../features/contact-page/FEATURE.md).
+
+⚠️ **All eleven site CTAs were repointed here** on 2026-08-13, from `#contact` (the footer
+anchor), `/#contact`, `#clix-contact` and one `mailto:`. Six were raw `<a>` and are now
+`AppLink`. If you are looking for why a hero button no longer scrolls, this is why.
+
 ## Other pages
 
 Still **not scoped** — see the open question in [PROJECT.md](PROJECT.md).
@@ -193,7 +220,9 @@ Still **not scoped** — see the open question in [PROJECT.md](PROJECT.md).
 `Customers` · `Log in`
 (`News` and `Product` left this list 2026-08-11, `Company` and `Security` on 2026-08-12 — all
 built above. `Careers` left it on 2026-08-12 too, was built, and was **removed whole on
-2026-08-13** at the user's request; it is not coming back to this list unless asked for.)
+2026-08-13** at the user's request; it is not coming back to this list unless asked for.
+`Contact` was never on this list at all — it is not a rogo route; it was added on 2026-08-13
+because the site needed somewhere for its CTAs to land.)
 
 ## Page: /company
 

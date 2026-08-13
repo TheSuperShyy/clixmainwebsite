@@ -81,7 +81,12 @@ export default function ClixCTA() {
           {/* Same `Brand` button as the hero — 48px tall here at every tier, since the
               original's mobile-only 44px variant is a hero-specific instance. */}
           <AppLink
-            href="/#contact"
+            /* `/contact` since 2026-08-13, was `/#contact`. That old href was a cross-route
+               navigation to the home page's footer anchor — necessary because /clix is the one
+               route that does not render `Footer` (it uses ClixFelixFooter), so there was no
+               in-page `id="contact"` to reach. /contact is a real page now, which makes this an
+               ordinary route link. */
+            href="/contact"
             className="relative flex h-12 w-min flex-none cursor-pointer items-center
                        justify-center gap-2 overflow-hidden rounded-[6px] border
                        border-transparent bg-forest px-4 py-2 no-underline

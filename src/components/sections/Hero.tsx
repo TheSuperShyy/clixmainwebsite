@@ -9,6 +9,7 @@
  */
 
 import LogoCarousel from "@/components/sections/LogoCarousel";
+import AppLink from "@/components/ui/AppLink";
 import { getDict } from "@/lib/i18n/server";
 
 /* COPY MOVED TO THE DICTIONARY (2026-08-12): src/lib/i18n/{en,he}/home.ts, key `hero`. The
@@ -150,10 +151,14 @@ export default function Hero() {
           </div>
         </div>
 
-        {/* CTA — container is height 44; the anchor fills it */}
+        {/* CTA — container is height 44; the anchor fills it.
+            `AppLink`, not a raw `<a>` (2026-08-13): the destination is a real route now, and a
+            bare anchor to an internal path throws the document away on click and trips
+            `@next/next/no-html-link-for-pages`. AppLink also applies `localeHref`, so the
+            Hebrew home page sends you to /he/contact. */}
         <div className="relative h-11">
-          <a
-            href="#contact"
+          <AppLink
+            href="/contact"
             className="group flex h-full w-min cursor-pointer items-center justify-center gap-2
                        overflow-hidden rounded-[6px] border border-transparent bg-paper
                        px-4 py-2 whitespace-nowrap no-underline
@@ -170,7 +175,7 @@ export default function Hero() {
                 {t.cta}
               </span>
             </span>
-          </a>
+          </AppLink>
         </div>
       </div>
     </section>
