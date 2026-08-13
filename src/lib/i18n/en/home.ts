@@ -113,11 +113,18 @@ export const home = {
      * not a bug; read the block above `CLIP_IDS` there before changing it.
      *
      * ⚠️ LENGTH IS LAYOUT. `SLIDE_STYLE.quoteDesktop` in QuoteCarousel.tsx sets a per-slide font
-     * size fitted to these character counts — 207 / 289 / 174 / 189 / 267 / 140 as shipped, with
+     * size fitted to these character counts — 174 / 207 / 289 / 189 / 267 / 140 as shipped, with
      * the two past ~260 taking 32px and the rest 36px. English is the binding case at both sizes
      * (Hebrew is shorter in every slot). Re-measure, do not re-count, if any of these change.
      */
     slides: [
+      {
+        quote:
+          "They built me an automation that saved me a load of hours dealing with clients, and "
+          + "freed up and saved me a lot of time and money. So that is a strong recommendation from me.",
+        name: "Nevo Yahaloman",
+        role: "Founder",
+      },
       {
         quote:
           "The scoping itself and the way the process was carried out were at a very, very high "
@@ -134,13 +141,6 @@ export const home = {
           + "clients were much happier too.",
         name: "Adir Peretz",
         role: "Owner, video and photography studio",
-      },
-      {
-        quote:
-          "They built me an automation that saved me a load of hours dealing with clients, and "
-          + "freed up and saved me a lot of time and money. So that is a strong recommendation from me.",
-        name: "Nevo Yahaloman",
-        role: "Founder",
       },
       {
         quote:

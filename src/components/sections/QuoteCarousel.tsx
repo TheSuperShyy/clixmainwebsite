@@ -100,7 +100,7 @@
  * The first two are one component with one hidden column and two quote sizes — verified
  * identical, so duplicating the subtree would only duplicate the DOM. The third is NOT a
  * responsive variant of the other two and cannot be collapsed into them:
- *   · two testimonials, not three. The third slot (Sean Warneke there, Nevo Yahaloman here)
+ *   · two testimonials, not three. The third slot (Sean Warneke there, Adir Peretz here)
  *     is absent below 810.
  *   · slot 1's quote was **different copy** at this width in the original — not a truncation
  *     but a different sentence ("Rogo is going to transform" there versus "Rogo transforms"
@@ -277,9 +277,9 @@ import { interpolate } from "@/lib/i18n/format";
    other four take 36 — the count of 32s is unchanged, only which slides carry them.
    Hebrew is shorter than English in every slot, so English is the binding case at both sizes. */
 const SLIDE_STYLE = [
-  { id: "asaf-peretz", photo: "/testimonials/asaf-peretz.jpg", cream: true, quoteDesktop: "desktop:text-[36px]" },
-  { id: "adir-peretz", photo: "/testimonials/adir-peretz.jpg", cream: false, quoteDesktop: "desktop:text-[32px]" },
   { id: "nevo-yahaloman", photo: "/testimonials/nevo-yahaloman.jpg", cream: true, quoteDesktop: "desktop:text-[36px]" },
+  { id: "asaf-peretz", photo: "/testimonials/asaf-peretz.jpg", cream: false, quoteDesktop: "desktop:text-[36px]" },
+  { id: "adir-peretz", photo: "/testimonials/adir-peretz.jpg", cream: true, quoteDesktop: "desktop:text-[32px]" },
   { id: "noam-tovi", photo: "/testimonials/noam-tovi.jpg", cream: false, quoteDesktop: "desktop:text-[36px]" },
   { id: "achituv", photo: "/testimonials/achituv.jpg", cream: true, quoteDesktop: "desktop:text-[32px]" },
   { id: "elyashiv-engineering", photo: "/testimonials/elyashiv-engineering.jpg", cream: false, quoteDesktop: "desktop:text-[36px]" },

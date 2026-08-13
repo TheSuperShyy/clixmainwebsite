@@ -119,9 +119,9 @@ type ClipCopy = Translated<HomeDict["testimonials"]["clips"][ClipId]>;
    public/testimonials/ (`<id>.mp4` for the accordion, `<id>.jpg` for BOTH, since the
    carousel's portraits are the accordion's poster frames). */
 const CLIP_IDS: readonly ClipId[] = [
+  "nevo-yahaloman",
   "asaf-peretz",
   "adir-peretz",
-  "nevo-yahaloman",
   "noam-tovi",
   "achituv",
   "elyashiv-engineering",
