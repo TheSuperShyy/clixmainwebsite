@@ -113,7 +113,7 @@ export const home = {
      * not a bug; read the block above `CLIP_IDS` there before changing it.
      *
      * ⚠️ LENGTH IS LAYOUT. `SLIDE_STYLE.quoteDesktop` in QuoteCarousel.tsx sets a per-slide font
-     * size fitted to these character counts — 207 / 289 / 172 / 189 / 269 / 147 as shipped, with
+     * size fitted to these character counts — 207 / 289 / 174 / 189 / 267 / 140 as shipped, with
      * the two past ~260 taking 32px and the rest 36px. English is the binding case at both sizes
      * (Hebrew is shorter in every slot). Re-measure, do not re-count, if any of these change.
      */
@@ -122,7 +122,7 @@ export const home = {
         quote:
           "The scoping itself and the way the process was carried out were at a very, very high "
           + "standard. The prices were the best value I found, and the end product is the highest "
-          + "quality there is. Warmly recommended!",
+          + "quality there is. Highly recommended!",
         name: "Asaf Peretz",
         role: "Founder, SalesIQ",
       },
@@ -138,7 +138,7 @@ export const home = {
       {
         quote:
           "They built me an automation that saved me a load of hours dealing with clients, and "
-          + "freed up and saved me a lot of time and money. So that is a warm recommendation from me.",
+          + "freed up and saved me a lot of time and money. So that is a strong recommendation from me.",
         name: "Nevo Yahaloman",
         role: "Founder",
       },
@@ -146,14 +146,14 @@ export const home = {
         quote:
           "I came across them and I genuinely felt responsibility, professionalism and a fast, "
           + "smart solution from their team. Thank you so much for everything you did for me. I "
-          + "recommend them warmly!",
+          + "highly recommend them!",
         name: "Noam Tovi",
         role: "Owner, investments",
       },
       {
         quote:
           "I wanted to say a big thank you for the amazing service and for the possibilities you "
-          + "opened up for me. Everything was done in good taste and with real warmth, from the first "
+          + "opened up for me. Everything was done in good taste and with real care, from the first "
           + "sales conversation through to the precise understanding of exactly what we are doing "
           + "together.",
         name: "Achituv",
@@ -162,7 +162,7 @@ export const home = {
       {
         quote:
           "A brilliant system. It saves us a lot of time and quite a few costs, and it brings sense "
-          + "and order to your head. I warmly recommend it to everyone!",
+          + "and order to your head. I recommend it to everyone!",
         name: "Elyashiv Engineering",
         role: "",
       },
