@@ -32,18 +32,19 @@ export const chrome: ChromeDict = {
       /* AUTHORED — the brand, Latin in every locale. Not transliterated: the wordmark two rows
          up is Latin, and "קליקס" beside a Latin lockup reads as two different companies. */
       "Clix",
-      /* AUTHORED ×6. The real site's IA is different (שירותים/תעשיות/פרויקטים/תובנות/
+      /* AUTHORED ×5. The real site's IA is different (שירותים/תעשיות/פרויקטים/תובנות/
          פלייגראונד/אודותינו), so only its register transfers, not its labels.
-         ⚠️ These seven have a SUM constraint, not a per-string one: they sit in an absolutely
+         ⚠️ These have a SUM constraint, not a per-string one: they sit in an absolutely
          centred row that must clear the logo and the CTA at the 1200–1599 tier. Measured
-         against the real face, the Hebrew row is 467px against English's 552px — 85px of extra
-         clearance, so this set is safe. Re-measure if any label grows. */
+         against the real face at seven slots, the Hebrew row was 467px against English's 552px
+         — 85px of clearance. Dropping קריירה/Careers on 2026-08-13 took ~54px off the Hebrew
+         row and ~65px off the English one, so both got SHORTER and the margin only grew.
+         Re-measure if any label grows. */
       "מוצר",
       "אבטחה",
       "החברה",
       "לקוחות",
       "חדשות",
-      "קריירה",
     ],
     /* SOURCED verbatim — about.links[9].text, and the CTA on every page of the real site.
        Measured at 70.9px against English's 70.6px, so the button does not move. */

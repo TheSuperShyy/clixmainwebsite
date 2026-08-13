@@ -144,7 +144,8 @@ function FooterLinkItem({ item, label }: { item: FooterLink; label: string }) {
 export default function Footer() {
   /* Server component, so the dictionary comes from the request store rather than a context.
      No prop had to be threaded here — which matters because this component is rendered by all
-     7 routes and prop-drilling `locale` would have meant the same edit in 7 files. */
+     6 routes (7 until /careers came out on 2026-08-13) and prop-drilling `locale` would have
+     meant the same edit in every one of them. */
   const t = getChrome().footer;
 
   return (

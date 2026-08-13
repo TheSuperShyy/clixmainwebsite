@@ -12,7 +12,7 @@ come from the target's own `data-framer-name` attributes — not from guessing a
 
 | # | Slug | Section | Original name | Status | Notes |
 |---|---|---|---|---|---|
-| 1 | `nav` | Navigation + announcement banner | `Navigation + Banner` | **`review`** | **Built** → [features/nav/](../features/nav/). `position:fixed`, overlays the hero. **Two different breakpoints:** banner switches layout at **810px**, header switches full-nav→hamburger at **1200px** — the 810–1199.98 tier has a centred banner over a hamburger header. **Scrolled state added 2026-08-03** from live screenshots. **Two independent behaviours, not one:** the banner is direction-aware (`shift = (down && scrollY > 0) ? 45 : 0`, eased 300ms both ways — out on the way down, back on the way up at any depth), while the bar's palette **tracks the section behind it** — a three-way `hero`/`light`/`dark` state driven by a `data-nav-theme` attribute each section carries, not a boolean. Over `security` and `footer` (both `ink`) the bar goes solid `ink` with the hero's own white content palette; over the light sections it goes solid `paper` with `ink` logo/links and an inverted `Request Demo`. The **`dark` state is a user request and has NOT been observed on the live site** — possibly a deliberate divergence. Proven independent by a live frame showing a light bar *with* the banner — impossible from a single state flag. **Link labels are the target's own as of 2026-08-09** — `Clix/Product/Security/Company/Customers/News/Careers`, i.e. rogo's seven with `Felix` → the brand; only `Security` and `Customers` resolve to a section here, the other five are inert. Labels only: the clix lockup, the LLM ticker and the 18px type were each asked about and kept. The capture could never have supplied this — it declares the sibling variant `.framer-v-yxrzsa` but every colour in it is applied inline from JS. Unticked: not yet compared to the reference at any tier; the mobile menu panel is **invented** (never rendered in the capture); the scroll **flip point** is ours (hero bottom ↔ nav bottom, not measured); the `Indicator` element unresolved. |
+| 1 | `nav` | Navigation + announcement banner | `Navigation + Banner` | **`review`** | **Built** → [features/nav/](../features/nav/). `position:fixed`, overlays the hero. **Two different breakpoints:** banner switches layout at **810px**, header switches full-nav→hamburger at **1200px** — the 810–1199.98 tier has a centred banner over a hamburger header. **Scrolled state added 2026-08-03** from live screenshots. **Two independent behaviours, not one:** the banner is direction-aware (`shift = (down && scrollY > 0) ? 45 : 0`, eased 300ms both ways — out on the way down, back on the way up at any depth), while the bar's palette **tracks the section behind it** — a three-way `hero`/`light`/`dark` state driven by a `data-nav-theme` attribute each section carries, not a boolean. Over `security` and `footer` (both `ink`) the bar goes solid `ink` with the hero's own white content palette; over the light sections it goes solid `paper` with `ink` logo/links and an inverted `Request Demo`. The **`dark` state is a user request and has NOT been observed on the live site** — possibly a deliberate divergence. Proven independent by a live frame showing a light bar *with* the banner — impossible from a single state flag. **Link labels are the target's own as of 2026-08-09** — `Clix/Product/Security/Company/Customers/News`, i.e. rogo's seven with `Felix` → the brand and **`Careers` dropped on 2026-08-13 when its route was deleted**; six slots now, and the tuple type in `dictionary.ts` enforces the count in both locales. Only `Security` and `Customers` resolve to a section here; the rest are routes or inert. Labels only: the clix lockup, the LLM ticker and the 18px type were each asked about and kept. The capture could never have supplied this — it declares the sibling variant `.framer-v-yxrzsa` but every colour in it is applied inline from JS. Unticked: not yet compared to the reference at any tier; the mobile menu panel is **invented** (never rendered in the capture); the scroll **flip point** is ours (hero bottom ↔ nav bottom, not measured); the `Indicator` element unresolved. |
 | 2 | `hero` | Hero | `Hero` (`#hero`) | **`review`** | **Built** → [features/hero/](../features/hero/). All four tiers verified via CDP at exact viewports; no overflow; build clean. h1 `64/64/56/48px`. Unticked: CTA hover/active and entrance motion — **not observable in the capture**, need a look at the live site. |
 | 3 | `logo-carousel` | Tool-stack marquee (was: customer logo wall) | `Logo Carousel` | **`review`** | **Built** → [features/logo-carousel/](../features/logo-carousel/). ⚠️ **Not a sibling section — it renders INSIDE `<section id="hero">`**, `absolute bottom:0 height:248px`. The "#3, after the hero" placement in this table was an inventory guess from the visual and was wrong; verified against the capture's tag offsets. Doubled track, `gap:56px`, 8-layer progressive blur, measured cycle. → `gsap`. **⚠️ CONTENT DEPARTS FROM THE TARGET (2026-08-07):** rogo's 14 items are its *customers* (Jefferies, Lazard, Rothschild…), which a clix wordmark cannot honestly claim, so the row now carries clix's **own stack** — 13 tool lockups (glyph + name), 12 of them verbatim from the live company site's stack marquee, ElevenLabs added by the user. Every *mechanism* is still the target's; only the `<ul>` contents changed. Treatment is glyph + name because simple-icons (CC0) ships these as 24×24 **glyphs** while the row was built for **wordmarks 45–226px** — the lockup lands at 40–188 × 24, back inside that band. **Vapi and monday.com have no mark in simple-icons and render as text alone** rather than as a redrawn trademark. Cycle measurement is now gated on `document.fonts.ready` (text items are font-width dependent; measuring early tears the loop). Rendered at 1600/1440/1024/390. Unticked: **marquee speed is estimated** (50 px/s) since a static capture can't encode a rate; **tool list needs the user's confirmation**; a reference diff no longer applies to this row's content. |
 | 4 | `testimonials` | Testimonials | `Testimonials` (`#testimonials`) | **`review`** | ⚠️ **TWO TREATMENTS SHARE THIS SLOT AS OF 2026-08-13.** The section, its `id`, its `data-nav-theme` and its "In our clients' own words" `<h2>` are permanent; only the BODY swaps. It renders the video accordion described below **until six real client quotes exist**, at which point `QuoteCarousel` (moved here from /product) takes over. The switch is **DERIVED** from whether the quote strings are non-empty, not a flag — a flag was tried and failed, because `PageDictProvider` serialises the whole `home` namespace into the RSC payload and the placeholder quotes leaked into this page's public source (7 measured hits) while the accordion was the thing rendering. The fabricated strings are therefore `""`, and pasting real ones in *is* the act of switching over. **Built** → [features/testimonials/](../features/testimonials/). One-open accordion: 600px three-column row at ≥1200 (open `calc(66% - 24px)`, closed `17%`, gap 12), stack below. Quote type drops **28 → 20px** under 1200 — the capture hides this in the *open* mobile variant only. Built with **CSS transitions, no animation library** — neither the `gsap` nor the `framer-motion` trigger matches a two-state toggle; the "`framer-motion`" note in the original inventory row was a guess from the visual. Unticked: motion timings are **estimated**; **two inherited contrast failures** (role text 2.50:1, logo marks 1.92:1) await the user's call; hover state unobserved. |
@@ -191,8 +191,9 @@ headlines**, where `/news` ships without a `robots` block *because* those headli
 Still **not scoped** — see the open question in [PROJECT.md](PROJECT.md).
 
 `Customers` · `Log in`
-(`News` and `Product` left this list 2026-08-11, `Company`, `Careers` and `Security` on
-2026-08-12 — all built above.)
+(`News` and `Product` left this list 2026-08-11, `Company` and `Security` on 2026-08-12 — all
+built above. `Careers` left it on 2026-08-12 too, was built, and was **removed whole on
+2026-08-13** at the user's request; it is not coming back to this list unless asked for.)
 
 ## Page: /company
 
@@ -218,19 +219,51 @@ Block 5. One line lifts it.
 | 3 | `Mission` | `CompanyMission` | `review` |
 | 4 | `Team` → eight services | `CompanyServices` | `review` |
 | 5 | `Investors` → twelve tools | `CompanyTools` | `review` |
-| 6 | `Reiteration` | `CompanyCareers` | `review` |
+| 6 | `Reiteration` | `CompanyCareers` | `review` ⚠️ see below |
 | 7 | `Footer` | shared `Footer` | `review` |
 
-**Every band height matches the target to 0.00px at 1600 / 1440 / 1024 / 390**, and `<main>`
-totals match exactly (4497.16 at 1440, 6451.88 at 390). Verified with a before/after harness,
-not by eye.
+⚠️ **BAND 6 LOST ITS CTA ON 2026-08-13 AND NO LONGER MATCHES THE TARGET AT TWO TIERS.** The
+"See Careers" button pointed at `/careers`, which the user deleted the same day; it was removed
+rather than repointed, because this repo's own rule (Nav.tsx) is that an unresolved slug aimed
+at some other destination is "a wrong destination dressed up as a working link". Losing the
+36px button and the column's 24px gap takes **60px** out of that column:
+
+| tier | before | after | why |
+|---|---|---|---|
+| ≥1200 | 316.8 | **316.8** | unchanged — the row is `items-end` and the TITLE column (124.8) already set the height; the shorter column beside it never did |
+| tablet | 348.8 | **288.8** | the column WAS the height |
+| phone | 372.8 | **312.8** | the column WAS the height |
+
+**This is a deliberate divergence from the capture, not a regression** — the target has a
+careers page to point at and this build does not. Everything else on the band (the empty 20px
+eyebrow slot, the `items-end` rule, the full-bleed photograph) is untouched.
+
+**Every OTHER band height matched the target to 0.00px at 1600 / 1440 / 1024 / 390** when the
+page was built, and `<main>` totalled exactly 4497.16 at 1440 and 6451.88 at 390. Verified with
+a before/after harness, not by eye. ⚠️ **Those two `<main>` totals are now 60px short at 1024
+and 390** for the reason above; the per-band figures for bands 1–5 and 7 still hold.
 
 ⚠️ **The document is still 43.8px taller at 1440 and 234px at 390, and none of it is this
 page.** The whole delta is the shared `Footer`, which is that much taller than rogo's on every
 route. Pre-existing, almost certainly `FooterMap.tsx`'s map embed, which rogo's footer has no
 equivalent of. Not fixed here.
 
-## Page: `/careers` (clone of `rogo.com/careers`)
+## ~~Page: `/careers`~~ — **REMOVED 2026-08-13**
+
+> ⚠️ **THIS PAGE NO LONGER EXISTS.** The user removed it whole on 2026-08-13 ("also remove the
+> whole careers route and page"): both routes, all three components, both dictionaries, the
+> eight carousel photographs, the nav slot, the three `@theme` tokens, and `/company` Block 5's
+> "See Careers" button — the last link into it from anywhere on the site.
+>
+> **Everything below is kept as the MEASURED ARCHIVE, not as a status board.** Read the
+> statuses as *what was true on 2026-08-12*, not as work in flight. Nothing here is `todo`,
+> and nothing here should be picked up.
+>
+> **To rebuild it**, take the components from the commit before the removal — the whole page
+> restores as one revert. The `#roles` band it had already lost is one step further back, in
+> `bbf10b1`. The three retired colours are in
+> [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md) → "Added 2026-08-12, RETIRED 2026-08-13".
+> Detail and reasoning: [features/careers-page/CONTEXT.md](../features/careers-page/CONTEXT.md).
 
 Started and complete 2026-08-12, on `dev` (no feature branch, at the user's instruction), built
 concurrently with `/company` in a separate session. Capture:

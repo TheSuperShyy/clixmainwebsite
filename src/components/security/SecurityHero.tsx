@@ -91,6 +91,12 @@ import { getDict } from "@/lib/i18n/server";
  * per-page local copies of Framer-derived SVG so that a later measurement on one page cannot
  * silently move another. Three pages agreeing today is a finding, not a contract.
  *
+ * ⚠️ THAT SOURCE FILE NO LONGER EXISTS — `/careers` was deleted on 2026-08-13. Every
+ * "/careers" in this header is a HISTORICAL comparison, kept because the agreement between
+ * three independent measurements is the finding; it is not a live cross-reference, and the
+ * local copy below is now one of two rather than one of three. The deleted file is in the
+ * commit before the removal if a fourth measurement ever needs checking against it.
+ *
  * OFFSETS RE-MEASURED ON THIS PAGE, NOT ASSUMED: dx -28 / dy -12 against the 220x40 frame at
  * EVERY tier — i.e. `-top-3 -left-7` and `-right-7 -bottom-3`. At 1440 the LEFT rect sits at
  * (582, 473) against a frame at (610, 485); the same delta holds at 1600 / 1024 / 390. That is

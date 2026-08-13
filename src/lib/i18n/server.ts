@@ -2,7 +2,7 @@
  * The SERVER seam. How a server component learns its locale without being handed a prop.
  *
  * WHY THIS EXISTS AT ALL. 34 of this repo's 57 component files are server components, and they
- * include `Footer.tsx` (rendered by all 7 routes), `Hero.tsx`, `Security.tsx`, `WhyRogo.tsx`,
+ * include `Footer.tsx` (rendered by all 6 routes), `Hero.tsx`, `Security.tsx`, `WhyRogo.tsx`,
  * `ByTheNumbers.tsx` and most of /product, /company and /security. A React context cannot reach
  * any of them. The two alternatives were:
  *
