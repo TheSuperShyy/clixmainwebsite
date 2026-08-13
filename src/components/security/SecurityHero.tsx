@@ -6,10 +6,20 @@
  * to 900 (see the `70vh` note below — without that pin the height number is meaningless).
  * Spec: features/security-page/FEATURE.md, Block 1 · memory: features/security-page/CONTEXT.md
  *
- * SERVER COMPONENT ON PURPOSE. Nothing here is stateful: the only motion on the whole page is
- * this CTA's two corner brackets sliding inward, which is pure CSS `group-hover`. So no
- * `"use client"`, no props, and this block ships zero JS. (`data-framer-appear-id` count across
- * the entire captured page is 0 — there is no entrance animation to port.)
+ * STILL A SERVER COMPONENT — no `"use client"`, no props, no state. But it is NO LONGER TRUE
+ * that this block ships zero JS: as of 2026-08-13 it renders `<SecurityTerminal />`, a client
+ * component, as its second child, and that is the only client JS on this route. The rest of
+ * this file is unchanged and must stay server-rendered; the copy is still read with `getDict()`
+ * and not `usePageDict()` for exactly that reason.
+ *
+ * ⚠️ THE CLAIM THAT THIS PAGE HAS NO MOTION IS NOW A CLAIM ABOUT THE TARGET ONLY.
+ * `data-framer-appear-id` count across the entire captured page really is 0, and the only
+ * motion the CLONE has is this CTA's two corner brackets sliding inward on `group-hover`, in
+ * pure CSS. The terminal's scroll-triggered reveal is an ADDITION on the user's instruction
+ * (2026-08-13, their boss asked for "coding effects" on the security section after seeing
+ * kiro.dev), recorded as a deviation in FEATURE.md rather than folded in as if it were fidelity.
+ * SecurityBenefits, SecurityCompliance and SecurityCore stay motionless. Do not read the
+ * terminal as a licence to animate them.
  *
  * COPY IS CLIX'S OWN FROM THE FIRST COMMIT — the `/company` model, not the `/careers` one.
  * Nothing of rogo's editorial ever lands here, so there is nothing to strip later and the route
@@ -18,15 +28,18 @@
  *
  * ⚠️ THE COPY NOW LIVES IN `src/lib/i18n/{en,he}/security.ts` AND IS READ WITH `getDict()`,
  * NOT WITH `usePageDict()`. This is a SERVER component (see above) — the client hook would
- * force `"use client"` on a block that ships zero JS today, which is exactly what the header's
- * second paragraph forbids. `getDict()` is safe here because `SecurityRoute` seeds the locale
- * as the first statement of its body, and this component renders below it.
+ * force `"use client"` on a block that must stay server-rendered, which is exactly what the
+ * header's second paragraph forbids. `getDict()` is safe here because `SecurityRoute` seeds the
+ * locale as the first statement of its body, and this component renders below it.
  *
- * ⚠️ THE H1 IS THE ONE LENGTH RISK ON THIS BLOCK, IN EITHER LOCALE. The section is `70vh` with
+ * ⚠️ THE H1'S LENGTH RISK IS GONE, AND THE OLD WARNING IS KEPT HERE AS HISTORY BECAUSE IT WILL
+ * COME BACK IF ANYONE REINSTATES THE FIXED HEIGHT. It used to read: the section is `70vh` with
  * `place-content: center` AND `overflow: hidden`, so it does not grow — at a 900px viewport it
  * is 630px against 580px of content, and a THIRD h1 line (+83.6px at 88px/95%) would overflow
- * that budget and be clipped top and bottom rather than pushing the band taller. Both locales'
- * titles are verified at two lines; a longer one is a clipped one.
+ * that budget and be CLIPPED top and bottom rather than pushing the band taller.
+ * Since 2026-08-13 the band is `h-[min-content]` at every tier, so a third line now simply makes
+ * the hero taller. Both locales' titles are still verified at two lines; that is now a layout
+ * preference rather than a hard ceiling.
  *
  * NO DASHES IN CLIX COPY — no em dash, no en dash, no hyphen standing in for one (user's
  * standing request, 2026-08-10, first recorded in ClixManifesto.tsx). It governs the strings in
@@ -39,21 +52,39 @@
  * | Property            | >=1200 (1600 + 1440)  | 1024 (tablet)        | 390 (phone)          |
  * |---------------------|-----------------------|----------------------|----------------------|
  * | section padding     | `198px 40px 80px`     | same                 | `198px 16px 80px`    |
- * | section height      | `70vh` (630 @ vh900)  | `70vh`               | `min-content` 521.19 |
- * | section gap         | 96                    | 96                   | 96                   |
+ * | section height      | `min-content` 1256    | `min-content` 952.41 | `min-content` 905.19 |
+ * | section gap         | 96 (LIVE since 08-13) | 96                   | 96                   |
  * | `Text & Button`     | gap 32, max-w none    | gap 24, max-w none   | gap 24, max-w 360    |
  * | `Text Container`    | 540 x 230, gap 16     | 540 x 194.41         | 358 x 179.19         |
  * | h1                  | 88px / 95% / -0.06em  | 72px / 95% / -0.06em | 64px / 95% / -0.05em |
  * | subtitle            | 18px / 130% / -0.02em | 16px                 | 16px                 |
  * | CTA frame           | 220 x 40              | same                 | same                 |
  * | CTA `<a>`           | 220 x 36              | same                 | same                 |
+ * | canvas              | **1000 x 580**        | 720 x 320            | 358 x 288            |
+ * | · console (>=1200)   | 900 x 440 at (0, 0)   | — not rendered —    | — not rendered —    |
+ * | · terminal           | 720 x 320 at (280,260)| 720 x 320            | 358 x 288            |
  *
- * ⚠️ THE HEIGHT IS `70vh`, NOT A CONTENT SUM. `.framer-16jfo2a` declares `height: 70vh` at
- * >=810 and `height: min-content` at <=809.98. At a 900px viewport that is 630px, while the
- * content sums to only 198 + 302 + 80 = 580. The 50px difference is absorbed by
- * `place-content: center`, which is the ONE tier where that otherwise-inert property does real
- * work. Do not try to reproduce 630 with padding: it would break at every other viewport height.
- * The phone tier really is a content sum, and it closes exactly: 198 + 243.19 + 80 = 521.19.
+ * ⚠️ THE HEIGHT WAS `70vh` ON THE TARGET AND IS A CONTENT SUM HERE (2026-08-13). Keep the
+ * target's fact on record, because it is what the capture says and what a re-probe will find:
+ * `.framer-16jfo2a` declares `height: 70vh` at >=810 and `height: min-content` at <=809.98, so
+ * at a 900px viewport the target's band is 630px around 580px of content (198 + 302 + 80) and
+ * the 50px difference is absorbed by `place-content: center`.
+ *
+ * OURS CANNOT BE THAT, because the section is `overflow: hidden` and the windows are inside it:
+ * a 320px window added to 580px of content inside a frozen 630px box is 270px of clipped
+ * window. So the `tablet:h-[70vh]` rule is gone and the band grows instead. The new sums, and
+ * they close exactly:
+ *   >=1200  198 + 302    + 96 + 580 + 80 = 1256   (the composite, not just the terminal)
+ *   1024    198 + 258.41 + 96 + 320 + 80 = 952.41 (terminal only — the console is >=1200)
+ *   390     198 + 243.19 + 96 + 288 + 80 = 905.19 (terminal only)
+ *
+ * ⚠️ ONLY THE >=1200 TIER MOVED when the console arrived on 2026-08-13. 952.41 and 905.19 are
+ * the same numbers measured before it existed, and that is by design — the console and the
+ * dragging are both gated to one breakpoint precisely so the two smaller tiers never re-open.
+ * The 96 is the section's own `gap-24`, INERT until 2026-08-13 and live now that there are two
+ * children. `heroH` is therefore an intentional divergence in docs/reference/security-diff.js,
+ * listed beside the three heights already excluded for the dropped "Explore security portal"
+ * link — not a regression, and not something to "fix" by restoring 70vh.
  *
  * WHY 198px OF TOP PADDING: the nav is `position: fixed` on this route, so nothing in flow
  * reserves its height. This padding IS the clearance for the announcement banner + nav row.
@@ -67,6 +98,7 @@
 
 import { getDict } from "@/lib/i18n/server";
 import AppLink from "@/components/ui/AppLink";
+import SecurityCanvas from "@/components/security/SecurityCanvas";
 
 /* ---------------------------------------------------------------------------------------
  * The two corner brackets that frame the CTA. 14x20 each, path data verbatim from the
@@ -166,9 +198,17 @@ export default function SecurityHero() {
     <section
       id="first"
       data-nav-theme="dark"
+      /* ⚠️ `tablet:h-[70vh]` WAS HERE AND IS GONE (2026-08-13). The band is a content sum at
+         every tier now. See the header for the full reasoning; the short version is that the
+         section is `overflow-hidden`, so a terminal added inside a fixed 630px box that already
+         held 580px of content would simply have been clipped away. `heroH` is now an
+         intentional divergence in docs/reference/security-diff.js rather than a matching key.
+         `place-content-center` is kept and is now INERT — the file's convention is to keep and
+         document a value the original computes rather than silently drop it, and it becomes
+         load-bearing again the moment anyone reinstates a fixed height. */
       className="relative flex h-[min-content] w-full flex-col place-content-center items-center
                  gap-24 overflow-hidden bg-ink px-4 pt-[198px] pb-20
-                 tablet:h-[70vh] tablet:px-10"
+                 tablet:px-10"
     >
       {/* Text & Button — gap 32 at >=1200, 24 below. The 360px cap is a PHONE-ONLY rule; from
           tablet up the measure is the 540px Text Container's job and this box just fills the
@@ -293,6 +333,23 @@ export default function SecurityHero() {
           </AppLink>
         </div>
       </div>
+
+      {/* The mock-window composite — the section's SECOND child, which is what finally
+          activates the `gap-24` (96px) above. That gap had been sitting here inert since this
+          block was built, kept on the grounds that "the next thing added to this section will
+          expect it"; this is that thing, and the note has been proved rather than inherited.
+
+          ⚠️ IT IS A SIBLING OF `Text & Button`, NOT A CHILD OF IT. That wrapper is
+          `max-w-[360px]` at the phone tier, so nesting the windows inside would cap them at 360
+          and neither the terminal's 720 nor the composite's 1000 would ever apply.
+
+          ⚠️ WHAT IT CONTAINS DEPENDS ON THE TIER, and that is why this block's height does:
+          at >=1200 it is a 1000 x 580 composite of a 900 x 440 console with a 720 x 320 terminal
+          overlapping its bottom-right, both draggable; below 1200 it is the terminal alone, in
+          normal flow, exactly as it was before the console existed. See SecurityCanvas.tsx.
+
+          Client component, and the only client subtree on this route — see the header. */}
+      <SecurityCanvas />
     </section>
   );
 }

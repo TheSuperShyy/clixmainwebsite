@@ -109,6 +109,198 @@ each band is its own `data-nav-theme` region.
 - Two DOM variants in the original, `Button (For Desktop)` ≥1200 and `Button (For Mobile)` below,
   which render **identically** (220 × 40 both). Collapsed to one element here.
 
+## Block 1b — Terminal (`SecurityTerminal`) — ⚠️ OURS, NOT THE TARGET'S
+
+**There is no counterpart to this on rogo.com/security.** Added 2026-08-13 on the user's
+instruction: their boss saw [kiro.dev](https://kiro.dev/) and asked for "coding effects, since
+it is the security section". What was borrowed is kiro's hero **form** — dark window chrome,
+monospace, a dot-matrix banner, output that arrives live — and **none of its palette**, which is
+lavender-purple with syntax-coloured text. Every value below is a design decision, not a
+measurement, and may be tuned freely. Component: `src/components/security/SecurityTerminal.tsx`.
+
+⚠️ **REVISED THE SAME DAY, AND THE REVISION IS THE DESIGN.** The first build typed one fixed
+log out and then froze. The user compared it to kiro — *"ours after the animation it's static
+but in kiro it's continuously coding and stuff"* — and asked for *"the kiro literal agent feed,
+but connect it to security"*. So the body is now a **rolling agent feed**: a six-row task list
+that advances one row every ~1.3s, forever, cycling a pool of twelve security checks.
+**Being endless is the requirement**, not a side effect — do not revert it to a fixed log.
+
+It is the **second child of `#first`**, which is what finally activates that section's `gap-24`
+(96px) — inert since the block was built, and kept then on the note that "the next thing added to
+this section will expect it".
+
+| Element | ≥1200 | 1024 | 390 |
+|---|---|---|---|
+| Window | **720 × 320** | 720 × 320 | **358 × 288** |
+| Title bar | 36 | 36 | **32** |
+| Body | 282 | 282 | **254** |
+| Body padding | 20 | 20 | **16** |
+| Mono size / line-height | **14** / 1.6 | 14 / 1.6 | **12** / 1.6 |
+| Command box | 18ch = **155.74** | 155.74 | 18ch = **133.47** |
+| Feed viewport | `calc(6 * 1.6em)` = **134.39** | 134.39 | **115.19** |
+| Row height (measured) | **22.39** | 22.39 | **19.19** |
+| Marker / verb columns | 2ch / 8ch | same | same |
+
+- ⚠️ **The window totals are round; the body heights are not, and that is deliberate.** The root
+  has no height of its own, so `border-box` never applies to it and its 1px border sits OUTSIDE
+  its children: `1 + 36 + 282 + 1 = 320` and `1 + 32 + 254 + 1 = 288`. Those totals are what the
+  hero's height sum is built on — move one and the other has to move with it.
+- ⚠️ **The body height is FIXED, not content-driven.** The feed never stops, so a content-sized
+  box would grow without limit and push the whole page down as it ran. Content sums to 203.8
+  (tablet+) inside 282 and 181.4 (phone) inside 254; the feed's own bottom edge clears the body's
+  inner bottom by **38.22 / 40.63px**, measured.
+- ⚠️ **Six rows visible, SEVEN rendered.** The seventh sits below the clip and is what slides
+  INTO view each tick — without it the incoming row would pop in at the bottom edge rather than
+  arrive. The viewport is `calc(6 * 1.6em)`, which is exactly six rows at **both** type tiers
+  (134.39 at 14px, 115.19 at 12px) with no second number to keep in sync. Measured 6.002 and
+  6.003 rows respectively.
+- **Status is derived from POSITION, never stored**: rows above the last visible one are `done`,
+  the last visible one is `running`, the one below the clip is `queued`. The feed is therefore a
+  pure function of one integer and no row has a state machine — a row does not *become* done, it
+  simply moves up.
+- ⚠️ **Status is carried by FILL, not by hue**, because kiro colour-codes it and this site has
+  no palette to spend: a hollow `muted` ring is queued, a `paper-soft` disc is done, a `paper`
+  disc that pulses is running. Verified in the render as `rgba(255,255,255,0.8)` × 5,
+  `rgb(255,255,255)` × 1 pulsing, and one transparent fill on a `rgb(115,115,115)` border.
+- **Colours are all pre-existing tokens. No new token, no new colour.** Body `ink`, title bar
+  `ink-soft`, border + title rule `hairline-light`, readable text `paper-soft` / `paper`.
+- ⚠️ **`muted` carries only decoration** — the traffic dots, the dot-matrix art and the two line
+  markers. That is a 3.53:1 pairing, which answers WCAG 1.4.11's 3:1 floor for non-text. It is
+  deliberately kept off every readable string, because `muted` on `ink` is 3.85:1 and already
+  fails AA in five inherited places on this site. **This block adds no sixth failure.**
+- **English and LTR in both locales** (user's call). The root carries `dir="ltr"`; nothing here
+  comes from the dictionary. Verified: `direction: ltr` inside a `dir=rtl` document on `/he`.
+- ⚠️ **THE ROWS NAME CHECKS BEING RUN, NOT RESULTS BEING CLAIMED**, and that distinction is
+  load-bearing. This repo has stripped unbacked claims twice (home 2026-08-05, `/product`
+  2026-08-12); an endless stream of PASSES would be the same move in a new costume. Every subject
+  maps onto one of the five practice cells: iam / token scope / least privilege →
+  `least-privilege`; tls / encryption at rest → `encrypted`; region / egress / inbound →
+  `your-cloud`; retention → `your-data`; source integrity → `ownership`.
+  **Column budget is 2ch + 8ch + target**; the longest target is "egress destinations" at 19
+  characters (29ch ≈ 215px against 324px of inner width at 390). Measured clearance to the window
+  edge: **427.11px at ≥1200, 108.95px at 390**. Measure before adding a longer one.
+- **The whole window is `aria-hidden="true"`.** Every claim it prints appears verbatim as prose
+  in the Compliance band below, so nothing is lost; a monospace pseudo-terminal read aloud is
+  worse than silence. Nothing in it is focusable, so focus order is unchanged.
+- The dot-matrix banner is a **grid of 3px `<span>`s, not block characters** — 5 rows × 5 columns
+  per letter with a blank column between, 23 columns. Glyph coverage in Fragment Mono is not
+  guaranteed, and one missing character would fall back at a different advance and shear the art.
+
+### The composite — two windows, `>=1200` only
+
+Third pass, 2026-08-13. The user asked for kiro's second window and its drag behaviour:
+*"can you add also something like this? in kiro both are dragable in the canva"*. So the hero's
+second child is now a **canvas holding two overlapping mock windows**, both draggable.
+
+| | at `>=1200` |
+|---|---|
+| console | 900 × 440 at (0, 0) |
+| terminal | 720 × 320 at (280, 260) |
+| **composite box** | **1000 × 580** |
+| `#first` height | 198 + 302 + 96 + **580** + 80 = **1256** |
+
+**1000 is chosen against the NARROWEST tier that shows it.** At exactly 1200 the hero's content
+row is 1200 − 80 of padding = 1120, so the composite leaves 60px of air on each side — measured.
+At 1440 it leaves 180, at 1600 it leaves 260. ⚠️ **Do not grow it past 1120 without checking
+1200 first**: the section is `overflow-hidden`, so the overflow would be silently clipped rather
+than scrolled.
+
+⚠️ **THE CONSOLE AND THE DRAGGING ARE BOTH GATED TO ONE BREAKPOINT, AND THE SMALLER TIERS DID
+NOT MOVE.** Below 1200 the hero renders the terminal alone, exactly as before the console
+existed — **952.41 and 905.19, byte-identical to what was measured on the previous pass**.
+Three panes at the 358px phone tier are unreadable at any type size that fits, and stacking them
+at the tablet tier would add ~460px to a hero that is already 952 there. Verified at 1199 that
+the console is `display: none` and the band is back to 952.41.
+
+- **Files:** `MockWindow.tsx` (shared chrome), `SecurityConsole.tsx` (three panes),
+  `SecurityTerminal.tsx` (the feed), `SecurityCanvas.tsx` (layout, entry, drag).
+- ⚠️ **No shadow separates the two windows.** The reference implementation reaches for
+  `shadow-2xl`; **this site ships ZERO shadows** — `shadow-` returns nothing across
+  `src/components/`. One here would be the first on the build and would need a token, an
+  elevation scale, and a decision about every other card on the site. The front window is opaque
+  `ink` and simply **occludes** the back one; the `hairline-light` border draws the seam.
+- ⚠️ **The console's rows are the SAME five practice claims** the cells already state in prose
+  (region / scope / secrets / retention / source). There is deliberately **no pass/fail badge,
+  no "0 vulnerabilities", no compliance score** — a product screenshot is the most convincing
+  thing on a marketing page and is exactly how an unbacked claim walks back in.
+- ⚠️ **Diff additions and deletions are not green and red**, which is the one place this window
+  will look "wrong" to anyone who knows diffs. Monochrome rule; the site's only red/green pair is
+  `price-low` / `price-high` and both are marked semantic-only and forbidden as accents.
+
+### Dragging — GSAP `Draggable`, `>=1200` and pointer-capable only
+
+`Draggable` ships in the installed gsap 3.15.0 under the standard no-charge licence — **verified
+in `node_modules`, no install needed.** Armed behind
+`(min-width: 1200px) and (hover: hover) and (prefers-reduced-motion: no-preference)`.
+
+- **Bounded to `#first`**, cursor `grab` → `grabbing`, dragged window raised to `z-30` for the
+  duration, and **eased home over 500ms on release** (the user's call over kiro's stay-put), so
+  a visitor cannot leave the hero looking broken and there is no state to persist.
+- ⚠️ **`bounds` MUST BE AN ELEMENT, NOT THE STRING `"#first"`, and getting this wrong took the
+  whole page down.** `useGSAP({ scope: root })` resolves every GSAP selector inside the
+  component's own subtree; `#first` is an ANCESTOR of the canvas, so it matched nothing,
+  Draggable read `undefined.nodeType` in `_getBounds`, and React unmounted the client tree. SSR
+  still served `#first`, so the failure looked like a hydration bug rather than a selector one.
+  `root.current?.closest("#first")` resolves it outside GSAP's scoped lookup.
+- **Verified by driving a real drag over CDP**: transform went `matrix(1,0,0,1,0,0)` →
+  `matrix(1,0,0,1,-140,-90)` while held, and back to `matrix(1,0,0,1,0,0)` 900ms after release
+  (left edge 500 → 360 → 500). Cursor reports `grab` at `>=1200` and `auto` at 1199 and below.
+- Cleanup clears `transform`, `cursor` and `zIndex`: matchMedia cannot revert raw-DOM state, so a
+  window dragged and then a viewport narrowed below 1200 would otherwise keep a stale offset and
+  a `grab` cursor it can no longer honour.
+
+### Motion — **estimated, and the page's only animation**
+
+GSAP + ScrollTrigger (already a dependency, already driving five components). **Two timelines.**
+
+**Intro, once:** banner fades in 200ms, the command reveals by an `Nch` **width tween with
+`steps(18)`** at 35ms/char, then the seven rows fade and rise 4px on a 90ms stagger.
+
+**Loop, `repeat: -1`, forever:** slide the list up by exactly one row (350ms, `power2.inOut`),
+then advance the head index, repaint all seven rows in place and snap the transform back to 0.
+`repeatDelay` 950ms is the dwell, so a full tick is ~1.3s. Verified advancing at t+4s **and
+still advancing at t+8s**, at both 1440 and 390.
+
+- ⚠️ **The travel is MEASURED off a live row, not hardcoded.** It has to equal the row height at
+  whichever tier is live (22.39px at 14px, 19.19px at 12px), and a literal would be right at one
+  tier and visibly wrong at the other — the exact failure `ProductStepper`'s `rows-up` keyframe
+  documents and *cannot* avoid, because a keyframe cannot be parameterised. A tween can.
+- ⚠️ **`paint()` rewrites `textContent` on a loop, and only the `aria-hidden` root makes that
+  acceptable.** The a11y objection to mutating text does not apply to a subtree the a11y tree
+  cannot see, and the rows are fixed-height so nothing reflows. The DOM node count is constant
+  for the life of the page: seven rows, reused forever, never appended.
+- ⚠️ **The loop pauses when the window scrolls off screen** (`ScrollTrigger.onToggle`). This is
+  not a micro-optimisation — an endless compositing loop running for the whole time a visitor
+  reads the rest of the page is measurable battery on a phone, for something nobody can see.
+- ⚠️ **The pulse is bound to a SLOT, not to a row**, so during the 350ms slide it rides upward
+  with the row it is on and snaps back at the repaint. At rest — 73% of every cycle — it is on
+  the bottom visible row, which is correct. Chasing the handover would mean cross-fading two
+  markers for a third of a second to fix something no one can see. Considered, not missed.
+
+- ⚠️ **The typing is a width reveal, not a text mutation.** Appending characters churns the DOM,
+  reflows every frame and gives a screen reader a moving target. The string is fully present in
+  the markup from SSR onward and only its box is animated. The caret is the next flex item, so
+  it trails the reveal for free.
+- ⚠️ **The command box width is derived from `COMMAND.length`, and it must stay derived.** It was
+  `w-max` first, which measured **650.06px against 242.27px of text** — the span absorbed the
+  whole remaining row instead of hugging its content, stranding the caret ~400px past the end of
+  the command in exactly the two states with no animation to hide it: JS off and reduced motion.
+  Caught by measurement before it shipped. The inline `COMMAND.length + "ch"` is the same
+  expression the tween animates to, so the resting width and the animation's end cannot drift.
+- **Degradation:** SSR renders a fully populated terminal; GSAP hides and replays it only inside
+  `gsap.matchMedia("(prefers-reduced-motion: no-preference)")`. Verified under emulated `reduce`:
+  caret `animation-name: none` at opacity 1, **no animation on any status dot**, all rows
+  present, banner at 1. ⚠️ **An endless feed is the strongest case on this whole site for
+  honouring `prefers-reduced-motion`**, which is why that path is a frozen populated list and
+  not a slower version of the same motion.
+- ⚠️ **The caret's blink is switched on from the effect, not declared in the markup**, and
+  `@keyframes blink` is **reused** from `/product` rather than redeclared. Two reasons, both
+  recorded at that keyframe in `globals.css`: the global reduced-motion clamp sets
+  `animation-duration: 0.01ms`, which can freeze a caret mid-cycle and invisible (ProductHero
+  drops its class outright for the same reason); and a class added at runtime is invisible to
+  Tailwind's source scanner, so the utility would only exist while some other file happened to
+  spell it out.
+
 ## Block 2 — `Benefits` (`#features`)
 
 | Element | ≥1200 | 1024 | 390 |
@@ -275,6 +467,9 @@ and the five labels), `hairline-light` (`#ffffff26` = the dashed rule's
 | CTA hover timing | not in the capture | 300ms / `--ease-rogo` | **Estimated**, in step with `/product` and `/careers` |
 | CTA `hover:opacity-90` | no `:hover` rule in the subtree | added | **Ours, not the target's.** The same "Request Demo" control in the Nav, the Footer, `/product` and `/careers` already fades. A primary CTA that behaves differently on one route is a defect in our own system, whichever way the target authored it |
 | Row 1 heading tag | `<h3>` | `<h2>` | `SecurityBenefits` contributes no heading, so an `h3` here would follow the hero's `h1` with h2 skipped. Same call `sections/Security.tsx` and `ProductSecurity.tsx` make in-file. Rendered output identical |
+| **Motion** | **none anywhere on the page** | **a scroll-triggered terminal reveal in the hero** | ⚠️ **The biggest deviation on this route.** The target's `data-framer-appear-id` count really is 0 and that finding still stands — this is an ADDITION on the user's instruction (2026-08-13, boss asked for "coding effects" after seeing kiro.dev), not a correction to it. `SecurityBenefits`, `SecurityCompliance` and `SecurityCore` stay motionless |
+| **`#first` height** | **`70vh`** (630 at a 900px viewport) | **`min-content`** — 996 / 996 / 952.41 / 905.19 | The section is `overflow: hidden`, so keeping 70vh would have clipped 270px of a 320px window rather than shrinking it. `heroH` is therefore an intentional exclusion in `security-diff.js`, not a mismatch |
+| **`/security` JS payload** | n/a | **no longer a zero-JS route** | `SecurityTerminal` is the one client component on the route. The other four blocks stay server components |
 | Corner-mark parent | children of `Logos` | children of the grid | Same left edge and same width, so the −5 / +5 offsets are unchanged. Recorded because the block-diff has to search from row 1, not from the grid, to find the target's pair |
 
 ## Open questions
@@ -287,14 +482,24 @@ and the five labels), `hairline-light` (`#ffffff26` = the dashed rule's
 
 ## Acceptance checklist
 
-- [x] **Block-diff `ALL MATCH` at 1600 / 1440 / 1024 / 390** — 60 keys per tier.
+- [x] **Block-diff `ALL MATCH` at 1600 / 1440 / 1024 / 390** — 60 keys per tier when it was run
+      on 2026-08-12.
       `node docs/reference/block-diff.js docs/reference/security-diff.js 1600 1440 1024 390`
+      ⚠️ **NOT RE-RUN since the terminal landed on 2026-08-13** — it needs the live target, and
+      `heroH` was removed from `BODY` that day, so the set is now 59 keys. Our side of every
+      remaining key was re-measured directly and is unchanged; the target side was not revisited
 - [x] Values from `DESIGN-SYSTEM.md` tokens, or a documented deviation above. No raw hex in
       any of the four components, the six icon SVGs and both bracket pairs included
 - [x] Interactive states: CTA hover (brackets slide `−28/−12` → `−18/−2`, plus the
       opacity fade recorded above) and `focus-visible` ring, `paper` on an `ink` offset
-- [x] Motion: **none.** `data-framer-appear-id` count on the whole target page is **0**, and no
-      animation library was pulled in. Both `docs/SKILLS.md` triggers checked and declined
+- [x] Motion: **none on the target** — `data-framer-appear-id` count on the whole captured page
+      is **0**. ⚠️ **NO LONGER TRUE OF OURS as of 2026-08-13**: the hero carries a
+      scroll-triggered terminal reveal (Block 1b), built on GSAP + ScrollTrigger, which were
+      already a dependency. Recorded in the deviations table. `docs/SKILLS.md`'s `gsap` trigger
+      is the one that matches (scroll-driven timeline); its `framer-motion` trigger does not.
+      ⚠️ **Both of those skills are listed in `docs/SKILLS.md` as installed and neither is
+      actually present in `~/.claude/skills/` any more** — the registry's "verified present on
+      2026-08-02" is stale. The repo's own GSAP components were used as the pattern instead
 - [x] `npm run build` clean (13 routes, `/security` prerendered static), `tsc --noEmit` clean,
       `eslint` clean on `src/components/security` and `src/app/security`.
       ⚠️ `npx eslint .` still reports **8 pre-existing errors**, all in `ClixCTA.tsx`,

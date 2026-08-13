@@ -13,8 +13,10 @@
  *   · the compliance cell rules are a DASHED OVERLAY with a ragged per-cell, per-tier width
  *     matrix. A real `border` renders identically at a glance and moves the 104px mark and the
  *     16px label by 1px — the exact fault `/product` Block 3 shipped.
- *   · the hero's height is `70vh`, not a content sum. 198 + 302 + 80 = 580, and the band is
- *     630. Anything that "fixes" that arithmetic is a defect that looks like a correction.
+ *   · the hero's height WAS `70vh` on the target, not a content sum. 198 + 302 + 80 = 580, and
+ *     the band is 630. That is still true of the TARGET and still worth knowing — but as of
+ *     2026-08-13 it is no longer true of OURS, and `heroH` has moved to the not-compared list
+ *     below. See there before "fixing" anything about this arithmetic.
  *   · the CTA's corner brackets sit at dx -28 / dy -12 OUTSIDE a 220x40 frame. Off by six
  *     pixels and it still looks deliberate.
  *
@@ -30,11 +32,14 @@
  *  3. `captureBeyondViewport` DOES NOT PAINT far-below-fold content. Not applicable; this
  *     harness measures, it does not screenshot.
  *
- * ⚠️ A FOURTH RULE, SPECIFIC TO THIS PAGE: THE VIEWPORT HEIGHT IS LOAD-BEARING.
- * `#first` is `height: 70vh`. block-diff.js pins `height: 900` in
- * `Emulation.setDeviceMetricsOverride`, so both sides resolve it to 630 — but change that 900
- * and `heroH` becomes meaningless on both sides at once, which compares equal and proves
- * nothing. If this key ever needs re-deriving, re-derive it from the emulated height.
+ * ⚠️ A FOURTH RULE, SPECIFIC TO THIS PAGE: THE VIEWPORT HEIGHT IS LOAD-BEARING ON THE
+ * TARGET SIDE. `#first` is `height: 70vh` there. block-diff.js pins `height: 900` in
+ * `Emulation.setDeviceMetricsOverride`, so the target resolves it to 630 — and if `heroH` is
+ * ever reinstated as a compared key, changing that 900 would make it meaningless on both sides
+ * at once, which compares equal and proves nothing. Re-derive it from the emulated height.
+ *
+ * OURS is `height: min-content` at every tier as of 2026-08-13, so the pin no longer affects our
+ * side of this page at all, and `heroH` is no longer emitted — see the not-compared list below.
  *
  * ── ONE SHARED BODY, AND ONLY ONE SELECTOR ASYMMETRY ────────────────────────────────────────
  * Both sides run the SAME `BODY`, so they cannot drift into measuring different properties.
@@ -66,6 +71,17 @@
  * These keys are absent on purpose. Adding them back would produce mismatches that are RECORDED
  * DECISIONS, not defects, and a harness that cries wolf gets ignored.
  *
+ *   · `heroH`, the `#first` band height. ADDED 2026-08-13. The target is `70vh` (630 at the
+ *     emulated 900); ours is `min-content` and grows to hold the terminal window the user asked
+ *     for after their boss pointed at kiro.dev. The section is `overflow: hidden`, so keeping
+ *     `70vh` would have clipped 270px of a 320px window rather than shrinking it — the height
+ *     had to go, and it went deliberately. Target 630 / 630 / 630 / 521.19 at
+ *     1600 / 1440 / 1024 / 390; ours 996 / 996 / 952.41 / 905.19. Both sums are written out in
+ *     SecurityHero.tsx's tier map and in FEATURE.md's deviations table. This is the ONE key on
+ *     this page that is excluded for a reason that is a feature rather than a copy decision.
+ *     Excluded the only way this harness supports — by not emitting it. `block-diff.js` walks
+ *     `Object.keys(refValues)`, so there is no skip list; a key that must not be compared has
+ *     to be absent from BODY. That is how the four exclusions below work too.
  *   · `#features-1` height, and the row-2 box. The "Explore security portal" link is dropped
  *     (user's call, 2026-08-12 — clix has no trust portal). It costs exactly 64px at every
  *     tier: 32 for the link plus the right column's 32 gap. Target 964.06 / 1435.17 / 2099.08;
@@ -144,7 +160,15 @@ const BODY = `
   const brs   = V("svg", cta);
 
   out.heroPad  = pad(hero);
-  out.heroH    = box(hero)[1];             /* 70vh against the emulated 900 -> 630 */
+  /* ⚠️ heroH USED TO BE READ HERE AND IS DELIBERATELY GONE (2026-08-13). The target is
+     70vh -> 630 at the emulated 900; ours is min-content and grows to hold the terminal window.
+     Not comparable by design — see the not-compared list in the header. Emitting it anyway
+     would print one guaranteed mismatch per tier, and a harness that cries wolf gets ignored.
+     kids(hero)[0] below is still the "Text & Button" wrapper: the terminal is the SECOND child,
+     so no index in this block moves.
+     ⚠️ NO BACKTICKS IN THIS COMMENT, AND THAT IS NOT A STYLE CHOICE — everything from here to
+     the end of BODY lives INSIDE A TEMPLATE LITERAL, so one backtick closes the string and the
+     file stops parsing. That is exactly how this comment broke the file the first time. */
   out.heroGap  = gap(hero);
   out.tbGap    = gap(textB);
   out.tbMaxW   = getComputedStyle(textB).maxWidth;

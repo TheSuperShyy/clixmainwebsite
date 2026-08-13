@@ -15,6 +15,13 @@ Installation procedure: **CLAUDE.md §4**.
 
 All global (`~/.claude/skills/`), verified present on 2026-08-02.
 
+> ⚠️ **STALE AS OF 2026-08-13: `gsap` and `framer-motion` are NOT in `~/.claude/skills/` any
+> more.** Found while building `/security`'s terminal, whose scroll-driven timeline matches the
+> `gsap` trigger exactly. The trigger rows below are still the right routing policy — they are
+> just not currently satisfiable, so the fallback is this repo's own GSAP components
+> (`ClixBackdrop.tsx` is the reference: `useGSAP` + `gsap.matchMedia` + a raw-DOM cleanup).
+> Reinstall them or drop the rows; do not leave the registry claiming an install that is gone.
+
 | Skill | Purpose | Trigger — invoke when… |
 |---|---|---|
 | `gsap` | GSAP + ScrollTrigger: scroll & timeline animation | Section has scroll-driven reveals, pinning, scrubbing, parallax, horizontal scroll, marquee, counters, SVG draw, or any multi-step timeline |
