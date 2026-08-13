@@ -68,5 +68,6 @@ export const chrome: ChromeDict = {
     tickerIntro: "Frontier model pricing, US dollars per million tokens:",
     tickerRow: "{model}, {in} input and {out} output",
     tickerContext: ", {ctx} context",
+    tickerRank: ", {rank} cheapest of {total}",
   },
 };

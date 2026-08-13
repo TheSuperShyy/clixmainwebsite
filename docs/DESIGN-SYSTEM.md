@@ -48,6 +48,33 @@ uses 6** — the rest belong to other pages in the same Framer project.
 *(Still true. The `/clix` page below does have one — that is a per-page fact, not a licence
 to carry it onto home.)*
 
+### Added 2026-08-13 — the banner ticker's price-rank chart
+
+| Token | Value | Uses | Role |
+|---|---|---|---|
+| `price-low` | `#4ade80` | ×1 | lit column, model at or below the ticker set's median price |
+| `price-high` | `#f87171` | ×1 | lit column, model above it |
+
+**These do not break the monochrome rule above — they are the exception it was written to
+allow.** The rule bars a *brand* color: an accent chosen for how it looks. These two are
+**semantic**, carry a value a reader is meant to decode, and appear nowhere but inside
+`ModelTicker`'s 30×12px chart on the `banner` strip. Both hexes are the ones measured for the
+old stock ticker's day-change in the 2026-08-08 pass and cleared AA on `banner` then —
+**10.6:1** and **6.4:1**; the background is unchanged, so the contrast carries over.
+
+⚠️ **`low` is the GREEN one, which inverts the market convention** (2026-08-13, user's call
+when asked). Green is up on an equity; here the number is a *price*, and a price going up is
+bad news for the person reading it. The token names say `low`/`high` rather than `up`/`down`
+for exactly that reason — a call site reaching for the familiar word gets a compile error
+instead of a backwards chart.
+
+⚠️ **Color is never the only channel.** Column height encodes the same ordering, so the chart
+survives both a monochrome render and any form of color blindness. Do not add a variant that
+drops the height and keeps the hue.
+
+**Not for decorative use, ever.** Anything that wants a green accent wants `forest`, and
+`forest` belongs to `/clix`.
+
 ### Added 2026-08-09 — `/clix` (clone of `rogo.com/felix`)
 
 | Token | Value | Uses | Role |

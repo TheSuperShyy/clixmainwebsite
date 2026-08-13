@@ -11,13 +11,27 @@
  * models it renders `null` and the banner collapses, rather than showing a plausible-looking
  * strip of numbers that are not true.
  *
- * ⚠️ THE SPARKLINE AND THE ±% ARE GONE, and it is not an oversight. Both need a time series
- * per row, and there is no such thing for a list price: a model costs what it costs until the
- * lab changes it. Drawing a trend line under a flat number, or a "+1.2%" against a baseline
- * that was never recorded, would be exactly the invented-figure failure the data layer exists
- * to prevent. The strip is monochrome as a result. If a signal is wanted back in that slot it
- * has to be something real — cheapest-in-set, or price-changed-since-last-poll with actual
- * history behind it — not a shape.
+ * ⚠️ THE ±% AND THE TREND LINE ARE STILL GONE, and it is still not an oversight. Both need a
+ * time series per row, and there is no such thing for a list price: a model costs what it
+ * costs until the lab changes it. Drawing a trend line under a flat number, or a "+1.2%"
+ * against a baseline that was never recorded, would be exactly the invented-figure failure
+ * the data layer exists to prevent.
+ *
+ * WHAT CAME BACK INTO THAT SLOT (2026-08-13, user: *"add a small graph beside the token price
+ * if they are up or down, green if up red if down"*). The request was for the stock-ticker
+ * signal; the honest half of it is buildable and the other half is not, so this is the half —
+ * taken back to the user before it was built rather than after, with the constraint stated.
+ * `PriceRank` plots the strip's OWN nine prices, sorted cheap-to-dear, and lights this row's
+ * column. Every pixel of it is a live figure already on the page; there is no second data
+ * source, no baseline, and nothing retained between polls. It answers "where does this one sit
+ * in the field", which is a real question with a real answer, instead of "which way did it
+ * move", which has neither.
+ *
+ * ⚠️ GREEN IS THE CHEAP END, WHICH IS THE OPPOSITE OF A STOCK TICKER (2026-08-13, user's call
+ * when asked). On an equity green means the number went up; on a price sheet a number going up
+ * is bad news for whoever is reading it. The tokens carry the inversion in their names —
+ * `--color-price-low` / `--color-price-high`, not `up` / `down` — precisely so a later call
+ * site cannot pick the wrong one by reaching for the familiar word.
  *
  * MARQUEE. Same technique as `LogoCarousel`, and for the same reason: nine items do not fit a
  * 390px phone, and the page already speaks this idiom. The cycle is MEASURED (item 0 to item
@@ -47,7 +61,7 @@
  * Nothing here reads `useDirSign()` and nothing needs to.
  */
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import type { ModelPrice } from "@/lib/models";
@@ -95,6 +109,186 @@ function formatContext(n: number) {
 }
 
 /**
+ * WHERE EACH MODEL SITS IN THE FIELD — the whole of the chart's data layer.
+ *
+ * THE SCALAR IS `input + output`, i.e. what a million tokens in plus a million out costs. Both
+ * prices are already on the row and this adds them; it is the only summary of the pair that
+ * carries NO invented weighting. The obvious alternative — a blend weighted to some assumed
+ * input:output ratio — would be us asserting a usage pattern we have not measured, on a strip
+ * whose entire premise is that it asserts nothing.
+ *
+ * ⚠️ THE SCALE IS LOGARITHMIC, AND IT WAS MEASURED, NOT PREFERRED. The 2026-08-13 poll came
+ * back $0.90 (Llama 4 Maverick) to $35.00 (GPT-5.6 Sol) — a 39.1x spread — and the two scales
+ * were computed side by side against it before this one was picked:
+ *
+ *     $0.90  $2.00  $3.50  $8.00  $8.00  $9.00  $18.00  $30.00  $35.00
+ *  log  2.0    4.2    5.7    8.0    8.0    8.3    10.2    11.6    12.0  px
+ *  lin  2.0    2.3    2.8    4.1    4.1    4.4     7.0    10.5    12.0  px
+ *
+ * Linearly the six cheapest models span 2.4px of the twelve available and the chart reads as
+ * two tall bars beside seven identical stubs — it would say only that GPT and Opus are
+ * expensive, which the price beside it already says. Log spacing is what makes $0.90 against
+ * $3.50 a visible difference at this size.
+ *
+ * The median came back $8.00 with a tie ON it, so `<=` rather than `<` is load-bearing: five
+ * columns read green and four red, where `<` would have called the median itself dear.
+ *
+ * `total <= 0` is a FREE model, which OpenRouter does list (`:free` variants). It is excluded
+ * from the min/max so one of them cannot drag `Math.log` to -Infinity and flatten every other
+ * column, and it plots at the floor, which is where a free model belongs.
+ */
+type Field = {
+  /** Every model's position, 0 (cheapest) to 1 (dearest), sorted ascending. One per column. */
+  steps: number[];
+  /** Which column is this row's — an index into `steps`, so also its rank, zero-based. */
+  rank: number;
+  /** At or below the set's median. Drives the colour, not the height. */
+  low: boolean;
+};
+
+function buildField(models: ModelPrice[]): Map<string, Field> {
+  const out = new Map<string, Field>();
+  /* One model is not a field — there is nothing to be cheap relative to, and a lone column is
+     a chart of itself. The caller renders no chart at all in that case. */
+  if (models.length < 2) return out;
+
+  const totals = models.map((m) => ({
+    id: m.id,
+    total: m.inputPerM + m.outputPerM,
+  }));
+  const paid = totals.filter((t) => t.total > 0).map((t) => t.total);
+  if (!paid.length) return out;
+
+  const lo = Math.log(Math.min(...paid));
+  const hi = Math.log(Math.max(...paid));
+  const span = hi - lo;
+  /* `span === 0` is every model priced identically. Not expected, but it is a division, so it
+     is handled: everything plots at the floor rather than at NaN. */
+  const at = (total: number) =>
+    total <= 0 || span <= 0 ? 0 : (Math.log(total) - lo) / span;
+
+  const sorted = [...totals].sort((a, b) => a.total - b.total);
+  const steps = sorted.map((t) => at(t.total));
+  const mid = sorted.length / 2;
+  const median =
+    sorted.length % 2
+      ? sorted[Math.floor(mid)].total
+      : (sorted[mid - 1].total + sorted[mid].total) / 2;
+
+  sorted.forEach((t, rank) => {
+    out.set(t.id, { steps, rank, low: t.total <= median });
+  });
+  return out;
+}
+
+/* 44 x 14, on a 21px row. Wider than the 30px column chart it replaces because a polyline
+   needs run to show a slope — at 30px the nine points sit 3.5px apart and the curve reads as a
+   smudge. Still narrower than the price beside it, which is the intent: it annotates the number
+   rather than competing with it. `PAD` is half the glow stroke, so the line cannot clip. */
+const CHART_W = 44;
+const CHART_H = 14;
+const PAD = 2;
+
+/**
+ * The field as a line, running away from this model — 2026-08-13, user: *"do them like these"*,
+ * with a falling red chart and a rising green one attached.
+ *
+ * ⚠️ THE DIRECTION IS REAL, AND THIS IS THE RULE THAT MAKES IT REAL. A line chart is a promise
+ * that the x-axis means something, and the honest half of the earlier answer still holds: there
+ * is no time series here, so x cannot be time. What it IS: **the other eight models, ordered
+ * outward from this one.** A cheap model plots the field cheap-to-dear and the line RISES away
+ * from it; a dear model plots the same nine numbers dear-to-cheap and the line FALLS away from
+ * it. Same data, read from whichever end this row is standing on. So "the line goes up" means
+ * "everything else costs more than me" and "the line goes down" means "everything else costs
+ * less" — which is a claim the data actually supports, and it lands on green-rising and
+ * red-falling without a single invented figure.
+ *
+ * The pivot is the median, so it agrees with the colour by construction rather than by
+ * coincidence: `low` picks both the hue and the reading direction, and they cannot disagree.
+ *
+ * ⚠️ THE CURVE IS SMOOTH, NOT JAGGED, AND THAT IS THE TELL THAT IT IS HONEST. The reference
+ * images zigzag because a stock's price genuinely goes up and down over time. Sorted data is
+ * monotonic — it can only ever bend, never reverse. Plotting the nine prices in `MODEL_IDS`
+ * order WOULD produce the reference's zigzag, and it was rejected: that order is our curation,
+ * so every kink in the line would be an artefact of which model we happened to list fourth.
+ * A chart that looks like a time series but is drawn over an arbitrary axis is the same
+ * category of claim as the fabricated quotes that came off this site on 2026-08-05.
+ * IF THIS LINE EVER LOOKS JAGGED, SOMETHING IS PLOTTING THE WRONG ARRAY.
+ *
+ * NEON WITHOUT A FILTER. The glow is the same path stroked twice — 3.5px at 30%, then 1.5px at
+ * full — rather than an `feGaussianBlur`. There are `passes x models` charts on the track (27 to
+ * 45 of them) inside a transform that runs continuously at 40px/sec; that many filter regions
+ * are that many extra rasterisations per frame, and the double stroke buys the same read for
+ * one more path. The node's halo is the same trick as a second circle.
+ *
+ * NOT MIRRORED IN RTL, DELIBERATELY, and it is the one direction call in this file that is not
+ * free. Direction here is DATA — it is what the chart says — so flipping the chart on the
+ * Hebrew page would invert its meaning, not its layout. The price expression beside it is
+ * already pinned to an LTR isolate for the neighbouring reason (see `Item`), so the pair reads
+ * as one unit in both locales.
+ *
+ * `aria-hidden` because the marquee around it already is; the sr-only sentence carries the rank
+ * as words instead. Colour is never the only channel — the slope carries the same verdict, and
+ * the node's height carries the rank.
+ */
+function PriceRank({ field }: { field: Field }) {
+  const n = field.steps.length;
+  /* Cheap rows read cheap-to-dear, dear rows read dear-to-cheap — see the direction rule
+     above. Both put THIS model near the left, so the eye starts where the row's own number is
+     and follows the field away from it. */
+  const steps = field.low ? field.steps : [...field.steps].reverse();
+  const node = field.low ? field.rank : n - 1 - field.rank;
+
+  const x = (i: number) => PAD + (i * (CHART_W - 2 * PAD)) / (n - 1);
+  /* t = 0 is the cheapest price and belongs at the BOTTOM, hence the subtraction. */
+  const y = (t: number) => CHART_H - PAD - t * (CHART_H - 2 * PAD);
+
+  const d = steps.map((t, i) => `${i ? "L" : "M"}${x(i)},${y(t)}`).join(" ");
+  const nx = x(node);
+  const ny = y(steps[node]);
+  const stroke = field.low ? "stroke-price-low" : "stroke-price-high";
+  const fill = field.low ? "fill-price-low" : "fill-price-high";
+
+  return (
+    <svg
+      width={CHART_W}
+      height={CHART_H}
+      viewBox={`0 0 ${CHART_W} ${CHART_H}`}
+      className="flex-none"
+      aria-hidden="true"
+    >
+      {/* Dropline first, so the line and the node both sit over it. */}
+      <line
+        x1={nx}
+        y1={ny}
+        x2={nx}
+        y2={CHART_H - PAD}
+        strokeWidth={1}
+        className={`${stroke} opacity-30`}
+      />
+      <path
+        d={d}
+        fill="none"
+        strokeWidth={3.5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className={`${stroke} opacity-30`}
+      />
+      <path
+        d={d}
+        fill="none"
+        strokeWidth={1.5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className={stroke}
+      />
+      <circle cx={nx} cy={ny} r={3.25} className={`${fill} opacity-30`} />
+      <circle cx={nx} cy={ny} r={1.75} className={fill} />
+    </svg>
+  );
+}
+
+/**
  * Row height. The banner measured 45px with the old text (14px on a 1.5em line box = 21px,
  * plus 12px padding each side) and the header's hide-on-scroll transform travels exactly that
  * far. `bannerH` is what the transform uses and it is the number recorded in the nav's spec,
@@ -123,7 +317,7 @@ const ROW_H = 21;
  * differ by 5x on some models and not at all on others, so a single figure would misrepresent
  * whichever it omitted. The arrow is what buys the room to keep them.
  */
-function Item({ m }: { m: ModelPrice }) {
+function Item({ m, field }: { m: ModelPrice; field?: Field }) {
   return (
     <li
       className="flex flex-none items-center gap-3 whitespace-nowrap"
@@ -165,6 +359,9 @@ function Item({ m }: { m: ModelPrice }) {
         {formatUsd(m.inputPerM)} → {formatUsd(m.outputPerM)}
         <span className="text-paper/55"> /M</span>
       </span>
+      {/* Absent rather than empty when there is no field to plot — a one-model strip, or a
+          shape change upstream that leaves every price at zero. See `buildField`. */}
+      {field && <PriceRank field={field} />}
     </li>
   );
 }
@@ -191,6 +388,11 @@ export default function ModelTicker({ initial }: { initial: ModelPrice[] }) {
      name, both prices, the context window) is Latin or numeric in both locales. */
   const a11y = useChrome().a11y;
   const [models, setModels] = useState<ModelPrice[]>(initial);
+  /* Memoised because the track renders `passes x models.length` items — three to five copies
+     of the same nine rows — and every one of them would otherwise rebuild the identical map.
+     The field is a property of the SET, so it is computed once here rather than inside `Item`;
+     a row cannot know where it sits without seeing the other eight. */
+  const fields = useMemo(() => buildField(models), [models]);
   const [passes, setPasses] = useState(BASE_PASSES);
   const root = useRef<HTMLDivElement>(null);
   const track = useRef<HTMLUListElement>(null);
@@ -352,6 +554,15 @@ export default function ModelTicker({ initial }: { initial: ModelPrice[] }) {
                 ? interpolate(a11y.tickerContext, {
                     ctx: formatContext(m.context),
                   })
+                : "") +
+              /* The chart is `aria-hidden`, so this clause IS the chart for anyone not looking
+                 at it. `rank + 1` because `Field.rank` is a zero-based column index and "the
+                 0th cheapest" is not a thing anyone says. */
+              (fields.has(m.id)
+                ? interpolate(a11y.tickerRank, {
+                    rank: String((fields.get(m.id)?.rank ?? 0) + 1),
+                    total: String(models.length),
+                  })
                 : ""),
           )
           .join("; ")}
@@ -384,7 +595,9 @@ export default function ModelTicker({ initial }: { initial: ModelPrice[] }) {
           style={{ gap: `${GAP}px`, margin: 0, padding: 0 }}
         >
           {Array.from({ length: passes }, (_, pass) =>
-            models.map((m) => <Item key={`${pass}-${m.id}`} m={m} />),
+            models.map((m) => (
+              <Item key={`${pass}-${m.id}`} m={m} field={fields.get(m.id)} />
+            )),
           )}
         </ul>
       </div>

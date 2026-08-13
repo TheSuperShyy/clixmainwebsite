@@ -45,6 +45,77 @@ live site for the mobile menu, the scroll flip point, and the `Indicator` elemen
 
 ## Log
 
+### 2026-08-13 — a price-rank chart back in the ticker's signal slot
+
+User: *"add a small graph beside the token price if they are up or down, green if up red if
+down"*, with a stock candlestick chart attached.
+
+**The request was taken back before it was built, not after.** Half of it cannot be honest:
+`/api/v1/models` returns what a model costs right now and nothing else, there is no history
+endpoint, and this site has no database — so "up or down" has no number behind it. Drawing one
+is the invented-figure failure `src/lib/models.ts` exists to prevent, and it is why the old
+stock ticker's sparkline came off on 2026-08-08 in the first place. Three options were put to
+the user with the constraint stated: field position (live, always has signal), delta vs. a
+dated baseline committed to the repo (real, but flat on nearly every row and needs refreshing
+by hand), or a decorative sparkline (the look asked for, meaning nothing). **User chose field
+position, and chose CHEAPER = GREEN.**
+
+**What shipped.** `PriceRank` in `ModelTicker.tsx` — a 30x12px column chart of the strip's own
+nine prices, sorted cheap to dear, with this row's column lit. Identical skyline on every row;
+only the lit column moves, which is the point: one fixed reference frame instead of nine
+unrelated bars. No second data source, no baseline, nothing retained between polls.
+
+**Measurements, because two of them were decisions.**
+
+- **The scalar is `input + output`** — what a million tokens in plus a million out costs. Both
+  figures are already on the row. A blend weighted to an assumed input:output ratio was
+  rejected: it would assert a usage pattern nobody measured, on a strip whose premise is that
+  it asserts nothing.
+- **The scale is LOGARITHMIC, and both scales were computed before one was picked.** The
+  2026-08-13 poll runs $0.90 (Llama 4 Maverick) to $35.00 (GPT-5.6 Sol), a **39.1x** spread:
+
+  ```
+       $0.90  $2.00  $3.50  $8.00  $8.00  $9.00  $18.00  $30.00  $35.00
+  log   2.0    4.2    5.7    8.0    8.0    8.3    10.2    11.6    12.0  px
+  lin   2.0    2.3    2.8    4.1    4.1    4.4     7.0    10.5    12.0  px
+  ```
+
+  Linearly the six cheapest span **2.4px of twelve** — seven identical stubs beside two tall
+  bars, saying only that GPT and Opus are expensive, which the price beside it already says.
+- **Median came back $8.00 WITH A TIE ON IT** (Grok 4.5 and Qwen3.8 Max both total $8.00 in+out).
+  So `total <= median` is load-bearing, not stylistic: it reads
+  5 green / 4 red where `<` would have called the median itself dear.
+
+**Colour.** Two new tokens, `--color-price-low` (#4ade80) / `--color-price-high` (#f87171) —
+the same two hexes that were `--color-quote-up` / `--color-quote-down` until 2026-08-08,
+reinstated at the values the removal note preserved for exactly this case. Both cleared **AA on
+`--color-banner`** (10.6:1 and 6.4:1) when measured, and that background has not changed.
+⚠️ **RENAMED BECAUSE THE MEANING INVERTED** — `low`/`high`, never `up`/`down`, so a later call
+site reaching for the familiar word cannot get the chart backwards. ⚠️ **Colour is not the only
+channel**: height encodes the same ordering, so the chart survives monochrome and colour
+blindness. Logged in `docs/DESIGN-SYSTEM.md` against the home page's "no brand colour" rule,
+which these do not break — the rule bars a decorative accent, and these are semantic.
+
+**Edges handled rather than assumed.** Fewer than two models renders no chart at all (a lone
+column is a chart of itself). Free models (`:free` variants OpenRouter does list) are excluded
+from the min/max so one cannot drag `Math.log` to -Infinity and flatten every other column;
+they plot at the floor. Every-price-identical divides by zero and is guarded.
+
+**RTL: NOT MIRRORED, and it is the one direction call in this file that is not free.** The
+columns are a sorted axis, and the price expression beside them is already pinned to an LTR
+isolate — a chart running dear-to-cheap on `/he` would put its cheap end against the price's
+dear end. Both stay LTR and read as one unit in both locales.
+
+**A11y.** Chart is `aria-hidden` (the marquee around it already is); new `chrome.a11y.tickerRank`
+carries the rank as words in the sr-only sentence. ⚠️ **The Hebrew is authored and unread by a
+native speaker.**
+
+`buildField` is memoised — the track renders 3-5 copies of all nine rows and each would
+otherwise rebuild the identical map.
+
+Build + `tsc` + eslint clean. **Not viewed in a browser** — handed over.
+
+
 ### 2026-08-13 — `Customers` reached the home page but not the section
 
 **Symptom.** From any route other than `/`, clicking `Customers` (`/#testimonials`) landed at

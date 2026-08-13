@@ -120,5 +120,6 @@ export const chrome: ChromeDict = {
     tickerIntro: "מחירון מודלי חזית, בדולרים למיליון טוקנים:",
     tickerRow: "{model}, {in} קלט ו-{out} פלט",
     tickerContext: ", חלון הקשר {ctx}",
+    tickerRank: ", המחיר ה-{rank} מבין {total} מהזול ליקר",
   },
 };

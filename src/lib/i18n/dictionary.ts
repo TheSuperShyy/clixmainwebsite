@@ -122,6 +122,8 @@ export interface ChromeDict {
     readonly tickerRow: string;
     /** Placeholder: {ctx} */
     readonly tickerContext: string;
+    /** The price-rank chart, which is painted and therefore invisible. Placeholders: {rank} {total} */
+    readonly tickerRank: string;
   };
 }
 

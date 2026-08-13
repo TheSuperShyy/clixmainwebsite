@@ -97,13 +97,21 @@
      `muted`-on-`ink` pairing beside it at 3.85:1. */
   --color-paper-soft: #ffffffcc;
 
-  /* REMOVED 2026-08-08: `--color-quote-up` (#4ade80) and `--color-quote-down` (#f87171).
-     They existed for the banner's stock ticker's green/red day change; the banner now lists
-     LLM list prices, which have no up or down — a list price is a constant until the lab
-     changes it. Deleted rather than left dangling, since the site has no other semantic
-     colour and a dead token invites a decorative use it was never measured for. If a real
-     signal ever earns that slot back, both values cleared AA on `--color-banner` (10.6:1 and
-     6.4:1) and can be reinstated as-is. */
+  /* The banner ticker's price-rank chart, 2026-08-13. These are the two hexes that were
+     `--color-quote-up` / `--color-quote-down` until 2026-08-08, reinstated at the values the
+     removal note preserved for exactly this case — both cleared AA on `--color-banner`
+     (10.6:1 and 6.4:1) when they were measured, and the background has not changed since.
+
+     ⚠️ RENAMED, BECAUSE THE MEANING INVERTED. They used to mean up/down on a stock day
+     change, where green is the number rising. Here they rank a PRICE, and a price rising is
+     bad news for the reader — so green is the CHEAP end and red the dear end (2026-08-13,
+     user's call when asked). A component reaching for "up = green" would now get the colour
+     backwards, which is why the old names could not be restored along with the values.
+
+     They are semantic, not decorative: nothing may use them for an accent. The site's one
+     brand colour is `--color-forest` and it belongs to /clix. */
+  --color-price-low: #4ade80; /* x1 — cheaper than the ticker set's median */
+  --color-price-high: #f87171; /* x1 — dearer than the ticker set's median */
 
   /* Type — ONE face sitewide as of 2026-08-08. All three tokens now resolve to Discovery.
 
