@@ -138,12 +138,12 @@ function formatContext(n: number) {
  * column, and it plots at the floor, which is where a free model belongs.
  */
 type Field = {
-  /** Every model's position, 0 (cheapest) to 1 (dearest), sorted ascending. One per column. */
-  steps: number[];
-  /** Which column is this row's — an index into `steps`, so also its rank, zero-based. */
+  /** This model's rank in the set, cheapest first, zero-based. Carried for the sr-only text. */
   rank: number;
-  /** At or below the set's median. Drives the colour, not the height. */
+  /** At or below the set's median. Sets the walk's drift — see `PriceRank`. */
   low: boolean;
+  /** Seeds the candle walk, derived from this model's own prices. See `PriceRank`. */
+  seed: number;
 };
 
 function buildField(models: ModelPrice[]): Map<string, Field> {
@@ -155,20 +155,22 @@ function buildField(models: ModelPrice[]): Map<string, Field> {
   const totals = models.map((m) => ({
     id: m.id,
     total: m.inputPerM + m.outputPerM,
+    /* Seeded from the model's OWN figures rather than from a counter, so a chart is a property
+       of the model and not of its position in the list: reorder `MODEL_IDS` and every row keeps
+       the shape it had.
+
+       ⚠️ IT MUST STAY A PURE FUNCTION OF THE DATA. `Math.random()` here would give the server
+       and the client different candles and React would report a hydration mismatch on every
+       visit — and a chart that reshuffled on refresh would advertise itself as noise. */
+    seed:
+      Math.round(m.inputPerM * 1000) * 7919 +
+      Math.round(m.outputPerM * 1000) * 104729 +
+      m.context,
   }));
   const paid = totals.filter((t) => t.total > 0).map((t) => t.total);
   if (!paid.length) return out;
 
-  const lo = Math.log(Math.min(...paid));
-  const hi = Math.log(Math.max(...paid));
-  const span = hi - lo;
-  /* `span === 0` is every model priced identically. Not expected, but it is a division, so it
-     is handled: everything plots at the floor rather than at NaN. */
-  const at = (total: number) =>
-    total <= 0 || span <= 0 ? 0 : (Math.log(total) - lo) / span;
-
   const sorted = [...totals].sort((a, b) => a.total - b.total);
-  const steps = sorted.map((t) => at(t.total));
   const mid = sorted.length / 2;
   const median =
     sorted.length % 2
@@ -176,78 +178,130 @@ function buildField(models: ModelPrice[]): Map<string, Field> {
       : (sorted[mid - 1].total + sorted[mid].total) / 2;
 
   sorted.forEach((t, rank) => {
-    out.set(t.id, { steps, rank, low: t.total <= median });
+    out.set(t.id, { rank, low: t.total <= median, seed: t.seed });
   });
   return out;
 }
 
-/* 44 x 14, on a 21px row. Wider than the 30px column chart it replaces because a polyline
-   needs run to show a slope — at 30px the nine points sit 3.5px apart and the curve reads as a
-   smudge. Still narrower than the price beside it, which is the intent: it annotates the number
-   rather than competing with it. `PAD` is half the glow stroke, so the line cannot clip. */
-const CHART_W = 44;
-const CHART_H = 14;
-const PAD = 2;
+/* 20 candles on a 3px pitch — 2px body, 1px gutter, 0.75px wick — so the row measures 59px
+   and stands 20px tall. The height is the ceiling rather than a choice: `ROW_H` is 21px and it
+   is PINNED, because the banner measures 45px (21px line box + 12px padding each side) and the
+   header's hide-on-scroll transform travels exactly that far. A taller chart grows the banner
+   and moves the header with it. 20 takes all of it bar the 1px that stops the svg becoming the
+   line box. */
+const CANDLES = 20;
+const PITCH = 3;
+const BODY_W = 2;
+const WICK_W = 0.75;
+const CHART_H = 20;
+const CHART_W = CANDLES * PITCH - (PITCH - BODY_W);
+/* Shortest a body may draw. A doji — open equal to close — is a zero-height rect and vanishes;
+   real candle charts draw it as a rule, so this does too. */
+const MIN_BODY = 0.75;
 
 /**
- * The field as a line, running away from this model — 2026-08-13, user: *"do them like these"*,
- * with a falling red chart and a rising green one attached.
+ * ⚠️⚠️ THESE CANDLES ARE DECORATION. THE NUMBERS BESIDE THEM ARE NOT. ⚠️⚠️
  *
- * ⚠️ THE DIRECTION IS REAL, AND THIS IS THE RULE THAT MAKES IT REAL. A line chart is a promise
- * that the x-axis means something, and the honest half of the earlier answer still holds: there
- * is no time series here, so x cannot be time. What it IS: **the other eight models, ordered
- * outward from this one.** A cheap model plots the field cheap-to-dear and the line RISES away
- * from it; a dear model plots the same nine numbers dear-to-cheap and the line FALLS away from
- * it. Same data, read from whichever end this row is standing on. So "the line goes up" means
- * "everything else costs more than me" and "the line goes down" means "everything else costs
- * less" — which is a claim the data actually supports, and it lands on green-rising and
- * red-falling without a single invented figure.
+ * READ THIS BEFORE TOUCHING ANYTHING IN THIS FUNCTION.
  *
- * The pivot is the median, so it agrees with the colour by construction rather than by
- * coincidence: `low` picks both the hue and the reading direction, and they cannot disagree.
+ * There is no price history behind this chart and there cannot be. `/api/v1/models` returns
+ * what a model costs right now and nothing else; there is no history endpoint, this site has
+ * no database, and a list price has no time series in any case — it is a constant until the lab
+ * changes it. A candlestick asserts four observations per period (open, high, low, close) over
+ * some fifty periods. None of those observations exist. **Every candle here is generated.**
  *
- * ⚠️ THE CURVE IS SMOOTH, NOT JAGGED, AND THAT IS THE TELL THAT IT IS HONEST. The reference
- * images zigzag because a stock's price genuinely goes up and down over time. Sorted data is
- * monotonic — it can only ever bend, never reverse. Plotting the nine prices in `MODEL_IDS`
- * order WOULD produce the reference's zigzag, and it was rejected: that order is our curation,
- * so every kink in the line would be an artefact of which model we happened to list fourth.
- * A chart that looks like a time series but is drawn over an arbitrary axis is the same
- * category of claim as the fabricated quotes that came off this site on 2026-08-05.
- * IF THIS LINE EVER LOOKS JAGGED, SOMETHING IS PLOTTING THE WRONG ARRAY.
+ * IT SHIPPED THAT WAY ON AN EXPLICIT DECISION, NOT BY DRIFT. The constraint was put to the user
+ * three times across 2026-08-13 — first as a choice of three options before anything was built,
+ * again when the zigzag line went in, and again when the candlestick reference arrived — and
+ * the answer was *"you can just invent graph, no need to be faithful to the data"*. That is
+ * theirs to make and it is made. What follows is the boundary that keeps it from spreading.
  *
- * NEON WITHOUT A FILTER. The glow is the same path stroked twice — 3.5px at 30%, then 1.5px at
- * full — rather than an `feGaussianBlur`. There are `passes x models` charts on the track (27 to
- * 45 of them) inside a transform that runs continuously at 40px/sec; that many filter regions
- * are that many extra rasterisations per frame, and the double stroke buys the same read for
- * one more path. The node's halo is the same trick as a second circle.
+ * ⚠️ THE RULE, AND IT IS NOT NEGOTIABLE: NOTHING MAY EVER BE ANNOTATED ONTO THIS CHART. No axis,
+ * no tick, no gridline, no tooltip, no hover readout, no "+2.4%", no date, no legend, no
+ * caption. The instant a NUMBER is attached to one of these candles it stops being ornament and
+ * becomes a fabricated figure sitting beside real vendor pricing — which is the exact failure
+ * the standing note at the top of `src/lib/models.ts` exists to prevent, and which took the old
+ * stock sparkline off this strip on 2026-08-08. Shape is decoration. A number is a claim.
  *
- * NOT MIRRORED IN RTL, DELIBERATELY, and it is the one direction call in this file that is not
- * free. Direction here is DATA — it is what the chart says — so flipping the chart on the
- * Hebrew page would invert its meaning, not its layout. The price expression beside it is
- * already pinned to an LTR isolate for the neighbouring reason (see `Item`), so the pair reads
- * as one unit in both locales.
+ * ⚠️ AND THE PRICES STAY REAL. `$5 → $30 /M` beside this chart is live vendor list pricing and
+ * the whole data layer is built to keep it that way. Do not "simplify" by generating those too,
+ * and do not read this function as permission to.
  *
- * `aria-hidden` because the marquee around it already is; the sr-only sentence carries the rank
- * as words instead. Colour is never the only channel — the slope carries the same verdict, and
- * the node's height carries the rank.
+ * ---------------------------------------------------------------------------------------
+ *
+ * WHAT IT ACTUALLY DRAWS. A seeded random walk, 20 candles, wicks and bodies, green when the
+ * candle closed up and red when it closed down — the stock convention, because that is what the
+ * shape is quoting.
+ *
+ * TWO THINGS ARE STILL TIED TO THE DATA, and they are worth keeping because they cost nothing:
+ *
+ *   · THE SEED is the model's own prices, so each row draws its own distinctive chart, the same
+ *     one on every render and every reload (2026-08-13, user: *"why all has the same design or
+ *     graph, add some randomness"*). It must stay a pure function — see `buildField`.
+ *   · THE DRIFT follows the row's verdict. A model at or below the strip's median trends UP
+ *     across the twenty candles and a dearer one trends DOWN, so a green-heavy chart still
+ *     means "cheap for this field" the way the very first version of this slot did. It is a
+ *     tendency rather than a reading, which is all a decorative chart can carry.
+ *
+ * NORMALISED TO ITS OWN RANGE after the walk, so every chart fills the 20px box regardless of
+ * how far that particular walk wandered. Without it a low-volatility seed draws a flat line in
+ * the middle of an empty rectangle.
+ *
+ * NOT MIRRORED IN RTL. A generated shape has no reading direction to mirror, and the price
+ * expression beside it is already pinned to an LTR isolate (see `Item`), so the pair stays a
+ * single unit in both locales.
+ *
+ * `aria-hidden`, and unlike every previous version of this slot that is now the ONLY correct
+ * value — there is nothing here to describe. The sr-only sentence carries the model's real
+ * rank in the field, which comes from `buildField` and not from anything drawn here.
  */
+
+/* Deterministic 32-bit LCG (glibc's constants). `Math.random()` cannot be used — see the seed
+   note in `buildField` — and this needs no statistical quality, only repeatability. */
+function walker(seed: number) {
+  let s = Math.abs(Math.trunc(seed)) % 2147483647 || 1;
+  return () => {
+    s = (s * 1103515245 + 12345) % 2147483648;
+    return s / 2147483648;
+  };
+}
+
+/* The walk lives OUTSIDE the component on purpose. Each candle opens where the last one closed,
+   so the loop has to carry a running value — and doing that with a `let` in the component body
+   trips `react-hooks/immutability` ("cannot reassign after render completes"), which is a fair
+   catch even though this particular variable never escapes the render. In its own function the
+   carry is an ordinary local and the component stays a pure function of `field`. */
+function buildWalk(seed: number, low: boolean) {
+  const rand = walker(seed);
+  /* Per-candle move and wick length, as a fraction of the walk's own units. Tuned against the
+     reference: bodies that mostly overlap their neighbours, wicks about half a body again, and
+     enough drift that twenty candles clearly go somewhere. */
+  const drift = (low ? 1 : -1) * 0.055;
+  const out = [];
+  let last = 0;
+  for (let i = 0; i < CANDLES; i++) {
+    const open = last;
+    const close = open + drift + (rand() - 0.5) * 0.28;
+    out.push({
+      open,
+      close,
+      high: Math.max(open, close) + rand() * 0.11,
+      low: Math.min(open, close) - rand() * 0.11,
+    });
+    last = close;
+  }
+  return out;
+}
+
 function PriceRank({ field }: { field: Field }) {
-  const n = field.steps.length;
-  /* Cheap rows read cheap-to-dear, dear rows read dear-to-cheap — see the direction rule
-     above. Both put THIS model near the left, so the eye starts where the row's own number is
-     and follows the field away from it. */
-  const steps = field.low ? field.steps : [...field.steps].reverse();
-  const node = field.low ? field.rank : n - 1 - field.rank;
+  const candles = buildWalk(field.seed, field.low);
 
-  const x = (i: number) => PAD + (i * (CHART_W - 2 * PAD)) / (n - 1);
-  /* t = 0 is the cheapest price and belongs at the BOTTOM, hence the subtraction. */
-  const y = (t: number) => CHART_H - PAD - t * (CHART_H - 2 * PAD);
-
-  const d = steps.map((t, i) => `${i ? "L" : "M"}${x(i)},${y(t)}`).join(" ");
-  const nx = x(node);
-  const ny = y(steps[node]);
-  const stroke = field.low ? "stroke-price-low" : "stroke-price-high";
-  const fill = field.low ? "fill-price-low" : "fill-price-high";
+  /* Fit the whole walk to the box. Extremes come off the wicks, not the bodies, or the tips
+     clip. */
+  const top = Math.max(...candles.map((c) => c.high));
+  const bottom = Math.min(...candles.map((c) => c.low));
+  const range = top - bottom || 1;
+  const y = (v: number) => ((top - v) / range) * CHART_H;
 
   return (
     <svg
@@ -257,33 +311,25 @@ function PriceRank({ field }: { field: Field }) {
       className="flex-none"
       aria-hidden="true"
     >
-      {/* Dropline first, so the line and the node both sit over it. */}
-      <line
-        x1={nx}
-        y1={ny}
-        x2={nx}
-        y2={CHART_H - PAD}
-        strokeWidth={1}
-        className={`${stroke} opacity-30`}
-      />
-      <path
-        d={d}
-        fill="none"
-        strokeWidth={3.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className={`${stroke} opacity-30`}
-      />
-      <path
-        d={d}
-        fill="none"
-        strokeWidth={1.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className={stroke}
-      />
-      <circle cx={nx} cy={ny} r={3.25} className={`${fill} opacity-30`} />
-      <circle cx={nx} cy={ny} r={1.75} className={fill} />
+      {candles.map((c, i) => {
+        const x = i * PITCH;
+        const up = c.close >= c.open;
+        const tone = up ? "fill-price-low" : "fill-price-high";
+        const bodyTop = y(Math.max(c.open, c.close));
+        const bodyH = Math.max(MIN_BODY, y(Math.min(c.open, c.close)) - bodyTop);
+        return (
+          <g key={i} className={tone}>
+            {/* Wick behind the body, so the body's corners stay square over it. */}
+            <rect
+              x={x + (BODY_W - WICK_W) / 2}
+              y={y(c.high)}
+              width={WICK_W}
+              height={Math.max(MIN_BODY, y(c.low) - y(c.high))}
+            />
+            <rect x={x} y={bodyTop} width={BODY_W} height={bodyH} />
+          </g>
+        );
+      })}
     </svg>
   );
 }

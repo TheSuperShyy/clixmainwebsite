@@ -48,32 +48,36 @@ uses 6** — the rest belong to other pages in the same Framer project.
 *(Still true. The `/clix` page below does have one — that is a per-page fact, not a licence
 to carry it onto home.)*
 
-### Added 2026-08-13 — the banner ticker's price-rank chart
+### Added 2026-08-13 — the banner ticker's candlestick chart
 
 | Token | Value | Uses | Role |
 |---|---|---|---|
-| `price-low` | `#4ade80` | ×1 | lit column, model at or below the ticker set's median price |
-| `price-high` | `#f87171` | ×1 | lit column, model above it |
+| `price-low` | `#4ade80` | ×1 | candle that closed up; and the cheap end of the price scale |
+| `price-high` | `#f87171` | ×1 | candle that closed down; and the dear end |
 
-**These do not break the monochrome rule above — they are the exception it was written to
-allow.** The rule bars a *brand* color: an accent chosen for how it looks. These two are
-**semantic**, carry a value a reader is meant to decode, and appear nowhere but inside
-`ModelTicker`'s 30×12px chart on the `banner` strip. Both hexes are the ones measured for the
-old stock ticker's day-change in the 2026-08-08 pass and cleared AA on `banner` then —
-**10.6:1** and **6.4:1**; the background is unchanged, so the contrast carries over.
+Both hexes are the ones measured for the old stock ticker's day-change in the 2026-08-08 pass
+and cleared AA on `banner` then — **10.6:1** and **6.4:1**; the background is unchanged, so the
+contrast carries over. They appear nowhere but inside `ModelTicker`'s 59×20px chart.
 
-⚠️ **`low` is the GREEN one, which inverts the market convention** (2026-08-13, user's call
-when asked). Green is up on an equity; here the number is a *price*, and a price going up is
-bad news for the person reading it. The token names say `low`/`high` rather than `up`/`down`
-for exactly that reason — a call site reaching for the familiar word gets a compile error
-instead of a backwards chart.
+⚠️ **THE TOKENS CARRY TWO READINGS, AND THE NAMES ARE PICKED FOR THE ONE THAT IS NOT OBVIOUS.**
+On the candles themselves green means *closed up*, the ordinary market convention. But across
+this project green means the **cheap** end of a price scale — because the number is a *price*,
+and a price going up is bad news for whoever is reading it (2026-08-13, user's call when
+asked). The names say `low`/`high` rather than `up`/`down` so a call site reaching for the
+familiar market word cannot silently get the project meaning backwards. The chart reconciles
+the two by drifting cheap models upward, so a green-heavy chart still reads "cheap for this
+field".
 
-⚠️ **Color is never the only channel.** Column height encodes the same ordering, so the chart
-survives both a monochrome render and any form of color blindness. Do not add a variant that
-drops the height and keeps the hue.
+⚠️ **THE CHART THEY COLOR IS DECORATION, NOT DATA**, on the user's explicit instruction after
+the constraint was put to them three times: a list price has no time series, so a candlestick's
+open/high/low/close are all generated. See `ModelTicker.tsx` and `features/nav/CONTEXT.md`.
+**Nothing may ever be annotated onto it** — no axis, tick, tooltip or percentage. That rule is
+the whole of what keeps these two colors decoration rather than a fabricated figure sitting
+beside real vendor pricing.
 
-**Not for decorative use, ever.** Anything that wants a green accent wants `forest`, and
-`forest` belongs to `/clix`.
+**Regarding the "home page is monochrome" rule above:** this is a departure from it, taken
+knowingly and scoped to one 59×20px chart on the `banner` strip. It is not a licence for a
+second one. Anything that wants a green accent wants `forest`, and `forest` belongs to `/clix`.
 
 ### Added 2026-08-09 — `/clix` (clone of `rogo.com/felix`)
 
