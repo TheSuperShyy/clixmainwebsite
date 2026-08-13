@@ -14,8 +14,9 @@
  *
  * ⚠️ NO JSX, NO HTML, NO MARKUP. Where a `<br>` or an inner `<span>` IS a colour boundary, the
  * element stays in the component and the two runs come here as separately-named keys. There
- * are three on this route: `intro.muted`/`intro.ink`, `benefits.headingInk`/`headingMuted`,
- * `security.headingMuted`/`headingPaper`.
+ * are two on this route: `intro.muted`/`intro.ink` and `benefits.headingInk`/`headingMuted`.
+ * There was a third, `security.headingMuted`/`headingPaper`, until the security block was
+ * removed from this route on 2026-08-13.
  *
  * ⚠️ WHY AN EXPLICIT INTERFACE AND NOT `as const`, and this is not a style choice — `as const`
  * DOES NOT BUILD. With `as const`, `typeof product` is a tree of string LITERALS. `dictionary.ts`
@@ -233,62 +234,12 @@ export interface ProductDict {
       readonly sources: readonly [string, string, string, string, string];
     };
   };
-
-  readonly security: {
-    readonly eyebrow: string;
-    /** `<h2>`, two colour runs across a `<br>`. Same contract as `benefits` above. */
-    readonly headingMuted: string;
-    readonly headingPaper: string;
-    /** Four practice statements, one per glyph. Tuple — the glyphs are positional. */
-    readonly list: readonly [string, string, string, string];
-    /**
-     * The 2 × 2 badge grid's labels. FOUR, and the count is hand-authored dashed-border
-     * geometry: growing it would mean re-deriving every cell edge at every tier.
-     *
-     * ⚠️ EACH SITS IN A 137px MEASURE ABOVE A CENTRED 104px MARK. Three lines collides with the
-     * mark at the phone tier's 220px cell, so two is the ceiling. Measured, both locales clear.
-     */
-    readonly badges: readonly [string, string, string, string];
-    readonly link: string;
-  };
-
-  readonly testimonials: {
-    /**
-     * Six clients. The count is content, but it is a tuple because the two tiers must agree on
-     * WHO and in WHAT ORDER — the phone stack reuses these strings by index.
-     *
-     * ⚠️⚠️ EVERY `quote` IS A PLACEHOLDER ATTRIBUTED TO A REAL, NAMED PERSON. Read the warning
-     * block at the top of ProductTestimonials.tsx before touching one. The
-     * `[PLACEHOLDER QUOTE, NOT SOMETHING X SAID]` tag is the mechanism that keeps the route's
-     * `noindex` justified, and it is preserved in BOTH locales.
-     */
-    readonly slides: readonly [
-      TestimonialCopy, TestimonialCopy, TestimonialCopy,
-      TestimonialCopy, TestimonialCopy, TestimonialCopy,
-    ];
-    /**
-     * ⚠️ THE PHONE TIER CARRIES DIFFERENT COPY FOR SLOT 1, and that is the capture's own quirk,
-     * not a truncation: the original ships a different sentence at ≤809. Only slot 1 differs;
-     * cards 2 to 6 reuse their slide's string, which is what the original does too. Hence one
-     * key rather than a parallel six.
-     */
-    readonly phoneLeadQuote: string;
-    readonly a11y: {
-      readonly controls: string;
-      /** `interpolate()` template. Placeholders: {name} {role} */
-      readonly portraitAlt: string;
-    };
-  };
 }
 
-export interface TestimonialCopy {
-  readonly quote: string;
-  readonly name: string;
-  /** May be empty: `elyashiv-engineering` is a COMPANY, not a person, so it has no job title
-      rather than an invented one. The component holds the line box open with an `aria-hidden`
-      non-breaking space. */
-  readonly role: string;
-}
+/* `TestimonialCopy` used to be declared here, for `testimonials.slides`. Both moved to
+   en/home.ts on 2026-08-13 when the quote carousel left this route for the landing page, and
+   the interface did not survive the move: `home` is authored `as const`, so its shape is
+   inferred and a hand-written interface would be a second source of truth for it. */
 
 /* ── the English copy ───────────────────────────────────────────────────────────────────── */
 
@@ -490,88 +441,4 @@ export const product: ProductDict = {
     },
   },
 
-  security: {
-    eyebrow: "Security",
-    headingMuted: "Built for your cloud",
-    headingPaper: "Secure by Design",
-    list: [
-      "No training on your data",
-      "Modern & secure data practices",
-      "End to end encryption",
-      "Reviewed & tested",
-    ],
-    /* ⚠️ THESE FOUR ARE PRACTICE STATEMENTS, NOT CERTIFICATIONS, AND THE DIFFERENCE IS THE
-       POINT. The cells shipped as SOC2 / CCPA / ISO 27001 / GDPR until 2026-08-12 and were
-       replaced because clix holds none of the audited ones — see the header of
-       ProductSecurity.tsx. Do not put a seal back in either locale. */
-    badges: [
-      "Your cloud, your accounts",
-      "Your data stays yours",
-      "Least-privilege access",
-      "You own the code",
-    ],
-    link: "Find out more",
-  },
-
-  testimonials: {
-    slides: [
-      {
-        quote:
-          "[PLACEHOLDER QUOTE, NOT SOMETHING ASAF PERETZ SAID] clix holds no written testimonial " +
-          "from this client and no wording has been approved. This paragraph is scaffolding, set " +
-          "at roughly the length a real quote will run, and it is here to be deleted the moment " +
-          "an approved sentence replaces it.",
-        name: "Asaf Peretz",
-        role: "Founder, SalesIQ",
-      },
-      {
-        quote:
-          "[PLACEHOLDER QUOTE, NOT SOMETHING ADIR PERETZ SAID] No approved wording exists for this " +
-          "client yet. This filler runs to about the length the real one should.",
-        name: "Adir Peretz",
-        role: "Owner, video and photography studio",
-      },
-      {
-        quote:
-          "[PLACEHOLDER QUOTE, NOT SOMETHING NEVO YAHALOMAN SAID] Nothing on this card was said " +
-          "by this client. The words are layout scaffolding and must be replaced before launch.",
-        name: "Nevo Yahaloman",
-        role: "Founder",
-      },
-      {
-        quote:
-          "[PLACEHOLDER QUOTE, NOT SOMETHING NOAM TOVI SAID] Placeholder text standing in for a " +
-          "sentence this client has never been asked for. Replace before launch.",
-        name: "Noam Tovi",
-        role: "Owner, investments",
-      },
-      {
-        quote:
-          "[PLACEHOLDER QUOTE, NOT SOMETHING ACHITUV SAID] Placeholder text standing in for a " +
-          "sentence this client has never been asked for. Replace before launch.",
-        name: "Achituv",
-        role: "Vtechezena",
-      },
-      {
-        quote:
-          "[PLACEHOLDER QUOTE, NOT SOMETHING ELYASHIV ENGINEERING SAID] Placeholder text standing " +
-          "in for a sentence this client has never been asked for. Replace before launch.",
-        name: "Elyashiv Engineering",
-        role: "",
-      },
-    ],
-    /* ⚠️ STRAIGHT apostrophes in `card's` and `client's`, where `hero.cta` above has a CURLY
-       one. That inconsistency is the component's own and it is the verbatim value — a
-       mechanical check against the pre-change source caught a "tidied" curly pair here. Do not
-       harmonise them. */
-    phoneLeadQuote:
-      "[PLACEHOLDER QUOTE, NOT SOMETHING ASAF PERETZ SAID] This is the phone card's own " +
-      "string, kept separate because the original ships different copy at this width. It is " +
-      "not a shortened version of the slide above, and it is not this client's wording " +
-      "either. Replace both before this route is indexed.",
-    a11y: {
-      controls: "Slideshow pagination controls",
-      portraitAlt: "{name}, {role}",
-    },
-  },
 };

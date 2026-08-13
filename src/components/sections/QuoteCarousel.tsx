@@ -1,54 +1,57 @@
 "use client";
 
 /**
- * ProductTestimonials — clone of rogo.com/product's `Testimonials` block, Block 6.
- * Capture offset 401160, live class `.framer-h211wl`.
+ * QuoteCarousel — the draggable client-quote slideshow. Cloned from rogo.com/product's
+ * `Testimonials` block, Block 6; capture offset 401160, live class `.framer-h211wl`.
  *
  * Capture: docs/reference/target/rogo-product-2026-08-11.html (+ .css).
  * Spec: features/product-page/FEATURE.md · memory: features/product-page/CONTEXT.md
  *
- * ⚠️⚠️  THE THREE QUOTES BELOW ARE PLACEHOLDERS ATTRIBUTED TO REAL, NAMED CLIENTS.  ⚠️⚠️
+ * ⚠️ THIS WAS `product/ProductTestimonials.tsx` UNTIL 2026-08-13. On the user's call it left
+ * /product for the LANDING page, where it replaces the six-card video accordion under the
+ * existing "In our clients' own words" heading. Three things changed in the move and nothing
+ * else did:
+ *   1. it reads `usePageDict("home")`, and its copy moved to `src/lib/i18n/{en,he}/home.ts`
+ *   2. it no longer renders its own `<section>` — `sections/Testimonials.tsx` owns the section
+ *      wrapper, the `id`, the `data-nav-theme` and the `<h2>`, and calls this for the body
+ *   3. the `order-1`/`desktop:order-none` classes went with the wrapper; they existed only to
+ *      reorder this against /product's security block, which was deleted the same day
+ * The slideshow itself — the triple loop, the drag physics, the snap, both tiers — is
+ * untouched. Geometry below is still measured against the /product capture.
  *
- * Superseded 2026-08-12. This block used to carry Patrice Maffre (Nomura), Pieter Taselaar
- * (Lucerne Capital) and Sean Warneke (Schonfeld) verbatim from the capture, with their
- * headshots and Nomura's mark. All six of those things are gone. What stands here now is
- * clix's own clients, from public/testimonials/, and it is safer but it is NOT yet safe:
+ * ✅ THE QUOTES ARE REAL AS OF 2026-08-13. THIS BLOCK IS THE RECORD OF HOW THEY GOT HERE.
  *
- *   THE PEOPLE ARE REAL. THE PHOTOGRAPHS ARE REAL. THE WORDS ARE NOT THEIRS.
+ * The history matters because this component has now carried THREE generations of copy, two of
+ * which had to be thrown away:
  *
- * clix holds no written testimonial from anybody. Every endorsement it has exists on video
- * only, and no quotable sentence with a name attached exists anywhere, so the strings below
- * are scaffolding written to sit at roughly the length a real quote will occupy.
+ *   1. rogo's own, verbatim from the capture — Patrice Maffre (Nomura), Pieter Taselaar
+ *      (Lucerne Capital), Sean Warneke (Schonfeld), with their headshots and Nomura's mark.
+ *      Removed 2026-08-12: real endorsements of a different company, under a clix wordmark.
+ *   2. `[PLACEHOLDER QUOTE, NOT SOMETHING X SAID]` scaffolding under clix's OWN clients — real
+ *      people, real photographs, invented words. Safer, never safe. Held the /product route at
+ *      `noindex` for a day.
+ *   3. what ships now: one sentence from each of the six, supplied by the user on 2026-08-13.
  *
- * WHY THEY LOOK THE WAY THEY DO, AND WHY THAT MUST SURVIVE ANY COPY PASS. Each string opens
- * with a bracketed all caps tag naming the client it is NOT quoting, then talks about that
- * client in the THIRD PERSON. A real endorsement is first person, so the grammar alone
- * breaks the illusion before the reader reaches the second word, and the tag breaks it
- * before the first. The strings are also unquoted: the original wrapped every quote in
- * straight double quotes, and quotation marks are the visual cue that says "somebody said
- * this", which is the one thing these must never say.
+ * ⚠️ THE CLIENTS SPOKE HEBREW. THAT IS THE ONE THING LEFT TO REVIEW.
+ * `he/home.ts` carries each quote VERBATIM as given — including `קליקס` spelled in Hebrew
+ * letters where the rest of the repo writes `clix` in Latin, and including the `...` in two of
+ * them. A testimonial is quoted, not normalised; do not tidy either.
+ * `en/home.ts` carries TRANSLATIONS, and they are the only strings on this page that are
+ * neither the client's words nor sourced from anywhere — they are a faithful rendering written
+ * here. Flagged for the user. If a client would rather be quoted in Hebrew on the English page,
+ * or has their own English wording, that wording wins.
  *
- * Plausible marketing prose here would be worse than obvious filler. That is not a guess, it
- * is the failure already logged in src/components/clix/ClixTestimonial.tsx: placeholder text
- * that got renamed into fabricated endorsements and stopped reading as unfinished. Lorem
- * ipsum would be worse too, in the other direction, because it reads as broken rather than
- * as awaiting a real quote.
+ * ⚠️ WHAT STILL GUARDS THIS. The switch in sections/Testimonials.tsx is DERIVED from whether
+ * these six strings are non-empty — it is not a flag, and a flag would not have worked. Read
+ * the block above `CLIP_IDS` there before changing it: `PageDictProvider` serialises the whole
+ * `home` namespace into the RSC payload, so emptying a string is the only thing that keeps it
+ * off the page. Blanking a quote here silently reverts the landing page to the video accordion,
+ * which is the intended failure mode.
  *
- * THE ROUTE MUST STAY `robots: { index: false, follow: false }` UNTIL THIS IS CLEARED.
- * It is set in src/app/product/page.tsx. Clearing it takes all four of these, not some:
- *
- *   1. get a written sentence from each named client, in their own words, or their written
- *      approval to transcribe one from their video
- *   2. replace every string tagged `[PLACEHOLDER QUOTE ...]` in BOTH locale files —
- *      src/lib/i18n/{en,he}/product.ts, `testimonials.slides[*].quote` plus
- *      `testimonials.phoneLeadQuote`, which is slot 1's own copy at ≤809. The Hebrew keeps the
- *      tag in English capitals ON PURPOSE, so this step stays one grep
- *   3. recheck `quoteDesktop` per slide. It is a per quote font size fitted to that quote's
- *      character count, and real copy will not be the length of this filler
- *   4. delete this warning block. Only then may the robots block come off the route.
- *
- * Until step 4, treat this section as unlaunched. It is not merely unfinished: it puts words
- * next to a real person's face.
+ * Two open items inherited from generation 2, neither introduced here:
+ *   · `noam-tovi.jpg` carries a burned-in caption reading a DIFFERENT name (נווה דוידי).
+ *   · `אחיטוב`/`ותחזנה` is an unverified transliteration in both directions.
+ * Both need the client, not a code change.
  *
  * NO CLIENT LOGOS, AND NOT BY OMISSION. The original ran Nomura's mark above its first
  * quote. clix has no client logos and the user's boss has ruled them out, so the `logo`
@@ -69,11 +72,14 @@
  * responsive variant of the other two and cannot be collapsed into them:
  *   · two testimonials, not three. The third slot (Sean Warneke there, Nevo Yahaloman here)
  *     is absent below 810.
- *   · slot 1's quote is **different copy** at this width, not a truncation but a different
- *     sentence: "Rogo is going to transform" there versus "Rogo transforms" above 810. The
- *     placeholders keep the quirk structurally, so it survives the real copy landing.
- *     `testimonials.phoneLeadQuote` carries slot 1's own string; every other card reuses its
- *     slide's, which is what the original does too.
+ *   · slot 1's quote was **different copy** at this width in the original — not a truncation
+ *     but a different sentence ("Rogo is going to transform" there versus "Rogo transforms"
+ *     above 810). ⚠️ **WE NO LONGER REPRODUCE THAT.** The quirk was carried through the
+ *     placeholder generation as `phoneLeadQuote` so it would survive the real copy landing; when
+ *     the real copy landed on 2026-08-13 it was one sentence per client, and there is no second
+ *     thing Asaf Peretz said. Inventing a phone-only variant of a real endorsement is precisely
+ *     what the placeholders existed to prevent, so the key was deleted from both locale files
+ *     and every card at every width now reads its own slide.
  *   · slot 1 is FIRST on phones (`order:0`) and second in the DOM everywhere else
  *   · no photos, no arrows, and its own paddings (24 / `32 24 24 24`) and gaps (20 / 80)
  *
@@ -228,23 +234,35 @@ import { interpolate } from "@/lib/i18n/format";
  *     EMPTY rather than an invented job title. `CardBody` holds the role line open with a
  *     non-breaking space so the card matches the others' height.
  */
+/* ⚠️ `quoteDesktop` IS FITTED TO THE QUOTE'S LENGTH, AND IT WAS RE-FITTED ON 2026-08-13 when
+   the real copy replaced the placeholders. This is step 3 of the old warning block's checklist,
+   and skipping it would have been a silent regression: the 32px size was fitted to a ~290
+   character placeholder that happened to sit in SLOT 1, so leaving it there would have shrunk
+   the SHORTEST real quote and let the longest overflow at 36.
+
+   Measured character counts of the shipped English strings:
+       0 asaf 207 · 1 adir 289 · 2 nevo 172 · 3 noam 189 · 4 achituv 269 · 5 elyashiv 147
+   The threshold is the placeholder's own: past ~260 characters a quote needs 32px to clear the
+   card at 1200+, below it 36px holds. So the two long ones (adir, achituv) take 32 and the
+   other four take 36 — the count of 32s is unchanged, only which slides carry them.
+   Hebrew is shorter than English in every slot, so English is the binding case at both sizes. */
 const SLIDE_STYLE = [
-  { id: "asaf-peretz", photo: "/testimonials/asaf-peretz.jpg", cream: true, quoteDesktop: "desktop:text-[32px]" },
-  { id: "adir-peretz", photo: "/testimonials/adir-peretz.jpg", cream: false, quoteDesktop: "desktop:text-[36px]" },
+  { id: "asaf-peretz", photo: "/testimonials/asaf-peretz.jpg", cream: true, quoteDesktop: "desktop:text-[36px]" },
+  { id: "adir-peretz", photo: "/testimonials/adir-peretz.jpg", cream: false, quoteDesktop: "desktop:text-[32px]" },
   { id: "nevo-yahaloman", photo: "/testimonials/nevo-yahaloman.jpg", cream: true, quoteDesktop: "desktop:text-[36px]" },
   { id: "noam-tovi", photo: "/testimonials/noam-tovi.jpg", cream: false, quoteDesktop: "desktop:text-[36px]" },
-  { id: "achituv", photo: "/testimonials/achituv.jpg", cream: true, quoteDesktop: "desktop:text-[36px]" },
+  { id: "achituv", photo: "/testimonials/achituv.jpg", cream: true, quoteDesktop: "desktop:text-[32px]" },
   { id: "elyashiv-engineering", photo: "/testimonials/elyashiv-engineering.jpg", cream: false, quoteDesktop: "desktop:text-[36px]" },
 ] as const;
 
 /**
  * ≤809 ONLY. A static stack, no arrows. Per-card MEASURED box, padding and gap.
  *
- * ⚠️ SLOT 1 CARRIES DIFFERENT COPY AT THIS WIDTH, and that is the capture's own editorial quirk
- * rather than a truncation: the original ships a different sentence, not a shortened one. The
- * dictionary models it as a single `phoneLeadQuote`, because only slot 1 differs — cards 2 to 6
- * reuse their slide's string, which is what the original does too. One string to replace per
- * client when the real wording lands.
+ * ⚠️ SLOT 1 USED TO CARRY DIFFERENT COPY AT THIS WIDTH — the capture's own editorial quirk,
+ * a different sentence rather than a shortened one, modelled here as a `phoneLeadQuote` key.
+ * DROPPED 2026-08-13 when the real quotes arrived: one sentence per client, so there is nothing
+ * to put in a phone-only variant that the client actually said. Every card now reads its own
+ * slide at every width. See the note at the `CardBody` call below.
  *
  * ⚠️ THE BOXES ARE FIXED HEIGHTS, SO A LONG QUOTE CLIPS RATHER THAN GROWING THE CARD. Measured
  * 505 and 334. With the fixed author block below it that leaves 12 lines for card 1 and 8 for
@@ -267,8 +285,18 @@ const SLIDE_STYLE = [
  * `text-transform: uppercase`, so it renders the same as the sentence-case one. Sentence case
  * everywhere here: identical output, one less thing to keep in step.
  */
+/* ⚠️ SLOT 1 WAS `h-[505px]` WITH ITS OWN PADDING AND AN 80px GAP, AND IT IS NOT ANY MORE.
+   That box was measured off the capture, and it was 171px taller than the rest for one reason:
+   in the original, slot 1 carried a LONGER, DIFFERENT quote at this width. We dropped that
+   `phoneLeadQuote` on 2026-08-13 because the real copy is one sentence per client and there is
+   no second thing Asaf Peretz said — so the tall box was left holding ~250px of dead space above
+   the author block, which is visible and reads as a layout bug rather than as air.
+   The height, padding and gap are therefore normalised to the other five. A DOCUMENTED
+   DIVERGENCE FROM THE CAPTURE, and the honest one: the measurement was correct for copy this
+   page no longer has. Card 1 stays distinguishable by its `cream` fill, as it always was.
+   Verified at 390 after the change: 6 lines in a 334px box, no clip, nothing else moved. */
 const PHONE_STYLE = [
-  { box: "h-[505px]", pad: "pt-8 pr-6 pb-6 pl-6", gap: "gap-20" },
+  { box: "h-[334px]", pad: "p-6", gap: "gap-5" },
   { box: "h-[334px]", pad: "p-6", gap: "gap-5" },
   { box: "h-[334px]", pad: "p-6", gap: "gap-5" },
   { box: "h-[334px]", pad: "p-6", gap: "gap-5" },
@@ -415,8 +443,8 @@ const N = SLIDE_STYLE.length;
    layout and belongs at module scope, the strings are not. */
 const LOOP = Array.from({ length: N * 3 }, (_, i) => i % N);
 
-export default function ProductTestimonials() {
-  const t = usePageDict("product").testimonials;
+export default function QuoteCarousel() {
+  const t = usePageDict("home").testimonials;
   const a11y = useChrome().a11y;
   /* +1 in ltr, -1 in rtl. Stable for the lifetime of the mount — switching locale is a hard
      document navigation across two root layouts — so it needs no revert/rebuild path. */
@@ -523,17 +551,21 @@ export default function ProductTestimonials() {
   }, [animate]);
 
   return (
-    <section
-      id="testimonials"
-      data-nav-theme="light"
-      /* `order-1` — see the note in ProductSecurity.tsx: below 1200 this block sits ABOVE
-         security, above 1200 below it. */
-      className="order-1 relative flex w-full flex-col items-center justify-start gap-10 overflow-hidden bg-paper px-4 pb-24 tablet:px-10 tablet:pt-[124px] desktop:order-none"
-    >
-      {/* `.framer-zrtsd2` — max-w 1280, gap 40. Only one of its two children is ever laid
-          out, so the gap is inert; kept because the original's nesting is what sets the
-          slideshow's width. */}
-      <div className="relative flex w-full max-w-[var(--container-max)] flex-col items-center gap-10">
+    /* ⚠️ NO `<section>`, NO `id`, NO `data-nav-theme` — sections/Testimonials.tsx owns all
+       three, plus the `<h2>` and the section padding. This returns the BODY only, so the two
+       testimonial treatments can be swapped under one heading without either of them owning
+       the landmark. On /product this element was the inner child of its own section; the
+       original's nesting is what sets the slideshow's width, so it survives the move intact.
+
+       ⚠️ THE ARROWS DEPEND ON WHAT IS ABOVE THIS ELEMENT. They are pinned `-top-20` (-80px)
+       and sit OUTSIDE this box, in whatever space the parent leaves. That worked on /product
+       because the section carried `tablet:pt-[124px]`; it works on the landing page because
+       the width container there is `gap-20` — 80px between the `<h2>` and this — which the
+       arrows land in exactly. Change that gap and the arrows collide with the heading.
+
+       `.framer-zrtsd2` — max-w 1280, gap 40. Only one of its two children is ever laid out,
+       so the gap is inert; kept because the original's nesting is load-bearing for width. */
+    <div className="relative flex w-full max-w-[var(--container-max)] flex-col items-center gap-10">
         {/* ---- ≥810: the slideshow. 694px tall at both tiers, full container width. ---- */}
         <div className="relative hidden h-[694px] w-full tablet:block">
           {/* The arrows live 40px ABOVE the box, flush to its right edge — the original
@@ -676,16 +708,26 @@ export default function ProductTestimonials() {
               }`}
             >
               <CardBody
-                /* Slot 1 alone has its own string at this width; the rest reuse their slide's. */
-                quote={i === 0 ? t.phoneLeadQuote : t.slides[i].quote}
+                /* ⚠️ SLOT 1 USED TO HAVE ITS OWN STRING HERE (`phoneLeadQuote`), REPRODUCING THE
+                   TARGET'S EDITORIAL QUIRK: the original ships a genuinely different sentence in
+                   this slot at ≤809, not a shortened one, and the placeholders kept the quirk
+                   structurally so it would survive the real copy landing.
+
+                   It did not survive, and it should not have. The real quotes arrived 2026-08-13
+                   as one sentence per client — there is no second thing Asaf Peretz said, and
+                   inventing a phone-only variant of a real endorsement is the exact failure the
+                   placeholders existed to prevent. Duplicating his one quote into a second key
+                   would have been worse still: two strings to keep in step, for nothing.
+                   So `phoneLeadQuote` is deleted from both locale files and every card at every
+                   width now reads its own slide. */
+                quote={t.slides[i].quote}
                 name={t.slides[i].name}
                 role={t.slides[i].role}
                 quoteSize="text-[20px]"
               />
             </div>
           ))}
-        </div>
       </div>
-    </section>
+    </div>
   );
 }

@@ -32,6 +32,7 @@
  */
 
 import { Fragment, useEffect, useRef, useState } from "react";
+import QuoteCarousel from "@/components/sections/QuoteCarousel";
 import { usePageDict, useChrome } from "@/lib/i18n/LocaleProvider";
 import { interpolate } from "@/lib/i18n/format";
 import type { HomeDict } from "@/lib/i18n/en/home";
@@ -76,6 +77,47 @@ type ClipCopy = Translated<HomeDict["testimonials"]["clips"][ClipId]>;
    flagged for /product at product/ProductTestimonials.tsx:220-226. It is invisible to most
    readers in English and becomes reader-visible on /he, where the card's own name sits inches
    from a subtitle giving a different one. Unresolved on purpose — see he/home.ts. */
+/**
+ * ⚠️ THE SWITCH BETWEEN THE TWO TESTIMONIAL TREATMENTS (2026-08-13), AND IT IS DERIVED FROM
+ * THE COPY RATHER THAN HAND-SET. See `hasQuotes` in the component below.
+ *
+ *   quotes empty  — the six-card VIDEO ACCORDION here. Real clients, real footage, real words.
+ *   quotes filled — `QuoteCarousel`, the written-quote slideshow moved here from /product.
+ *
+ * WHY IT IS DERIVED AND NOT A `const SHOW_QUOTES = false`, and this is the second design: a
+ * hand-set flag was written first and was WRONG, for a reason worth recording.
+ *
+ * ⚠️ A FLAG CANNOT GUARD THIS, BECAUSE NOT RENDERING A STRING DOES NOT KEEP IT OFF THE PAGE.
+ * The carousel's copy travels to the browser inside `PageDictProvider`, which serialises the
+ * WHOLE `home` namespace into the RSC payload. With the flag off and the accordion rendering,
+ * `curl localhost:3001/ | grep "PLACEHOLDER QUOTE"` still returned SEVEN hits — six slides and
+ * a `phoneLeadQuote` — sitting in the public source of the indexed landing page, under real
+ * clients' real names. Measured, not theorised. A `noindex` would not have helped either; it
+ * hides a page from a crawler, not from a reader, and on the home page it is a bad trade.
+ *
+ * So the only real guard is that THE FABRICATED TEXT DOES NOT EXIST. The placeholders were
+ * emptied to `""`, and the switch reads THAT. The two states cannot get out of step: no quotes
+ * means no carousel, by construction, and supplying the quotes IS the act of turning it on.
+ *
+ * ✅ THE REAL QUOTES LANDED THE SAME DAY, so the carousel is what renders now and the accordion
+ * below is the fallback. The guard stays exactly as it is — it is not scaffolding to be removed
+ * now that it has passed. Blanking any of the six silently reverts to the accordion, which is
+ * the intended failure mode, and it is what makes a future half-finished copy pass safe.
+ *
+ * CLEANUP STILL OWED, deliberately not done in the same pass: the accordion branch, `Card`,
+ * `CLIP_IDS`, `t.clips` and the six now-unused public/testimonials/*.mp4 are all still here.
+ * Deleting them would throw away the fallback this design depends on AND ~22MB of the user's
+ * real client footage in a pass they asked to be about something else. Raise it with them.
+ *
+ * ⚠️ THE HEADING AND THE SECTION CHROME ARE SHARED AND STAY PUT either way — "In our clients'
+ * own words" reads true of both treatments, which is the whole reason the swap is this small.
+ */
+
+/* ⚠️ SHARED ORDER, TWO CONSUMERS. These six ids and their sequence are mirrored by
+   `SLIDE_STYLE` in QuoteCarousel.tsx, which pairs each with a photo and a per-slide quote
+   size. Change one, change the other — and note the ids also name the files in
+   public/testimonials/ (`<id>.mp4` for the accordion, `<id>.jpg` for BOTH, since the
+   carousel's portraits are the accordion's poster frames). */
 const CLIP_IDS: readonly ClipId[] = [
   "asaf-peretz",
   "adir-peretz",
@@ -353,6 +395,11 @@ export default function Testimonials() {
   /* `chrome`, not `home` — the play button's accessible-name template is shared with
      /product's testimonial rail, so it lives in the namespace both routes render. */
   const a11y = useChrome().a11y;
+  /* THE SWITCH — see the block above `CLIP_IDS`. The carousel appears only once every one of
+     its seven strings is non-empty, so a half-finished copy pass can never put a blank quote
+     card, or a fabricated one, on the landing page. `.trim()` because a lone space is the
+     classic way an empty translation slot gets filled. */
+  const hasQuotes = t.slides.every((s) => s.quote.trim() !== "");
   const [openId, setOpenId] = useState<ClipId>(CLIP_IDS[0]);
   const [playingId, setPlayingId] = useState<string | null>(null);
   const refs = useRef<Record<string, HTMLVideoElement | null>>({});
@@ -430,32 +477,36 @@ export default function Testimonials() {
           </h2>
         </div>
 
-        {/* The target switched these two layouts at 1200. Ours switches at 810, because the
-            user asked for all five visible on narrower screens before asking for the
-            accordion back — the horizontal row is what satisfies both. Below 810 a 390 phone
-            would put closed cards at 57px, so the stack takes over there.
-            Gaps are the target's own: 16 stacked, 12 in the row. */}
-        <div className="flex w-full flex-col gap-4 tablet:h-[600px] tablet:flex-row tablet:gap-3">
-          {CLIP_IDS.map((id) => (
-            <Card
-              key={id}
-              id={id}
-              copy={t.clips[id]}
-              playLabel={interpolate(a11y.playTestimonial, {
-                name: t.clips[id].name,
-              })}
-              open={openId === id}
-              /* Derived, not stored: a card counts as playing only while it is also the
-                 open one. That is what lets the pause effect above skip setState. */
-              playing={playingId === id && openId === id}
-              onOpen={() => setOpenId(id)}
-              onPlay={() => play(id)}
-              videoRef={(el) => {
-                refs.current[id] = el;
-              }}
-            />
-          ))}
-        </div>
+        {hasQuotes ? (
+          <QuoteCarousel />
+        ) : (
+          /* The target switched these two layouts at 1200. Ours switches at 810, because the
+             user asked for all five visible on narrower screens before asking for the
+             accordion back — the horizontal row is what satisfies both. Below 810 a 390 phone
+             would put closed cards at 57px, so the stack takes over there.
+             Gaps are the target's own: 16 stacked, 12 in the row. */
+          <div className="flex w-full flex-col gap-4 tablet:h-[600px] tablet:flex-row tablet:gap-3">
+            {CLIP_IDS.map((id) => (
+              <Card
+                key={id}
+                id={id}
+                copy={t.clips[id]}
+                playLabel={interpolate(a11y.playTestimonial, {
+                  name: t.clips[id].name,
+                })}
+                open={openId === id}
+                /* Derived, not stored: a card counts as playing only while it is also the
+                   open one. That is what lets the pause effect above skip setState. */
+                playing={playingId === id && openId === id}
+                onOpen={() => setOpenId(id)}
+                onPlay={() => play(id)}
+                videoRef={(el) => {
+                  refs.current[id] = el;
+                }}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

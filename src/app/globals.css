@@ -453,6 +453,182 @@ html {
   }
 }
 
+/* ---- /product Block 4 · the six benefit-card loops (2026-08-13) -------------------------
+ *
+ * One idle loop per card, INSIDE the artwork — the user's ask was "the info inside them…
+ * in Single Tenant Deployment the line moves and links to the circle square stuff", i.e. each
+ * illustration animating what it already depicts, not a card-level scroll reveal. Applied in
+ * src/components/product/benefitArt.tsx; read that file for which loop belongs to which card.
+ *
+ * ⚠️ THE INVARIANT THAT MAKES ALL SIX SAFE: **EVERY KEYFRAME'S BASE STATE IS THE SHIPPED
+ * STATIC DESIGN.** Each animation departs from the measured render and returns to it, rather
+ * than the render being some midpoint of the loop. Two things fall out of that, and both are
+ * load-bearing:
+ *
+ *   1. REDUCED MOTION IS A FREE, EXACT NO-OP. The global clamp at the end of this file cuts
+ *      every animation to 0.01ms with `animation-iteration-count: 1`, and none of these sets
+ *      `animation-fill-mode`, so each element snaps back to its unanimated CSS — which IS the
+ *      measured artwork. That is why, e.g., `benefit-target` runs 0 -> 1 -> 0 opacity over a
+ *      base of `opacity: 1` rather than being declared `opacity: 0` and animated up: written
+ *      the other way, a reduced-motion visitor would see the tenant grid with NO cell
+ *      selected, which is the one thing that card exists to show.
+ *   2. SSR AND FIRST PAINT ARE THE FINISHED PICTURE. Nothing depends on JS or on the
+ *      animation having started; the same reasoning CountUp.tsx applies to its own SSR text.
+ *
+ * ⚠️ TRANSFORM AND OPACITY ONLY. Six loops run whenever the block is on screen, so every one
+ * is compositor-only — no width, no colour, no box-shadow animation. `benefit-integration`
+ * fades an `ink` glyph to .6 rather than animating `muted` -> `ink` for exactly this reason,
+ * and .6 is not a guess: ink #151515 over the tile's white at 60% resolves to #737373, which
+ * is `--color-muted` to the byte. So the resting glyph is the same pixel it always was.
+ *
+ * The block is NOT viewport-gated. There is no IntersectionObserver and no `"use client"`:
+ * two of the six artworks (`ArtPrompts`, `ArtGovernance`) read the dictionary server-side, and
+ * converting them to client components to gate decoration would cost more than the loops do.
+ */
+
+/* 1 · Integrations — a highlight travelling across the six tool tiles. Applied to the GLYPH,
+   not the tile: the tile is a white card on `surface` and fading it would blend it into the
+   card. Six tiles x 1200ms delay = one 7200ms cycle, so exactly one glyph is lit at a time. */
+@keyframes benefit-integration {
+  0%,
+  18%,
+  100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  9% {
+    opacity: 1;
+    transform: scale(1.12);
+  }
+}
+
+/* 2 · Ready Workflows — the nine prompt pills drift upward. The Stage was ALREADY built for
+   this and never used it: it carries `overflow-hidden` plus a top/bottom `linear-gradient`
+   mask, which is the source SVG's own alpha mask restated in CSS.
+   ⚠️ -50% IS THE SEAMLESS LOOP DISTANCE, AND ONLY BECAUSE THE TRACK IS SIZED TO MAKE IT ONE.
+   The track holds TWO copies of the nine pills on the same 38-unit pitch and is 684 units
+   tall (2 x 9 x 38), so -50% is exactly 342 units — one full copy. A percentage translate
+   resolves against the element's own border box, which is why this needs no `var()` in the
+   keyframe; see the `rows-up` note above for what happens when a keyframe IS parameterised. */
+@keyframes benefit-marquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(0, -50%, 0);
+  }
+}
+
+/* 3 · Guided Implementation — the three overlapping avatars breathe, staggered.
+   The 8px ring between them is a `box-shadow`, so it scales with the circle and the gaps stay
+   even; that is why this is a scale and not a width change. */
+@keyframes benefit-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.045);
+  }
+}
+
+/* 4a · Custom-Trained Models — the eleven trail dots fall INTO the mark tile below them.
+   The source already draws the trail between the grid and the mark; this gives it direction.
+   Translations are in px against a stage scaled 0.9976, so px and source units are the same
+   thing here to within a quarter of a percent. */
+@keyframes benefit-trail {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -5px, 0);
+  }
+  25%,
+  65% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(0, 12px, 0);
+  }
+}
+
+/* 4b · …and the green cells in the 7x3 grid shimmer, suggesting training passes. Deliberately
+   shallower and slower than the trail so the two loops on this one card do not compete. */
+@keyframes benefit-cell {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* 5 · Governance & Permissions — the five bars sweep out, hold, and clear.
+   ⚠️ THE FILL LENGTHS ARE NOT ANIMATED. Each bar keeps its measured width (270 / 248 / 213 /
+   187 / 157 against the 271 track) and is scaled 0 -> 1 inside that width, so the descending
+   series the source draws is preserved exactly; only its arrival is staged.
+   The opacity clear at 97% is what lets 100% -> 0% loop without a visible snap-back: the bar
+   is already invisible when the transform resets to zero width. */
+@keyframes benefit-bar {
+  0% {
+    transform: scaleX(0);
+    opacity: 1;
+  }
+  20%,
+  85% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+  97%,
+  100% {
+    transform: scaleX(1);
+    opacity: 0;
+  }
+}
+
+/* 6 · Single Tenant Deployment — THE USER'S OWN EXAMPLE: "the line moves and link to the
+   circle square stuff". The tie-line draws down from the mark tile, the target cell lights up
+   behind it, both hold, both release. `benefit-tie` and `benefit-target` share one 5200ms
+   duration and are phase-locked by their percentages — the line reaches the cell at 22%, the
+   cell answers at 30%. Do not retune one without the other. */
+@keyframes benefit-tie {
+  0% {
+    transform: scaleY(0);
+  }
+  22%,
+  88% {
+    transform: scaleY(1);
+  }
+  100% {
+    transform: scaleY(0);
+  }
+}
+
+@keyframes benefit-target {
+  0% {
+    opacity: 0;
+  }
+  30%,
+  88% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* The governance bar's growth edge. `transform-origin` has no logical keyword, and the bar is
+   placed with `inset-inline-start`, so under rtl it is anchored to the RIGHT and a `left`
+   origin would grow it away from its own anchor. Same `[dir="rtl"]`-scoped idiom the clix
+   marquee and the model ticker already use. */
+.benefit-bar {
+  transform-origin: left center;
+}
+[dir="rtl"] .benefit-bar {
+  transform-origin: right center;
+}
+
 /* Page transition (2026-08-12, second pass). Driven by
    src/components/ui/ViewTransitions.tsx — read that file for why this is a view transition
    and not a keyframe.

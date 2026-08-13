@@ -118,6 +118,120 @@ export const home: Translated<HomeDict> = {
          for a firm. The speaker's own name is still unknown. */
       "elyashiv-engineering": { name: "אלישיב הנדסה", role: "" },
     },
+    /*
+     * ✅ SOURCED ×6, AND THIS IS THE STRONGEST PROVENANCE IN THE FILE: the six quotes below are
+     * the CLIENTS' OWN WORDS, supplied by the user on 2026-08-13 in `quote.md` at the repo root.
+     * They are not authored, not translated and not lifted from the capture. They replaced the
+     * `[PLACEHOLDER QUOTE, NOT SOMETHING X SAID]` scaffolding that stood here for one day.
+     *
+     * ⚠️ VERBATIM MEANS VERBATIM. Two things below look like violations of this file's own
+     * conventions and must NOT be "fixed":
+     *   · `קליקס` in slide 2 is the brand spelled in HEBREW LETTERS, where every other string
+     *     in this repo writes `clix` in Latin (`ל-clix`, `מ-WhatsApp`). That is how the client
+     *     said it.
+     *   · the `...` in slides 2 and 6 is the user's own elision, not a truncation of ours.
+     * A testimonial is quoted, not normalised. The no-dashes rule, the geresh rule and the
+     * Latin-brand rule all yield to the speaker here.
+     *
+     * ⚠️ THE ENGLISH FILE CARRIES TRANSLATIONS OF THESE, and that asymmetry is worth naming: on
+     * /he the visitor reads what the client actually said, on / they read a rendering written
+     * in-repo. `en/home.ts`'s versions are the only strings on the landing page that are neither
+     * the client's words nor sourced from the capture. If a client supplies their own English
+     * wording it replaces the translation; the Hebrew below never changes.
+     *
+     * NAMES AND ROLES ARE SOURCED SEPARATELY — home.bodyText's own testimonial rail names four of
+     * these six clients with their roles, using `·` as the separator, which is why the Hebrew
+     * roles are not comma-joined the way the English ones are.
+     *
+     * MEASURED after the real copy landed (2026-08-13), by cycling all six in-browser at 1440:
+     * Hebrew sets 3 / 4 / 3 / 3 / 4 / 2 lines against English's 5 / 5 / 4 / 4 / 5 / 3, so English
+     * is the binding case in every slot and nothing clips in either locale. The phone cards are
+     * fixed-height boxes — now 334px for ALL SIX, since slot 1's 505px existed only to hold the
+     * longer lead quote that `phoneLeadQuote` used to carry, and that key is gone.
+     */
+    slides: [
+      {
+        /* SOURCED — the client's own words, verbatim (quote.md, 2026-08-13). */
+        quote:
+          "האפיון עצמו וביצוע התהליך היו ברמה מאוד מאוד איכותית. המחירים היו הכי משתלמים שמצאתי, "
+          + "והתוצר ברמה הכי גבוהה שיש. ממליץ בחום!",
+        /* SOURCED ×2 — home.bodyText, the testimonial rail: `אסף פרץ` / `מייסד · SalesIQ`. */
+        name: "אסף פרץ",
+        role: "מייסד · SalesIQ",
+      },
+      {
+        /* SOURCED — the client's own words, verbatim (quote.md, 2026-08-13). */
+        quote:
+          "חיפשתי מערכת שתייעל לי את העסק, תגרום לו לעבוד יותר מהר בעזרת בינה מלאכותית, בעיקר כדי "
+          + "לפתוח פער מעל המתחרים שלי. הצטרפתי לקליקס ונתנו לי ליווי אישי איכותי... הרווחים עלו, "
+          + "המחזורים עלו, וכמובן הלקוחות גם היו הרבה יותר מרוצים.",
+        /* SOURCED ×2 — home.bodyText: `אדיר פרץ` / `בעלים · סטודיו וידאו וצילום`. */
+        name: "אדיר פרץ",
+        role: "בעלים · סטודיו וידאו וצילום",
+      },
+      {
+        /* SOURCED — the client's own words, verbatim (quote.md, 2026-08-13). */
+        quote:
+          "הם בנו לי אוטומציה שבעצם חסכה לי מלא שעות בהתעסקות עם לקוחות, ובעצם פינתה לי וחסכה לי "
+          + "מלא זמן וכסף. אז זו ככה המלצה בחום ממני.",
+        /* SOURCED ×2 — home.bodyText: `נבו יהלומן` / `מייסד`. */
+        name: "נבו יהלומן",
+        role: "מייסד",
+      },
+      {
+        /* SOURCED — the client's own words, verbatim (quote.md, 2026-08-13). */
+        quote:
+          "נתקלתי בהם ובאמת הרגשתי מהצוות שלהם אחריות, מקצועיות, ופתרון מהיר וחכם. אני מודה לכם "
+          + "מאוד על כל מה שעשיתם עבורי. אני ממליץ בחום!",
+        /* SOURCED ×2 — home.bodyText: `נועם תובי` / `בעלים · השקעות`.
+           ⚠️ THE PHOTOGRAPH MAY NOT BE THIS PERSON, and that is unresolved in BOTH locales: the
+           video's own burned-in caption reads `אני נווה דוידי`. See the note in
+           ProductTestimonials.tsx. The Hebrew name here is the repo's label, not a resolution
+           of that conflict. */
+        name: "נועם תובי",
+        role: "בעלים · השקעות",
+      },
+      {
+        /* SOURCED — the client's own words, verbatim (quote.md, 2026-08-13). */
+        quote:
+          "רציתי להגיד תודה רבה על השירות המדהים ועל האפשרויות שפתחתם בפניי. הכל נעשה בטעם טוב "
+          + "ובנעימות כזו, משלב המכירה הראשוני ועד להבנה המדויקת של מה בדיוק אנחנו עושים ביחד.",
+        /* ⚠️ AUTHORED TRANSLITERATION, AND BOTH HALVES ARE UNVERIFIED. This client is NOT in
+           the capture's testimonial rail, and sections/Testimonials.tsx already flags the ROLE
+           as read off an uploaded filename rather than given. `אחיטוב` is the standard Hebrew
+           spelling of the given name and is safe; `ותחזנה` is a plausible reading of
+           "Vtechezena" and nothing here can confirm it. GET BOTH FROM THE CLIENT before this
+           route is indexed — it is on the same list as the placeholder quotes. */
+        name: "אחיטוב",
+        role: "ותחזנה",
+      },
+      {
+        /* SOURCED — the client's own words, verbatim (quote.md, 2026-08-13). */
+        quote:
+          "מערכת פגז! חוסכת לנו הרבה זמן ולא מעט עלויות, עושה שכל וסדר בראש... ממליץ לכולם בחום!",
+        /* ✅ NOT A TRANSLITERATION AND NOT UNVERIFIED — corrected at reconciliation.
+           This string is the USER'S OWN, supplied 2026-08-08, and the English "Elyashiv
+           Engineering" is a rendering OF it rather than the other way round. See
+           sections/Testimonials.tsx:62-68: the clip arrived as an unlabelled WhatsApp video with
+           no burned-in caption, no name card and container metadata holding only
+           `language=und`, and the user gave the attribution as אלישיב הנדסה
+           (הנדסה is the word *engineering*). So on /he the user's original ships and
+           there is nothing to confirm. A THIRD provenance kind: user-supplied, neither
+           capture-sourced nor authored here. `אחיטוב`/`ותחזנה` above is genuinely
+           unverified and does still need the client. */
+        name: "אלישיב הנדסה",
+        role: "",
+      },
+    ],
+    a11y: {
+      /* AUTHORED ×2. The arrows' own labels are NOT here — they come from `chrome.a11y.previous`
+         and `chrome.a11y.next`, which the spine already ships in both locales. */
+      controls: "פקדי ניווט במצגת",
+      /* The comma-space glue is identical in Hebrew, but it is a template rather than a
+         hard-coded `${name}, ${role}` in the component so the punctuation is a translator's
+         decision and not a developer's. */
+      portraitAlt: "{name}, {role}",
+    },
   },
 
   whyRogo: {

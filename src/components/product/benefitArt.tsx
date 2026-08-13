@@ -33,6 +33,33 @@
  * page — except the prompt list, which has three. So each rebuild is a fixed box carrying
  * `--u` (one source pixel as a CSS length) and children sized `u(sourcePx)`. Same idiom as
  * workflowMocks.tsx, but without container queries: there is nothing fluid to track.
+ *
+ * ⚠️ MOTION, ADDED 2026-08-13 — ONE IDLE LOOP PER GRAPHIC. The user's ask was for the *info
+ * inside* the cards to move, not for the cards to reveal on scroll: "in Single Tenant
+ * Deployment the line moves and link to the circle square stuff". So each illustration
+ * animates what it already depicts, and nothing was added to the picture to have something to
+ * animate:
+ *
+ * | # | Graphic | Loop | Keyframe(s) | Cycle |
+ * |---|---|---|---|---|
+ * | 1 | Integrations | highlight travels the six tiles | `benefit-integration` | 7200ms |
+ * | 2 | Ready Workflows | pills drift up through the mask | `benefit-marquee` | 30000ms |
+ * | 3 | Guided Implementation | the three avatars breathe | `benefit-breathe` | 5000ms |
+ * | 4 | Custom-Trained Models | trail falls into the mark; green cells shimmer | `benefit-trail`, `benefit-cell` | 4000 / 3600ms |
+ * | 5 | Governance & Permissions | bars sweep out, hold, clear | `benefit-bar` | 8000ms |
+ * | 6 | Single Tenant Deployment | tie-line draws, target cell lights | `benefit-tie`, `benefit-target` | 5200ms |
+ *
+ * All eight keyframes live in `src/app/globals.css`, in one commented block — the same place
+ * `clix-marquee`, `rows-up`, `icon-swap` and `step-fill` live. THIS FILE STAYS SERVER-SIDE:
+ * there is no `"use client"` here, no GSAP and no IntersectionObserver, which is the whole
+ * reason the loops are CSS. `ArtPrompts` and `ArtGovernance` read the dictionary with
+ * `getDict()`, and making them client components to gate decoration would cost more than the
+ * decoration does.
+ *
+ * ⚠️ READ THE GLOBALS.CSS BLOCK BEFORE RETUNING ANY OF THEM. Every keyframe is written so its
+ * BASE state is the measured static render and the loop departs from and returns to it. That
+ * is what makes the global reduced-motion clamp an exact no-op rather than a degradation, and
+ * it is not an accident of how they happened to be written.
  */
 
 import type { CSSProperties, ReactNode } from "react";
@@ -264,12 +291,28 @@ export function ArtIntegrations() {
            width-derived scale. */
         scale={0.7124}
         sizeClassName="h-[138px] w-[213px]"
-        className="text-muted"
+        /* ⚠️ `text-ink`, NOT `text-muted`, AND THE RENDER IS UNCHANGED BY IT. The glyphs below
+           sit at `opacity: .6`, and ink #151515 over the tile's white at 60% composites to
+           #737373 — `--color-muted` exactly. The colour moved into the alpha channel so the
+           highlight loop can be pure opacity; see the `benefit-integration` note in
+           globals.css for why animating `muted` -> `ink` directly was rejected. */
+        className="text-ink"
       >
-        {INTEGRATION_TILES.map(([x, y, slug]) => (
+        {INTEGRATION_TILES.map(([x, y, slug], i) => (
           <Box key={slug} x={x} y={y} w={92.4} h={92.4} radius={2.4} className="bg-paper">
-            {/* A 34-unit mark optically centred in the 92.4 tile, matching the source's own. */}
-            <Box x={29.2} y={29.2} w={34} h={34}>
+            {/* A 34-unit mark optically centred in the 92.4 tile, matching the source's own.
+                The 1.12 peak scale is safe inside a 92.4 tile: 34 -> 38.1 units, still 27
+                units clear of the tile's edge, so the highlight cannot clip. */}
+            <Box
+              x={29.2}
+              y={29.2}
+              w={34}
+              h={34}
+              style={{
+                opacity: 0.6,
+                animation: `benefit-integration 7200ms ${i * 1200}ms ease-in-out infinite`,
+              }}
+            >
               <svg viewBox="0 0 24 24" fill="currentColor" className="h-full w-full">
                 <path d={TOOL_GLYPHS[slug]} />
               </svg>
@@ -349,32 +392,59 @@ export function ArtPrompts() {
         WebkitMaskImage: "linear-gradient(180deg, transparent 0%, #000 14%, #000 84%, transparent 100%)",
       }}
     >
-      {t.pillWidths.map((w, i) => {
-        const label = t.labels[i];
-        const Icon = PROMPT_GLYPHS[i];
-        return (
-        <Box
-          key={label}
-          x={25}
-          y={12 + 38 * i}
-          w={w}
-          h={32}
-          radius={2}
-          className="bg-paper"
-          style={{ boxShadow: `inset 0 0 0 ${u(0.5)} var(--color-mock-line)` }}
-        >
-          {/* ⚠️ THESE TWO COORDINATES *ARE* THE WIDTH FORMULA'S INSETS. Icon at 10 w 14, label
-              at 30: leading inset 30, trailing inset 44.6 − 30 = 14.6. Change either and
-              `pillWidths` in both locale files has to be recomputed. */}
-          <Box x={10} y={9} w={14} h={14} className="text-muted">
-            <Icon />
-          </Box>
-          <Line x={30} cy={16} size={12} className="text-ink">
-            {label}
-          </Line>
-        </Box>
-        );
-      })}
+      {/* ⚠️ THE TRACK EXISTS ONLY TO MAKE `-50%` MEAN "ONE FULL COPY" (2026-08-13).
+          The pills drift upward forever, and a percentage translate resolves against the
+          animated element's OWN border box — so the track is given an explicit height of
+          `2 x N x 38` units and holds exactly two copies of the N pills on the source's own
+          38-unit pitch. -50% of 684 is 342, which is 9 x 38, which is the distance from a pill
+          to its own duplicate. That is the whole trick, and it is why this needs no `var()`
+          inside the keyframe — see the `rows-up` cautionary note in globals.css.
+
+          The stage above it already clips and already carries the source SVG's alpha mask as a
+          top/bottom gradient, so the pills fade in and out at both ends for free; that mask was
+          shipped for the static render and this is the motion it was drawn for.
+
+          The overflowing tail of copy two (it runs past 684) is never visible: the stage is 357
+          units tall, so the window only ever shows ~9 pills of the 18. */}
+      <div
+        className="absolute inset-x-0 top-0"
+        style={{
+          height: u(2 * t.pillWidths.length * 38),
+          animation: "benefit-marquee 30000ms linear infinite",
+        }}
+      >
+        {Array.from({ length: t.pillWidths.length * 2 }, (_, i) => {
+          /* `n` indexes the REAL nine; `i` indexes the eighteen rendered slots, so copy two
+             reuses copy one's width, label and glyph rather than inventing a tenth of any. */
+          const n = i % t.pillWidths.length;
+          const w = t.pillWidths[n];
+          const label = t.labels[n];
+          const Icon = PROMPT_GLYPHS[n];
+          return (
+            <Box
+              /* Keyed on the slot, not the label: the label now appears twice. */
+              key={`${label}-${i}`}
+              x={25}
+              y={12 + 38 * i}
+              w={w}
+              h={32}
+              radius={2}
+              className="bg-paper"
+              style={{ boxShadow: `inset 0 0 0 ${u(0.5)} var(--color-mock-line)` }}
+            >
+              {/* ⚠️ THESE TWO COORDINATES *ARE* THE WIDTH FORMULA'S INSETS. Icon at 10 w 14,
+                  label at 30: leading inset 30, trailing inset 44.6 − 30 = 14.6. Change either
+                  and `pillWidths` in both locale files has to be recomputed. */}
+              <Box x={10} y={9} w={14} h={14} className="text-muted">
+                <Icon />
+              </Box>
+              <Line x={30} cy={16} size={12} className="text-ink">
+                {label}
+              </Line>
+            </Box>
+          );
+        })}
+      </div>
     </Stage>
   );
 }
@@ -398,7 +468,7 @@ const AVATARS = [
 export function ArtGuided() {
   return (
     <Stage w={416} h={160} scale={0.3077}>
-      {AVATARS.map((a) => (
+      {AVATARS.map((a, i) => (
         <Box
           key={a.cx}
           x={a.cx - a.d / 2}
@@ -406,8 +476,14 @@ export function ArtGuided() {
           w={a.d}
           h={a.d}
           className={`flex items-center justify-center rounded-full text-paper ${a.fill}`}
-          /* The ring is the card ground showing through, exactly as the source's 8px gaps. */
-          style={{ boxShadow: `0 0 0 ${u(8)} var(--color-surface)` }}
+          /* The ring is the card ground showing through, exactly as the source's 8px gaps.
+             ⚠️ IT IS A `box-shadow`, WHICH IS WHY THE BREATHE LOOP IS A SCALE. The shadow
+             spreads with the scaled element, so the three 8-unit gaps stay even through the
+             whole cycle; growing the circles by width instead would eat them. */
+          style={{
+            boxShadow: `0 0 0 ${u(8)} var(--color-surface)`,
+            animation: `benefit-breathe 5000ms ${i * 600}ms ease-in-out infinite`,
+          }}
         >
           <span className="block" style={{ width: u(a.d * 0.52), height: u(a.d * 0.52) }}>
             <GlyphPerson />
@@ -448,23 +524,39 @@ export function ArtCustomModels() {
   return (
     <Stage w={203.48} h={174} scale={0.9976}>
       {[0, 1, 2].map((r) =>
-        [0, 1, 2, 3, 4, 5, 6].map((c) => (
-          <Box
-            key={`${r}-${c}`}
-            x={4.451 + 28.713 * c}
-            y={0.357 + 28.714 * r}
-            w={22.295}
-            h={22.295}
-            radius={0.36}
-            style={{
-              boxShadow: `inset 0 0 0 ${u(0.71)} ${
-                GREEN[r].includes(c) ? "var(--color-brand-green)" : "var(--color-mock-line)"
-              }`,
-            }}
-          />
-        )),
+        [0, 1, 2, 3, 4, 5, 6].map((c) => {
+          const on = GREEN[r].includes(c);
+          return (
+            <Box
+              key={`${r}-${c}`}
+              x={4.451 + 28.713 * c}
+              y={0.357 + 28.714 * r}
+              w={22.295}
+              h={22.295}
+              radius={0.36}
+              style={{
+                boxShadow: `inset 0 0 0 ${u(0.71)} ${
+                  on ? "var(--color-brand-green)" : "var(--color-mock-line)"
+                }`,
+                /* Only the ELEVEN green cells shimmer — the grey ones are the ground the
+                   pattern reads against, and pulsing them too would erase the pattern. The
+                   diagonal delay `(r + c)` makes the shimmer sweep across the grid rather
+                   than throb in place. Shallower and slower than the trail below on purpose:
+                   this card is the only one carrying two loops, and they must not compete. */
+                ...(on
+                  ? {
+                      animation: `benefit-cell 3600ms ${(r + c) * 180}ms ease-in-out infinite`,
+                    }
+                  : null),
+              }}
+            />
+          );
+        }),
       )}
-      {TRAIL.map(([x, y, s]) => (
+      {/* The trail, given the direction the source only implies: eleven dots falling INTO the
+          mark tile at y 138.769, which sits directly below them. Delay is by index so they
+          arrive as a stream rather than a block. */}
+      {TRAIL.map(([x, y, s], i) => (
         <Box
           key={`${x}-${y}`}
           x={97.066 + x}
@@ -472,6 +564,7 @@ export function ArtCustomModels() {
           w={s}
           h={s}
           className="bg-brand-green"
+          style={{ animation: `benefit-trail 4000ms ${i * 250}ms linear infinite` }}
         />
       ))}
       <Box
@@ -568,7 +661,21 @@ export function ArtGovernance() {
             {t.sources[i]}
           </Line>
           <Box x={24} y={162 + 42 * i} w={271} h={4} radius={2} className="bg-surface" />
-          <Box x={24} y={162 + 42 * i} w={fill} h={4} radius={2} className="bg-brand-green" />
+          {/* ⚠️ THE FILL LENGTH IS STILL `fill`, AND THE SCALE RUNS INSIDE IT. The bar keeps
+              its measured width against the 271 track — the descending 270/248/213/187/157
+              series is the source's own and is not something the loop may reinterpret. The
+              animation only stages that width's ARRIVAL, `scaleX(0)` -> `scaleX(1)` of it.
+              `.benefit-bar` carries the `transform-origin`, which has to flip under rtl; it
+              lives in globals.css because there is no logical keyword for it. */}
+          <Box
+            x={24}
+            y={162 + 42 * i}
+            w={fill}
+            h={4}
+            radius={2}
+            className="benefit-bar bg-brand-green"
+            style={{ animation: `benefit-bar 8000ms ${i * 140}ms ease-out infinite` }}
+          />
         </div>
       ))}
     </Stage>
@@ -594,14 +701,28 @@ export function ArtTenant() {
       >
         <ClixMark size={u(22)} />
       </Box>
-      {/* The tie-line from the tile down to the selected cell. */}
-      <Box x={96.3} y={66.6} w={0.992} h={20.9} className="bg-brand-green" />
+      {/* The tie-line from the tile down to the selected cell. It DRAWS, top to bottom
+          (`transform-origin: top` + `scaleY`), then holds, then retracts back up into the
+          tile — the user's "the line moves and link to the circle square stuff".
+          ⚠️ `benefit-tie` AND `benefit-target` BELOW ARE PHASE-LOCKED: same 5200ms duration,
+          same zero delay, and the percentages inside the two keyframes are what make the line
+          arrive (22%) before the cell answers (30%). Retune them together or not at all. */}
+      <Box
+        x={96.3}
+        y={66.6}
+        w={0.992}
+        h={20.9}
+        className="bg-brand-green"
+        style={{
+          transformOrigin: "top",
+          animation: "benefit-tie 5200ms ease-in-out infinite",
+        }}
+      />
       {[0, 1, 2].map((r) =>
         [0, 1, 2].map((c) => {
           const on = r === 0 && c === 1;
           const x = 17.641 + 55.548 * c;
           const y = 87.496 + 55.548 * r;
-          const d = on ? 15.871 : 14.879;
           return (
             <Box
               key={`${r}-${c}`}
@@ -611,20 +732,41 @@ export function ArtTenant() {
               h={46.621}
               radius={0.496}
               className="flex items-center justify-center"
-              style={{
-                boxShadow: `inset 0 0 0 ${u(0.992)} ${
-                  on ? "var(--color-brand-green)" : "var(--color-hairline)"
-                }`,
-              }}
+              /* ⚠️ EVERY CELL NOW RENDERS ITS *UNSELECTED* STATE, INCLUDING THE SELECTED ONE.
+                 The green border and filled dot moved into the overlay below so they can be
+                 faded as one unit; leaving them here as well would double-paint the ring. */
+              style={{ boxShadow: `inset 0 0 0 ${u(0.992)} var(--color-hairline)` }}
             >
               <div
-                className={`rounded-full ${on ? "bg-brand-green" : ""}`}
+                className="rounded-full"
                 style={{
-                  width: u(d),
-                  height: u(d),
-                  boxShadow: on ? undefined : `inset 0 0 0 ${u(0.992)} var(--color-hairline)`,
+                  width: u(14.879),
+                  height: u(14.879),
+                  boxShadow: `inset 0 0 0 ${u(0.992)} var(--color-hairline)`,
                 }}
               />
+              {/* The selection, as one fadeable layer: the source's `brand-green` border and
+                  its FILLED 15.871 dot (the unselected dot is a hollow 14.879 — the source
+                  grows it slightly when it lights up, and that difference is preserved here).
+                  ⚠️ BASE STATE IS `opacity: 1`, i.e. SELECTED, and the keyframe departs from it
+                  rather than arriving at it. Written the other way — base 0, animate up — a
+                  reduced-motion visitor would get the tenant grid with no cell selected, which
+                  is the one thing this illustration exists to say. See globals.css. */}
+              {on && (
+                <div
+                  className="absolute inset-0 flex items-center justify-center"
+                  style={{
+                    borderRadius: u(0.496),
+                    boxShadow: `inset 0 0 0 ${u(0.992)} var(--color-brand-green)`,
+                    animation: "benefit-target 5200ms ease-in-out infinite",
+                  }}
+                >
+                  <div
+                    className="rounded-full bg-brand-green"
+                    style={{ width: u(15.871), height: u(15.871) }}
+                  />
+                </div>
+              )}
             </Box>
           );
         }),

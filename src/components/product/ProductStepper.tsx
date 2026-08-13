@@ -18,7 +18,7 @@
  * TIER MAP: XL and desktop share every value here. Base = phone, `tablet:`, `desktop:`.
  */
 
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
 import WorkflowsScroller from "@/components/product/WorkflowsScroller";
 import { PanelSources, PanelCitations, PanelDocuments } from "@/components/product/stepperPanels";
 import { usePageDict } from "@/lib/i18n/LocaleProvider";
@@ -42,10 +42,86 @@ import { usePageDict } from "@/lib/i18n/LocaleProvider";
    restoration (he/product.ts `stepper.title`) was fitted the same way and lands on the same
    2 / 1 / 2. */
 
-/* The badge numerals. NOT in the dictionary: they are the same four glyphs in every locale, and
-   pairing them with a translated label across two files would only invite the two to drift.
-   Zipped with `stepper.steps` by index, which the tuple typing keeps at four. */
-const STEP_NUMBERS = ["01", "02", "03", "04"] as const;
+/* ⚠️ THESE ARE KEYS AND A COUNT, NOT DISPLAY TEXT — as of 2026-08-13 the badge shows an ICON,
+   not a numeral (see `STEP_ICONS` below). The strings survive the change because they carry
+   two loads that have nothing to do with rendering:
+     · `.length` is the auto-advance modulo, and
+     · they build the React `key` that REMOUNTS a row to restart its `step-fill` sweep.
+   A stable, unique string per step is all either needs, and "01".."04" already were both.
+   NOT in the dictionary, for the same reason the numerals never were: they are identical in
+   every locale, and pairing them with a translated label across two files invites drift. */
+const STEP_KEYS = ["01", "02", "03", "04"] as const;
+
+/* The badge glyphs, POSITIONAL — each was drawn for the label already in its slot, so they stay
+   in the component and zip with `stepper.steps` by index, which the tuple typing keeps at four.
+   Same idiom as `PROMPT_GLYPHS` in benefitArt.tsx.
+
+   ⚠️ DRAWN FOR 16px, WHICH IS WHY THEY ARE THIS PLAIN. They render at 16 inside the badge's
+   36px circular cutout, so a 1.6 stroke on a 24 viewBox lands near 1.07 device px. Anything
+   with interior detail — a "?" inside a page, a magnifier over text — silts up at that size.
+   Each glyph is therefore two or three primitives and no more.
+
+   Kept local rather than imported from benefitArt.tsx: those glyphs are positional to the six
+   benefit cards, these are positional to the four steps, and a shared module would tempt the
+   two sets to be reconciled into one list that serves neither. */
+function Stroke({ children }: { children: ReactNode }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.6}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-full w-full"
+      aria-hidden="true"
+    >
+      {children}
+    </svg>
+  );
+}
+
+/* 01 · "All your systems in one place" — a 2x2 grid: four panes, one frame. */
+const IconGrid = () => (
+  <Stroke>
+    <rect x="3.5" y="3.5" width="7.5" height="7.5" rx="1.4" />
+    <rect x="13" y="3.5" width="7.5" height="7.5" rx="1.4" />
+    <rect x="3.5" y="13" width="7.5" height="7.5" rx="1.4" />
+    <rect x="13" y="13" width="7.5" height="7.5" rx="1.4" />
+  </Stroke>
+);
+
+/* 02 · "Every answer shows its source" — a link. The citation IS the chain back to the
+   document, and two arcs read at 16px where a page-with-a-footnote does not. */
+const IconLink = () => (
+  <Stroke>
+    <path d="M9.6 13.4a4.2 4.2 0 0 0 6.1.4l2.6-2.6a4.2 4.2 0 0 0-5.9-5.9l-1.5 1.5" />
+    <path d="M14.4 10.6a4.2 4.2 0 0 0-6.1-.4l-2.6 2.6a4.2 4.2 0 0 0 5.9 5.9l1.5-1.5" />
+  </Stroke>
+);
+
+/* 03 · "Automate your workflows" — one node fanning into two. The same node-and-connector
+   vocabulary ArtTenant and ArtCustomModels use a few hundred px down the page. */
+const IconFlow = () => (
+  <Stroke>
+    <circle cx="5.5" cy="12" r="2.6" />
+    <circle cx="18.5" cy="6" r="2.6" />
+    <circle cx="18.5" cy="18" r="2.6" />
+    <path d="M8.1 12h3.4a1.6 1.6 0 0 0 1.4-.8L15.9 7M8.1 12h3.4a1.6 1.6 0 0 1 1.4.8l2.9 4.2" />
+  </Stroke>
+);
+
+/* 04 · "Ask questions of your documents" — a speech bubble. The "of your documents" half is
+   carried by the label sitting 16px to its side; putting it in the glyph too costs legibility
+   and says nothing new. */
+const IconAsk = () => (
+  <Stroke>
+    <path d="M20.5 12.4a7.3 7.3 0 0 1-7.8 7.3 8.2 8.2 0 0 1-2.4-.4L4.5 21l1.7-5.4a7.1 7.1 0 0 1-1-3.6 7.3 7.3 0 0 1 7.5-7.3 7.3 7.3 0 0 1 7.8 7.3Z" />
+    <path d="M12.4 14v-.6a2 2 0 0 1 1.2-1.8 2 2 0 1 0-2.8-1.9" />
+  </Stroke>
+);
+
+const STEP_ICONS = [IconGrid, IconLink, IconFlow, IconAsk] as const;
 
 /* NOT in the capture — Framer runs the advance in JS and the stylesheet carries no timing at
    all beyond the site's one `color .3s`. ESTIMATED, and flagged as such in FEATURE.md. The
@@ -65,11 +141,12 @@ function usePrefersReducedMotion() {
   );
 }
 
-/* The numbered badge. The ring is the capture's own artwork (`#svg15075237_193`): a 36x36
-   square with a circle SUBTRACTED from it, painted in `ink`. It is not a stroked circle —
-   what reads as a ring is the four corner slivers left behind, and redrawing it as a
-   `border-radius: 50%` outline would be a different shape. Path verbatim. */
-function Badge({ n }: { n: string }) {
+/* The badge. The ring is the capture's own artwork (`#svg15075237_193`): a 36x36 square with a
+   circle SUBTRACTED from it, painted in `ink`. It is not a stroked circle — what reads as a
+   ring is the four corner slivers left behind, and redrawing it as a `border-radius: 50%`
+   outline would be a different shape. Path verbatim, and UNCHANGED by the 2026-08-13 icon
+   swap: only the thing sitting in the cutout changed, so the row geometry is untouched. */
+function Badge({ Icon }: { Icon: () => ReactNode }) {
   return (
     <span className="relative block h-9 w-9 shrink-0" aria-hidden="true">
       <svg width="36" height="36" viewBox="0 0 36 36" fill="none" className="absolute inset-0">
@@ -80,13 +157,14 @@ function Badge({ n }: { n: string }) {
       </svg>
       {/* `left-1/2` + `-translate-x-1/2` is a CENTRING IDIOM and stays physical. Migrating it
           would be an active bug: under rtl `start-1/2` resolves to `right:50%` while the
-          translate still moves left, landing the numeral off-centre by its own width. */}
-      <span
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-sans
-                   text-[14px] font-normal text-ink"
-        style={{ lineHeight: "1.3em" }}
-      >
-        {n}
+          translate still moves left, landing the glyph off-centre by its own width. This held
+          for the numeral it replaced and holds for the icon: the box is 16px wide either way.
+          ⚠️ THE ICON IS 16px IN A 36px BADGE, i.e. it sits inside the SUBTRACTED circle rather
+          than on the painted corners. The numeral was 14px and optically centred by its own
+          line-box; a square icon needs the box sized explicitly or it fills the badge and
+          overruns the slivers. */}
+      <span className="absolute top-1/2 left-1/2 block h-4 w-4 -translate-x-1/2 -translate-y-1/2 text-ink">
+        <Icon />
       </span>
     </span>
   );
@@ -113,13 +191,13 @@ function Panel({ step, animate }: { step: number; animate: boolean }) {
 /* ---- Desktop: the auto-advancing stepper --------------------------------------------- */
 
 function StepRow({
-  n,
+  Icon,
   label,
   active,
   progress,
   onSelect,
 }: {
-  n: string;
+  Icon: () => ReactNode;
   label: string;
   active: boolean;
   progress: boolean;
@@ -159,7 +237,7 @@ function StepRow({
         />
       )}
       <span className="relative z-[1] flex items-center gap-4">
-        <Badge n={n} />
+        <Badge Icon={Icon} />
         <span
           className="font-sans text-[14px] font-normal text-ink"
           style={{ lineHeight: "130%", letterSpacing: "-0.01em" }}
@@ -173,14 +251,22 @@ function StepRow({
 
 /* ---- Tablet / phone: the stacked variant ---------------------------------------------- */
 
-function StackedFeature({ n, label, step }: { n: string; label: string; step: number }) {
+function StackedFeature({
+  Icon,
+  label,
+  step,
+}: {
+  Icon: () => ReactNode;
+  label: string;
+  step: number;
+}) {
   return (
     /* Measured at 1024: 944x655, column, centred, gap 24 — a 36px header row over the panel.
        All four are shown at once and all are full-opacity; there is no active state here,
        because there is no stepper to be active in. */
     <div className="flex w-full flex-col items-center justify-center gap-6">
       <div className="relative flex h-9 w-full flex-row items-center gap-4">
-        <Badge n={n} />
+        <Badge Icon={Icon} />
         <span
           className="font-sans text-[14px] font-normal text-ink"
           style={{ lineHeight: "130%", letterSpacing: "-0.01em" }}
@@ -203,15 +289,19 @@ function ImagePanel({ step, animate = false }: { step: number; animate?: boolean
        the 24px gap leaves 595.
        The floating panel is CENTRED in it — measured dx 129 = (768-510)/2, dy 131 = (541-280)/2. */
     <div className="relative flex aspect-[944/595] w-full items-center justify-center overflow-hidden desktop:aspect-[768/541]">
-      {/* ⚠️ SUBSTITUTE ASSET. The original is rogo's own photograph
-          (`1UrYDcqTSd3WVXNwcrjT2YSNu0.png`). Ours is a graded frame from a clip already
-          vendored in this repo — dark, cold, architectural, to sit under a light panel the
-          same way. Decorative dressing, held to the two-candidate ceiling in CLAUDE.md §7. */}
+      {/* ⚠️ SUBSTITUTE ASSET, AND IT IS NOW THE USER'S OWN (2026-08-13). The original is rogo's
+          photograph (`1UrYDcqTSd3WVXNwcrjT2YSNu0.png`); ours was a graded frame from a clip
+          already vendored here, and is now `product-section-2.jpg`, supplied by the user.
+          Decorative dressing, held to the two-candidate ceiling in CLAUDE.md §7.
+          ⚠️ THE MASTER IS 3573×5359 PORTRAIT and this box is landscape, so `object-cover` throws
+          most of it away. Shipped downscaled to 1100px wide / 122KB — the full 1.0MB master would
+          have been ~8× the bytes for a decorative backdrop rendered at most 768px wide. Master
+          kept at features/product-page/assets/product-section-2-master.jpg; re-crop from that. */}
       {/* Plain <img> with the same inline disable Security.tsx uses — a static decorative
           asset already sized to its box gains nothing from next/image's loader. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src="/product/features-backdrop.jpg"
+        src="/product/product-section-2.jpg"
         alt=""
         aria-hidden="true"
         className="absolute inset-0 h-full w-full object-cover"
@@ -238,7 +328,7 @@ export default function ProductStepper() {
      stepper moves on by itself — the one thing a manual selection must not do. */
   useEffect(() => {
     if (reduced) return;
-    const id = setTimeout(() => setActive((a) => (a + 1) % STEP_NUMBERS.length), STEP_MS);
+    const id = setTimeout(() => setActive((a) => (a + 1) % STEP_KEYS.length), STEP_MS);
     return () => clearTimeout(id);
   }, [reduced, active]);
 
@@ -263,13 +353,13 @@ export default function ProductStepper() {
             </h3>
           </div>
           <div className="flex w-full flex-col">
-            {STEP_NUMBERS.map((n, i) => (
+            {STEP_KEYS.map((k, i) => (
               <StepRow
                 /* `key` carries the active index so the row REMOUNTS when the step changes,
                    restarting the Fill animation from 0. Without it the sweep would only ever
-                   play once. */
-                key={`${n}-${i === active ? active : "idle"}`}
-                n={n}
+                   play once. `k` is "01".."04" — a stable unique string, no longer rendered. */
+                key={`${k}-${i === active ? active : "idle"}`}
+                Icon={STEP_ICONS[i]}
                 label={t.steps[i]}
                 active={i === active}
                 progress={!reduced}
@@ -288,8 +378,8 @@ export default function ProductStepper() {
         >
           {t.title}
         </h3>
-        {STEP_NUMBERS.map((n, i) => (
-          <StackedFeature key={n} n={n} label={t.steps[i]} step={i + 1} />
+        {STEP_KEYS.map((k, i) => (
+          <StackedFeature key={k} Icon={STEP_ICONS[i]} label={t.steps[i]} step={i + 1} />
         ))}
       </div>
     </>

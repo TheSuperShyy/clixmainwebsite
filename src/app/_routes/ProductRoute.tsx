@@ -8,33 +8,36 @@
  * `position:fixed; z-index:3; top/left/right:0`. So no `spacer`; the hero's own 198px top
  * padding clears the banner + nav row, exactly the job /news's 220px does.
  *
- * ⚠️ NOINDEX, AND IT MUST STAY THAT WAY. The reason CHANGED on 2026-08-12, read on.
+ * ⚠️ NOINDEX. The reason CHANGED TWICE — on 2026-08-12, and again on 2026-08-13. Read on.
  *
  * The content pass ran on 2026-08-12: rogo's copy is gone, replaced with clix's own. The
  * named financial-data vendors, the SOC2/ISO 27001 badges clix does not hold, and the three
  * photographed real people at real firms are all out. So the ORIGINAL reason for the guard
  * is cleared.
  *
- * It stays anyway, because the pass introduced a new one: Block 6 carries PLACEHOLDER quotes
- * attributed to clix's real, named clients. clix has no written testimonials, only video, so
- * the words in those cards are invented and the people are real. That is the same class of
- * problem the vendor logos were, and it is why ProductTestimonials.tsx carries its own
- * warning block.
+ * It stayed anyway, because that pass introduced a new one: Block 6 carried PLACEHOLDER quotes
+ * attributed to clix's real, named clients — invented words in real people's mouths.
  *
- * The guard lifts when all four hold, tracked in features/product-page/FEATURE.md:
- *   1. no third-party trademark in copy or assets
- *   2. no certification badge clix does not hold
- *   3. no real person quoted, INCLUDING the placeholders
- *   4. every string is clix's own
- * Items 1, 2 and 4 are done. Item 3 is not. Do not remove the robots block as part of
- * unrelated work.
+ * ⚠️ ON 2026-08-13 BLOCK 6 LEFT THIS ROUTE. The quote carousel moved to the landing page (see
+ * sections/Testimonials.tsx), taking the placeholder quotes with it. So the four-item gate
+ * tracked in features/product-page/FEATURE.md now reads:
+ *   1. no third-party trademark in copy or assets      — done
+ *   2. no certification badge clix does not hold       — done
+ *   3. no real person quoted, INCLUDING the placeholders — DONE, as of the Block 6 move
+ *   4. every string is clix's own                      — done
+ *
+ * All four hold. THE GUARD IS NOW LIFTABLE, and it is left in place only because lifting it
+ * is the user's call to make, not a side effect of moving a section. Raise it with them; do
+ * not remove the robots block as part of unrelated work.
+ *
+ * ⚠️ AND NOTE WHERE THE PROBLEM WENT. The placeholder quotes are now on the LANDING page,
+ * which is indexed. They are held behind the `SHOW_QUOTES` switch in sections/Testimonials.tsx
+ * precisely so nothing fabricated ships; that switch, not this comment, is the live guard.
  */
 
 import Nav from "@/components/sections/Nav";
 import ProductHero from "@/components/product/ProductHero";
 import ProductFeatures from "@/components/product/ProductFeatures";
-import ProductSecurity from "@/components/product/ProductSecurity";
-import ProductTestimonials from "@/components/product/ProductTestimonials";
 import Footer from "@/components/sections/Footer";
 import { fetchModels } from "@/lib/models";
 import type { Locale } from "@/lib/i18n/config";
@@ -56,15 +59,17 @@ export default async function ProductRoute({ locale }: { locale: Locale }) {
     <PageDictProvider name="product" value={getDict().product}>
       <>
         <Nav models={models} />
-        {/* `flex flex-col` is load-bearing, not tidiness. Below 1200 the original reorders
-            the page — `Features` order 1, `Testimonials` order 2, `Security` order 3 — so
-            security drops BELOW the testimonials on tablet and phone. The two components
-            carry the `order-*` classes; this is the flex container they need. */}
-        <main className="flex flex-col">
+        {/* ⚠️ `flex flex-col` USED TO BE LOAD-BEARING AND NO LONGER IS. Below 1200 the original
+            reordered the page — `Features` 1, `Testimonials` 2, `Security` 3 — so security
+            dropped BELOW the testimonials on tablet and phone, which is what the `order-*`
+            classes on those two components did and what this flex container existed to serve.
+            Both sections were removed on 2026-08-13, so there is nothing left to reorder. The
+            container is kept as a plain block: `<main>` is already `display:block` and the two
+            remaining children are full-width sections, so flex vs block renders identically —
+            but keeping the class would be a false signal that ordering still matters here. */}
+        <main>
           <ProductHero />
           <ProductFeatures />
-          <ProductSecurity />
-          <ProductTestimonials />
         </main>
         {/* Byte-identical to the home page's footer in both captures — same
             `.framer-8dt5bh-container`, same link rows. Reused unchanged; it was the one block

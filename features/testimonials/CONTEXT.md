@@ -10,6 +10,44 @@ with no code scanning.
 
 ## Current state
 
+### ⚠️ 2026-08-13 — this slot now holds TWO treatments, and the accordion is the fallback
+
+The section, its `id`, its `data-nav-theme` and its "In our clients' own words" `<h2>` are
+permanent. Only the **body** swaps. `QuoteCarousel` — the written-quote slideshow moved here
+from /product — takes over the moment six real client quotes exist; until then the accordion
+below renders. The user is supplying the quotes.
+
+**The switch is DERIVED from the copy, not hand-set** (`hasQuotes` in `Testimonials.tsx`), and
+that is the second design. A `const SHOW_QUOTES = false` was written first and did not work:
+`PageDictProvider` serialises the **whole `home` namespace** into the RSC payload, so with the
+accordion rendering and the flag off, `curl / | grep "PLACEHOLDER QUOTE"` still returned **seven
+hits** — six slides plus `phoneLeadQuote` — in the public source of the indexed landing page,
+under real clients' real names and photographs. Not rendering a string does not keep it off the
+page, and a `noindex` would only have hidden it from crawlers, not readers.
+
+So the fabricated strings were deleted (`""` in both locales) and the switch reads them. No
+quotes → accordion, by construction. **Pasting the real quotes in IS turning the carousel on.**
+
+✅ **They landed the same day** (`quote.md`, repo root), so the carousel is what renders now.
+The clients spoke Hebrew: `he/home.ts` is verbatim, `en/home.ts` is a translation written here
+and is the one thing on this section the user still needs to read. `phoneLeadQuote` was deleted
+(no client said a second, phone-only sentence) and `quoteDesktop` was re-fitted to the real
+character counts — the 32px size moved off slot 1, which is now the shortest quote, onto adir
+and achituv. Phone card 1's 505px box was normalised to 334 for the same reason.
+
+The guard STAYS. It is not scaffolding to remove now that it has passed — blanking any of the
+six silently reverts to the accordion, which is what makes a future half-finished copy pass safe.
+
+⚠️ **The `.jpg` files are shared by both treatments** — poster frames for the accordion's videos,
+portraits for the carousel. The six `.mp4`s become unused once the carousel is live; they were
+left on disk deliberately.
+
+⚠️ **The carousel's arrows depend on this section's `gap-20`.** They are pinned `-top-20` and
+render *outside* their own box, landing in the 80px gap under the `<h2>`. Change that gap and
+they collide with the heading.
+
+### The accordion itself
+
 Built and building clean. Three-card accordion, one open at a time: a 600px row at ≥1200px,
 a stack below. Computed values verified in-browser at 1600 / 1440 / 1024 / 390 against the
 capture — padding, type sizes, card widths, radius and fills all match. No horizontal

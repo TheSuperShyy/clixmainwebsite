@@ -372,8 +372,34 @@ export default function ProductHero() {
         <div className="relative flex h-full w-full flex-1 flex-row items-center justify-center px-4">
           {/* Video — absolute inset. Original: loop muted playsinline preload="none", started
               by JS on mount; autoPlay here does the same job declaratively.
-              Source is the ORIGINAL's own clip: rogo hotlinks Pexels 5941931 directly, so
-              this is public stock, not rogo's footage. Poster is our own frame at t=1s. */}
+
+              ⚠️ THE CLIP IS THE USER'S OWN AS OF 2026-08-13, and that is a provenance change
+              worth recording. It used to be the ORIGINAL's clip — rogo hotlinks Pexels 5941931,
+              a skyward shot of glass towers, so it was public stock rather than rogo's footage
+              and carried no licensing question. It carried no MEANING either, which is why the
+              user replaced it: corporate real estate says nothing about what clix does. What
+              ships now is an empty modern office, supplied by the user after two rounds of
+              stock candidates were rejected as too busy ("something static not many happening").
+
+              MASTER IS NOT IN public/, AND NOT IN GIT EITHER. The 4K/25fps original lives at
+              features/product-page/assets/product-hero-master.mp4 — 10.6MB that nothing
+              references, so keeping it under public/ would ship it to every visitor. It is
+              covered by the mp4 glob at .gitignore:53, which is this repo's standing rule that
+              video masters stay on disk rather than in history. (The glob is not written out
+              here on purpose — it contains the two characters that close a JSX comment, and
+              pasting it into this block truncates the comment and breaks the build. It did.)
+              ⚠️ SO A FRESH CLONE WILL NOT HAVE IT. That is the convention working, not a
+              mistake — but it does mean a re-encode needs the file from the user again. Re-encode
+              from the master, never from the 1280×720 file below.
+
+              ⚠️ 25fps, NOT the 30 the other three hero clips use. That is the master's own
+              cadence and is deliberately preserved: resampling 25 → 30 duplicates every fifth
+              frame and puts judder into a slow drifting shot, which is the one thing this clip
+              is chosen for. Encoded 1280×720, ~1.66 Mbps, audio stripped (the master had an AAC
+              track; the element is muted), +faststart. 2.3MB, half what it replaced.
+
+              Poster is our own frame at t=5s — mid-clip rather than t=1s, because the camera
+              drifts and the first frame is not representative of what a visitor sees. */}
           <div className="absolute inset-0 h-full w-full overflow-hidden">
             <video
               className="h-full w-full object-cover"
