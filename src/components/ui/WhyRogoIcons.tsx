@@ -11,6 +11,25 @@
  *
  * The stroke is `var(--token-…, rgb(21,21,21))` in the capture, i.e. `ink`. Rendered here
  * as `currentColor` so the parent sets it once.
+ *
+ * ─── RTL: CHECKED, DELIBERATELY UNCHANGED (2026-08-12) ────────────────────────────────────
+ * All five were reviewed against the mirror-or-not rule and NONE of them is mirrored on /he.
+ * Stated here so a later reader knows this was decided rather than missed:
+ *
+ *   · None is a navigational affordance. Mirroring is for glyphs whose meaning IS a direction
+ *     — a carousel Prev/Next, a submit arrow, a `›` chevron — because those mean "the way
+ *     reading goes". These are abstract diagrams: a dollar in a circle, a node tree, two
+ *     interlocking rectangles, a bar chart, a circle with a rightward glyph inside it.
+ *   · `DeploymentIcon` is the one that looks arguable, because it contains a `>`-shaped
+ *     chevron. It is not a Next button: it is an arrow entering a broken ring, i.e. "deploy
+ *     into", and the ring's gap is what carries that. Mirrored, the arrow would point out of
+ *     the ring instead of into it, which is a different picture, not a translated one.
+ *   · Each icon is placed at a hand-tuned px offset inside its 40px frame (`iconBox` in
+ *     WhyRogo.tsx), and those offsets are PHYSICAL for the same reason: an un-mirrored glyph's
+ *     optical nudge must not flip. See the note on `iconBox`.
+ *
+ * There is also no copy in this file. Every `<svg>` is `aria-hidden`, and the heading beside it
+ * carries the meaning — so nothing here goes into the dictionary.
  */
 
 type IconProps = { className?: string };

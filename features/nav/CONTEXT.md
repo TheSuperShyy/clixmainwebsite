@@ -45,6 +45,204 @@ live site for the mobile menu, the scroll flip point, and the `Indicator` elemen
 
 ## Log
 
+### 2026-08-12 (third pass) - the fade WAS the white flash; replaced with a real crossfade
+
+**Trigger:** user, with a screenshot of `/company` washed out to near-white mid-navigation -
+*"everytime i change page it flashes me with a white screen, its not smooth at all, it should
+just smoothly fade and show the next page."* They were right, and the screenshot is the proof:
+that is the page at roughly 15% opacity with `body`'s `--color-paper` showing through it.
+
+WARNING: **THE PREVIOUS ENTRY'S FADE WAS A WHITE FLASH BY CONSTRUCTION, NOT A MIS-TUNED ONE.**
+This is the lesson worth keeping. Animating the incoming page `opacity: 0 -> 1` assumes there is
+something behind it to fade *from*. There is not - **App Router unmounts the outgoing page
+before the incoming one paints**, so the only thing behind it is the body background. The
+animation therefore faded up from white on every navigation, which is strictly **worse than no
+animation**, since an instant swap at least never showed the background. No duration, easing or
+starting-opacity value fixes this; the failure is structural. **Do not reintroduce a page-level
+opacity animation.**
+
+Nothing rendered by React can fix it either, because the frame that must stay on screen no
+longer exists in the tree. **The old frame has to be held outside React**, which is precisely
+what the View Transitions API does: snapshot the document, let the DOM change, crossfade
+snapshot to live. Both frames are on screen together, so no background is ever exposed.
+
+**Built:** `src/components/ui/ViewTransitions.tsx` (provider + `useViewTransitionNavigate`),
+mounted in `layout.tsx`; `AppLink` is now a client component that hands internal navigations to
+it; `template.tsx` and the `page-fade-in` keyframe are **deleted**; globals.css now sets only
+duration and easing on `::view-transition-old(root)` / `::view-transition-new(root)`, since the
+default crossfade is already the wanted animation.
+
+WARNING: **`startViewTransition(cb)` assumes `cb` updates the DOM synchronously, and
+`router.push()` does not.** So `cb` returns a promise resolved by a `usePathname()` effect once
+the new route has actually committed. **Resolving early would end the snapshot before the new
+page paints and bring the flash straight back.** A 1500ms fallback resolve guards against a
+navigation that never commits (otherwise the browser sits on a frozen snapshot until its own
+~4s timeout); it is deliberately 5x the animation, so it can only fire on a genuine failure.
+The timer does an **identity check on the resolver, not a null check** - a second navigation
+may have installed its own, and this timer must not end that one.
+
+**Four cases deliberately NOT intercepted**, each a bug if it were: modified clicks
+(cmd/ctrl/shift/alt/middle - the user is asking for a new tab); a hash on the *current* route
+(that is a scroll, and crossfading the document over it would look broken and fight
+`scroll-behavior`); anything a caller already `preventDefault()`ed; and any link rendered
+outside the provider, which falls through to ordinary `<Link>` behaviour rather than throwing.
+
+WARNING: **`experimental.viewTransition` still rejected, same evidence as the previous entry** -
+the Next flag exists but binds through React's `ViewTransition`, which React 19.2.4 stable does
+not export. Calling `document.startViewTransition` directly sidesteps that entirely: **the
+browser API is stable and already typed in TypeScript's own `lib.dom.d.ts`** (verified, line
+10378) - only React's binding to it is experimental.
+
+**The fixed-element constraint from the previous entry no longer applies.** A view transition
+snapshots at the compositor, so unlike a `transform` on a wrapper it never establishes a
+containing block and cannot make Nav's fixed header or ClixBackdrop jump. The reason the fade
+had to be opacity-only has been designed away rather than worked around.
+
+**Fallback is correct-by-default:** no API support, or `prefers-reduced-motion: reduce`, gets a
+plain `router.push` - an instant swap with no flash. The flash was the bug; the crossfade is
+the enhancement.
+
+**Verified:** build clean, 13 routes prerendered; eslint's 7 errors are unchanged, pre-existing
+and all in `ClixHero.tsx`. Confirmed **live on the user's own dev server** (port 3001, still
+held by their process): `class="page-transition"` now returns **0** matches, `page-fade-in` is
+gone from the served CSS, and both `::view-transition-old(root)` and `-new(root)` are present.
+WARNING: **The crossfade itself has still not been watched by a human or a driver** -
+correctness of the *animation* rests on the API's default behaviour, not on an observation.
+The user is looking at it next.
+
+### 2026-08-12 (later still) — the transition itself, and why it is opacity-only
+
+**Trigger:** user, after the `<Link>` fix — *"i dont see the smooth transition."* Correct: that
+change removed the *reload*, it added no *animation*. This adds one.
+
+**`src/app/template.tsx`.** Next remounts `template.tsx` on every navigation (`layout.tsx`
+persists, `template.tsx` does not), so the enter animation costs no router subscription and no
+client component.
+
+⚠️ **OPACITY ONLY, AND THIS IS A CONSTRAINT RATHER THAN A TASTE CALL.** The obvious page
+transition is "fade + slide up 24px". **It would break this site.** Two elements here are
+`position: fixed` — the header (`Nav.tsx:408`) and `ClixBackdrop.tsx:249`. A fixed element
+resolves against the viewport only while no ancestor establishes a containing block for it, and
+`transform`, `filter`, `perspective`, `will-change` and `contain` **all do**. Put a `translateY`
+on the template wrapper and the fixed header and backdrop start resolving against that div, and
+visibly jump for the length of every navigation. **`opacity` is not in that list** — it creates
+a stacking context only, which is harmless. So the fade is safe and the slide is not. If motion
+beyond a fade is ever wanted it has to live on the page's own content, below the fixed elements.
+
+**300ms / `--ease-rogo` are the site's own values, reused deliberately** — the capture's link
+preset declares `.3s cubic-bezier(.44,0,.56,1)` and Nav and Footer already run every colour and
+opacity change on it. The page fade and the nav's theme swap therefore share one curve and one
+duration instead of beating against each other. ⚠️ **This is NOT a measurement of rogo's page
+transition.** That number is still unknown (see the previous entry) — this is an internally
+consistent choice, not a cloned one, and should be replaced if rogo's real timing is ever
+observed.
+
+**ENTER ONLY.** App Router unmounts the outgoing page before the incoming one renders, so an
+exit animation needs a freeze-frame of the old tree. Not built: prefetch is on, so the next
+route is usually already in memory and the loading gap an exit fade would cover does not exist.
+
+**Two approaches were rejected before this one, both on evidence:**
+
+1. ⚠️ **Next's `experimental.viewTransition` — the flag EXISTS in this version**
+   (`config-schema.js:315`, `config-shared.d.ts:699`) **but React 19.2.4 stable exports no
+   `ViewTransition`** (`Object.keys(require('react'))` filtered for it returns `[]`; it ships on
+   the experimental channel). Using it would mean moving the app to a React canary. Rejected as
+   not worth destabilising a clean build for a crossfade.
+2. **Framer Motion / `AnimatePresence`** — not installed (deps are gsap + `@gsap/react` only),
+   and it does not dodge the containing-block problem anyway, since its transforms would sit on
+   the same wrapper.
+
+**Reduced motion needed no new code** — globals.css already clamps every animation to 0.01ms
+under `prefers-reduced-motion: reduce`, and `both` fill leaves opacity at 1, so the page is
+never left invisible.
+
+**Verified:** build clean, 13 routes prerendered. Then confirmed **live**, which was possible
+only by accident: `npm run dev` failed `EADDRINUSE` on 3001 because the user's own dev server
+was already running, so the probes hit **their** server — `class="page-transition"` present in
+the served HTML, `@keyframes page-fade-in` and `.page-transition` present in the served CSS
+chunk, and Nav's `fixed inset-x-0 top-0 z-[3]` still intact in the same document. ⚠️ **Still
+not watched with human eyes in a browser** — no driver in this repo. The fixed-element argument
+above is reasoned from the CSS containing-block rules, not observed.
+
+⚠️ **`Nav` remains per-page with per-route props, so it remounts and fades WITH the body on
+every navigation.** That is the visible consequence to judge first: the whole page including the
+bar crossfades, rather than the bar holding still while content changes. Holding it still is the
+Nav-into-layout job logged in the previous entry, and it is the larger piece of work.
+
+### 2026-08-12 (later) — the site was never actually navigating as a SPA
+
+**Trigger:** user — *"every time i change section or click in the nav, the page refresh, its
+now spa yeah? rogo has this smooth animation in between changing page."*
+
+**The cause was not a missing feature, it was a bug that had been shipping since the nav was
+built.** Every link in this file was a raw `<a href>`. A raw anchor pointing at an internal
+route does not go through Next's client router at all — the browser discards the document and
+starts over. So every nav click cost a white flash, a refetch of CSS and fonts, a scroll
+reset, and a **full re-initialisation of this component's own scroll-theme scanner**, which is
+why the bar was re-deciding `hero`/`light`/`dark` from scratch on every navigation.
+
+Only the two logo links (`Link`, lines ~467 and ~585) were ever routed. That asymmetry was
+observable the whole time: clicking the logo felt different from clicking `Product`, and
+nobody had named why.
+
+**Fix:** one shared primitive, `src/components/ui/AppLink.tsx`, so the internal/external
+decision lives in one place instead of at each call site. Its rule:
+
+```
+external === true   ->  <a target="_blank">
+href starts with /  ->  <Link>          (client-side)
+anything else       ->  <a>             (#hash, mailto:, https:)
+```
+
+⚠️ **The third branch is the one that matters and a naive `external ? a : Link` test gets it
+wrong.** Footer's `Email` entry is a `mailto:` that carries **no** `external` flag — it does
+not want a new tab — so a flag-only test would have handed a `mailto:` to the router. The
+test is on the **href shape**, not the flag.
+
+⚠️ **`#contact` and `/#contact` are not the same case.** Bare `#contact` is a same-page scroll
+the browser already does natively without a reload, so it stays a plain `<a>` and Footer's CTA
+was deliberately left untouched. Rooted `/#contact` from `/company` is a real cross-route
+navigation and correctly takes the `<Link>` branch. (Note this cuts against the 2026-08-12
+`/security` note that bare `#contact` is preferred because the rooted form trips a lint rule —
+both are true, they just apply to different call sites: same-page CTA vs cross-route CTA.)
+
+**Converted:** this file (`NavButton`, the mobile panel row, the desktop row),
+`Footer.tsx` (`FooterLinkItem`), `ClixCTA.tsx` (`/#contact`), `CompanyCareers.tsx`
+(`/careers`). `ProductSecurity.tsx` already used `Link`.
+
+**One type tightened:** `NavButton`'s `href` was `href?: string` but both call sites always
+passed one, and a button with no destination is not a link. Now required, which removes an
+undefined branch AppLink would otherwise have to defend against.
+
+**Prefetch left at Next's default (on).** This is the half of the change that makes any future
+page transition feel like a transition rather than a fade over a loading gap — by the time the
+click lands the next route is usually already in memory.
+
+**Verified:** `npm run build` clean, all 13 routes prerendered (so every converted component
+renders on every route). eslint shows 7 pre-existing errors, **all in `ClixHero.tsx`**, none in
+any file touched here. ⚠️ **NOT verified by clicking through in a browser** — no browser driver
+is installed in this repo and one was not added for this. The client-side no-reload behaviour
+rests on Next's `Link` contract, not on an observation.
+
+**Still open — the actual ask.** The user asked for rogo's *transition*, and this change is
+only its prerequisite. Two findings:
+
+1. ⚠️ **Rogo's transition timing is not extractable from static assets.** `rogo.ai`'s HTML
+   contains the word `transition` exactly once and no page-transition config; the 53
+   `data-framer-page*` hits are all `data-framer-page-link-current` (active-link styling) plus
+   one optimisation timestamp. `script_main.Bj6Ijvx7.mjs` has zero hits for
+   `pageTransition`/`exitTransition`/`enterTransition`. It lives in a Framer runtime chunk.
+   **Measuring it needs the live site observed in a browser, frame by frame** — a different
+   kind of task, not attempted. Per CLAUDE.md's two-source ceiling, stopped here and asked.
+
+2. ⚠️ **`Nav` is mounted per-page, not in a layout, and the pages pass different props**
+   (`/clix` passes `banner={false} spacer`; the rest pass `models`). So on every client
+   navigation the nav still unmounts and remounts. That is invisible today, but a page
+   transition where the *body* animates and the *bar* holds still requires hoisting Nav into a
+   layout — which means reconciling those per-page props first. **That is the real work in the
+   transition, not the animation itself.**
+
+
 ### 2026-08-09 (later) — two per-route props: `banner` and `spacer`
 
 **Trigger:** user, on `/clix` — *"match the spacing on top … also remove the black banner on

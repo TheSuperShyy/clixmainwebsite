@@ -41,12 +41,7 @@
  */
 
 import { TOOL_GLYPHS } from "@/components/ui/ToolGlyphs";
-
-const TITLE = "Tools We Build With";
-const INTRO =
-  "We build on the tools your team already opens every day. Voice, chat, documents, " +
-  "spreadsheets and calendars connect into one system, so the automation lands where " +
-  "people already work, not in a new place they have to learn.";
+import { getDict } from "@/lib/i18n/server";
 
 /* ---- The thirteen tiles, in grid order -------------------------------------------------
  * A discriminated union, the same shape as the one it replaces: `slug` keys into
@@ -67,6 +62,17 @@ const INTRO =
  * Thirteen entries is load bearing: the grid's last row holds one tile at 3 columns and one
  * at 2, and that ragged edge is the original's.
  */
+/* ⚠️ THESE THIRTEEN LABELS ARE **NOT** IN THE DICTIONARY, AND THAT IS THE DECISION, NOT AN
+ * OVERSIGHT. Every one is a vendor's own mark rendered as text — `n8n`, `monday.com`, `OpenAI`,
+ * `Google Sheets` — and §7 of the wave contract keeps vendor marks unmirrored and untranslated.
+ * The real site agrees: its own Hebrew stack section (home.bodyText, `02 · הסטאק`) lists these
+ * same twelve tools in Latin.
+ *
+ * The positive reason to leave them here rather than duplicate them into both locale files:
+ * each `label` is bound 1:1 to a `slug` that keys a glyph path. Splitting the pair across two
+ * files would let a reordered locale put the wrong logo beside a name, which is a worse failure
+ * than an untranslated word that should not be translated. Reported as a deliberate
+ * non-extraction. */
 type Tool = { label: string; slug: string } | { label: string; mono: string };
 
 const TOOLS: readonly Tool[] = [
@@ -112,25 +118,28 @@ function ToolMark({ slug }: { slug: string }) {
 }
 
 export default function ProductDataPartners() {
+  const t = getDict().product.dataPartners;
   return (
     /* `.framer-1itlwii` — column, items start, gap 32, max-w 1280, padding `48px 0` and
        `0` on phones. */
     <div className="flex w-full max-w-[var(--container-max)] flex-col items-start justify-start gap-8 overflow-hidden tablet:py-12">
-      {/* `.framer-sfjhcu` — 640 wide, gap 10. Left-aligned inside a left-aligned parent. */}
+      {/* `.framer-sfjhcu` — 640 wide, gap 10. Start-aligned inside a start-aligned parent:
+          `items-start` on the wrapper above is already a logical keyword, so it follows
+          `direction` with nothing to migrate. */}
       <div className="flex w-full max-w-[640px] flex-col justify-center gap-[10px]">
         {/* Same h3 preset as 2a and 2d: 44/40/32, 400, 110%, −0.05em. */}
         <h3
           className="w-full font-display text-[32px] font-normal text-ink tablet:text-[40px] desktop:text-[44px]"
           style={{ lineHeight: "110%", letterSpacing: "-0.05em" }}
         >
-          {TITLE}
+          {t.title}
         </h3>
         {/* 18px at desktop, 16 below; 130%, −0.02em, `muted`. */}
         <p
           className="w-full font-sans text-[16px] font-normal text-muted desktop:text-[18px]"
           style={{ lineHeight: "130%", letterSpacing: "-0.02em" }}
         >
-          {INTRO}
+          {t.intro}
         </p>
       </div>
 
@@ -141,8 +150,10 @@ export default function ProductDataPartners() {
             key={t.label}
             /* Tile: `#f5f5f566` = `surface` @40%, radius 0. `self-start` is the original's
                `place-self:start` — tiles do not stretch to fill a taller grid row. */
+            /* `pe-4` against a flat `p-2`: the extra inset is on the TRAILING side, past the
+               label, so it follows the text direction. Resolves to `padding-right` in ltr. */
             className="relative flex min-h-12 w-full flex-row items-center gap-3 self-start overflow-hidden
-                       bg-surface/40 p-2 pr-4
+                       bg-surface/40 p-2 pe-4
                        tablet:h-20 tablet:min-h-0 tablet:gap-4 tablet:p-4"
           >
             {/* The 1px `#8b8b8b1a` = `mark` @10% rule, as an OVERLAY rather than a real

@@ -84,7 +84,16 @@
 
   /* ---- /careers, added 2026-08-12 -------------------------------------------------------
      Three colours the careers clone needs that no existing token covers. All measured off
-     the live page, not sampled from a screenshot. */
+     the live page, not sampled from a screenshot.
+
+     ⚠️ TWO OF THE THREE WENT IDLE THE SAME DAY. `signal-green` and `glyph` existed only for
+     the `#roles` band, and that band was removed on the user's call ("remove this section we
+     dont need job offering for now"). They are KEPT rather than deleted: both are the target's
+     own measured values, the band is restorable from commit bbf10b1, and re-deriving them
+     would mean re-probing a live site to recover two hex codes. An idle token in `@theme`
+     emits one CSS custom property and no utilities, so the cost is a line. Same reasoning the
+     rest of this file uses for its declared-but-unused colours. `control-scrim` is still live
+     — the gallery's Prev/Next buttons use it. */
 
   /* The "N open positions" status dot, 8x8 at radius 20. This value was ALREADY recorded in
      DESIGN-SYSTEM.md as one of the target's declared-but-unused greens; /careers is the page
@@ -306,6 +315,64 @@ html {
   will-change: transform;
 }
 
+/* RTL mirror of the marquee above (2026-08-12). Consumed by the same two rows —
+   clix/ClixTestimonial.tsx and product/WorkflowsScroller.tsx — with nothing to change on
+   their side: only `animation-name` is swapped here, and both of those rows set
+   `animation-duration` and `animation-direction` inline, so their inline values keep winning.
+
+   +50% IS THE CORRECT MIRROR, NOT A SIGN SLIP. In RTL a `flex-row w-max` track lays its items
+   out right-to-left, so copy A occupies the RIGHT half of the track and the visible window
+   sits at the track's right edge — its inline start — with copy B overflowing off to the left.
+   Translating the track by +50% therefore carries copy A out to the right and pulls copy B in
+   from the left: cards enter left, exit right, the exact mirror of LTR. And it lands copy B
+   where copy A began, to the pixel, so the seam stays invisible for the same reason -50% does
+   in LTR — half the doubled track is exactly one cycle either way, since each card's own
+   trailing space contributes the same width whichever side of the box it sits on. The reversed
+   row mirrors too: `animation-direction: reverse` plays +50% -> 0, i.e. leftward travel,
+   which is the mirror of LTR reverse's rightward travel.
+
+   ⚠️ TWO NAMED KEYFRAMES, NOT ONE PARAMETERISED BY A CUSTOM PROPERTY. The `rows-up` note
+   below in this file records that burn: `calc(var(--row-h) * -1)` with the variable set inline
+   by the component made the whole declaration invalid, so the animation ran and moved the
+   strip precisely nowhere — a wrong-but-rendering layout, which is worse than a crash.
+
+   `[dir="rtl"] .clix-marquee` scores (0,2,0) against `.clix-marquee`'s (0,1,0) — an attribute
+   selector counts in the CLASS column, not the type column, so this is two class-level
+   components rather than one class plus one element — and it therefore wins regardless of
+   source order. It also cannot match on an English page at all, because `dir` is set on
+   `<html>` in the two root layouts and nowhere else. The LTR cascade is untouched, and
+   `clix-marquee` above is byte-identical to what it was. */
+@keyframes clix-marquee-rtl {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(50%, 0, 0);
+  }
+}
+
+[dir="rtl"] .clix-marquee {
+  animation-name: clix-marquee-rtl;
+}
+
+/* Hebrew letter-spacing hook — DELIBERATELY EMPTY, and it stays empty until someone measures
+   it on Hebrew (2026-08-12).
+
+   Tracking on this site runs -0.01em to -0.06em, measured per component off the rogo capture.
+   Negative tracking is a Latin display-type device: on Hebrew it is typographically wrong, and
+   tight enough it pulls combining niqqud into the letters they hang under. So the override
+   belongs here — but the right values are a typography judgement nobody has made against
+   rendered Hebrew yet, and guessing them is exactly the "approximation is a defect" failure
+   CLAUDE.md forbids. The hook is declared so the landing spot is unambiguous; it sets nothing,
+   so it emits nothing and the English build is unchanged.
+
+   ⚠️ Whatever lands here must be scoped to the elements that actually carry tracking, not
+   dropped on the root: `letter-spacing` inherits, so one root value would also retune every
+   14px caption that was measured at a different figure. */
+[dir="rtl"] {
+  /* letter-spacing overrides land here once measured on Hebrew. Empty on purpose. */
+}
+
 /* Caret for the /product hero's typed prompt (2026-08-11). The original ships this as a
    Framer code-component class (`styles-module_blinkingCursor`), whose rate is not in the
    capture — 1s step-end is OURS and is flagged as estimated in features/product-page/.
@@ -384,6 +451,37 @@ html {
   to {
     width: 100%;
   }
+}
+
+/* Page transition (2026-08-12, second pass). Driven by
+   src/components/ui/ViewTransitions.tsx — read that file for why this is a view transition
+   and not a keyframe.
+
+   ⚠️ THE FIRST ATTEMPT WAS A `@keyframes` OPACITY FADE ON `template.tsx`, AND IT WAS A WHITE
+   FLASH BY CONSTRUCTION. Fading the incoming page up from `opacity: 0` shows `body`'s own
+   `--color-paper` through it, because App Router has already unmounted the outgoing page —
+   there is nothing behind it to fade *from*. Do not reintroduce a page-level opacity
+   animation; it cannot be tuned into a crossfade.
+
+   The browser holds a snapshot of the old frame and crossfades it into the new one, so both
+   frames are on screen together and no background is ever exposed. Only duration and easing
+   are set here — the default crossfade animation is exactly what is wanted.
+
+   300ms / --ease-rogo are the site's own measured motion values (the capture's link preset;
+   what Nav and Footer already use), so the page transition and the nav's theme swap share one
+   curve. NOT a measurement of rogo's own page transition, which is not extractable from its
+   static assets.
+
+   The fixed header and the /clix backdrop need no special handling here: a view transition
+   snapshots at the compositor, so unlike a `transform` on a wrapper it never establishes a
+   containing block and cannot make a `position: fixed` element jump.
+
+   The global prefers-reduced-motion clamp at the end of this file covers these animations,
+   and ViewTransitions.tsx additionally skips the transition entirely in that case. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 300ms;
+  animation-timing-function: var(--ease-rogo);
 }
 
 /* Accessibility floor — a deliberate divergence from the target, which ships

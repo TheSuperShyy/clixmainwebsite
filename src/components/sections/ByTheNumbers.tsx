@@ -23,16 +23,21 @@
  */
 
 import CountUp from "@/components/ui/CountUp";
+import { getDict } from "@/lib/i18n/server";
+import type { HomeDict } from "@/lib/i18n/en/home";
+import type { Translated } from "@/lib/i18n/shape";
+
+/* Ids and copy shape derived from the dictionary rather than declared twice: a stat renamed in
+   one file and not the other is a build error, not a blank label.
+   `Translated<>` is what widens the English file's STRING LITERAL types back to `string`.
+   Without it `StatCopy` is a union of three literal object types and `t.stats[id]` — itself a
+   union — will not narrow against it (TypeScript does not correlate two indexed unions). It is
+   the same widening the Hebrew dictionary is declared with, reused here for one line. */
+type StatId = keyof HomeDict["byTheNumbers"]["stats"];
+type StatCopy = Translated<HomeDict["byTheNumbers"]["stats"][StatId]>;
 
 type Stat = {
-  id: string;
-  value: string;
-  /* The label carries a hard break at >=810 and none at <=809.98. Rendered as one string
-     pair with a `hidden tablet:inline` <br> between them, rather than two hideable copies
-     of the sentence — the trailing space on `lead` survives either way, so the phone tier
-     reads "Daily queries sent by users" with no welding. `tail: null` = never breaks. */
-  lead: string;
-  tail: string | null;
+  id: StatId;
   /* Phone-tier one-offs. The capture gives row 3 its own overrides for both the number
      cell (2px of top padding) and the label (width:100% instead of white-space:pre).
      Rows 1 and 2 share the other treatment. Reproduced per row rather than averaged. */
@@ -59,35 +64,40 @@ type Stat = {
    The target's three were parallel `N+` counts; these are a count, a multiple and a
    duration. That is deliberate — they say what changed for clients rather than how big the
    company is, which is the stronger claim for a studio. Do not "fix" the inconsistency by
-   inventing two more counts. */
+   inventing two more counts.
+
+   ⚠️ THE VALUES AND LABELS MOVED TO THE DICTIONARY (2026-08-12) — `home.byTheNumbers.stats`,
+   keyed by these same three ids. The provenance above did NOT move, because it is about the
+   claims and not about the language. The three VALUES are in the dictionary but do not
+   translate: `200+`, `2×` and `24/6` stay Latin digits in every locale, the same call the repo
+   already makes for `chrome.footer.copyrightYear`.
+
+   ⚠️ ONE BIDI CONSEQUENCE, IN `2×` ONLY. Under the Unicode bidi algorithm the "×" (U+00D7,
+   Other Neutral) beside a European Number takes the paragraph's RTL level, so on /he it is
+   PLACED LEFT of the digit: the reading order stays "2" then "×", which is right, but the
+   glyphs sit on screen as "×2". No `dir` attribute is added to force it — contract §5 puts
+   `<html dir>` in the two root layouts and nowhere else, and a `dir` here would be a second
+   source of truth for direction. `200+` and `24/6` are unaffected: bidi W5 folds the "+" into
+   the number run and W4 folds the "/" between two digits, so both render exactly as written. */
 const STATS: Stat[] = [
   {
     id: "automations",
-    value: "200+",
-    lead: "Automations running in production",
-    tail: null,
     numberCellPhone: "",
     labelPhone: "max-w-none whitespace-pre",
   },
   {
     id: "capacity",
-    value: "2×",
-    lead: "Support capacity, ",
-    tail: "without new hires",
     numberCellPhone: "",
     labelPhone: "max-w-none whitespace-pre",
   },
   {
     id: "coverage",
-    value: "24/6",
-    lead: "Sales coverage ",
-    tail: "outside office hours",
     numberCellPhone: "pt-[2px]",
     labelPhone: "w-full max-w-none",
   },
 ];
 
-function StatRow({ item }: { item: Stat }) {
+function StatRow({ item, copy }: { item: Stat; copy: StatCopy }) {
   return (
     /* Rule is a border-TOP on each of the three rows — so there is a line above the first
        number and none below the last. `hairline` is the capture's own token reference here
@@ -110,7 +120,19 @@ function StatRow({ item }: { item: Stat }) {
              108px number sit in the same 128px box and the rules stay 161px apart at every
              tier above phone. The phone variant declares no line-height at all, which in
              Framer means its `1.2em` default; spelling it out because the browser default
-             is `normal` (1.5em for this face) and that silently adds 14px per row. */
+             is `normal` (1.5em for this face) and that silently adds 14px per row.
+
+             ⚠️ THIS IS THE ONE PLACE ON THE SITE WHERE LINE COUNT DOES NOT DETERMINE HEIGHT,
+             AND IT IS SAFE — stated here so the next reader does not have to re-derive it.
+             Everywhere else, `line-height` is a percentage of `font-size`, so Hebrew (which has
+             identical vertical metrics to Latin in Discovery: same ascender, descender and line
+             gap, and no capitals or descenders in the Latin sense) gets the same box height per
+             line and MATCHING THE LINE COUNT MATCHES THE HEIGHT TO THE PIXEL. An ABSOLUTE
+             `128px` breaks that reasoning in general: a second line would add 128px, not a
+             proportional amount. It cannot bite here because the only thing that ever sits in
+             this box is DIGITS — `200+`, `2×`, `24/6` — which are Latin in every locale and
+             never wrap. If a word ever lands in this heading, this line-height is the first
+             thing to re-measure. */
           className="w-px max-w-[844px] flex-[1_0_0] font-display text-[48px]
                      leading-[1.2em] tracking-[-0.04em] text-ink
                      tablet:text-[96px] tablet:leading-[128px]
@@ -119,19 +141,23 @@ function StatRow({ item }: { item: Stat }) {
              on the heading mid-count would announce whatever frame it caught ("137+"), and
              `aria-label` on a heading overrides its descendant text for name computation.
              The visible number is free to animate underneath. */
-          aria-label={item.value}
+          aria-label={copy.value}
         >
-          <CountUp value={item.value} />
+          <CountUp value={copy.value} />
         </h3>
       </div>
 
-      {/* Label cell — stretched to the row's height and bottom-aligned. */}
+      {/* Label cell — stretched to the row's height and bottom-aligned. The horizontal insets
+          are ASYMMETRIC (32/24 at tablet, 48/32 at desktop) and directional: the smaller one
+          faces the number cell across the row. Migrated to logical (`pe-*`/`ps-*`) so the pair
+          swaps with the row when the flex main axis reverses on /he; in LTR both still compute
+          to `padding-right`/`padding-left` unchanged. `pb-9` is on the block axis and untouched. */}
       <div
         className="relative flex h-min w-full flex-col items-start justify-end
                    overflow-clip
                    tablet:h-auto tablet:w-[253px] tablet:max-w-[436px] tablet:flex-none
-                   tablet:self-stretch tablet:pr-8 tablet:pb-9 tablet:pl-6
-                   desktop:w-px desktop:flex-[1_0_0] desktop:pr-12 desktop:pl-8"
+                   tablet:self-stretch tablet:pe-8 tablet:pb-9 tablet:ps-6
+                   desktop:w-px desktop:flex-[1_0_0] desktop:pe-12 desktop:ps-8"
       >
         <p
           className={`text-[18px] leading-[1.4em] tracking-[-0.02em] text-ink opacity-70
@@ -139,13 +165,25 @@ function StatRow({ item }: { item: Stat }) {
                       tablet:text-[20px]
                       ${item.labelPhone}`}
         >
-          {item.lead}
-          {item.tail && (
+          {/* ONE STRING PAIR WITH A TIER-GATED BREAK BETWEEN THEM, not two hideable copies of
+              the sentence: the label carries a hard break at >=810 and none at <=809.98, and
+              `lead`'s trailing space survives `display:none` on the break, so the phone tier
+              reads as one sentence with no welding. `tail: null` means the label never breaks.
+
+              ⚠️ WHICH ROWS HAVE A `tail` IS THE LOCALE'S CHOICE, not the layout's. English
+              breaks rows 2 and 3 and leaves row 1 whole; Hebrew is free to break a different
+              set, which is why `tail` is typed `string | null` in the dictionary rather than
+              being inferred as the literal `null` from row 1. Hebrew keeps the same three splits
+              here, and one label sets a line SHORTER than English at the tablet tier — which
+              costs nothing, because the row's height comes from the number cell's absolute
+              128px line box, not from this label. */}
+          {copy.lead}
+          {copy.tail && (
             <>
               {/* The capture wraps row 3's <br> in a span coloured `rgb(23,23,23)`. It
                   contains no text, so it renders nothing — dropped rather than copied. */}
               <br className="hidden tablet:inline" />
-              {item.tail}
+              {copy.tail}
             </>
           )}
         </p>
@@ -155,6 +193,8 @@ function StatRow({ item }: { item: Stat }) {
 }
 
 export default function ByTheNumbers() {
+  const t = getDict().home.byTheNumbers;
+
   return (
     <section
       data-nav-theme="light"
@@ -180,14 +220,14 @@ export default function ByTheNumbers() {
                          font-medium tracking-[-0.03em] text-ink opacity-70
                          tablet:w-[400px]"
             >
-              By the numbers
+              {t.heading}
             </h2>
           </div>
 
           {/* Number List — gap 0; the rules come from each row's border-top. */}
           <div className="relative flex w-full flex-col items-center overflow-clip">
             {STATS.map((item) => (
-              <StatRow key={item.id} item={item} />
+              <StatRow key={item.id} item={item} copy={t.stats[item.id]} />
             ))}
           </div>
         </div>

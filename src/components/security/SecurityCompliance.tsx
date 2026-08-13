@@ -44,18 +44,56 @@
  *
  * Motion: none. `data-framer-appear-id` count on the whole page is 0, and there is no
  * transition or `:hover` rule anywhere in this subtree.
+ *
+ * ─── COPY LIVES IN THE DICTIONARY; LAYOUT LIVES HERE ─────────────────────────────────────
+ * `src/lib/i18n/{en,he}/security.ts` → `compliance`. Read with `getDict()`, NOT with
+ * `usePageDict()`: this is a server component and the client hook would force `"use client"`
+ * onto a band that ships zero JS. What stays in this file is the per-cell LAYOUT — the slot id,
+ * the badge file and the border matrix. The label's MEASURE had to move the other way, INTO the
+ * dictionary, because it is the one layout number on this band that is per-locale; see `SLOTS`.
+ *
+ * ─── DIRECTION (contract §5, §6, §7) ─────────────────────────────────────────────────────
+ * Migrated to logical properties: the cells' `border-r-0` → `border-e-0` (three cells), and
+ * the label's `left-4` → `start-4`. Both resolve to the identical physical value in LTR, so
+ * the English render is byte-identical.
+ *
+ * ⚠️ TWO THINGS HERE ARE DELIBERATELY *NOT* MIGRATED, and each is recorded where it sits so the
+ * next reader does not re-open it: the badge's `left-[1px]` centring inset (a 102px mark in a
+ * 104px frame — symmetric, a no-op either way) and the `CornerBracket` pair (a rotationally
+ * symmetric ornament — verified, see its own note).
  */
 
 import SecurityCore from "./SecurityCore";
+import { getDict } from "@/lib/i18n/server";
+/* `import type` only — a type import is erased, so this adds nothing to any bundle. */
+import type { SecurityDict } from "@/lib/i18n/en/security";
 
 /* ---- Corner brackets -------------------------------------------------------------------
  * ⚠️ BOTH brackets are the SAME artwork. `TL Corner` and `BR Corner` both resolve to
  * `<use href="#svg-940700596_480">` — one 21 × 33 path pair — and the BR instance carries
- * `transform: matrix(-1,0,0,-1,0,0)`, i.e. a flat 180° turn. (The hero's 14 × 20 CTA pair is
- * the opposite case: those really are two different paths.) So one component, rotated.
+ * `transform: matrix(-1,0,0,-1,0,0)`, i.e. a flat 180° turn. So one component, rotated.
+ *
+ * ⚠️ CORRECTION, 2026-08-12: this note used to add "(the hero's 14 × 20 CTA pair is the opposite
+ * case: those really are two different paths)". That is WRONG, and `SecurityHero.tsx` now says
+ * so at length — rotating its `BracketLeft` 180° about (6.996, 10) reproduces `BracketRight` to
+ * within 0.008 user units on every coordinate. The hero keeps two verbatim path pairs because
+ * that is what the capture ships, not because they differ.
  *
  * `fill="white"` in the capture becomes `currentColor` here so the colour comes from the
  * `text-paper` token rather than a raw hex, per the repo's no-stray-hex rule.
+ *
+ * ⚠️ NOT MIRRORED IN RTL, AND THAT WAS VERIFIED RATHER THAN OVERLOOKED (contract §7).
+ * `/he/security` ships this pair at the same physical corners, with the same `rotate-180` on
+ * the second, for two independent reasons:
+ *   1. It is an ORNAMENT, not a pointer. It marks the diagonal extent of the grid frame and
+ *      indicates no direction, so there is no meaning for a mirror to preserve.
+ *   2. A 180° rotation is direction-symmetric — rotate(180°) ≡ scaleX(−1) · scaleY(−1) —
+ *      so the TL/BR pair maps onto ITSELF under a mirror plus that rotation, which is why one
+ *      artwork can serve both corners in the first place.
+ * Consequently `top-[-5px] left-[-5px]` and `bottom-[-5px] right-[-5px]` stay PHYSICAL. The
+ * corners they name do not swap when the text direction does, and `start-*`/`end-*` there would
+ * move the two marks to TR/BL in Hebrew and break the frame's diagonal. Same call the hero's
+ * 14 × 20 CTA brackets make.
  *
  * ⚠️ STRUCTURAL SIMPLIFICATION: the original wraps each mark in an inert absolutely
  * positioned box — 21 × 240 for TL, 21 × (gridHeight + 5) for BR — with the mark pinned to
@@ -90,27 +128,31 @@ function CornerBracket({ className }: { className: string }) {
 }
 
 /* ---- Content ---------------------------------------------------------------------------
- * The heading. ⚠️ The target's is "Compliant With / Industry Standards", which cannot
- * survive the practices decision above — nothing in this grid is a standard that anyone
- * certifies, so the old heading would reintroduce by implication the exact claim the cell
- * swap removes. Replaced with a two-tone pair of the same shape.
+ * The heading is `compliance.headingPaper` + `.headingMuted` in the dictionary — two keys for
+ * ONE element, because the `<br>` between them IS the colour boundary.
  *
- * Both lines are kept short on purpose: at 390 each must fit 358px at 32px on the display
- * face, which is why line 2 is 17 characters.
+ * ⚠️ The target's heading is "Compliant With / Industry Standards", which cannot survive the
+ * practices decision above — nothing in this grid is a standard that anyone certifies, so the
+ * old heading would reintroduce by implication the exact claim the cell swap removes. It was
+ * replaced with a two-tone pair of the same shape, and BOTH HALVES MOVED TOGETHER. Do not
+ * restore either half from any capture — including the real company site's services 08 mock,
+ * whose badge row reads `SOC 2 · GDPR`.
+ *
+ * Both runs are kept short on purpose, in BOTH locales: at 390 each has to fit 358px at 32px on
+ * the display face WITHOUT WRAPPING ON ITS OWN, or the sentence breaks across the colour change
+ * at a point neither locale chose. English line 2 is 17 characters for that reason.
+ *
+ * Measured 2026-08-12, one line per run at every tier in both locales. Natural widths, run 1 /
+ * run 2: English 91.9 / 220.5px at 32px and 114.9 / 275.6 at 40px; Hebrew ("בנוי על" /
+ * "עקרונות שאנחנו שומרים", 7 and 21 characters) 72.8 / 267.0 at 32px and 91.0 / 333.8 at 40px.
+ * The binding measure is the phone tier's 358px, and the tightest run clears it by 91px.
  */
-const HEADING_LINE_1 = "Built On";
-const HEADING_LINE_2 = "Practices We Keep";
 
-type Practice = {
+/** The layout half of a cell. The label and its measure are per-locale and live in the dict. */
+type PracticeSlot = {
   id: string;
   /** File in `public/badges/`. All five already exist; none is created or edited here. */
   file: string;
-  label: string;
-  /**
-   * The label's measure. 137px for four of them; 188px for the fifth, which is the only
-   * string the target widened. Carried over unchanged from the target's own per-cell values.
-   */
-  labelWidth: string;
   /**
    * ⚠️ A MATRIX, NOT A FORMULA — and it is deliberately ragged below 1200.
    *
@@ -136,46 +178,49 @@ type Practice = {
   border: string;
 };
 
-const PRACTICES: Practice[] = [
+/* FIVE SLOTS, AS A TUPLE, zipped index-for-index with `compliance.practices` in the dictionary.
+   Five is layout: at 1200 and up they are ONE closed outline of five columns, so a locale
+   supplying four must fail the build rather than leave the frame open.
+
+   ⚠️ `border-e-0` REPLACES `border-r-0` on three cells (contract §6). Identical in LTR. In RTL
+   the edge that drops is the one facing the next cell in READING order, which is what keeps the
+   outline closed once the grid's own column order reverses with the direction — a physical
+   `border-r-0` would open the outline's outer edge instead. */
+const SLOTS: readonly [
+  PracticeSlot,
+  PracticeSlot,
+  PracticeSlot,
+  PracticeSlot,
+  PracticeSlot,
+] = [
   {
     id: "your-cloud",
     file: "/badges/practice-cloud.svg",
-    label: "Your cloud, your accounts",
-    labelWidth: "w-[137px]",
-    /* 1 1 1 1 → 1 0 1 1 → 1 0 1 1 : right drops from `tablet:` up. */
-    border: "border tablet:border-r-0",
+    /* 1 1 1 1 → 1 0 1 1 → 1 0 1 1 : inline-end drops from `tablet:` up. */
+    border: "border tablet:border-e-0",
   },
   {
     id: "your-data",
     file: "/badges/practice-shield.svg",
-    label: "Your data stays yours",
-    labelWidth: "w-[137px]",
-    /* 0 1 1 1 → 1 1 1 1 → 1 0 1 1 : top returns at `tablet:`, right drops at `desktop:`. */
-    border: "border border-t-0 tablet:border-t desktop:border-r-0",
+    /* 0 1 1 1 → 1 1 1 1 → 1 0 1 1 : top returns at `tablet:`, end drops at `desktop:`. */
+    border: "border border-t-0 tablet:border-t desktop:border-e-0",
   },
   {
     id: "least-privilege",
     file: "/badges/practice-key.svg",
-    label: "Least-privilege access",
-    labelWidth: "w-[137px]",
     /* 0 1 0 1 → 0 0 1 1 → 1 0 1 1 : the open-topped, open-bottomed cell at 390. */
     border:
-      "border border-t-0 border-b-0 tablet:border-r-0 tablet:border-b desktop:border-t",
+      "border border-t-0 border-b-0 tablet:border-e-0 tablet:border-b desktop:border-t",
   },
   {
     id: "encrypted",
     file: "/badges/practice-lock.svg",
-    label: "Encrypted in transit and at rest",
-    labelWidth: "w-[137px]",
     /* 1 1 1 1 → 0 1 1 1 → 1 1 1 1 : top present at both ends, absent in the middle tier. */
     border: "border tablet:border-t-0 desktop:border-t",
   },
   {
     id: "ownership",
     file: "/badges/practice-code.svg",
-    label: "You own the code",
-    /* The only 188px measure in the grid — the target widened its fifth label too. */
-    labelWidth: "w-[188px]",
     /* 1 1 1 1 → 0 1 1 1 → 1 1 1 1 : identical to cell 4. */
     border: "border tablet:border-t-0 desktop:border-t",
   },
@@ -186,7 +231,13 @@ const PRACTICES: Practice[] = [
  * height comes from `aspect-ratio: 1.40909` instead of a fixed value (358 / 1.40909 =
  * 254.06). Transparent background, no padding, mark centred by the cell's own flexbox.
  */
-function PracticeCell({ item }: { item: Practice }) {
+function PracticeCell({
+  slot,
+  copy,
+}: {
+  slot: PracticeSlot;
+  copy: SecurityDict["compliance"]["practices"][number];
+}) {
   return (
     <div
       /* `self-start` matters: the grid's rows are `min-content`, and a stretched item would
@@ -207,7 +258,7 @@ function PracticeCell({ item }: { item: Practice }) {
           absolutely-positioned span is used here. */}
       <span
         aria-hidden="true"
-        className={`pointer-events-none absolute inset-0 border-dashed border-hairline-light ${item.border}`}
+        className={`pointer-events-none absolute inset-0 border-dashed border-hairline-light ${slot.border}`}
       />
 
       {/* `Graphic` frame — 104 × 104, in normal flow, centred by the cell above. */}
@@ -218,34 +269,54 @@ function PracticeCell({ item }: { item: Practice }) {
 
             All five marks are drawn on one 102 × 102 viewBox, hence the uniform 1px inset
             inside the 104px frame. Same treatment `sections/Security.tsx` uses. */}
+        {/* ⚠️ `left-[1px]` IS NOT MIGRATED TO `start-[1px]` (contract §6's do-not-migrate list).
+            It is the symmetric centring inset of a 102px mark inside a 104px frame — the same
+            1px sits on the right — so the two spellings compute the same box in both
+            directions. Migrating it would only make a no-op look like a direction decision.
+            Verified, not overlooked. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={item.file}
+          src={slot.file}
           alt=""
           aria-hidden="true"
           className="absolute top-[1px] left-[1px] h-[102px] w-[102px]"
         />
       </div>
 
-      {/* Label — absolutely placed 16px off the cell's bottom-left corner, above the graphic
-          (`z-index: 1` in the original), LEFT-aligned rather than centred.
+      {/* Label — absolutely placed 16px off the cell's bottom INLINE-START corner, above the
+          graphic (`z-index: 1` in the original), start-aligned rather than centred.
+
+          `left-4` → `start-4` (contract §6): `left: 16px` in LTR, `right: 16px` in RTL, which is
+          the corner the eye starts from in each. `text-align` is deliberately absent — the
+          element inherits the document's `start`, so the copy hugs the same corner as the box.
 
           ⚠️ Our labels are sentences where the target's were acronyms, so several wrap to two
-          lines inside the same 137px measure the target's ran to one. The box is anchored to
-          `bottom`, so it grows UPWARD into the cell's dead space and cannot reach the 104px
-          mark, which occupies y 68 → 172 of a 240px cell. A content consequence of the
-          practices decision, recorded here, not a layout defect. */}
+          lines inside a measure the target's ran to one. The box is anchored to `bottom`, so it
+          grows UPWARD into the cell's dead space and cannot reach the 104px mark, which occupies
+          y 68 → 172 of a 240px cell. A content consequence of the practices decision, recorded
+          here, not a layout defect.
+
+          ⚠️ THE MEASURE IS AN INLINE `width` FROM THE DICTIONARY, NOT A `w-[Npx]` CLASS, because
+          it is PER-LOCALE and Tailwind cannot generate a class from a runtime value. Same
+          computed width; English still resolves 137/137/137/137/188. */}
       <p
-        className={`absolute bottom-4 left-4 z-[1] font-sans text-[14px] text-muted ${item.labelWidth}`}
-        style={{ lineHeight: "130%", letterSpacing: "-0.01em" }}
+        className="absolute bottom-4 start-4 z-[1] font-sans text-[14px] text-muted"
+        style={{
+          width: `${copy.labelWidth}px`,
+          lineHeight: "130%",
+          letterSpacing: "-0.01em",
+        }}
       >
-        {item.label}
+        {copy.label}
       </p>
     </div>
   );
 }
 
 export default function SecurityCompliance() {
+  /* Server read — see the header for why this is not `usePageDict()`. */
+  const t = getDict().security.compliance;
+
   return (
     <section
       id="features-1"
@@ -281,9 +352,9 @@ export default function SecurityCompliance() {
                        tablet:text-[40px] desktop:text-[44px]"
             style={{ lineHeight: "110%", letterSpacing: "-0.05em" }}
           >
-            <span className="text-paper">{HEADING_LINE_1}</span>
+            <span className="text-paper">{t.headingPaper}</span>
             <br />
-            {HEADING_LINE_2}
+            {t.headingMuted}
           </h2>
         </div>
 
@@ -310,8 +381,8 @@ export default function SecurityCompliance() {
             {/* TL at grid-relative `top: -5px; left: -5px`. */}
             <CornerBracket className="top-[-5px] left-[-5px]" />
 
-            {PRACTICES.map((item) => (
-              <PracticeCell key={item.id} item={item} />
+            {SLOTS.map((slot, i) => (
+              <PracticeCell key={slot.id} slot={slot} copy={t.practices[i]} />
             ))}
 
             {/* BR: the same artwork at `bottom: -5px; right: -5px`, turned 180°. */}

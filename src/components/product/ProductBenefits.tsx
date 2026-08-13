@@ -41,78 +41,52 @@ import {
   ArtGovernance,
   ArtTenant,
 } from "@/components/product/benefitArt";
+import { getDict } from "@/lib/i18n/server";
 
-/* clix's six, in the capture's order and in its slots. Titles 1 and 3–6 are generic enough to
-   stand as written; only #2 moved, because its art now lists workflows rather than prompts.
-   Bodies 1–4 are adapted from `WhyRogo.tsx`'s `TENANTS`, which already carries these services
-   in the right register — the same words, cut to this card's shorter measure. */
-const BENEFITS = [
-  {
-    title: "Integrations",
-    body:
-      "Connect the payments, accounting, marketing and support tools you already run. We " +
-      "wire them into one stack, with webhooks, middleware and monitoring.",
-    Art: ArtIntegrations,
-  },
-  {
-    title: "Ready Workflows",
-    body:
-      "Choose from a library of built workflows aimed at automating the jobs your team " +
-      "repeats every week, end to end.",
-    Art: ArtPrompts,
-  },
-  {
-    /* ⚠️ The original credentialled this card with "ex-bankers and private equity investors",
-       which is the target's own team, not ours. clix's real equivalent, per
-       docs/reference/clixsolutions/README.md, is Unit 8200 and Technion alumni. */
-    title: "Guided Implementation",
-    body:
-      "White-glove engagement and implementation with our Tel Aviv team of Unit 8200 and " +
-      "Technion alumni.",
-    Art: ArtGuided,
-  },
-  {
-    title: "Custom-Trained Models",
-    body:
-      "Models trained on your own data, your tone of voice and your processes, so every " +
-      "agent answers the way your best person would, at your standard.",
-    Art: ArtCustomModels,
-  },
-  {
-    title: "Governance & Permissions",
-    body:
-      "Granular permission controls, role-based access management, comprehensive audit " +
-      "trails, and customizable governance policies, so every agent acts inside the limits " +
-      "you set.",
-    Art: ArtGovernance,
-  },
-  {
-    title: "Single Tenant Deployment",
-    body: "Run it in our cloud or inside yours, on the security terms your business sets.",
-    Art: ArtTenant,
-  },
+/* clix's six, in the capture's order and in its slots. Copy lives in the dictionary
+   (`benefits.cards`); the six ART components are POSITIONAL and stay here, zipped by index,
+   because each illustration depicts its own card and the tuple typing holds both at six.
+   ⚠️ Card 3's facts are clix's own, per docs/reference/clixsolutions/README.md: Unit 8200 and
+   Technion alumni. The original credentialled it with "ex-bankers and private equity
+   investors", which is the target's team, not ours. Both locales carry the corrected version. */
+const ART = [
+  ArtIntegrations,
+  ArtPrompts,
+  ArtGuided,
+  ArtCustomModels,
+  ArtGovernance,
+  ArtTenant,
 ] as const;
 
 export default function ProductBenefits() {
+  const t = getDict().product.benefits;
   return (
     /* `.framer-ly0q7s` — column, items start, gap 40, max-w 1280, no padding of its own. */
     <div className="flex w-full max-w-[var(--container-max)] flex-col items-start justify-start gap-10">
       {/* Same h3 preset as 2a, 2d and Block 3: 44 / 40 / 32, 400, 110%, −0.05em.
           The line break is the original's own `<br>`, not a wrap: the first line is `ink` and
           the second is `muted`, so where it breaks IS the colour boundary and cannot be left
-          to the browser. */}
+          to the browser. Both runs therefore stay in ONE element and arrive as two separately
+          named keys — `headingInk` and `headingMuted` — rather than as an array a locale could
+          grow a third entry on.
+          ⚠️ NEITHER RUN MAY WRAP ON ITS OWN, or half a colour lands on a line by itself. Hebrew
+          breaks at a different word, which is fine and expected; measured at the tightest tier
+          (32px in a 358px measure) it sets 282px and 241px against English's 311px and 269px, so
+          both are single lines in both locales. */}
       <h3
         className="w-full font-display text-[32px] font-normal text-ink tablet:text-[40px] desktop:text-[44px]"
         style={{ lineHeight: "110%", letterSpacing: "-0.05em" }}
       >
-        One Platform That Learns
+        {t.headingInk}
         <br />
-        <span className="text-muted">How Your Team Works</span>
+        <span className="text-muted">{t.headingMuted}</span>
       </h3>
 
       {/* `.framer-3qeold` — grid, gap 16, 1 → 2 → 3 columns. */}
       <ul className="grid w-full list-none grid-cols-1 gap-4 tablet:grid-cols-2 desktop:grid-cols-3">
-        {BENEFITS.map(({ title, body, Art }) => (
+        {t.cards.map(({ title, body }, i) => {
+          const Art = ART[i];
+          return (
           <li
             key={title}
             /* `Benefit` — `surface` fill, radius 0, column. The aspect-ratio is what fixes the
@@ -136,7 +110,13 @@ export default function ProductBenefits() {
 
             {/* Description well: a fixed 84px box with the text pinned to its BOTTOM
                 (`justify-content: flex-end`). That is what keeps the six bodies — 1 line to 4
-                — sitting on one baseline across the row. */}
+                — sitting on one baseline across the row.
+                ⚠️ IT IS A CEILING, NOT A CUSHION. A longer body CLIPS rather than growing the
+                card, because the card's height is `aspect-ratio: 0.788044`. At 14px/130% that
+                is four lines, and the narrowest text column is 326px at the phone tier.
+                Measured per card at 390 / 1024 / 1440 — English 3/3/3 · 3/2/2 · 2/2/2 · 3/2/3 ·
+                4/3/3 · 2/1/2, Hebrew 3/2/3 · 2/2/2 · 2/1/2 · 3/2/3 · 3/2/3 · 2/1/2. Nothing
+                clips in either locale, and Hebrew gains a line of headroom on card 5. */}
             <div className="flex h-[84px] shrink-0 flex-col justify-end">
               <p
                 className="w-full font-sans text-[14px] font-normal text-muted"
@@ -146,7 +126,8 @@ export default function ProductBenefits() {
               </p>
             </div>
           </li>
-        ))}
+          );
+        })}
       </ul>
     </div>
   );

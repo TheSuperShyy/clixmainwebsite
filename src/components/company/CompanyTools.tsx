@@ -27,9 +27,12 @@
  * ⚠️ HEADING ONLY, NO INTRO PARAGRAPH. The `Team` band directly above (CompanyServices) has
  * a heading AND an intro; this one does not. The asymmetry is the original's.
  *
- * ⚠️ THE BORDER IS TOP + **LEFT** HERE — CompanyServices above is top + **RIGHT**. Both
- * matrices are uniform (every tile, every tier, `#73737326` = `muted` at 15%), which was
- * checked rather than assumed; only the pair of edges differs between the two grids. Painted
+ * ⚠️ THE BORDER IS TOP + **INLINE-START** HERE — CompanyServices above is top +
+ * **INLINE-END**. Both matrices are uniform (every tile, every tier, `#73737326` = `muted`
+ * at 15%), which was checked rather than assumed; only the pair of edges differs between
+ * the two grids. Written logically (`border-s`), which computes to `border-left-width` at
+ * `direction: ltr` — so the measured English value is untouched — and mirrors to the right
+ * edge in Hebrew, where the grid's own column order mirrors with it. Painted
  * as an absolutely positioned overlay because the original uses `[data-border]::after`, which
  * costs no layout space — a real border would push the content in and grow the tile by 1px.
  *
@@ -40,9 +43,15 @@
  * lifted from the real company site. Same data module /clix's ClixLogoProof renders.
  */
 
+import { Fragment } from "react";
+
+import { getDict } from "@/lib/i18n/server";
+
 import { TOOL_MARKS } from "../clix/toolMarks";
 
 export default function CompanyTools() {
+  const t = getDict().company.tools;
+
   return (
     /* `Investors` — bg `surface` #f5f5f5, pad `96/64px` + gutter. Light band, so the nav
        theme scanner reads it as light. */
@@ -62,9 +71,16 @@ export default function CompanyTools() {
             className="w-full font-display text-[32px] font-normal text-ink tablet:text-[40px] desktop:text-[44px]"
             style={{ lineHeight: "110%", letterSpacing: "-0.05em" }}
           >
-            Built On Tools
-            <br />
-            Your Team Already Uses
+            {/* HARD LINES joined by `<br>`, one array entry each. `readonly string[]`
+                rather than a 2-tuple: the break is line fitting only, so the count is
+                the locale's. `Fragment` renders no element, so the h2's children stay
+                text nodes and a `<br>` exactly as before. */}
+            {t.heading.map((line, i) => (
+              <Fragment key={i}>
+                {i > 0 && <br />}
+                {line}
+              </Fragment>
+            ))}
           </h2>
         </div>
 
@@ -79,7 +95,7 @@ export default function CompanyTools() {
             >
               <span
                 aria-hidden="true"
-                className="pointer-events-none absolute inset-0 border-t border-l border-muted/15"
+                className="pointer-events-none absolute inset-0 border-t border-s border-muted/15"
               />
               <svg
                 viewBox="0 0 24 24"

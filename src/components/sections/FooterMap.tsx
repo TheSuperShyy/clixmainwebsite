@@ -27,6 +27,7 @@
  * "Open in Maps" button, which is what now carries the click-through.
  */
 
+import { getChrome } from "@/lib/i18n/server";
 /* Keyless embed: `output=embed` needs no Maps JS API key and no billing account. */
 const MAP_EMBED =
   "https://maps.google.com/maps?q=Tel+Aviv-Yafo&hl=en&z=12&output=embed";
@@ -49,7 +50,7 @@ export default function FooterMap() {
     >
       <iframe
         src={MAP_EMBED}
-        title="Map showing clix’s location — Tel Aviv-Yafo, Israel"
+        title={getChrome().footer.mapTitle}
         /* Below the fold at every tier, so it must not compete with the page load. */
         loading="lazy"
         referrerPolicy="no-referrer-when-downgrade"

@@ -21,6 +21,7 @@ import { useRef, useState } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ToolGlyph } from "@/components/ui/ToolGlyphs";
+import { usePageDict } from "@/lib/i18n/LocaleProvider";
 
 gsap.registerPlugin(useGSAP);
 
@@ -44,6 +45,11 @@ gsap.registerPlugin(useGSAP);
  *
  * Labels are each vendor's own casing: `n8n` and `monday.com` really are lowercase, `OpenAI`
  * really is camel-cased. Do not sentence-case these.
+ *
+ * ⚠️ THESE THIRTEEN STAY HERE AND STAY LATIN IN EVERY LOCALE, so they are NOT in the
+ * dictionary. They are third-party trademarks, each paired 1:1 with a simple-icons `slug` —
+ * structural data, not copy. Transliterating "n8n" or "WhatsApp" into Hebrew would misname a
+ * vendor. Only the row's `aria-label` is translated (`home.logoCarousel.ariaLabel`).
  */
 const LOGOS: { name: string; slug: string | null }[] = [
   { name: "Vapi", slug: null },
@@ -117,6 +123,7 @@ function ProgressiveBlur() {
 }
 
 export default function LogoCarousel() {
+  const t = usePageDict("home").logoCarousel;
   const root = useRef<HTMLDivElement>(null);
   const track = useRef<HTMLUListElement>(null);
   const [ready, setReady] = useState(false);
@@ -135,7 +142,20 @@ export default function LogoCarousel() {
         /* One cycle is the distance from item 0 to item N — i.e. all N logos PLUS the N
            gaps between and after them. Measuring it beats the usual `xPercent: -50` trick,
            which is subtly wrong here: the doubled track has 2N items but only 2N-1 gaps, so
-           half its width is short by half a gap (28px) and the loop visibly drifts. */
+           half its width is short by half a gap (28px) and the loop visibly drifts.
+
+           ⚠️ `cycle` IS A SIGNED DELTA, NOT A LENGTH, AND THAT IS WHAT MAKES THIS RTL-CORRECT
+           WITH NO `dirSign` ANYWHERE IN THIS FILE (2026-08-12). `offsetLeft` is a PHYSICAL
+           measurement from the offset parent's left padding edge and it does not flip with
+           `direction`. In LTR the flex row lays item 0 leftmost, so item N sits further right
+           and `cycle` is POSITIVE. In RTL the same row lays item 0 rightmost, item N to its
+           left, and the subtraction comes out NEGATIVE. So the sign already encodes the
+           direction of travel, and `x: -cycle` below marches the track left in LTR and right
+           in RTL — each of which hides the seam behind the item that is about to replace item
+           0. Multiplying it by `dirSign()` would cancel that and send the marquee the wrong
+           way in Hebrew. Do not add one.
+
+           `if (!cycle)` still guards correctly: it is a zero test, not a positivity test. */
         const items = ul.children;
         const cycle =
           (items[LOGOS.length] as HTMLElement).offsetLeft -
@@ -150,8 +170,14 @@ export default function LogoCarousel() {
         mm.add("(prefers-reduced-motion: no-preference)", () => {
           gsap.set(ul, { x: 0 });
           gsap.to(ul, {
+            /* Signed target — see the note on `cycle`. Correct in both directions as written. */
             x: -cycle,
-            duration: cycle / SPEED_PX_PER_SEC,
+            /* ⚠️ `Math.abs` IS THE ONE RTL FIX IN THIS FILE. A duration is a MAGNITUDE, and
+               `cycle` is signed, so in RTL `cycle / SPEED_PX_PER_SEC` would be negative and
+               GSAP would clamp it — no tween, a dead row. On the LTR value, where `cycle` is
+               always positive, `Math.abs` is a provable no-op: same number in, same number out,
+               so the English build cannot move. */
+            duration: Math.abs(cycle) / SPEED_PX_PER_SEC,
             ease: "none",
             repeat: -1,
           });
@@ -193,6 +219,11 @@ export default function LogoCarousel() {
               <section
                 className="flex h-full min-w-0 flex-1 items-center overflow-hidden px-3
                            transition-opacity duration-500"
+                /* VERIFIED SYMMETRIC, NOT OVERLOOKED (2026-08-12): the fade mask's stops are
+                   0 / 12.5 / 87.5 / 100 — mirror images about the centre — so `to right`
+                   produces exactly the same ramp as `to left` would, and there is nothing
+                   here to flip for RTL. Left as `to right` deliberately, so the LTR computed
+                   value is untouched. */
                 style={{
                   opacity: ready ? 1 : 0,
                   maskImage:
@@ -201,7 +232,7 @@ export default function LogoCarousel() {
                     "linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 12.5%, rgba(0,0,0,1) 87.5%, rgba(0,0,0,0) 100%)",
                   transitionTimingFunction: "var(--ease-rogo)",
                 }}
-                aria-label="Tools we build with"
+                aria-label={t.ariaLabel}
               >
                 <ul
                   ref={track}

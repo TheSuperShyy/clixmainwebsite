@@ -46,7 +46,7 @@ One-section page. Spec + memory in [features/news-page/](../features/news-page/)
 
 | # | Section | Status | Notes |
 |---|---|---|---|
-| 1 | `Articles` | **`review`** | Built 2026-08-11 from a live fetch (no frozen capture). Hero (h1 88/72/64, subtitle 16 @ 540px balance, mailto button) + 5 filter pills (h-40, radius 28) + 3/2/1-col grid, gap 32. Content is a real 12-story AI digest (`newsItems.ts`) — cards link out to sources; tiles stand in for rogo's art. Never pixel-diffed. |
+| 1 | `Articles` | **`review`** | Built 2026-08-11 from a live fetch (no frozen capture). Hero (h1 88/72/64, subtitle 16 @ 540px balance, mailto button) + 5 filter pills (h-40, radius 28) + 3/2/1-col grid, gap 32. Content is a real 12-story AI digest (`newsItems.ts`) — cards link out to sources. **Card art rebuilt 2026-08-12:** rogo's grid is **three templates, not one**, so ours runs 5 typeset lockups (simple-icons CC0 marks via `NEWS_GLYPHS`) / 3 stat tiles (deterministic square field, seeded per tile at module scope) / 4 Pexels photographs with a floating white chip — declared per story, so a filter click no longer recolours a card the way the old `TILE[i % 4]` rotation did. ⚠️ simple-icons `riot` and `axios` are the **wrong companies**; read each file's `<title>` before using a mark. Never pixel-diffed. |
 
 ## Page: `/product` (clone of `rogo.com/product`)
 
@@ -135,6 +135,57 @@ declare `dark`, so the nav bar is solid ink from the first pixel to the last.
 | 5 | `Reiteration` + `Footer` | — | shared `Footer` | **`review`** | **Reused unchanged.** The target keeps its closing CTA inside the footer, exactly as ours does. |
 | — | verification | | | **`review`** | **Block-diff `ALL MATCH` at 1600 / 1440 / 1024 / 390 — 60 keys per tier.** Build clean (13 routes, `/security` prerendered), `tsc` and `eslint` clean on the new files. Four nav-theme regions contiguous with every gap 0.00; zero horizontal overflow; one focusable in `<main>` with a visible ring; outline h1 → h2 → h3. ⚠️ **The band delta is TWO terms**: −64px at every tier from the dropped link, plus −20.79 at 1024 and −20.80 at 390 from **one line of our own paragraph**. Page totals then reconcile from exactly three terms — those two plus the shared `Footer` being +43.8px / +234px taller than rogo's, the pre-existing `FooterMap` difference. ⚠️ Five 14px labels are `muted` on `ink` = **3.85:1, fail AA** — inherited, the same failure open on four other routes, needs one token change to close them all. |
 
+## Locale: Hebrew + RTL (`/he/*`)
+
+Started 2026-08-12, on `dev` (no feature branch, at the user's instruction).
+Spec + all measured values: [features/i18n-rtl/](../features/i18n-rtl/) ·
+build-wave contract: [docs/i18n-agent-contract.md](i18n-agent-contract.md).
+
+**Not a clone of anything.** There is no Hebrew rogo.ai, so this locale is **not held to the §6
+fidelity bar** and cannot be diffed against the target. Its bar is correctness: no horizontal
+overflow at the four tiers, nothing clipped, uniform grid rows still uniform within 0.5px
+(assertable *without* an English reference — the strongest check available here), colour-boundary
+headings still breaking where the colour changes, contrast AA, keyboard reachable. **The English
+side, by contrast, is held to zero regression and it is provable** — the logical-property
+migration is a computed-style identity transform.
+
+✅ **Most of the Hebrew is a RESTORATION, not a translation.** `docs/reference/clixsolutions/` is
+the user's own site, `lang="he" dir="rtl"`, with **no English version** — 20,169 Hebrew characters
+across 11 pages. `Hero.tsx:13-23` and `Footer.tsx:164-173` both document that their English was
+rendered *out of* that Hebrew.
+
+⚠️ **STRUCTURAL FACTS THAT WILL BREAK THE BUILD IF FORGOTTEN.** `src/app/layout.tsx` is
+**deleted**; there are now TWO root layouts, `(en)/layout.tsx` and `he/layout.tsx`. **Never add
+`src/app/not-found.tsx`** — without a root layout Next injects its builtin one for `/_not-found`,
+and a custom file stops that injection and makes the build **exit 1**. `[[...locale]]` is not an
+option: `validate-app-paths.js` throws E913 for a segment after an optional catch-all.
+
+| # | Piece | Component / file | Status | Notes |
+|---|---|---|---|---|
+| 1 | Locale core | `src/lib/i18n/*` | **`review`** | `Locale`/`Direction`/`dirSign` + path helpers (**24 unit assertions**; `localeHref("/#x","he") === "/he#x"` is load-bearing — the slash collapse is what keeps `AppLink`'s same-route-hash guard matching). Two access seams: a `cache()` request store for the 34 server components (**no default — it throws**, so a read before the seed is a build failure, not a Hebrew page rendering English) and a React context for the 23 client ones. **No server component was converted to client; no `locale` prop is drilled.** |
+| 2 | Route split | `src/app/{(en),he,_routes}/**` | **`review`** | Route groups, **no middleware**. Bare English URLs survive by construction. **20 routes, all statically prerendered** (13 before). A `[lang]`+rewrite was rejected on evidence: Next sets `x-nextjs-rewritten-path`, so `usePathname()` can return the internal path — and both `LocaleToggle` and `ViewTransitions.tsx`'s commit resolver depend on it. |
+| 3 | Toggle | `ui/LocaleToggle.tsx` | **`review`** | A single link to the other language, in all three Nav layouts. **A dropdown is impossible, not merely undesirable** — four ancestors are `overflow-hidden`. `h-9` keeps `--nav-row-h` (74/70px, which `/clix`'s `spacer` reads) unmoved. Accessible name **is** `עברית` on a `lang="he"` element (WCAG G81) — ⚠️ do not add an English `aria-label`. A **plain `<a>`, deliberately not routed through `AppLink`**: a view transition across a root-layout boundary would leave the promise unresolved and fire the 1500ms failsafe on a *working* nav. |
+| 4 | Shared chrome | `{en,he}/chrome.ts`, `Nav`, `Footer`, `FooterMap`, `ModelTicker` | **`review`** | Nav labels + CTA + footer groups/links/tagline/copyright + a11y, both locales, provenance marked. ⚠️ **Footer tagline sets 2 lines in Hebrew, 3 in English** (4 on phone) — the real phrase has one comma and does not split three ways; `tagline` is typed `readonly string[]` for exactly that. Ticker's `→` is **isolated, not mirrored** — its own comment says the glyph replaces the words "in"/"out", so mirroring inverts the meaning. |
+| 5 | Direction infrastructure | `globals.css` | **`review`** | `clix-marquee-rtl` (`+50%`, the mirror) + `[dir="rtl"] .clix-marquee`; `clix-marquee` byte-identical. ⚠️ **`.clix-marquee` is now load-bearing in the cascade** — renaming it or moving it off the animated track silently reverts the Hebrew strip to LTR. Empty `[dir="rtl"]` hook for Hebrew tracking; **values deliberately unset** (see open questions). |
+| 6 | Page copy ×7 + direction pass | `{en,he}/{home,product,security,company,careers,news,clix}.ts` + their components | **`review`** | 8-agent wave, one owner per file, **all landed**. **400 EN / 433 HE strings; 82 SOURCED, 141 AUTHORED.** English proven a no-op by byte-diff (home's `<main>` 75055→75056, the +1 being `text-left`→`text-start`). ⚠️ **The agents corrected the brief eight times and were right every time** — three client/server labels, GSAP's already-correct sign, the `mr-*` loop claim, `/product`'s badge set, and two of my predictions. ⚠️ **Two agents measured the same string at 131.6 and 156.9px and BOTH were right** — home's label is 12px, `/security`'s is 14px. A width is meaningless without its type spec. ⚠️ **Equal grid-row heights do not prove uniform content** (`align-self:stretch` absorbs a short body); assert heights AND per-card line count. **Not yet seen by a Hebrew reader.** |
+
+**Two real bugs caught before shipping:** `AppLink`'s same-route-hash test would have gone
+locale-blind and crossfaded the document over a mere scroll; and `ClixFelixFooter.tsx:138`'s SVG
+wordmark would have **vanished** in RTL — `direction` inherits into SVG, where `text-anchor:start`
+means *inline*-start, so the 2034-unit word lands outside its viewBox. Not a font problem.
+
+✅ **Discovery already covers Hebrew** — fontTools: 51 codepoints, all 27 base+final letters, full
+niqqud, maqaf/geresh/gershayim/sof-pasuq, shekel, `wght 100–800`. **No font vendored**, closing the
+question parked at `fonts-discovery.css:47` since 2026-08-03. ⚠️ **Inter has ZERO Hebrew**, so a
+Discovery 404 drops Hebrew to the OS sans — the existing fallback rationale does not hold here.
+
+⚠️ **Open, and each needs the user:** the Hebrew fallback face · negative letter-spacing on Hebrew
+(hook in place, empty) · `metadataBase`/`hreflang` deferred (the production origin is recorded
+nowhere in this repo) · **`/he/news` is publicly indexable while carrying translated third-party
+headlines**, where `/news` ships without a `robots` block *because* those headlines were verbatim ·
+**`/he/clix` must keep `noindex`** (its fabricated quotes read as *more* credible in Hebrew) · the
+`noam-tovi` / נווה דודי caption conflict becomes reader-visible in Hebrew.
+
 ## Other pages
 
 Still **not scoped** — see the open question in [PROJECT.md](PROJECT.md).
@@ -213,10 +264,29 @@ breaks mid-hyphen** ("next-" / "generation") and there is no clean fix at 390 �
 compound is a ~480px unbreakable run in a 358px viewport, which `overflow-hidden` would clip.
 Dropping the hyphen is the only fix; flagged to the user, left as written.
 
-⚠️ **`noindex` STILL STANDS, now on ONE reason instead of two.** The three job rows are
-**invented**. A job listing solicits an application, which makes an invented one worse than an
-invented testimonial — every row points at a real `mailto:`, never a fabricated ATS URL. The
-user has said the jobs are the follow-up, so the guard lifts when they are real and not before.
+⚠️ **THE `#roles` BAND AND THE HERO CTA WERE REMOVED** later the same day (user: *"remove
+this section we dont need job offering for now also remove the see career button"*). The page is
+**Hero → Gallery → About → Footer**. The CTA went with the band regardless of the ask: its only
+job was `href="#roles"`, so keeping it would have left the page's sole call to action pointing at
+a dead fragment. **The band's full measured spec is retained** in FEATURE.md, and
+`careers-roles-diff.js` is kept with a warning header — both describe the *target*, and
+re-deriving them means re-probing a live site. Components restore from commit `bbf10b1`.
+
+⚠️ **The removal's real risk was the nav, not the layout.** `#roles` was the page's ONLY
+`data-nav-theme="dark"` section, so the light → dark handover now happens at the Footer.
+Re-probed at all four tiers: `hero > gallery > about > contact`, `light > light > light > dark`,
+**every gap 0**. If the band ever returns it must go back *between* `#about` and `<Footer>`.
+
+⚠️ **`#hero` is now 529 at ≥1200 — the target's number, and it means nothing.** The target is
+529 with a 2-line headline plus a 44px gap and a 40px button; ours is 529 with a 3-line headline
+and no button, and +83.6 and −84 cancel to within a pixel. **Two unrelated changes summing to
+zero. Never read a matching number as fidelity without the arithmetic behind it.**
+
+⚠️ **`noindex` IS NOW UNJUSTIFIED AND STILL IN PLACE — the one open decision on this route.**
+Both original reasons are gone: the copy is clix's own, and the invented job rows left with the
+band. The photographs were never part of the guard. It is kept **deliberately**, because lifting
+it makes the route publicly indexable and that is the user's call, not a side effect of deleting
+a section. Removing the `robots` block is a one-line change.
 
 ⚠️ **The photographs are already clix-safe.** The original's eight identifiable-staff photos were
 replaced with neutral Pexels stock chosen on a "no clear frontal face" rule (user's call). That is
@@ -236,7 +306,7 @@ inside `#roles`, pills first. Two of the four broke the block-diff before it ran
 | 1 | `Hero` (`#hero`) | **`review`** | **Built** → `src/components/careers/CareersHero.tsx`. ⚠️ **Copy is the USER'S OWN sentence** (`Join us in engineering the core of next-generation software.`, 2026-08-12) at 60 chars against rogo's 44, so **height is 613/613/479/707, not the target's 529/529/479/585** — 3 lines at ≥1200 and 6 at 390. Every other value in the block is the target's and the diffs still pass; see the page note above. `198px 40px 80px` (phone `198 16 80`), gap 96; `Text & Button` gap **44 → 24** below 1200, phone `max-w 360`; title box max-w 960. h1 `88/88/72/64`, `-0.06em` (phone `-0.05em`), 95%, centred, balanced. 220×40 CTA `href="#roles"` with two 14×20 brackets at **−28/−12**, hover −18/−2 — byte-identical to `/product`'s, so `ProductHero.tsx`'s components ported unchanged. **No subhead** — proved by arithmetic, not assumed: `198 + 2×88×0.95 + 44 + 40 + 80 = 529` closes the measured height at 1440, and the same sum closes at 1024 and 390. |
 | 2 | `Gallery` (`#gallery`) | **`review`** | **Built** → `CareersGallery.tsx` + `careersPhotos.ts`. **Native scroll-snap, not a JS track** — `overflow-x:auto`, `scroll-snap-type:x mandatory`, `scroll-snap-stop:always`; drag, momentum and snap are the browser's, so unlike `/product` Block 6 there is no spring to fit. **Slide widths are fixed px at EVERY tier** (385/721/389/605/389/389/688/791 × 516, `scrollWidth` 4469) — confirmed twice, by the `sizes` attribute and by a four-tier live sweep. ⚠️ **Slot 5 is a 2572×1714 LANDSCAPE in a 389×516 portrait box** — the original crops it to its centre half; a `w=` sized off the box width delivers 1×, not 2×, because cover scales by height there. **No autoplay** (30 s of samples, one distinct position), **no loop**, Prev edge-disables, **Next never does**. Arrow step = `scrollBy(±clientWidth)` + native snap, chosen by scoring **five** candidate rules against 13 measured transitions (9/13, best; my hand-derived rule scored 5/13 and was arithmetically impossible). **At 390 nothing snaps on either side** — every slide is wider than the 358px snapport. |
 | 3 | `About` (`#about`) | **`review`** | **Built** → `CareersAbout.tsx`. Copy is **clix's** (2026-08-12): h3 `Automating The Work` / *`Nobody Should Be Doing`*, two paragraphs from ClixManifesto + clixsolutions. ⚠️ **The only block whose height moved: 329/343/430 vs the target's 352/343/471**, because our p1 sets in 3 lines at ≥1200 where rogo's set in 4. Every CSS-controlled value is unchanged; do not pad the copy to hit 352. Two columns at ≥1200 (row, max-w 1280, gap 64, title col `flex:1 0 0; width:1px; max-w 490`), one column gap 24 below. h3 `44/44/40/32`, `-0.05em`, 110%, balanced — **one element**, and the `<br>` IS the colour boundary: line 1 `ink`, line 2 `muted`. ⚠️ Not "…Smartest Analyst / On Wall Street", which is the natural misreading. Body `18 → 16`, `-0.02em`, 130%, `ink`; the two paragraphs are separated by **`margin-top:20px`**, not a flex gap. ⚠️ Ships `id="about"` — the original's is literally **`about™`**, and its text container's `data-framer-name` is a stale paragraph of *security* copy. Ignore layer names on this project. |
-| 4 | `Careers` (`#roles`) | **`review`** | **Built** → `CareersRoles.tsx` + `careersOpenings.ts`. Server component. `80px 40px 160px → 80 40 → 64 16`, gap 72; container max-w 1280 gap 40 (32 phone). h2 is **clix's** `Where You Come In` (2026-08-12), capped at 17 chars because that is what fits on one line at 390. Eyebrow = 8×8 `signal-green` dot + `{ROLES.length}` + `open positions`, gaps 10/8. h2 `56/56/48/40` `surface`. Group h4 `36/36/28/24`, **110% at ≥1200 and 1.2em below**. Divider is `aspect-ratio:1120` → **1.141px** at 1280. Row 72 tall, `24px 0`, rendered gaps 16/16/16, rule on `::after`. ⚠️ **Reduced to 3 roles with NO filter pills** (user's call); the 11 pills' measured values are recorded in FEATURE.md as "measured, deliberately not shipped". ⚠️ Index is `muted` on `ink` = **3.85:1, fails AA** — inherited, shipped as measured, **needs the user's call** (`mark` = 5.36:1). |
+| 4 | ~~`Careers` (`#roles`)~~ **REMOVED** | **`review`** | **Built** → `CareersRoles.tsx` + `careersOpenings.ts`. Server component. `80px 40px 160px → 80 40 → 64 16`, gap 72; container max-w 1280 gap 40 (32 phone). h2 is **clix's** `Where You Come In` (2026-08-12), capped at 17 chars because that is what fits on one line at 390. Eyebrow = 8×8 `signal-green` dot + `{ROLES.length}` + `open positions`, gaps 10/8. h2 `56/56/48/40` `surface`. Group h4 `36/36/28/24`, **110% at ≥1200 and 1.2em below**. Divider is `aspect-ratio:1120` → **1.141px** at 1280. Row 72 tall, `24px 0`, rendered gaps 16/16/16, rule on `::after`. ⚠️ **Reduced to 3 roles with NO filter pills** (user's call); the 11 pills' measured values are recorded in FEATURE.md as "measured, deliberately not shipped". ⚠️ Index is `muted` on `ink` = **3.85:1, fails AA** — inherited, shipped as measured, **needs the user's call** (`mark` = 5.36:1). |
 | 5 | `Footer` | **`review`** | **Reused** — `src/components/sections/Footer.tsx`, unchanged. |
 | — | verification | **`review`** | **Both block-diffs ALL MATCH at 1600/1440/1024/390** — 18 carousel keys and 38 roles keys, every tier. `npm run build` clean, eslint clean, `tsc` clean. Five `data-nav-theme` sections contiguous (all gaps 0), zero horizontal overflow at every tier, focus order CTA → track → Prev → Next → 3 rows. **One deliberate functional divergence: `scroll-mt` on `#roles`.** The target has no `scroll-padding-top` anywhere, so its own `#roles` CTA lands the band at top 0 with **113px buried under its fixed nav** — probed, not assumed. Ours clears it (115/119px). `scroll-margin` never affects rendered layout, so the diffs stay valid. |
 

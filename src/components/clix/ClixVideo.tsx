@@ -16,7 +16,12 @@
 
 import { useRef, useState } from "react";
 
+import { usePageDict } from "@/lib/i18n/LocaleProvider";
+
 export default function ClixVideo() {
+  /* A hook, NOT an import: a static `import` of a dictionary module from a "use client"
+     file bundles BOTH locales into the client chunk. */
+  const t = usePageDict("clix").video;
   const ref = useRef<HTMLVideoElement>(null);
   const [muted, setMuted] = useState(true);
 
@@ -65,9 +70,17 @@ export default function ClixVideo() {
               if (!v.muted) void v.play();
             }}
             aria-pressed={!muted}
-            className="absolute bottom-4 left-4 flex h-min w-min cursor-pointer flex-row
+            /* `start-4` and `pe-4 ps-[10px]` are the LOGICAL forms of what used to be
+               `left-4` and `pr-4 pl-[10px]`. Both resolve to the identical physical property
+               in LTR, so English is unchanged, and both need to mirror in Hebrew:
+                 · the toggle sits in the video's inline-START bottom corner, not its left one;
+                 · the asymmetric padding puts the EXTRA space on the TEXT side of the 20px
+                   glyph (16 vs 10), and under rtl the text is on the other side of the glyph.
+               ⚠️ Never pair these with a physical utility on the same axis — `ps-*` beside
+               `pl-*` on one element is the one thing that breaks the LTR identity. */
+            className="absolute bottom-4 start-4 flex h-min w-min cursor-pointer flex-row
                        items-center justify-center gap-2 rounded-[6px] bg-ink/60 py-[10px]
-                       pr-4 pl-[10px] text-paper backdrop-blur-sm
+                       pe-4 ps-[10px] text-paper backdrop-blur-sm
                        transition-opacity duration-300 hover:opacity-90
                        focus-visible:ring-2 focus-visible:ring-paper
                        focus-visible:outline-none"
@@ -99,7 +112,7 @@ export default function ClixVideo() {
               className="font-sans text-[14px] font-medium"
               style={{ lineHeight: "1em", letterSpacing: "-0.01em" }}
             >
-              {muted ? "Unmute" : "Mute"}
+              {muted ? t.unmute : t.mute}
             </span>
           </button>
         </div>

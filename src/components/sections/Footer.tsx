@@ -24,10 +24,17 @@
  * second place on the site with a real authored transition rather than an estimate.
  */
 
+import { Fragment } from "react";
+import AppLink from "@/components/ui/AppLink";
+import { getChrome } from "@/lib/i18n/server";
+import type { ChromeDict } from "@/lib/i18n/dictionary";
 import FooterMap from "./FooterMap";
 
 type FooterLink = {
-  label: string;
+  /* Was `label`. The visible text now comes from `chrome.footer.links[key]`, so this is a
+     stable identifier that does not change with the locale — which also keeps it usable as a
+     React key. */
+  key: keyof ChromeDict["footer"]["links"];
   href: string;
   external?: boolean;
   /* Per-tier visibility, for the two links the original does not ship at every tier.
@@ -35,7 +42,9 @@ type FooterLink = {
   only?: "desktop" | "below-desktop";
 };
 
-type LinkGroup = { title: string; links: FooterLink[] };
+/* `titleIndex` indexes `chrome.footer.groupTitles`, a fixed-length 4-tuple — four columns is
+   layout, so the count is pinned by the type rather than by a comment. */
+type LinkGroup = { titleIndex: 0 | 1 | 2 | 3; links: FooterLink[] };
 
 /* Remapped 2026-08-05 onto clix's real IA and real accounts. Structure is the target's and
    is unchanged: four columns, three links each plus a four-link Contact column, and the
@@ -53,27 +62,27 @@ const CONTACT = {
 
 const GROUPS: LinkGroup[] = [
   {
-    title: "Overview",
+    titleIndex: 0,
     links: [
-      { label: "Services", href: "/services" },
-      { label: "Industries", href: "/industries" },
-      { label: "Work", href: "/work" },
+      { key: "services", href: "/services" },
+      { key: "industries", href: "/industries" },
+      { key: "work", href: "/work" },
     ],
   },
   {
-    title: "Company",
+    titleIndex: 1,
     links: [
       /* Repointed 2026-08-12: was `/about`, which never existed and 404'd. `/company` is the
          clone of rogo.com/company and is the page this label means. The nav calls the same
          route "Company"; the labels differ because each list keeps its own capture's wording.
          The other eight links in this footer still point at routes this repo does not have. */
-      { label: "About", href: "/company" },
-      { label: "Insights", href: "/insights" },
-      { label: "Playground", href: "/playground" },
+      { key: "about", href: "/company" },
+      { key: "insights", href: "/insights" },
+      { key: "playground", href: "/playground" },
     ],
   },
   {
-    title: "Legal",
+    titleIndex: 2,
     links: [
       /* The original gates ONE link in this column to >=1200, so the column is 3 links on
          desktop and 2 below. That behaviour is reproduced, but the gate was moved off the
@@ -81,22 +90,22 @@ const GROUPS: LinkGroup[] = [
          page a user on assistive tech may be looking for, and hiding it on phones would
          turn an inherited layout quirk into a real barrier. Terms carries the gate instead.
          Flagged in FEATURE.md. */
-      { label: "Terms of Use", href: "/terms", only: "desktop" },
-      { label: "Privacy Policy", href: "/privacy" },
-      { label: "Accessibility", href: "/accessibility" },
+      { key: "terms", href: "/terms", only: "desktop" },
+      { key: "privacy", href: "/privacy" },
+      { key: "accessibility", href: "/accessibility" },
     ],
   },
   {
-    title: "Contact",
+    titleIndex: 3,
     links: [
-      { label: "Let’s start", href: "#contact" },
-      { label: "Email", href: CONTACT.email },
-      { label: "Instagram", href: CONTACT.instagram, external: true },
+      { key: "letsStart", href: "#contact" },
+      { key: "email", href: CONTACT.email },
+      { key: "instagram", href: CONTACT.instagram, external: true },
       /* The original splits "Press" by tier — a mailto at >=1200, an x.com profile below —
          which is why this column renders four links at every tier from five entries. clix
          has one WhatsApp number and no tier-specific alternative, so this is a single
          ungated entry. The visible count per tier is unchanged at four. */
-      { label: "WhatsApp", href: CONTACT.whatsapp, external: true },
+      { key: "whatsapp", href: CONTACT.whatsapp, external: true },
     ],
   },
 ];
@@ -108,15 +117,15 @@ const tierClass = (only?: FooterLink["only"]) =>
       ? "block desktop:hidden"
       : "";
 
-function FooterLinkItem({ item }: { item: FooterLink }) {
+function FooterLinkItem({ item, label }: { item: FooterLink; label: string }) {
   return (
     <div
       className={`relative h-auto w-auto max-w-[1024px] ${tierClass(item.only)}`}
     >
       <p className="text-[14px] leading-[1.5em] tracking-[-0.02em]">
-        <a
+        <AppLink
           href={item.href}
-          {...(item.external ? { target: "_blank", rel: "noreferrer" } : null)}
+          external={item.external}
           /* paper -> surface on hover. The `.3s cubic-bezier(.44,0,.56,1)` is the
              capture's own, not an estimate — it is declared on the link style preset. */
           className="text-paper no-underline transition-[color] duration-300
@@ -125,14 +134,19 @@ function FooterLinkItem({ item }: { item: FooterLink }) {
                      focus-visible:ring-paper focus-visible:outline-none"
           style={{ transitionTimingFunction: "var(--ease-rogo)" }}
         >
-          {item.label}
-        </a>
+          {label}
+        </AppLink>
       </p>
     </div>
   );
 }
 
 export default function Footer() {
+  /* Server component, so the dictionary comes from the request store rather than a context.
+     No prop had to be threaded here — which matters because this component is rendered by all
+     7 routes and prop-drilling `locale` would have meant the same edit in 7 files. */
+  const t = getChrome().footer;
+
   return (
     /* padding `0 16px` phone -> `0 40px` from 810 up. No vertical padding at all: the
        Reiteration block's own `padding-top:56px` is the footer's entire top inset, and the
@@ -156,20 +170,44 @@ export default function Footer() {
           <div className="relative flex w-full flex-none flex-col items-start gap-10 overflow-visible tablet:w-px tablet:flex-[1_0_0]">
             <div className="relative h-auto w-full">
               <h2 className="font-display text-[44px] leading-[1.1em] tracking-[-0.05em] text-paper tablet:text-[48px]">
-                {/* clix's own footer tagline, English-rendered — the live site closes on
-                    "תוכנה שעובדת, תוצאות שמדברות." It happens to split three ways, so it
-                    drops straight into the target's {A}<br phone>{B}<br>{C} structure with
-                    no change to either break. */}
-                {"Software "}
-                {/* The phone variant carries an extra break here; the trailing space
-                    survives `display:none`, so the wider tiers weld cleanly. */}
-                <br className="tablet:hidden" />
-                {"that works,"}
-                {/* The capture wraps this break in a span coloured `ink`. It holds no text,
-                    so it paints nothing — dropped rather than copied, same as
-                    by-the-numbers. */}
-                <br />
-                {"results that speak."}
+                {/* THE TAGLINE, AND THE ONE PLACE ON THIS SITE WHERE THE TWO LOCALES GENUINELY
+                    DISAGREE ABOUT STRUCTURE.
+
+                    English is a rendering of the live site's Hebrew close, "תוכנה שעובדת,
+                    תוצאות שמדברות." — and it happens to split three ways, so it dropped
+                    straight into the target's {A}<br phone>{B}<br>{C} shape. The Hebrew
+                    original does not: one comma, one sentence boundary, two runs. So the
+                    count cannot be hard-coded here.
+
+                    Outer array = hard lines, broken at every tier.
+                    Inner array = runs broken only on phone (`tablet:hidden`).
+
+                    English: [["Software", "that works,"], ["results that speak."]]
+                             -> 2 lines wide, 3 on phone. Byte-identical to what this
+                                component rendered before the dictionary existed.
+                    Hebrew:  [["תוכנה שעובדת,"], ["תוצאות שמדברות."]]
+                             -> 2 lines at every tier; nothing to gate on phone.
+
+                    The trailing space that used to be written into "Software " is added here
+                    instead, and only between phone-split runs — it survives `display:none` on
+                    the break, which is what welds the wider tiers cleanly. A locale whose
+                    inner array has one entry never gets one. */}
+                {/* `Fragment`, not `span`: a keyed fragment renders NO element, so the h2's
+                    children stay exactly what they were — text nodes and `<br>`s, nothing
+                    nested. An inline span would be transparent to layout, but it would still
+                    add nodes the original does not have, and this block is diffed
+                    element-for-element against the target. */}
+                {t.tagline.map((line, li) => (
+                  <Fragment key={li}>
+                    {li > 0 && <br />}
+                    {line.map((run, ri) => (
+                      <Fragment key={ri}>
+                        {ri > 0 && <br className="tablet:hidden" />}
+                        {ri > 0 ? run : run + (line.length > 1 ? " " : "")}
+                      </Fragment>
+                    ))}
+                  </Fragment>
+                ))}
               </h2>
             </div>
           </div>
@@ -190,7 +228,7 @@ export default function Footer() {
             >
               <div className="relative flex h-5 w-min flex-row items-center justify-center gap-[10px] pt-px">
                 <p className="text-center text-[16px] leading-[1em] font-medium tracking-[-0.01em] whitespace-pre text-ink">
-                  Let&rsquo;s start
+                  {t.cta}
                 </p>
               </div>
             </a>
@@ -214,13 +252,13 @@ export default function Footer() {
           >
             {GROUPS.map((group) => (
               <div
-                key={group.title}
+                key={group.titleIndex}
                 className="relative flex w-full flex-none flex-col items-start gap-5
                            overflow-hidden tablet:w-px tablet:flex-[1_0_0]"
               >
                 <div className="relative h-auto w-full max-w-[1024px]">
                   <p className="text-[14px] leading-[1.3em] font-medium tracking-[-0.02em] text-muted">
-                    {group.title}
+                    {t.groupTitles[group.titleIndex]}
                   </p>
                 </div>
                 <div className="relative flex w-full flex-none flex-col items-start gap-3 overflow-visible">
@@ -230,8 +268,9 @@ export default function Footer() {
                       them, so the key stays unique whatever the destinations become. */}
                   {group.links.map((item) => (
                     <FooterLinkItem
-                      key={`${item.label}-${item.only ?? "all"}`}
+                      key={`${item.key}-${item.only ?? "all"}`}
                       item={item}
+                      label={t.links[item.key]}
                     />
                   ))}
                 </div>
@@ -248,10 +287,10 @@ export default function Footer() {
           <div className="relative flex w-full flex-none flex-row items-start justify-center gap-4 overflow-hidden px-12 py-4">
             <div className="relative flex w-px flex-[1_0_0] flex-row items-center justify-center gap-2 overflow-visible">
               <p className="text-center text-[14px] leading-[1.3em] tracking-[-0.02em] whitespace-pre text-muted uppercase tablet:font-medium desktop:text-[12px]">
-                © 2026
+                {t.copyrightYear}
               </p>
               <p className="text-center text-[14px] leading-[1.3em] tracking-[-0.02em] whitespace-pre text-muted uppercase tablet:font-medium desktop:text-[12px]">
-                clix
+                {t.copyrightHolder}
               </p>
             </div>
           </div>

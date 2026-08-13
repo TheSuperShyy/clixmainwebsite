@@ -39,8 +39,10 @@
  *
  *   1. get a written sentence from each named client, in their own words, or their written
  *      approval to transcribe one from their video
- *   2. replace every string tagged `[PLACEHOLDER QUOTE ...]` below, on the desktop SLIDES
- *      and on the PHONE_CARDS, which carry their own copy at ≤809
+ *   2. replace every string tagged `[PLACEHOLDER QUOTE ...]` in BOTH locale files —
+ *      src/lib/i18n/{en,he}/product.ts, `testimonials.slides[*].quote` plus
+ *      `testimonials.phoneLeadQuote`, which is slot 1's own copy at ≤809. The Hebrew keeps the
+ *      tag in English capitals ON PURPOSE, so this step stays one grep
  *   3. recheck `quoteDesktop` per slide. It is a per quote font size fitted to that quote's
  *      character count, and real copy will not be the length of this filler
  *   4. delete this warning block. Only then may the robots block come off the route.
@@ -70,8 +72,8 @@
  *   · slot 1's quote is **different copy** at this width, not a truncation but a different
  *     sentence: "Rogo is going to transform" there versus "Rogo transforms" above 810. The
  *     placeholders keep the quirk structurally, so it survives the real copy landing.
- *     PHONE_CARDS[0] carries its own string; PHONE_CARDS[1] reuses slide 2's, which is what
- *     the original does too.
+ *     `testimonials.phoneLeadQuote` carries slot 1's own string; every other card reuses its
+ *     slide's, which is what the original does too.
  *   · slot 1 is FIRST on phones (`order:0`) and second in the DOM everywhere else
  *   · no photos, no arrows, and its own paddings (24 / `32 24 24 24`) and gaps (20 / 80)
  *
@@ -122,9 +124,48 @@
  * The commit rule below (`|dx + v × 0.15| > 30% of a slide`) is **fitted to those three
  * observations**, not read off the page — it is the only way to reproduce all of
  * "340 held → nothing", "160 flicked → one slide", "60 flicked → nothing" with one formula.
+ *
+ * ──────────────────────────────────────────────────────────────────────────────────────────
+ * RTL: EXACTLY THREE THINGS TAKE A SIGN, AND THE LIST IS SHORT ON PURPOSE.
+ *
+ * The direction primitive `useDirSign()` is +1 in English, so every expression it appears in is
+ * byte-identical in the LTR build. It multiplies PHYSICAL-AXIS DELTAS and nothing else:
+ *
+ *   ✓ the track's `translateX` target. Under rtl a `flex-row` track lays slide 0 against the
+ *     container's RIGHT edge and overflows leftward, so bringing slide `pos` into view means
+ *     translating `+pos × step`, not `−pos × step`. Hence `sign * -pos`.
+ *   ✓ the drag-commit COMPARISON, `sign * projected < 0`. Dragging left advances in ltr and
+ *     retreats in rtl, so only the test flips.
+ *   ✓ nothing else.
+ *
+ * AND THESE, WHICH LOOK LIKE THEY SHOULD AND MUST NOT:
+ *
+ *   ✗ `setDrag(e.clientX - g.startX)`. `clientX` is a PHYSICAL viewport coordinate and the
+ *     measured behaviour is "the track follows the pointer 1:1" — physically. Flip this and the
+ *     Hebrew track runs away from the finger. This is the single most tempting wrong move in
+ *     the whole pass.
+ *   ✗ `dx`, `v`, `span`, `projected`. Physical px and px/s throughout. `v` is a velocity, and a
+ *     velocity has no direction in the sense this sign means.
+ *   ✗ `go(-1)` / `go(1)` and the arrow handlers. They target an INDEX: "previous slide" is
+ *     index − 1 in every language.
+ *   ✗ `FLICK_PROJECTION_S`, `COMMIT_FRACTION`, `IDLE_MS`, `VELOCITY_WINDOW_MS`, `STEP_MS`. The
+ *     commit rule is SIGN-BLIND — `Math.abs(projected) > width * COMMIT_FRACTION` compares
+ *     magnitudes — so no fitted constant here changes. A sign may flip; a constant may not.
+ *   ✗ `viewport.current.clientWidth`. A physical width.
+ *
+ * ⚠️ ONE DEVIATION FROM THE PLAN, STATED. The plan asked for the handler's sign to come from
+ * `getComputedStyle(el).direction` rather than a hook, to avoid hydration surface. It is read
+ * from `useDirSign()` here instead, because the RENDER already needs the same value for the
+ * transform above — direction that affects render output cannot come from a DOM read, since
+ * there is no `document` on the server and the Hebrew page would server-render the LTR branch
+ * and visibly flip on hydration. So the hook is unavoidable, and once it is present a second
+ * source for the same fact is strictly worse: it can disagree, and it forces a style flush on
+ * every `pointerup`. Same value, one source, zero added hydration surface.
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useChrome, useDirSign, useDirection, usePageDict } from "@/lib/i18n/LocaleProvider";
+import { interpolate } from "@/lib/i18n/format";
 
 /* ---- Content ----------------------------------------------------------------------------
  * The PEOPLE, their roles and their photo ids are clix's own, taken from the `CLIPS` array in
@@ -154,215 +195,86 @@ import { useCallback, useEffect, useRef, useState } from "react";
  * `h-[505px]` box, so nothing reflows. No `quoteDesktop` value needed changing.
  */
 
-type Slide = {
-  id: string;
-  quote: string;
-  name: string;
-  role: string;
-  photo: string;
-  /** Cream `bone` or `surface`. The original alternates; it is not derived from position. */
-  cream: boolean;
-  /** Quote size at ≥1200. The original's first card is 32px and the other two are 36px; all
-      three are 28px from 810 to 1199. A per-slide value in the original, so a per-slide value
-      here. It is sized to the quote's length, so it is step 3 of the checklist above. */
-  quoteDesktop: string;
-};
-
-/* ALL SIX CLIENTS, 2026-08-12, on the user's call. rogo's slideshow carried three; clix has
-   six and `sections/Testimonials.tsx` already shows all of them, so showing three here read as
-   a bug. Order matches that file's `CLIPS` exactly, so the two pages never disagree.
-
-   The carousel took this without changes: `N` is `SLIDES.length`, `LOOP` is three copies of
-   `SLIDES`, and the normalisation snap is modulo `N`, so slide count was already a variable.
-   Only the alternation and the sizes below are hand-set.
-
-   NO PRONOUNS in any placeholder. Two of the six are people whose pronouns nobody here has
-   been told, and one is a company. Naming the client and writing around the pronoun costs
-   nothing and cannot misgender anyone. */
-const ADIR_PLACEHOLDER =
-  "[PLACEHOLDER QUOTE, NOT SOMETHING ADIR PERETZ SAID] No approved wording exists for this " +
-  "client yet. This filler runs to about the length the real one should.";
-
-const SLIDES: Slide[] = [
-  {
-    id: "asaf-peretz",
-    quote:
-      "[PLACEHOLDER QUOTE, NOT SOMETHING ASAF PERETZ SAID] clix holds no written testimonial " +
-      "from this client and no wording has been approved. This paragraph is scaffolding, set " +
-      "at roughly the length a real quote will run, and it is here to be deleted the moment " +
-      "an approved sentence replaces it.",
-    name: "Asaf Peretz",
-    role: "Founder, SalesIQ",
-    photo: "/testimonials/asaf-peretz.jpg",
-    cream: true,
-    quoteDesktop: "desktop:text-[32px]",
-  },
-  {
-    id: "adir-peretz",
-    quote: ADIR_PLACEHOLDER,
-    name: "Adir Peretz",
-    role: "Owner, video and photography studio",
-    photo: "/testimonials/adir-peretz.jpg",
-    cream: false,
-    quoteDesktop: "desktop:text-[36px]",
-  },
-  {
-    id: "nevo-yahaloman",
-    quote:
-      "[PLACEHOLDER QUOTE, NOT SOMETHING NEVO YAHALOMAN SAID] Nothing on this card was said " +
-      "by this client. The words are layout scaffolding and must be replaced before launch.",
-    name: "Nevo Yahaloman",
-    role: "Founder",
-    photo: "/testimonials/nevo-yahaloman.jpg",
-    cream: true,
-    quoteDesktop: "desktop:text-[36px]",
-  },
-  /* ⚠️ THIS PHOTOGRAPH MAY NOT BE THIS PERSON, AND THAT IS UNRESOLVED.
-     `public/testimonials/noam-tovi.jpg` is a still from the client's video, and the video's
-     own burned-in caption reads "אני נווה דוידי", transliterating to Nave Davidi, while this
-     repo labels the same file "Noam Tovi, Owner, investments" (sections/Testimonials.tsx:63).
-     Two different names; nothing here can say which is right. The pairing is NOT introduced by
-     this page, it already ships on the home page, so excluding it here would hide the problem
-     rather than fix it. Kept, flagged, and gated behind noindex.
-     RESOLVE THE LABEL WITH THE CLIENT before either page is indexed. */
-  {
-    id: "noam-tovi",
-    quote:
-      "[PLACEHOLDER QUOTE, NOT SOMETHING NOAM TOVI SAID] Placeholder text standing in for a " +
-      "sentence this client has never been asked for. Replace before launch.",
-    name: "Noam Tovi",
-    role: "Owner, investments",
-    photo: "/testimonials/noam-tovi.jpg",
-    cream: false,
-    quoteDesktop: "desktop:text-[36px]",
-  },
-  /* `achituv`'s role is recorded in sections/Testimonials.tsx as READ OFF AN UPLOADED
-     FILENAME, not given by the user, and flagged there as unsourced. Carried verbatim rather
-     than improved, so the uncertainty stays visible in one place instead of being laundered
-     into a second file that looks authoritative. */
-  {
-    id: "achituv",
-    quote:
-      "[PLACEHOLDER QUOTE, NOT SOMETHING ACHITUV SAID] Placeholder text standing in for a " +
-      "sentence this client has never been asked for. Replace before launch.",
-    name: "Achituv",
-    role: "Vtechezena",
-    photo: "/testimonials/achituv.jpg",
-    cream: true,
-    quoteDesktop: "desktop:text-[36px]",
-  },
-  /* A COMPANY, not a person, which is why `role` is empty rather than an invented job title.
-     The speaker in the video is not identified anywhere in this repo. `CardBody` holds the
-     role line open with a non-breaking space so this card matches the others' height. */
-  {
-    id: "elyashiv-engineering",
-    quote:
-      "[PLACEHOLDER QUOTE, NOT SOMETHING ELYASHIV ENGINEERING SAID] Placeholder text standing " +
-      "in for a sentence this client has never been asked for. Replace before launch.",
-    name: "Elyashiv Engineering",
-    role: "",
-    photo: "/testimonials/elyashiv-engineering.jpg",
-    cream: false,
-    quoteDesktop: "desktop:text-[36px]",
-  },
-];
-
-/** ≤809 only. A static stack, no arrows, and slot 1's quote is not the one above.
+/**
+ * PER-SLIDE LAYOUT. The copy — quote, name, role — lives in the dictionary
+ * (`testimonials.slides`); what stays here is everything that is not language:
  *
- *  ⚠️ SIX CARDS NOW, AND THAT IS A DELIBERATE DEPARTURE FROM THE CAPTURE. The original ships
- *  exactly TWO here against three slides above, an editorial cut rather than a truncation, and
- *  that asymmetry was reproduced faithfully until 2026-08-12. It stops making sense once the
- *  page carries clix's own six: a phone reader seeing two of six, with no arrows and no
- *  affordance suggesting more exist, reads it as the list. Desktop and phone now show the same
- *  clients in the same order.
+ *   · `id`     the React key and the photo's stem, kept together so they cannot drift
+ *   · `photo`  the portrait file
+ *   · `cream`  `bone` or `surface`. The original ALTERNATES; it is not derived from position,
+ *              which is why it is authored rather than computed from the index
+ *   · `quoteDesktop` the per-slide quote size at ≥1200 — 32px on the first card and 36px on the
+ *              other five, the original's own values, fitted to each quote's length. It is
+ *              step 3 of the launch checklist above: real copy will not be this length.
  *
- *  The cost is scroll length: six stacked cards run roughly 2100px on a phone. If that proves
- *  too long, cut the TAIL of this array rather than reordering, so the two tiers keep agreeing
- *  on who comes first.
+ * SIX ENTRIES, AND THE DICTIONARY'S `slides` TUPLE IS ALSO SIX, so the two are zipped by index
+ * and a locale cannot desynchronise them. rogo's slideshow carried three; clix has six and
+ * `sections/Testimonials.tsx` already shows all of them, so showing three here read as a bug.
+ * Order matches that file's `CLIPS` exactly, so the two pages never disagree.
  *
- *  Card 1 keeps its own longer string, and card 2 still shares slide 2's, both as the original
- *  does. Cards 3 to 6 reuse their slides' strings for the same reason: one string to replace
- *  per client when the real wording lands. */
-const PHONE_CARDS = [
-  {
-    id: "asaf-peretz",
-    quote:
-      "[PLACEHOLDER QUOTE, NOT SOMETHING ASAF PERETZ SAID] This is the phone card's own " +
-      "string, kept separate because the original ships different copy at this width. It is " +
-      "not a shortened version of the slide above, and it is not this client's wording " +
-      "either. Replace both before this route is indexed.",
-    name: "Asaf Peretz",
-    role: "Founder, SalesIQ",
-    cream: true,
-    /* Measured heights, not derived: 505 and 334. */
-    box: "h-[505px]",
-    /* `--u1dxzv` / `--50mq1o`. The two cards do not share either value. */
-    pad: "pt-8 pr-6 pb-6 pl-6",
-    gap: "gap-20",
-  },
-  {
-    id: "adir-peretz",
-    /* The original repeats slide 2's quote here character for character. Referenced rather
-       than retyped so the two cannot drift apart when the real sentence lands: whoever
-       replaces it replaces one string and both tiers move together. If the real copy ever
-       needs to differ at this width, inline it here, the way card 1 above already does. */
-    quote: ADIR_PLACEHOLDER,
-    name: "Adir Peretz",
-    /* The original's phone copy sets this string in capitals AND applies
-       `text-transform:uppercase`, so it renders the same as the sentence-case one above.
-       Kept sentence-case here: identical output, one less thing to keep in step. */
-    role: "Owner, video and photography studio",
-    cream: false,
-    box: "h-[334px]",
-    pad: "p-6",
-    gap: "gap-5",
-  },
-  /* Cards 3 to 6 take card 2's measured shape (334 / p-6 / gap-5), not card 1's. Card 1 is the
-     one-off: it is 505px because the original's lead card carries a longer quote and its own
-     padding and gap. These four carry short placeholders, so the shorter box is the right
-     parent. Re-measure if the real quotes come back long. `cream` continues the alternation
-     from the slides above so the two tiers stripe identically. */
-  {
-    id: "nevo-yahaloman",
-    quote: SLIDES[2].quote,
-    name: "Nevo Yahaloman",
-    role: "Founder",
-    cream: true,
-    box: "h-[334px]",
-    pad: "p-6",
-    gap: "gap-5",
-  },
-  {
-    id: "noam-tovi",
-    quote: SLIDES[3].quote,
-    name: "Noam Tovi",
-    role: "Owner, investments",
-    cream: false,
-    box: "h-[334px]",
-    pad: "p-6",
-    gap: "gap-5",
-  },
-  {
-    id: "achituv",
-    quote: SLIDES[4].quote,
-    name: "Achituv",
-    role: "Vtechezena",
-    cream: true,
-    box: "h-[334px]",
-    pad: "p-6",
-    gap: "gap-5",
-  },
-  {
-    id: "elyashiv-engineering",
-    quote: SLIDES[5].quote,
-    name: "Elyashiv Engineering",
-    role: "",
-    cream: false,
-    box: "h-[334px]",
-    pad: "p-6",
-    gap: "gap-5",
-  },
-];
+ * WHICH SIX, AND THE TWO CAVEATS THAT TRAVEL WITH THEM:
+ *   · `noam-tovi` — ⚠️ THIS PHOTOGRAPH MAY NOT BE THIS PERSON, AND THAT IS UNRESOLVED. The file
+ *     is a still from the client's video, whose burned-in caption reads "אני נווה דוידי",
+ *     transliterating to Nave Davidi, while this repo labels it "Noam Tovi, Owner, investments"
+ *     (sections/Testimonials.tsx:63). Two different names; nothing here can say which is right.
+ *     The pairing is NOT introduced by this page — it already ships on the home page — so
+ *     excluding it here would hide the problem rather than fix it. Kept, flagged, gated behind
+ *     noindex. RESOLVE THE LABEL WITH THE CLIENT before either page is indexed.
+ *   · `achituv` — its ROLE is recorded in sections/Testimonials.tsx as READ OFF AN UPLOADED
+ *     FILENAME, not given by the user, and flagged there as unsourced. Carried verbatim rather
+ *     than improved, so the uncertainty stays visible in one place. The Hebrew file adds a
+ *     second flag: both its name and its role are unverified transliterations.
+ *   · `elyashiv-engineering` is a COMPANY, not a person, which is why its dictionary `role` is
+ *     EMPTY rather than an invented job title. `CardBody` holds the role line open with a
+ *     non-breaking space so the card matches the others' height.
+ */
+const SLIDE_STYLE = [
+  { id: "asaf-peretz", photo: "/testimonials/asaf-peretz.jpg", cream: true, quoteDesktop: "desktop:text-[32px]" },
+  { id: "adir-peretz", photo: "/testimonials/adir-peretz.jpg", cream: false, quoteDesktop: "desktop:text-[36px]" },
+  { id: "nevo-yahaloman", photo: "/testimonials/nevo-yahaloman.jpg", cream: true, quoteDesktop: "desktop:text-[36px]" },
+  { id: "noam-tovi", photo: "/testimonials/noam-tovi.jpg", cream: false, quoteDesktop: "desktop:text-[36px]" },
+  { id: "achituv", photo: "/testimonials/achituv.jpg", cream: true, quoteDesktop: "desktop:text-[36px]" },
+  { id: "elyashiv-engineering", photo: "/testimonials/elyashiv-engineering.jpg", cream: false, quoteDesktop: "desktop:text-[36px]" },
+] as const;
+
+/**
+ * ≤809 ONLY. A static stack, no arrows. Per-card MEASURED box, padding and gap.
+ *
+ * ⚠️ SLOT 1 CARRIES DIFFERENT COPY AT THIS WIDTH, and that is the capture's own editorial quirk
+ * rather than a truncation: the original ships a different sentence, not a shortened one. The
+ * dictionary models it as a single `phoneLeadQuote`, because only slot 1 differs — cards 2 to 6
+ * reuse their slide's string, which is what the original does too. One string to replace per
+ * client when the real wording lands.
+ *
+ * ⚠️ THE BOXES ARE FIXED HEIGHTS, SO A LONG QUOTE CLIPS RATHER THAN GROWING THE CARD. Measured
+ * 505 and 334. With the fixed author block below it that leaves 12 lines for card 1 and 8 for
+ * the rest at 20px/1.3em in a 310px measure. Measured: English 9 / 5 / 6 / 5 / 5 / 6, Hebrew
+ * 8 / 5 / 5 / 5 / 5 / 6. Re-measure if the real quotes come back long.
+ *
+ * ⚠️ SIX CARDS, A DELIBERATE DEPARTURE FROM THE CAPTURE, which ships exactly TWO here against
+ * three slides above. That asymmetry was reproduced faithfully until 2026-08-12 and stops making
+ * sense once the page carries clix's own six: a phone reader seeing two of six, with no arrows
+ * and no affordance suggesting more exist, reads it as the list. The cost is scroll length —
+ * roughly 2100px. If that proves too long, cut the TAIL rather than reordering, so the two tiers
+ * keep agreeing on who comes first.
+ *
+ * Cards 3 to 6 take card 2's measured shape (334 / p-6 / gap-5), not card 1's. Card 1 is the
+ * one-off: 505px because the original's lead card carries a longer quote and its own padding and
+ * gap (`--u1dxzv` / `--50mq1o`; the two cards share neither value). `cream` is read from
+ * SLIDE_STYLE above so the two tiers stripe identically by construction.
+ *
+ * The original's phone copy sets slot 2's ROLE in capitals AND applies
+ * `text-transform: uppercase`, so it renders the same as the sentence-case one. Sentence case
+ * everywhere here: identical output, one less thing to keep in step.
+ */
+const PHONE_STYLE = [
+  { box: "h-[505px]", pad: "pt-8 pr-6 pb-6 pl-6", gap: "gap-20" },
+  { box: "h-[334px]", pad: "p-6", gap: "gap-5" },
+  { box: "h-[334px]", pad: "p-6", gap: "gap-5" },
+  { box: "h-[334px]", pad: "p-6", gap: "gap-5" },
+  { box: "h-[334px]", pad: "p-6", gap: "gap-5" },
+  { box: "h-[334px]", pad: "p-6", gap: "gap-5" },
+] as const;
 
 /* ---- Card internals, shared by all three tiers ---------------------------------------- */
 
@@ -431,6 +343,21 @@ function CardBody({
  * The pill is `#F5F5F4` there and `surface` `#F5F5F5` here — one step of blue, deliberate:
  * a whole token for a 1/255 difference on two 40px circles is noise. Logged in FEATURE.md.
  */
+/**
+ * `back` selects which ARTWORK to draw — the glyph that points toward the inline start, plus the
+ * `matrix(-1 0 0 1 40 0)` that mirrors the pill's own rounding to match. It does NOT mean
+ * "previous".
+ *
+ * ⚠️ SO ITS MEANING IS DIRECTION-DEPENDENT AND THE CALL SITES DECIDE IT:
+ *     back = (role === "prev") !== (dir === "rtl")
+ * In ltr that is `true` for prev and `false` for next, i.e. exactly today's `<Arrow back />` and
+ * `<Arrow back={false} />`, so the English markup is unchanged. In rtl the previous slide lies
+ * toward the inline END, so the two glyphs swap — which is the "swap which component renders"
+ * mechanism, no new artwork and no `scale-x` needed, because the pair is already exact mirrors.
+ *
+ * The BUTTON ORDER needs nothing: the row is `flex-row`, so under rtl prev lays out on the right,
+ * which is the convention.
+ */
 function Arrow({ back }: { back: boolean }) {
   return (
     <svg viewBox="0 0 40 40" fill="none" aria-hidden="true" className="h-10 w-10">
@@ -480,15 +407,27 @@ const COMMIT_FRACTION = 0.3;
 const IDLE_MS = 80;
 /* Velocity is measured over this trailing window, not over the last event pair. */
 const VELOCITY_WINDOW_MS = 100;
-const N = SLIDES.length;
+const N = SLIDE_STYLE.length;
 /* Three copies, so a step off either end of the middle copy still lands on a real slide and
    can be snapped back invisibly. The original ships four copies; three is the minimum that
-   behaves identically for a ±1 step. */
-const LOOP = [...SLIDES, ...SLIDES, ...SLIDES];
+   behaves identically for a ±1 step.
+   An array of INDICES rather than of slides, now that the copy comes from a hook: the loop is
+   layout and belongs at module scope, the strings are not. */
+const LOOP = Array.from({ length: N * 3 }, (_, i) => i % N);
 
 export default function ProductTestimonials() {
-  /* Start on the middle copy, so the first "Previous" has somewhere to go. */
-  const [pos, setPos] = useState(N);
+  const t = usePageDict("product").testimonials;
+  const a11y = useChrome().a11y;
+  /* +1 in ltr, -1 in rtl. Stable for the lifetime of the mount — switching locale is a hard
+     document navigation across two root layouts — so it needs no revert/rebuild path. */
+  const sign = useDirSign();
+  const dir = useDirection();
+  /* Which glyph each control draws. See the note on `Arrow`. */
+  const drawBack = (role: "prev" | "next") => (role === "prev") !== (dir === "rtl");
+  /* Start on the middle copy, so the first "Previous" has somewhere to go.
+     Explicitly `<number>`: `N` is now `SLIDE_STYLE.length` on an `as const` tuple, so its type is
+     the literal 6 and inference would pin the state to it. */
+  const [pos, setPos] = useState<number>(N);
   const [animate, setAnimate] = useState(true);
   const [still, setStill] = useState(false);
   /* Outstanding drag offset in px, carried ON TOP of the index transform. It survives the
@@ -543,7 +482,10 @@ export default function ProductTestimonials() {
     const span = lastS.t - first.t;
     const v = idle > IDLE_MS || span <= 0 ? 0 : ((lastS.x - first.x) / span) * 1000;
     const projected = dx + v * FLICK_PROJECTION_S;
-    if (width && Math.abs(projected) > width * COMMIT_FRACTION) go(projected < 0 ? 1 : -1);
+    /* ⚠️ THE MAGNITUDE TEST IS SIGN-BLIND and stays exactly as fitted; only the DIRECTION test
+       takes the sign. Dragging left advances in ltr and retreats in rtl, so `sign * projected`
+       is what decides which index to target. `go()` itself still takes ±1 as an index step. */
+    if (width && Math.abs(projected) > width * COMMIT_FRACTION) go(sign * projected < 0 ? 1 : -1);
     /* Otherwise leave `drag` exactly where the pointer left it — no snap-back. */
   };
 
@@ -597,27 +539,30 @@ export default function ProductTestimonials() {
           {/* The arrows live 40px ABOVE the box, flush to its right edge — the original
               pins them `top:-80px; right:0` inside a box whose own overflow is visible, so
               they sit in the section's 124px top padding. */}
+          {/* `end-0`, not `right-0`: the controls sit against the container's inline END, so
+              under rtl they move to the left edge. Resolves to `right:0` in ltr. */}
           <fieldset
-            aria-label="Slideshow pagination controls"
-            className="absolute -top-20 right-0 m-0 flex flex-row items-center gap-3 border-0 p-0"
+            aria-label={t.a11y.controls}
+            className="absolute -top-20 end-0 m-0 flex flex-row items-center gap-3 border-0 p-0"
           >
             {/* Never disabled — it loops. Measured, not assumed: both arrows report
                 `disabled=false, opacity:1` at every sample of the live page. */}
             <button
               type="button"
-              aria-label="Previous"
+              aria-label={a11y.previous}
+              /* NO SIGN. `-1` is an index step: "previous" is one earlier in every language. */
               onClick={() => go(-1)}
               className="block cursor-pointer overflow-hidden rounded-full text-ink transition-opacity duration-300 ease-[var(--ease-rogo)] hover:opacity-70 focus-visible:ring-2 focus-visible:ring-ink focus-visible:outline-none"
             >
-              <Arrow back />
+              <Arrow back={drawBack("prev")} />
             </button>
             <button
               type="button"
-              aria-label="Next"
+              aria-label={a11y.next}
               onClick={() => go(1)}
               className="block cursor-pointer overflow-hidden rounded-full text-ink transition-opacity duration-300 ease-[var(--ease-rogo)] hover:opacity-70 focus-visible:ring-2 focus-visible:ring-ink focus-visible:outline-none"
             >
-              <Arrow back={false} />
+              <Arrow back={drawBack("next")} />
             </button>
           </fieldset>
 
@@ -639,7 +584,11 @@ export default function ProductTestimonials() {
             <ul
               className="m-0 flex h-full w-full list-none flex-row items-center gap-2 p-0"
               style={{
-                transform: `translateX(calc(${-pos} * (100% + 8px) + ${drag}px))`,
+                /* ⚠️ `sign * -pos`. Under rtl a `flex-row` track lays slide 0 against the
+                   container's RIGHT edge and overflows leftward, so slide `pos` is brought into
+                   view by translating `+pos × step`. `drag` is NOT signed — it is a physical
+                   pointer delta and `translateX` is a physical axis, so the two already agree. */
+                transform: `translateX(calc(${sign * -pos} * (100% + 8px) + ${drag}px))`,
                 /* No transition while a finger is down — the track tracks the pointer 1:1. */
                 transition:
                   animate && !still && !grabbing
@@ -647,9 +596,12 @@ export default function ProductTestimonials() {
                     : "none",
               }}
             >
-              {LOOP.map((s, i) => (
+              {LOOP.map((slide, i) => {
+                const copy = t.slides[slide];
+                const style = SLIDE_STYLE[slide];
+                return (
                 <li
-                  key={`${s.id}-${i}`}
+                  key={`${style.id}-${i}`}
                   aria-hidden={i !== pos}
                   className="flex h-full w-full flex-none flex-row items-center gap-4"
                 >
@@ -657,14 +609,14 @@ export default function ProductTestimonials() {
                       author block to the bottom without a spacer. */}
                   <div
                     className={`relative flex h-full w-px flex-1 flex-col items-start justify-center gap-20 overflow-hidden p-12 ${
-                      s.cream ? "bg-bone" : "bg-surface"
+                      style.cream ? "bg-bone" : "bg-surface"
                     }`}
                   >
                     <CardBody
-                      quote={s.quote}
-                      name={s.name}
-                      role={s.role}
-                      quoteSize={`text-[28px] ${s.quoteDesktop}`}
+                      quote={copy.quote}
+                      name={copy.name}
+                      role={copy.role}
+                      quoteSize={`text-[28px] ${style.quoteDesktop}`}
                     />
                   </div>
                   {/* The portrait: 360px wide, full height. Hidden below 1200 — that is the
@@ -686,10 +638,17 @@ export default function ProductTestimonials() {
                         single pair would be false for at least one of them. Nothing is lost:
                         the box above fixes BOTH axes in CSS, so the intrinsic ratio can cause
                         no layout shift and the attributes would only be wrong metadata. */}
+                    {/* ⚠️ THE ALT IS A TEMPLATE, `"{name}, {role}"`, so the glue between the two
+                        is a translator's decision and not a hard-coded English comma. It is the
+                        same comma in Hebrew, so the rendered string is unchanged in both — but
+                        the punctuation is now stated in the dictionary rather than in JSX.
+                        PRE-EXISTING WART, CARRIED: `elyashiv-engineering` has an empty role, so
+                        its alt has always ended in a trailing ", ". Not fixed here, because
+                        fixing it would move the English render. Reported. */}
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={s.photo}
-                      alt={`${s.name}, ${s.role}`}
+                      src={style.photo}
+                      alt={interpolate(t.a11y.portraitAlt, { name: copy.name, role: copy.role })}
                       /* Without this the browser's own image-drag ghost hijacks the
                          gesture and the carousel never sees the pointer move. */
                       draggable={false}
@@ -697,24 +656,30 @@ export default function ProductTestimonials() {
                     />
                   </div>
                 </li>
-              ))}
+                );
+              })}
             </ul>
           </div>
         </div>
 
-        {/* ---- ≤809: two static cards, Patrice first, no arrows. ---- */}
+        {/* ---- ≤809: six static cards, slot 1 first, no arrows. ---- */}
         <div className="relative flex w-full flex-col items-center gap-6 overflow-hidden tablet:hidden">
-          {PHONE_CARDS.map((c) => (
+          {PHONE_STYLE.map((box, i) => (
+            /* `pt-8 pr-6 pb-6 pl-6` on card 1 is a SYMMETRIC HORIZONTAL PAIR — `pr-6 pl-6` is
+               `px-6` written long, and only the vertical values differ. Direction-neutral by
+               construction, so it stays physical: migrating it would swap two identical numbers.
+               Verified, not overlooked. */
             <div
-              key={c.id}
-              className={`relative flex w-full flex-col items-start justify-center overflow-hidden ${c.box} ${c.pad} ${c.gap} ${
-                c.cream ? "bg-bone" : "bg-surface"
+              key={SLIDE_STYLE[i].id}
+              className={`relative flex w-full flex-col items-start justify-center overflow-hidden ${box.box} ${box.pad} ${box.gap} ${
+                SLIDE_STYLE[i].cream ? "bg-bone" : "bg-surface"
               }`}
             >
               <CardBody
-                quote={c.quote}
-                name={c.name}
-                role={c.role}
+                /* Slot 1 alone has its own string at this width; the rest reuse their slide's. */
+                quote={i === 0 ? t.phoneLeadQuote : t.slides[i].quote}
+                name={t.slides[i].name}
+                role={t.slides[i].role}
                 quoteSize="text-[20px]"
               />
             </div>

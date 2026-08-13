@@ -27,6 +27,163 @@ clean; `npx tsc --noEmit` clean across the project.
 
 ---
 
+## 2026-08-12 — Block 1's clip: 4K master in, and a reversal on how it is framed
+
+User supplied `boss-vid.mp4`, *"its more hd, right now its horizontal make it vertical"*.
+
+**The file is `3840x2160` with the content lying on its side and no rotation flag**, which is
+what "horizontal" meant. Not a portrait file with a rotation tag like `boss-lecture.mp4`: this
+one has the rotation **baked into the pixels**, so a browser plays it sideways and no metadata
+fixes it. Rotation direction was settled by rendering both `transpose=1` and `transpose=2` side
+by side rather than reasoning about it: clockwise is upright.
+
+### The reversal, and why the first answer was reasonable but wrong
+
+Asked whether the upright portrait clip should be shown at its natural shape or keep filling the
+16:9 band. Answer was the portrait player; built it, measured it (403.7 / 297.7 / 112.9 wide,
+aspect 0.5625, centred at every tier, band height untouched). Then, seeing it beside rogo's own
+page: *"why is it like this? it should be like rogo not portrait"*. Reverted.
+
+Worth recording because the second answer is obviously right once seen and was not obviously
+right when asked. **A side by side against the target settles a framing question faster than a
+description of one.** The ASCII sketches in the question were accurate and still misled.
+
+### What ships
+
+Pre-cropped to 16:9 in one command rather than letting CSS crop:
+
+```
+transpose=1, crop=2160:1210:0:1314, scale=1920:1076
+```
+
+Offset **1314 is the vertical centre**, chosen by comparing three candidates: higher lost the
+seated listener, lower pushed the speaker's head against the top edge. Centre also means plain
+`50% 50%`, which is the capture's own value.
+
+Two consequences of pre-cropping:
+- **`objectPosition` is inert.** The file already is 16:9, so cover has nothing to crop.
+  Reframing means re-encoding with a different offset, not editing CSS.
+- **1.9 MB instead of 3.7 MB.** The portrait original carried 68% of its bytes as pixels the
+  band never draws.
+
+**The softness is gone.** 1920 source width downscales into the 1280px box; `boss-lecture.mp4`
+was 576 wide and upscaled 2.2x. That file and its poster are deleted.
+
+The 8.8 MB master is kept **outside the web root** at `assets/boss-vid-source-4k.mp4`, because
+everything under `public/` is served whether or not anything references it.
+
+### ⚠️ A harness default that reads as a bug
+
+`vidbox.js` reported the video paused at every tier and it looked like autoplay had regressed.
+It had not. `cdp.js`'s `connect()` **always emulates `prefers-reduced-motion: reduce`**, which is
+deliberate — it is how the geometry probes get a deterministic resting state — and the pause was
+the reduced-motion handling working correctly.
+
+Two things follow. **Every screenshot in this feature's `assets/` shows the reduced-motion
+path**, so a paused poster there is not evidence of a fault. And any future check of autoplay
+must override the emulation explicitly, as `scratchpad/shot-normal.js` does.
+
+---
+
+## 2026-08-12 — Block 1's video autoplays, and the obvious implementation was wrong
+
+User: *"make the video auto play in company remove the play button"*. A deliberate departure
+from the target on this one point: the capture's variant is literally named `Paused` and waits
+for a press.
+
+`muted` is **required**, not decoration. Browsers block unmuted autoplay outright, so without
+it the promise rejects and nothing ever plays. It costs nothing because the clip has no audio
+track. `preload` moved `none` → `metadata`: `none` fights autoplay, `auto` would pull the whole
+1.3 MB on every page load whether or not anyone scrolls to the band.
+
+### ⚠️ `autoPlay={!reduced}` DOES NOT HONOUR THE PREFERENCE. The first version shipped that bug.
+
+Autoplay is exactly the motion a reduced-motion visitor has asked not to see, and
+`globals.css`'s rule cannot help — it targets `.hero-video` only. So the preference was wired
+through the existing `usePrefersReducedMotion` hook … and it did not work.
+
+**Caught by measuring rather than reasoning.** With reduce emulated over CDP, the attribute read
+`autoplay false` and `controls true`, exactly as intended, **and the clip was playing anyway**,
+`currentTime` advancing 4.05 → 6.05.
+
+The cause is hydration order. The hook's server snapshot is `false`, so SSR emits the
+autoplaying markup and the browser starts the clip while parsing. React then hydrates and drops
+the attribute, but **`autoplay` is only consulted when playback BEGINS** — removing it never
+pauses an element that is already running.
+
+Fixed with an imperative `useEffect` that pauses on `reduced`. That also covers a case the
+attribute never could: someone toggling the OS setting with the page already open.
+
+Verified after the fix, both modes:
+
+| | paused | muted | autoplay | controls | currentTime |
+|---|---|---|---|---|---|
+| no-preference | false | true | true | false | 4.20 → 6.21, advancing |
+| reduce | **true** | true | false | **true** | 0.06 → 0.06, frozen |
+
+It **degrades rather than removes**: a reduced-motion visitor gets the poster plus native
+controls, so the clip is still theirs to watch on purpose. Hiding it outright, which is what
+`globals.css` does to the home hero, would be wrong here — that one is decorative background,
+this one is content.
+
+**Rule worth carrying: a media attribute driven by a client-only hook is not a preference
+guarantee.** SSR renders the default, the browser acts on it before hydration, and only an
+imperative call undoes it. `PlayGlyph` and the click-to-play latch were removed as dead code.
+
+---
+
+## 2026-08-12 — Both media slots replaced with the user's own assets
+
+### Block 5: stock photograph in, Old Jaffa placeholder out
+
+Right subject at last, people at work rather than a landmark. It also **fixed a real defect**:
+the band is `data-nav-theme="light"` per the measured spec, and the dusk placeholder had the nav
+painting dark glyphs over a dark image. The new photograph is bright, so the marker is now
+correct rather than merely specified.
+
+Preparation, none of it cosmetic: renamed off `company bg.jpg` (a space means percent encoding
+in every URL), **2.3 MB at 5917x3950 down to 164 KB at 2400x1200**, and cropped to **2:1 on
+purpose** — neither of the band's own ratios. The band is 2.69 at 1600 and 1.30 at 390, so 2:1
+is the midpoint that survives `cover` at both ends; cropping to either extreme guts the other.
+The uncropped original is preserved **outside the web root** at `assets/company-bg-source.jpg`,
+because everything under `public/` is served and shipped whether or not code references it.
+
+⚠️ **Licence unverified.** The file arrived with no provenance. Confirm commercial use is
+permitted before this route is indexed. And it is **stock, not clix's team**, sitting under a
+heading about joining that team — ordinary for a careers block, much weaker than a quote put in
+a named person's mouth, but not the real thing.
+
+### ⚠️ Block 1: `boss-lecture.mp4` is 9:16 portrait in a 16:9 slot
+
+`ffprobe` reports `1024x576`. The stream carries **`rotation=-90`**, so it actually presents as
+**576x1024**. Reading the reported dimensions and wiring it up would have looked like a clean
+16:9 match and been wrong.
+
+Against the measured `aspect-[1.78344]` box, `object-fit: cover` locks to width and shows about
+**32% of the frame**. Simulated the exact crop before touching the component rather than
+swapping and eyeballing: the speaker's head and the seated listener both survive at `50% 50%`,
+so the position is unchanged.
+
+Two things that cannot be fixed in CSS, both recorded in the component:
+- **No horizontal slack.** Cover locks to width, so `objectPosition`'s first value does nothing
+  here. Only the vertical value reframes it.
+- **576px upscales 2.2x** into the 1280px box, so it renders visibly soft. That is the source.
+  A wider capture is the only fix.
+
+The alternatives, if the crop is ever judged too tight: `object-contain` letterboxing (leaves
+~877px of empty ground either side) or giving the band its own aspect ratio, which breaks the
+clone and moves every band below it. Neither taken.
+
+Still no audio track, like the clip it replaced, so unmuted stays safe.
+
+**Geometry re-verified after both swaps: every band still matches the target to 0.00px at all
+four tiers.**
+
+⚠️ `video/hero-tel-aviv.mp4` and its poster are **unreferenced again**, 6.9 MB of dead weight.
+Candidates for deletion.
+
+---
+
 ## 2026-08-12 — The wave. Five agents, and every one of my errors was caught by an agent
 
 Five agents, one file each, exclusive ownership, launched in one message. All five landed

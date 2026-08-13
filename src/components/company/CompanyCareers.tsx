@@ -62,20 +62,18 @@
  * there are no brackets here.
  */
 
-/* Fitted by rendered line count during prep, not by character count. Both h3 lines fit on one
-   line at every tier and the paragraph reproduces the target's measured box heights
-   (46.8 / 20.8 / 62.4) exactly. /product's regression was a 62-character string against the
-   capture's 63 — well inside the 10% rule, and it still wrapped to three lines where the
-   capture takes two and pushed 645 elements down the page. Character count does not decide
-   wrapping. Do not re-word these without re-measuring. */
-const TITLE_LINE_1 = "Join The Team Building";
-const TITLE_LINE_2 = "What Comes Next";
-
-const BODY =
-  "We are looking for engineers who want to ship systems real businesses depend on. " +
-  "If that is you, come talk to us.";
+import AppLink from "@/components/ui/AppLink";
+import { getDict } from "@/lib/i18n/server";
 
 export default function CompanyCareers() {
+  /* Every string here was fitted by rendered line count, not by character count. Both
+     heading fragments sit on one line at every tier and the paragraph reproduces the
+     target's measured box heights (46.8 / 20.8 / 62.4). /product's regression was a
+     62-character string against the capture's 63 — well inside the 10% rule, and it
+     still wrapped to three lines where the capture takes two and pushed 645 elements
+     down the page. Re-measure before re-wording, in either locale. */
+  const t = getDict().company.careers;
+
   return (
     /* `Reiteration` — column, gap 0, NO padding of its own, overflow hidden. The absent
        padding is what lets the photograph run edge to edge while `Top` keeps the gutter.
@@ -135,9 +133,9 @@ export default function CompanyCareers() {
               className="w-full font-display text-[32px] font-normal text-ink tablet:text-[40px] desktop:text-[44px]"
               style={{ lineHeight: "110%", letterSpacing: "-0.05em" }}
             >
-              {TITLE_LINE_1}
+              {t.titleInk}
               <br />
-              <span className="text-muted">{TITLE_LINE_2}</span>
+              <span className="text-muted">{t.titleMuted}</span>
             </h2>
           </div>
 
@@ -157,7 +155,7 @@ export default function CompanyCareers() {
                          tablet:text-balance desktop:text-[18px] desktop:text-wrap"
               style={{ lineHeight: "130%", letterSpacing: "-0.02em" }}
             >
-              {BODY}
+              {t.body}
             </p>
 
             {/* The CTA. Measured `124 × 36` — the 40px the outer frame suggests is the Framer
@@ -181,7 +179,7 @@ export default function CompanyCareers() {
 
                 An inert `width:auto; height:auto` Framer wrapper between the column and this
                 <a> is dropped rather than copied. */}
-            <a
+            <AppLink
               href="/careers"
               className="flex h-9 w-fit min-w-[124px] shrink-0 cursor-pointer items-center justify-center
                          gap-2 overflow-hidden rounded-[6px] bg-ink px-4 py-2 no-underline
@@ -201,10 +199,10 @@ export default function CompanyCareers() {
                   className="font-sans text-[16px] font-medium whitespace-pre text-paper"
                   style={{ lineHeight: "100%", letterSpacing: "-0.01em" }}
                 >
-                  See Careers
+                  {t.ctaLabel}
                 </span>
               </span>
-            </a>
+            </AppLink>
           </div>
         </div>
       </div>
@@ -221,7 +219,7 @@ export default function CompanyCareers() {
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/company/company-bg.jpg"
-          alt="Three colleagues working in an office, two seated at a wide monitor showing code while a third writes on a wall mounted display."
+          alt={t.photoAlt}
           width={2400}
           height={1200}
           loading="lazy"

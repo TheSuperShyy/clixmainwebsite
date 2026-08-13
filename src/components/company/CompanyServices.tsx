@@ -34,39 +34,30 @@
  *
  * ⚠️ The border matrix is UNIFORM — one class string, no per-cell variants. This is the
  * opposite of `src/components/sections/Security.tsx`, which needs a hand-authored per-cell,
- * per-tier matrix. Here **every** tile is top + right, at **every** tier, colour `#73737326`
- * (= `muted` at 15%). It was worth reading rather than assuming, and it was read off the
- * `--border-*-width` custom properties: Framer paints these with `[data-border]::after`, so
- * a plain `borderWidth` read returns `0px` and tells you nothing.
+ * per-tier matrix. Here **every** tile is top + inline-end, at **every** tier, colour
+ * `#73737326` (= `muted` at 15%). It was worth reading rather than assuming, and it was read
+ * off the `--border-*-width` custom properties: Framer paints these with
+ * `[data-border]::after`, so a plain `borderWidth` read returns `0px` and tells you nothing.
+ *
+ * The edge is written LOGICALLY (`border-e`). Verified in Chrome: at `direction: ltr` the tile
+ * computes `border-right-width: 1px` / `border-left-width: 0px`, which is exactly what
+ * `border-r` computed before, so the measured English value did not move; at `dir=rtl` it
+ * mirrors to the left edge, along with the grid's own column order.
  *
  * The rule is painted as an absolutely positioned overlay span rather than a real `border`,
  * because a real border is laid out — it would render the 164px tile at 166px and push the
  * 344px grid to 348. Same technique, same reason, as ProductDataPartners.tsx:152.
  */
 
-const TITLE = "Built From Eight Services That Work As One System";
-
-const INTRO =
-  "Clix builds AI agents, WhatsApp assistants, CRM implementations, integrations, " +
-  "websites, mobile apps and custom software, plus the AI strategy that works out which " +
-  "of them your business needs, and which it does not.";
-
-/* The eight services, in the order the site lists them. Every label fits on ONE line at
-   every tier; the strings were fitted by rendered line count during prep, not by character
-   count, because character count does not decide wrapping — that lesson cost /product a
-   three-line stepper title where the capture takes two. Do not re-word these casually. */
-const SERVICES: readonly string[] = [
-  "AI Agents",
-  "WhatsApp Automation",
-  "CRM Implementation",
-  "Integrations",
-  "Web Development",
-  "Mobile Development",
-  "Custom Software",
-  "AI Strategy",
-];
+import { getDict } from "@/lib/i18n/server";
 
 export default function CompanyServices() {
+  /* The eight labels, the heading and the intro all live in the dictionary now. Every
+     label was fitted to ONE rendered line at every tier by measurement, not by character
+     count — see en/company.ts and he/company.ts, where three of the eight Hebrew names
+     are LONGER than their English counterparts and the fit is recorded. */
+  const t = getDict().company.services;
+
   return (
     <section
       /* The nav crosses a `bone` ground here, so it reads as a light block. */
@@ -86,31 +77,31 @@ export default function CompanyServices() {
             className="w-full font-display text-[32px] font-normal text-ink tablet:text-[40px] desktop:text-[44px]"
             style={{ lineHeight: "110%", letterSpacing: "-0.05em" }}
           >
-            {TITLE}
+            {t.title}
           </h2>
           {/* Body preset: 18px from 1200, 16 below; 130%, −0.02em, `muted`. */}
           <p
             className="w-full font-sans text-[16px] font-normal text-muted desktop:text-[18px]"
             style={{ lineHeight: "130%", letterSpacing: "-0.02em" }}
           >
-            {INTRO}
+            {t.intro}
           </p>
         </div>
 
         {/* The grid. Semantic list, marker suppressed. 4 columns from 810 up, 1 below. */}
         <ul className="grid w-full list-none grid-cols-1 gap-4 tablet:grid-cols-4">
-          {SERVICES.map((service) => (
+          {t.items.map((service) => (
             <li
               key={service}
               /* Tile: min-height 164, padding 0, centred column, gap 10. `relative` so the
                  rule overlay below has something to anchor to. */
               className="relative flex min-h-[164px] w-full flex-col items-center justify-center gap-[10px] p-0"
             >
-              {/* Uniform top + right rule, `#73737326`. Overlay, not a real border — see
+              {/* Uniform top + inline-end rule, `#73737326`. Overlay, not a real border — see
                   the file header for why. */}
               <span
                 aria-hidden="true"
-                className="pointer-events-none absolute inset-0 border-t border-r border-muted/15"
+                className="pointer-events-none absolute inset-0 border-t border-e border-muted/15"
               />
               {/* ⚠️ THIS TYPE IS OURS, NOT MEASURED. rogo's tiles hold logo artwork and no
                   text at all, so there is no computed style to copy for a label. Sized to

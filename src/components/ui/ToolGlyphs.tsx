@@ -18,6 +18,8 @@
  * form of the strip, and a couple of them among the lockups reads as brand variety.
  */
 
+import Glyph from "./Glyph";
+
 export const TOOL_GLYPHS: Record<string, string> = {
   elevenlabs: "M4.6035 0v24h4.9317V0zm9.8613 0v24h4.9317V0z",
 
@@ -52,23 +54,15 @@ export const TOOL_GLYPHS: Record<string, string> = {
 /**
  * One glyph, sized in px and filled with the inherited colour.
  *
- * `aria-hidden` always: every glyph in this row is paired with the tool's name as real text,
- * so the mark is decoration and labelling it would make a screen reader say the name twice.
+ * A missing slug renders NOTHING rather than a placeholder — that is what lets the carousel
+ * fall back to the wordmark alone for Vapi and monday.com (see the header note).
+ *
+ * The <svg> itself moved to `ui/Glyph.tsx` on 2026-08-12, when /news needed the same element
+ * for a different roster of marks. `aria-hidden` lives there and applies for the same reason
+ * it did here: every glyph in this row is paired with the tool's name as real text.
  */
 export function ToolGlyph({ slug, size }: { slug: string; size: number }) {
   const d = TOOL_GLYPHS[slug];
   if (!d) return null;
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width={size}
-      height={size}
-      fill="currentColor"
-      aria-hidden="true"
-      focusable="false"
-      style={{ flex: "none", display: "block" }}
-    >
-      <path d={d} />
-    </svg>
-  );
+  return <Glyph d={d} size={size} />;
 }

@@ -45,7 +45,8 @@
  * is baked into rogo's own video frame, not a DOM element. Nothing to reproduce.
  */
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useSyncExternalStore } from "react";
+import { usePageDict } from "@/lib/i18n/LocaleProvider";
 
 /* The two corner brackets that frame the CTA. 14x20 each, ink fill, path data verbatim
    from the capture's <use> defs #svg-1980836134_494 (Left) and #svg5446185_500 (Right).
@@ -56,7 +57,19 @@ import { useRef, useState } from "react";
    The 300ms / --ease-rogo timing is OURS and is estimated. Framer animates this in JS and
    the stylesheet's only transition is `color .3s`, so the capture cannot answer it.
    Flagged as estimated in /product's FEATURE.md; the same estimate is reused here rather
-   than a second, different guess. */
+   than a second, different guess.
+
+   ⚠️ NOT MIRRORED IN RTL, AND THAT WAS VERIFIED RATHER THAN OVERLOOKED. The pair is a
+   180-degree ROTATION of one another, not a left/right pair: Left brackets the top edge from
+   above-left, Right brackets the bottom edge from below-right, and rotating the two about the
+   frame's centre maps each onto the other. So the ornament is already symmetric under the only
+   transform that matters and swapping the offsets would move it, not mirror it. Measured in
+   Chrome at 1440 in both locales: the two SVGs sit at x 582–596 and 844–858 against a frame at
+   610–830 — byte-identical numbers in `dir=ltr` and `dir=rtl`. Mirroring would also force
+   `transition-[top,left]` / `transition-[bottom,right]` to become direction-dependent, which
+   is a computed-value change in its own right. /product and /security make the same call, so
+   the three routes agree. These are also frozen offsets (contract §8): a sign may flip, a
+   constant may not. */
 function BracketLeft({ className, style }: { className?: string; style?: React.CSSProperties }) {
   return (
     <svg width="14" height="20" viewBox="0 0 14 20" fill="none" className={className} style={style} aria-hidden="true">
@@ -95,43 +108,69 @@ function BracketRight({ className, style }: { className?: string; style?: React.
   );
 }
 
-/* Play glyph, 29x29 in a 0 0 24 24 box — the capture's def #3535238546, kept verbatim
-   including its `translate(5.75 5.75)` offset and its OUTLINED triangle (fill transparent,
-   1.5px round-joined stroke). It is not the solid triangle Testimonials.tsx uses.
-   The original strokes pure rgb(0,0,0); ours inherits `text-ink` (#151515) from the button
-   so no stray hex enters the component. The delta is 21/255 on a 1.5px stroke. */
-function PlayGlyph() {
-  return (
-    <svg width="29" height="29" viewBox="0 0 24 24" fill="none" className="h-[29px] w-[29px]" aria-hidden="true">
-      <path
-        d="M 12.5 6.25 L 0 0 L 0 12.5 Z"
-        transform="translate(5.75 5.75)"
-        fill="transparent"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
+/* Duplicated verbatim from ProductHero.tsx / ProductStepper.tsx / ProductTestimonials.tsx
+   rather than extracted. The repo has no shared hooks module and four copies of this already
+   exist; adding a fifth keeps the file self contained, which is the established pattern here.
+   The server snapshot is `false`, so SSR renders the autoplaying markup and a reduced-motion
+   client corrects it on hydration. */
+function usePrefersReducedMotion() {
+  return useSyncExternalStore(
+    (onChange) => {
+      const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+      mq.addEventListener("change", onChange);
+      return () => mq.removeEventListener("change", onChange);
+    },
+    () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    () => false,
   );
 }
 
 export default function CompanyHero() {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  /* One-way latch. Once the user has pressed play the native chrome owns the clip, so a
-     later pause must NOT bring the overlay back — that would fight the controls the user
-     is currently holding. Same idiom as Testimonials.tsx. */
-  const [playing, setPlaying] = useState(false);
+  /* THE HOOK, NOT AN IMPORT. A static `import` of a dictionary module from a
+     `"use client"` file bundles BOTH locales into the client chunk
+     (LocaleProvider.tsx's own note). This is the only client component on /company,
+     so it is the only file on the route that reads its strings this way; the other
+     four are server components and call `getDict().company`. */
+  const t = usePageDict("company").hero;
 
-  const handlePlay = () => {
+  /* AUTOPLAY, AND THAT MAKES THIS HOOK LOAD BEARING (2026-08-12, user: "make the video auto
+     play in company remove the play button").
+
+     The previous build was click to play, and its comment argued that reduced motion needed
+     no special case BECAUSE nothing moved until someone asked. That reasoning died with the
+     play button. An autoplaying looping clip is exactly the motion a reduced-motion user has
+     asked not to be shown, and globals.css's rule cannot help: it targets `.hero-video` only.
+
+     So the preference is honoured in JS instead, and it DEGRADES rather than removes: a
+     reduced-motion visitor gets the poster plus native controls, so the clip is still theirs
+     to watch on purpose. Hiding it outright, which is what globals.css does to the home
+     hero, would be wrong here — that one is decorative background, this one is content. */
+  const reduced = usePrefersReducedMotion();
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  /* ⚠️ THE `autoPlay` PROP ALONE DOES NOT HONOUR THE PREFERENCE, and the first version of
+     this shipped that bug. Measured, not theorised: with reduce emulated, the attribute
+     correctly read false and `controls` true, and the clip was playing anyway, currentTime
+     advancing 4.05 -> 6.05.
+
+     The cause is hydration order. `usePrefersReducedMotion`'s server snapshot is `false`, so
+     SSR emits the autoplaying markup and the browser starts the clip while parsing. React
+     then hydrates and drops the attribute, but `autoplay` is only consulted when playback
+     BEGINS: removing it never pauses an element that is already running.
+
+     So the pause has to be imperative. This also covers the live case, someone toggling the
+     OS setting with the page open, which the attribute would not handle either. */
+  useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
-    setPlaying(true);
-    /* play() returns a promise that rejects on an unsupported codec or a revoked gesture.
-       There is nothing to roll back to — the controls are already up, so the user can
-       retry with native chrome — but an unhandled rejection would still hit the console. */
+    if (reduced) {
+      video.pause();
+      return;
+    }
+    /* play() rejects on a revoked gesture or an unsupported codec. Nothing to roll back to,
+       and an unhandled rejection would still reach the console. */
     void video.play().catch(() => {});
-  };
+  }, [reduced]);
 
   return (
     <section
@@ -166,7 +205,7 @@ export default function CompanyHero() {
                          desktop:text-[88px]"
               style={{ lineHeight: "95%" }}
             >
-              The Team Behind the Systems
+              {t.title}
             </h1>
             {/* Subhead 18/16/16, weight 400, 130%, -0.02em, max-w 540, balanced. The
                 preset's own colour is #383838 (ink-soft); the element overrides it inline
@@ -175,7 +214,7 @@ export default function CompanyHero() {
               className="w-full max-w-[540px] text-center font-sans text-[16px] font-normal text-balance text-muted desktop:text-[18px]"
               style={{ lineHeight: "130%", letterSpacing: "-0.02em" }}
             >
-              Clix builds the automation that modern businesses run on.
+              {t.subhead}
             </p>
           </div>
 
@@ -199,7 +238,12 @@ export default function CompanyHero() {
                            group-hover:-right-[18px] group-hover:-bottom-0.5"
                 style={{ transitionTimingFunction: "var(--ease-rogo)" }}
               />
-              {/* The original points at ./demo and reads "Request a Demo". Ours is clix's
+              {/* ⚠️ `left-0 w-full` IS A FULL-BLEED IDIOM AND IS DELIBERATELY NOT MIGRATED to
+                  `start-0`. The pair pins both edges of the anchor to the 220px frame, so
+                  there is no inline start to speak of: measured in Chrome, the used `left` and
+                  `right` are both 0px and the box is 610–830 in BOTH locales. `top-1/2` with
+                  `-translate-y-1/2` is the vertical centring idiom for the same reason.
+                  The original points at ./demo and reads "Request a Demo". Ours is clix's
                   one CTA destination sitewide: `#contact`, the anchor Footer.tsx owns, so
                   it resolves in page on this route. Deviation logged in FEATURE.md.
                   No border: the capture declares a 1px border at rgba(168,162,158,0) and
@@ -223,7 +267,7 @@ export default function CompanyHero() {
                     className="font-sans text-[16px] font-medium whitespace-pre text-paper"
                     style={{ lineHeight: "1em", letterSpacing: "-0.01em" }}
                   >
-                    Let&rsquo;s start
+                    {t.ctaLabel}
                   </span>
                 </span>
               </a>
@@ -239,47 +283,57 @@ export default function CompanyHero() {
           here rather than reproduced. */}
       <div className="flex w-full flex-col items-center justify-center gap-24 overflow-hidden bg-paper px-4 tablet:px-10">
         <div className="relative aspect-[1.78344] w-full max-w-[var(--container-max)] overflow-hidden">
-          {/* The original is `loop preload="none" playsinline`, NOT autoplay and NOT muted:
-              its variant is literally named "Paused" and it waits for a press. Ours matches.
-              Because playback is user initiated rather than automatic, prefers-reduced-motion
-              needs no special case here — nothing moves until someone asks it to. Worth
-              stating: globals.css does carry a reduced-motion rule, but it targets
-              `.hero-video` only and would not have covered this element.
-              Source is Pexels licensed footage already in the repo (see CONTEXT.md). */}
+          {/* ⚠️ OURS, NOT THE CAPTURE'S: the original is `loop preload="none" playsinline`,
+              NOT autoplay and NOT muted. Its variant is literally named "Paused" and it waits
+              for a press. We autoplay, at the user's request. Everything else about this band,
+              including `aspect-[1.78344]`, is the measured clone and must stay.
+
+              THE CLIP FILLS THE BAND, edge to edge, exactly as the target's does. An earlier
+              pass showed it as a centred portrait player instead; that was reverted on
+              2026-08-12 (user: "it should be like rogo not portrait").
+
+              ⚠️ THE SOURCE IS PORTRAIT AND SIDEWAYS, so `boss-talk.mp4` is a derived file and
+              not something to regenerate casually. The master is
+              features/company-page/assets/boss-vid-source-4k.mp4: 3840x2160 with the content
+              lying on its side and NO rotation flag, so a browser plays it sideways. The
+              pipeline that produced what ships here is one command:
+
+                transpose=1, crop=2160:1210:0:1314, scale=1920:1076
+
+              rotate upright, take a 16:9 window, size it for the box. The crop offset 1314 is
+              the vertical CENTRE and was chosen by comparing three candidates: higher lost the
+              seated listener entirely, lower pushed the speaker's head against the top edge.
+
+              Two consequences of pre-cropping rather than letting CSS do it:
+                · `objectPosition` is inert now. The file already IS 16:9, so there is nothing
+                  for cover to crop. Reframing means re-encoding with a different offset.
+                · it ships 1.9 MB instead of 3.7 MB, because no pixel is carried that is never
+                  drawn. The portrait original wasted 68% of every byte.
+
+              1920 source width DOWNSCALES into the 1280px box, so this is sharp. Its
+              predecessor `boss-lecture.mp4` was 576 wide and upscaled 2.2x, which is why that
+              one looked soft.
+
+              `muted` is REQUIRED, not decoration. Browsers block unmuted autoplay outright, so
+              without it the promise rejects and nothing ever plays. It costs nothing here
+              because the clip carries no audio track at all (verified with ffprobe).
+
+              `preload` is `metadata`: `none` fights autoplay, since the browser has to fetch
+              before it can start, and `auto` would pull the whole file on every page load
+              whether or not the band is ever scrolled to. */}
           <video
             ref={videoRef}
-            src="/video/hero-tel-aviv.mp4"
-            poster="/video/hero-tel-aviv-poster.jpg"
-            aria-label="Aerial footage of the Tel Aviv skyline at dusk"
-            preload="none"
+            src="/company/boss-talk.mp4"
+            poster="/company/boss-talk-poster.jpg"
+            aria-label={t.videoLabel}
+            preload="metadata"
+            autoPlay={!reduced}
+            muted
             loop
             playsInline
-            controls={playing}
+            controls={reduced}
             className="absolute inset-0 h-full w-full object-cover"
-            style={{ objectPosition: "50% 50%" }}
           />
-          {/* 56x56, centred, white, radius 43.2px (a circle at that size). The capture also
-              carries a Pause button at the same position, swapped by variant; here the
-              native controls take that job the moment playback starts, so the overlay
-              unmounts instead. The hover scale is OURS — the original sets only
-              `cursor:pointer` on hover, and the repo's definition of done wants a visible
-              hover and focus state on every control. */}
-          {!playing && (
-            <button
-              type="button"
-              onClick={handlePlay}
-              aria-label="Play the video"
-              className="absolute top-1/2 left-1/2 z-[1] flex h-14 w-14 -translate-x-1/2
-                         -translate-y-1/2 items-center justify-center overflow-hidden
-                         rounded-full bg-paper text-ink transition-transform duration-300
-                         hover:scale-105 focus-visible:scale-105 focus-visible:ring-2
-                         focus-visible:ring-paper focus-visible:ring-offset-2
-                         focus-visible:ring-offset-ink focus-visible:outline-none"
-              style={{ transitionTimingFunction: "var(--ease-rogo)" }}
-            >
-              <PlayGlyph />
-            </button>
-          )}
         </div>
       </div>
     </section>

@@ -172,9 +172,15 @@ over CDP, not sampled from a screenshot. All three are wired into the `@theme` b
 
 | Token | Value | Where it is used | Contrast |
 |---|---|---|---|
-| `signal-green` | `#19a26c` | the 8×8 r20 status dot in `N open positions` | decorative; the adjacent text carries the meaning, so exempt |
-| `glyph` | `#afafaf` | the 24×24 corner-turn arrow at the head of each role row | 8.33:1 on `ink`, and it is an icon |
-| `control-scrim` | `#00000033` | behind the carousel's two 40×40 Prev/Next buttons | n/a — covered by an opaque white SVG circle |
+| `signal-green` | `#19a26c` | ⚠️ **IDLE since 2026-08-12** — was the 8×8 r20 status dot in `N open positions` | decorative; was exempt from the floor |
+| `glyph` | `#afafaf` | ⚠️ **IDLE since 2026-08-12** — was the 24×24 corner-turn arrow on each role row | 8.33:1 on `ink`, and it was an icon |
+| `control-scrim` | `#00000033` | **live** — behind the carousel's two 40×40 Prev/Next buttons | n/a — covered by an opaque white SVG circle |
+
+⚠️ **`signal-green` and `glyph` went idle when the `#roles` band was removed** (user, same day:
+"remove this section we dont need job offering for now"). Both are kept in `@theme` rather than
+deleted — they are the target's own measured values, the band restores from commit `bbf10b1`,
+and re-deriving them would mean re-probing a live site for two hex codes. **Do not introduce
+them anywhere else** to justify their presence; that is how a palette drifts.
 
 `glyph` is deliberately not `mark` (`#8b8b8b`): the original paints the arrow two steps
 lighter than the label beside it, and collapsing the pair flattens the row's hierarchy.
@@ -208,13 +214,15 @@ close it with a single token change.
 
 **Everything else on `/careers` resolved to existing tokens** — `ink` (page type, and the
 roles band ground), `paper`, `muted` (the h3's second line, and the row index), `surface`
-(the roles h2 and the role titles on `ink`), `mark` (count, group headings, locations),
+(was the roles h2 and role titles on `ink`), `mark` (was count, group headings, locations),
 `hairline` `#a8a29e33` (both the group divider and the dashed row rule, which is the same
 `rgba(168,162,158,0.2)` written two ways).
 
-⚠️ **One inherited AA failure, not introduced here:** the row index is `muted` on `ink` =
-**3.85:1**. `mark` on the same ground is 5.36:1 and would fix it with one token change.
-Shipped as measured and flagged in `features/careers-page/FEATURE.md`; awaiting the user's call.
+~~⚠️ **One inherited AA failure:** the row index is `muted` on `ink` = **3.85:1**.~~
+**RESOLVED 2026-08-12 by deletion, not by a fix** — the row it lived on no longer exists. The
+finding still stands as a fact about the *target*, and about `/product` Blocks 4/5/6, which
+carry the identical `muted`-on-`ink` pairing and are still shipping it. Recorded here so the
+next reader does not conclude the site is clean of it.
 
 `#135b45` left this list on 2026-08-11 — it is `brand-green`, and `/product` is the page that
 uses it: the hero prompt-field's submit arrow, Framer's

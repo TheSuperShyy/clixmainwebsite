@@ -35,12 +35,24 @@
  * ACCESSIBILITY. The scrolling strip is `aria-hidden` and a visually-hidden paragraph carries
  * the same figures as static text, so a screen reader gets them once, in order, without the
  * duplicate pass the marquee needs.
+ *
+ * DIRECTION (2026-08-12, Hebrew/RTL pass). This component needs NO direction hook, and that is
+ * a finding rather than an omission — each of its three direction-sensitive parts turns out to
+ * carry direction already, or not to be direction-sensitive at all:
+ *   · the tween's sign comes free from `offsetLeft`, which never flips (see `start()` below).
+ *     Only the reads that treat `cycle` as a MAGNITUDE needed `Math.abs`;
+ *   · the price arrow is a semantic operator, so the expression is isolated LTR rather than
+ *     mirrored (see `Item`);
+ *   · the edge-fade mask is symmetric, so it is direction-neutral as written (see the mask).
+ * Nothing here reads `useDirSign()` and nothing needs to.
  */
 
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import type { ModelPrice } from "@/lib/models";
+import { useChrome } from "@/lib/i18n/LocaleProvider";
+import { interpolate } from "@/lib/i18n/format";
 
 gsap.registerPlugin(useGSAP);
 
@@ -131,8 +143,25 @@ function Item({ m }: { m: ModelPrice }) {
         {m.name}
       </span>
       {/* U+2192, not "->" — and not the "·" it replaced, which read as a separator between two
-          equal things rather than as a direction. */}
-      <span className="font-sans text-[14px] text-paper/75">
+          equal things rather than as a direction.
+
+          RTL: THE ARROW IS NEITHER MIRRORED NOR SWAPPED FOR U+2190. Per the note above it
+          stands in for the words `in`/`out`, which makes it a semantic operator inside a
+          numeric expression rather than prose — and `$5 ← $25` reads output-to-input, i.e.
+          backwards. Swapping the glyph and letting the bidi algorithm reorder the run does
+          land on a correct read, but it costs more than it buys: one glyph would then mean two
+          different things depending on ambient direction, and the trailing ` /M` sits exactly
+          on a bidi boundary (`/` is CS, `M` is strong L) where the reordering is not something
+          you can predict from the source. Forcing the whole expression to an LTR isolate keeps
+          one glyph meaning one thing sitewide, and is how Hebrew financial copy actually sets
+          a currency expression.
+
+          ⚠️ VIA THE `rtl:` VARIANT, NEVER A BARE `dir="ltr"` ATTRIBUTE. HTML's suggested
+          rendering includes `[dir] { unicode-bidi: isolate }`, so the attribute would flip
+          this span's computed `unicode-bidi` from `normal` to `isolate` on the ENGLISH page
+          too — not a no-op, and the LTR side of this pass has to be one. The variant compiles
+          to a `[dir="rtl"]`-scoped rule that cannot match there at all. */}
+      <span className="font-sans text-[14px] text-paper/75 rtl:[direction:ltr] rtl:[unicode-bidi:isolate]">
         {formatUsd(m.inputPerM)} → {formatUsd(m.outputPerM)}
         <span className="text-paper/55"> /M</span>
       </span>
@@ -158,6 +187,9 @@ function Item({ m }: { m: ModelPrice }) {
 const BASE_PASSES = 3;
 
 export default function ModelTicker({ initial }: { initial: ModelPrice[] }) {
+  /* Only the sr-only sentence needs strings here — every painted field on the row (lab, model
+     name, both prices, the context window) is Latin or numeric in both locales. */
+  const a11y = useChrome().a11y;
   const [models, setModels] = useState<ModelPrice[]>(initial);
   const [passes, setPasses] = useState(BASE_PASSES);
   const root = useRef<HTMLDivElement>(null);
@@ -198,15 +230,39 @@ export default function ModelTicker({ initial }: { initial: ModelPrice[] }) {
         if (cancelled) return;
         const items = ul.children;
         if (items.length < models.length + 1) return;
+        /* ⚠️ `cycle` IS A SIGNED DELTA, NOT A LENGTH — AND IN RTL IT IS NEGATIVE. `offsetLeft`
+           is measured from the offset parent's LEFT edge in every direction; it does not flip.
+           An RTL `flex-row w-max` track lays item N to the LEFT of item 0, so this subtraction
+           comes out negative there. That sign is precisely what makes `x: -cycle` below correct
+           in BOTH directions with no direction factor applied: in LTR it slides the track left
+           by one cycle, in RTL it slides it right by one, which is the mirror. DO NOT multiply
+           this by a direction sign — that would cancel the flip and drive the RTL track the
+           wrong way, into the hole behind the start point.
+
+           What must not inherit the sign is anything reading `cycle` as a magnitude — a
+           duration, or a count of copies. Those get `Math.abs` (here and in the tween). In LTR
+           `cycle > 0`: item N sits that far to the right of item 0, and 0 is filtered on the
+           next line. So `Math.abs` is a provable no-op in LTR — `Math.abs(x) === x` holds for
+           every positive double — and the English render does not move. */
         const cycle =
           (items[models.length] as HTMLElement).offsetLeft -
           (items[0] as HTMLElement).offsetLeft;
+        /* Truthiness test on purpose, and it stays one: it rejects 0 (unmeasured or collapsed
+           track) and NaN. A negative cycle is truthy, and is the ordinary RTL case. */
         if (!cycle) return;
 
         /* Widen the track if this viewport is wider than the copies behind the start point.
            Bails out by returning: the state change re-runs this effect with the new count,
-           and the tween is built on that pass instead of on a track about to change width. */
-        const needed = Math.max(BASE_PASSES, Math.ceil(window.innerWidth / cycle) + 1);
+           and the tween is built on that pass instead of on a track about to change width.
+
+           `Math.abs` is load-bearing here: a negative cycle makes the quotient negative, and
+           `Math.max(BASE_PASSES, <negative>)` collapses to BASE_PASSES — silently disabling
+           the anti-hole guard documented at BASE_PASSES above, i.e. reinstating the 27px gap
+           at the right edge on wide viewports. */
+        const needed = Math.max(
+          BASE_PASSES,
+          Math.ceil(window.innerWidth / Math.abs(cycle)) + 1,
+        );
         if (needed !== passes) {
           setPasses(needed);
           return;
@@ -215,8 +271,11 @@ export default function ModelTicker({ initial }: { initial: ModelPrice[] }) {
         mm.add("(prefers-reduced-motion: no-preference)", () => {
           gsap.set(ul, { x: 0 });
           gsap.to(ul, {
+            /* Signed on purpose — see above. This one line is correct in both directions. */
             x: -cycle,
-            duration: cycle / SPEED_PX_PER_SEC,
+            /* Distance over speed, so a MAGNITUDE. A negative duration is undefined behaviour
+               in GSAP; in LTR `Math.abs` is a no-op on an already-positive cycle. */
+            duration: Math.abs(cycle) / SPEED_PX_PER_SEC,
             ease: "none",
             repeat: -1,
           });
@@ -225,7 +284,14 @@ export default function ModelTicker({ initial }: { initial: ModelPrice[] }) {
 
       /* Same font-load gate as the logo marquee, and load-bearing for the same reason: these
          items are text, and text measured before the webfont swap gives a cycle that is wrong
-         by the reflow delta — which the loop then repeats forever. */
+         by the reflow delta — which the loop then repeats forever.
+
+         DO NOT DROP THIS IN THE RTL PASS; it only gets more load-bearing. Every field on the
+         row is Latin or digits today (lab, model name, prices), so the Hebrew page measures
+         the same glyphs as the English one — but the moment any of them localises, the
+         pre-swap measurement error grows with the text: Hebrew advances average 1.117x Latin
+         lowercase in discovery-var.woff2, and a cycle measured before the swap bakes that
+         error into every repeat, so the seam tears once per loop forever rather than once. */
       document.fonts.ready.then(start);
 
       return () => {
@@ -244,11 +310,15 @@ export default function ModelTicker({ initial }: { initial: ModelPrice[] }) {
       if (!ul || !models.length) return;
       const items = ul.children;
       if (items.length < models.length + 1) return;
+      /* Signed, and negative in RTL — the full explanation is on the tween above. `Math.abs`
+         for the same reason it is there: this is a count of copies, not a direction. */
       const cycle =
         (items[models.length] as HTMLElement).offsetLeft -
         (items[0] as HTMLElement).offsetLeft;
       if (!cycle) return;
-      setPasses(Math.max(BASE_PASSES, Math.ceil(window.innerWidth / cycle) + 1));
+      setPasses(
+        Math.max(BASE_PASSES, Math.ceil(window.innerWidth / Math.abs(cycle)) + 1),
+      );
     };
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
@@ -259,15 +329,30 @@ export default function ModelTicker({ initial }: { initial: ModelPrice[] }) {
   return (
     <div ref={root} className="relative flex w-full items-center overflow-hidden">
       {/* The readable copy, for assistive tech only — the marquee below is decoration by the
-          time you cannot see it move. */}
+          time you cannot see it move.
+
+          ⚠️ STILL ENGLISH ON THE HEBREW PAGE, KNOWINGLY. The sentence is assembled from live
+          API data plus fixed connectives, and those connectives belong in `chrome.a11y` rather
+          than here. The three keys were requested rather than invented in this file, and are now
+          filled in both locales. Rows join with "; "; both prices come from `formatUsd`, i.e. a
+          $-prefixed Latin numeral in either language. Nothing here is painted, so the Hebrew
+          needs no bidi isolation — a screen reader reads a number in the number's own
+          direction. */}
       <p className="sr-only">
-        Frontier model pricing, US dollars per million tokens:{" "}
+        {a11y.tickerIntro}{" "}
         {models
           .map(
             (m) =>
-              `${m.lab ? `${m.lab} ` : ""}${m.name}, ` +
-              `${formatUsd(m.inputPerM)} input and ${formatUsd(m.outputPerM)} output` +
-              (m.context ? `, ${formatContext(m.context)} context` : ""),
+              interpolate(a11y.tickerRow, {
+                model: `${m.lab ? `${m.lab} ` : ""}${m.name}`,
+                in: formatUsd(m.inputPerM),
+                out: formatUsd(m.outputPerM),
+              }) +
+              (m.context
+                ? interpolate(a11y.tickerContext, {
+                    ctx: formatContext(m.context),
+                  })
+                : ""),
           )
           .join("; ")}
       </p>
@@ -277,7 +362,13 @@ export default function ModelTicker({ initial }: { initial: ModelPrice[] }) {
         className="relative w-full overflow-hidden"
         style={{
           /* Fade both ends so items enter and leave instead of being chopped by the edge.
-             Same stops as the logo row, so the two strips behave identically. */
+             Same stops as the logo row, so the two strips behave identically.
+
+             `to right` IS CORRECT IN RTL TOO, verified rather than overlooked: the stops are
+             0/6/94/100 with alphas 0/1/1/0, i.e. mirror-symmetric about 50%, so `to left`
+             would paint a byte-identical mask. THAT SYMMETRY IS LOAD-BEARING — there is no
+             logical-direction keyword for a gradient, so if either inner stop is ever moved
+             off its mirror this needs an `rtl:` override. */
           maskImage:
             "linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 6%, rgba(0,0,0,1) 94%, rgba(0,0,0,0) 100%)",
           WebkitMaskImage:

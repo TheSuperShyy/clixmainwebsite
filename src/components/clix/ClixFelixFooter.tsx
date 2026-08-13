@@ -29,7 +29,11 @@
  * which letters the word happens to have.
  */
 
+import { getDict } from "@/lib/i18n/server";
+
 export default function ClixFelixFooter() {
+  const t = getDict().clix.felixFooter;
+
   return (
     /* NO BACKGROUND, and that is measured: every block on the target is transparent —
          the shared fixed backdrop is the only thing on the page that paints a colour.
@@ -79,7 +83,33 @@ export default function ClixFelixFooter() {
               soft-edged by the blur); the flood tints that sliver and it merges over the
               flat face. All in userSpace units where 1000 = 1em, so it scales with the
               word by construction. */}
-          <div className="pointer-events-none w-full select-none" aria-hidden="true">
+          {/* THE dir="ltr" BELOW IS A BUG FIX, NOT A STYLE CHOICE (2026-08-12), and it is
+              the belt to the `direction` presentation attribute on the <text> further down.
+
+              `direction` INHERITS INTO SVG. The <text> carries the default
+              `text-anchor: start`, and in SVG `start` means INLINE-start — so with
+              `direction: rtl` inherited from <html>, the anchor becomes the RIGHT edge and
+              `x="-20"` puts the word's right end at -20. The 2049-unit-wide word then spans
+              -2069..-20, entirely left of `viewBox="0 0 2034 696"`, and THE WORDMARK
+              VANISHES. Measured in headless Chrome, both states:
+
+                  inherited ltr   text.getBBox().x = -20      ink inside the viewBox
+                  inherited rtl   text.getBBox().x = -2069    nothing painted
+
+              This is not about glyph coverage — it fails with the word "CLIX", whose four
+              glyphs are the only ones the subset ships.
+
+              `dir` is an HTML attribute and does NOT apply to SVG elements, which is why it
+              is on this <div> and the <text> gets SVG's `direction` instead. Here it makes
+              `direction: ltr` inherit into the whole subtree.
+
+              PROVABLY A NO-OP IN ENGLISH: `direction: ltr` is already the inherited value on
+              an English page, so no computed value below this node changes. */}
+          <div
+            dir="ltr"
+            className="pointer-events-none w-full select-none"
+            aria-hidden="true"
+          >
             <svg
               viewBox="0 0 2034 696"
               className="block w-full"
@@ -138,6 +168,20 @@ export default function ClixFelixFooter() {
               <text
                 x="-20"
                 y="678"
+                /* See the dir="ltr" note above — THIS is the attribute that actually pins the
+                   anchor, because `dir` does not apply to SVG elements. A presentation
+                   attribute beats the inherited `direction: rtl` (inheritance loses to any
+                   specified value) and is beaten by nothing here: the `[dir="rtl"]` hook in
+                   globals.css sets no `direction`. Unchanged in English, where `ltr` is
+                   already the computed value.
+
+                   ⚠️ THE WORD STAYS THE FOUR LATIN CAPITALS `CLIX` IN EVERY LOCALE — not
+                   translated, not transliterated, not lower-cased. `--font-emboss` is a
+                   four-glyph subset with `unicode-range: U+0043, U+0049, U+004C, U+0058`, so
+                   any other character silently falls back to Georgia, and the viewBox above
+                   is this font's own ink box for exactly this string. The emboss filter is
+                   direction-neutral by construction: feOffset uses `dy` only, no `dx`. */
+                direction="ltr"
                 fontSize="1000"
                 fontWeight={400}
                 fill="var(--color-emboss-face)"
@@ -163,7 +207,7 @@ export default function ClixFelixFooter() {
               lineHeight: "100%",
             }}
           >
-            by Clix Solutions
+            {t.byline}
           </p>
         </div>
       </div>

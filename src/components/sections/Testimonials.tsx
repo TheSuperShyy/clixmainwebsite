@@ -31,38 +31,58 @@
  * kept, never autoplays, and closing a card stops it.
  */
 
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
+import { usePageDict, useChrome } from "@/lib/i18n/LocaleProvider";
+import { interpolate } from "@/lib/i18n/format";
+import type { HomeDict } from "@/lib/i18n/en/home";
+import type { Translated } from "@/lib/i18n/shape";
 
-type Clip = {
-  id: string;
-  name: string;
-  role: string;
-};
+/* `import type` only — a VALUE import of a dictionary module from a `"use client"` file would
+   bundle both locales into the client chunk. Types are erased, so these two cost nothing and
+   buy the guarantee below. `Translated<>` widens the English file's string LITERAL types back
+   to `string`; without it `ClipCopy` is a union of six literal object types and `t.clips[id]`,
+   itself a union, will not narrow against it. */
+type ClipId = keyof HomeDict["testimonials"]["clips"];
+type ClipCopy = Translated<HomeDict["testimonials"]["clips"][ClipId]>;
 
-/* Names and roles are as published on clixsolutions.info, English-rendered.
+/* Names and roles moved to the dictionary on 2026-08-12 (`home.testimonials.clips`, keyed by
+   these same ids). What stays here is the ORDER — which is layout — and the provenance, which
+   is not translatable and belongs next to the files it describes. Deriving `ClipId` from the
+   dictionary type means an id typo'd in either place fails the build.
+
+   Names and roles are as published on clixsolutions.info; English is the RENDERING of them,
+   and he/home.ts carries the originals.
 
    ⚠️ ONE OF THE SIX IS STILL UNSOURCED:
 
    · `achituv` — came from the uploaded filename ("Achituv-Vtechezena.MOV") and is NOT on the
-     live site, so the role is a reading of that filename, not a sourced fact.
+     live site, so the role is a reading of that filename, not a sourced fact. The Hebrew is
+     therefore a transliteration back out of a transliteration; flagged again in he/home.ts.
 
    `elyashiv-engineering` was the other and is now resolved. It arrived 2026-08-07 as
    "WhatsApp Video 2026-08-07 at 18.00.03.mp4" with nothing to identify the speaker from —
    no burned-in caption, no name card, no title overlay across ten frames of its 19.9s, and
    container metadata holding only `major_brand`/`language=und`. The user supplied the
-   attribution on 2026-08-08 as **אלישיב הנדסה**, rendered here as "Elyashiv Engineering" to
-   match the English treatment of the other five (הנדסה is the word *engineering*).
+   attribution on 2026-08-08 as **אלישיב הנדסה**, rendered in English as "Elyashiv Engineering"
+   to match the treatment of the other five (הנדסה is the word *engineering*). On /he the
+   user's own string is what ships.
 
    ⚠️ That is a COMPANY, not a person, which is why it is the one entry with an empty
    `role` — the card drops its second line rather than invent a job title for a firm. The
-   speaker's own name is still unknown; the user gave the company and nothing more. */
-const CLIPS: Clip[] = [
-  { id: "asaf-peretz", name: "Asaf Peretz", role: "Founder, SalesIQ" },
-  { id: "adir-peretz", name: "Adir Peretz", role: "Owner, video & photography studio" },
-  { id: "nevo-yahaloman", name: "Nevo Yahaloman", role: "Founder" },
-  { id: "noam-tovi", name: "Noam Tovi", role: "Owner, investments" },
-  { id: "achituv", name: "Achituv", role: "Vtechezena" },
-  { id: "elyashiv-engineering", name: "Elyashiv Engineering", role: "" },
+   speaker's own name is still unknown; the user gave the company and nothing more.
+
+   ⚠️ AND ONE ATTRIBUTION IS CONTRADICTED BY ITS OWN ARTWORK. `public/testimonials/noam-tovi.jpg`
+   carries a burned-in caption reading "אני נווה דוידי" (Nave Davidi), not Noam Tovi. Already
+   flagged for /product at product/ProductTestimonials.tsx:220-226. It is invisible to most
+   readers in English and becomes reader-visible on /he, where the card's own name sits inches
+   from a subtitle giving a different one. Unresolved on purpose — see he/home.ts. */
+const CLIP_IDS: readonly ClipId[] = [
+  "asaf-peretz",
+  "adir-peretz",
+  "nevo-yahaloman",
+  "noam-tovi",
+  "achituv",
+  "elyashiv-engineering",
 ];
 
 /* The capture draws this as a CSS mask on a 20px box; the path is an 18px plus glyph
@@ -98,21 +118,26 @@ function PlusButton({ open, className = "" }: { open: boolean; className?: strin
 }
 
 function Card({
-  clip,
+  id,
+  copy,
+  playLabel,
   open,
   playing,
   onOpen,
   onPlay,
   videoRef,
 }: {
-  clip: Clip;
+  id: ClipId;
+  copy: ClipCopy;
+  /** `chrome.a11y.playTestimonial` already interpolated with this clip's name. */
+  playLabel: string;
   open: boolean;
   playing: boolean;
   onOpen: () => void;
   onPlay: () => void;
   videoRef: (el: HTMLVideoElement | null) => void;
 }) {
-  const panelId = `testimonial-${clip.id}-video`;
+  const panelId = `testimonial-${id}-video`;
 
   return (
     <div
@@ -128,7 +153,10 @@ function Card({
         }
       }}
       /* Padding is the target's `p-8` / `py-8 pr-14 pl-8`, EXCEPT between 810 and 1200
-         where it drops to `p-4`. Five closed cards at that tier are 117px wide, and 32px of
+         where it drops to `p-4`. (The target's values are quoted PHYSICALLY here because that
+         is what its capture says; the live classes below are the logical equivalents,
+         `pe-14 ps-8`, so the 56px of slack sits on the inline END in both directions. `p-8` and
+         `p-4` are symmetric and stay as they are.) Five closed cards at that tier are 117px wide, and 32px of
          padding each side leaves 53px — not enough to render a name. The target never hit
          this because it only ever laid three cards in a row, and only above 1200.
 
@@ -148,7 +176,7 @@ function Card({
                   focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2
                   focus-visible:ring-offset-canvas focus-visible:outline-none
                   tablet:h-full tablet:justify-between tablet:gap-0 tablet:p-4
-                  desktop:py-8 desktop:pr-14 desktop:pl-8
+                  desktop:py-8 desktop:pe-14 desktop:ps-8
                   ${open ? "tablet:w-[calc(30%-60px)]" : "tablet:w-[14%]"}`}
       style={{ transitionTimingFunction: "var(--ease-rogo)" }}
     >
@@ -196,7 +224,7 @@ function Card({
                          uppercase desktop:text-[17px]"
               style={{ lineHeight: "1.3em", letterSpacing: "0.1em" }}
             >
-              {clip.name}
+              {copy.name}
             </p>
           </div>
           <PlusButton open={open} className="flex-none tablet:hidden" />
@@ -225,8 +253,8 @@ function Card({
             >
               <video
                 ref={videoRef}
-                src={`/testimonials/${clip.id}.mp4`}
-                poster={`/testimonials/${clip.id}.jpg`}
+                src={`/testimonials/${id}.mp4`}
+                poster={`/testimonials/${id}.jpg`}
                 preload="none"
                 playsInline
                 controls={playing}
@@ -243,8 +271,13 @@ function Card({
                   }}
                   tabIndex={open ? 0 : -1}
                   /* The accessible name carries the person, not just "play" — a
-                     screen-reader user moving through five of these needs to know which. */
-                  aria-label={`Play ${clip.name}’s testimonial`}
+                     screen-reader user moving through five of these needs to know which.
+                     Interpolated from `chrome.a11y.playTestimonial` rather than assembled from
+                     a template literal here: the Hebrew word order is not "Play X's Y", and a
+                     concatenation in this file would have hard-coded the English one. The
+                     capture of the real site ships this exact aria-label pattern, so the
+                     Hebrew string is sourced rather than invented. */
+                  aria-label={playLabel}
                   className="group absolute inset-0 flex cursor-pointer items-center
                              justify-center bg-ink/10 transition-colors duration-300
                              hover:bg-ink/20 focus-visible:ring-2 focus-visible:ring-paper
@@ -260,7 +293,17 @@ function Card({
                   >
                     {/* Nudged 2px right: a triangle centred on its bounding box reads as
                         sitting left of centre in a circle, because its visual mass is
-                        toward the flat edge. */}
+                        toward the flat edge.
+
+                        ⚠️ `ml-[2px]` IS PHYSICAL ON PURPOSE — DO NOT MIGRATE IT TO `ms-`, and do
+                        not add `rtl:-scale-x-100` to the glyph. Two separate reasons, both
+                        pointing the same way. (1) Play/pause are MEDIA-TRANSPORT glyphs and no
+                        platform mirrors them; only skip-forward/back mirror, because only those
+                        two mean "the direction reading goes". A left-pointing play button on
+                        /he would read as rewind. (2) The nudge is an optical correction tied to
+                        the un-mirrored artwork's visual mass, so it has to stay on the same
+                        physical side the mass is on. `ms-` would flip it away in RTL and put the
+                        triangle 2px further off-centre than doing nothing at all. */}
                     <svg viewBox="0 0 24 24" className="ml-[2px] h-4 w-4 fill-ink">
                       <path d="M8 5.14v13.72a1 1 0 0 0 1.54.84l10.3-6.86a1 1 0 0 0 0-1.68L9.54 4.3A1 1 0 0 0 8 5.14Z" />
                     </svg>
@@ -296,9 +339,9 @@ function Card({
           className="w-full font-sans text-[12px] text-ink/60 tablet:line-clamp-1
                      desktop:text-[16px]"
           style={{ lineHeight: "1.5em", letterSpacing: "-0.02em" }}
-          {...(clip.role ? null : { "aria-hidden": true })}
+          {...(copy.role ? null : { "aria-hidden": true })}
         >
-          {clip.role || " "}
+          {copy.role || " "}
         </p>
       </div>
     </div>
@@ -306,7 +349,11 @@ function Card({
 }
 
 export default function Testimonials() {
-  const [openId, setOpenId] = useState(CLIPS[0].id);
+  const t = usePageDict("home").testimonials;
+  /* `chrome`, not `home` — the play button's accessible-name template is shared with
+     /product's testimonial rail, so it lives in the namespace both routes render. */
+  const a11y = useChrome().a11y;
+  const [openId, setOpenId] = useState<ClipId>(CLIP_IDS[0]);
   const [playingId, setPlayingId] = useState<string | null>(null);
   const refs = useRef<Record<string, HTMLVideoElement | null>>({});
 
@@ -356,13 +403,30 @@ export default function Testimonials() {
             style={{ lineHeight: "105%", letterSpacing: "-0.05em" }}
           >
             {/* Two spans rather than a hideable <br>, which would weld the words together
-                once the break is display:none. The target's own treatment. */}
+                once the break is display:none. The target's own treatment.
+
+                ⚠️ THE SENTENCE IS RENDERED TWICE AND THE TWO COPIES USED TO BE AUTHORED
+                SEPARATELY, which is a standing invitation to edit one and forget the other.
+                They now come off ONE array (`home.testimonials.heading`): the phone span draws
+                a `<br>` between runs, the wide span joins them with a single space. The runs
+                carry NO trailing space — the phone tier's break is hard, so a space before it
+                would show up in the joined copy as a double. (WhyRogo's headline is the
+                opposite case and does carry one; see the note in en/home.ts.)
+
+                THE COUNT IS PER LOCALE, not fixed. English sets two runs. Hebrew sets ONE —
+                "בקולם של הלקוחות שלנו" measures 304.8px at 36px against the phone tier's 358px
+                measure, so it needs no break at all and this heading is one line shorter than
+                English below 810. `heading` is typed `readonly string[]` precisely so that is
+                expressible; a tuple would have forced Hebrew to invent a second run. */}
             <span className="tablet:hidden">
-              In our clients&rsquo;
-              <br />
-              own words
+              {t.heading.map((run, i) => (
+                <Fragment key={i}>
+                  {i > 0 && <br />}
+                  {run}
+                </Fragment>
+              ))}
             </span>
-            <span className="hidden tablet:inline">In our clients&rsquo; own words</span>
+            <span className="hidden tablet:inline">{t.heading.join(" ")}</span>
           </h2>
         </div>
 
@@ -372,18 +436,22 @@ export default function Testimonials() {
             would put closed cards at 57px, so the stack takes over there.
             Gaps are the target's own: 16 stacked, 12 in the row. */}
         <div className="flex w-full flex-col gap-4 tablet:h-[600px] tablet:flex-row tablet:gap-3">
-          {CLIPS.map((clip) => (
+          {CLIP_IDS.map((id) => (
             <Card
-              key={clip.id}
-              clip={clip}
-              open={openId === clip.id}
+              key={id}
+              id={id}
+              copy={t.clips[id]}
+              playLabel={interpolate(a11y.playTestimonial, {
+                name: t.clips[id].name,
+              })}
+              open={openId === id}
               /* Derived, not stored: a card counts as playing only while it is also the
                  open one. That is what lets the pause effect above skip setState. */
-              playing={playingId === clip.id && openId === clip.id}
-              onOpen={() => setOpenId(clip.id)}
-              onPlay={() => play(clip.id)}
+              playing={playingId === id && openId === id}
+              onOpen={() => setOpenId(id)}
+              onPlay={() => play(id)}
               videoRef={(el) => {
-                refs.current[clip.id] = el;
+                refs.current[id] = el;
               }}
             />
           ))}

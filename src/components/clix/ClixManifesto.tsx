@@ -29,32 +29,21 @@
  * Phone was already symmetric (`py-32`, 128px both ends) and is untouched.
  */
 
-/* CLIX'S OWN WORDS as of 2026-08-10 (user: "change the statement on the green section ...
-   very related to clix on the services and the service that they provide"). This block was
-   rogo's five verbatim paragraphs about Felix; it is the first part of the page to be
-   properly rewritten rather than renamed.
+import { getDict } from "@/lib/i18n/server";
 
-   Sourced from the real company site, not invented: `docs/reference/clixsolutions/` lists
-   eight services (AI agents, WhatsApp automations, CRM implementation, integrations and
-   automations, websites, mobile, custom software, AI strategy) under the line "we build the
-   quiet mechanisms that drive modern businesses". Paragraphs 3 and 4 name those services;
-   the spine of paragraph 3 is that line, in English.
+/* THE COPY MOVED TO src/lib/i18n/{en,he}/clix.ts ON 2026-08-12. What used to be a
+   `PARAGRAPHS` const here is `clix.manifesto.paragraphs`; nothing about the block changed.
+   Its provenance, the five-paragraph shape and the no-dashes rule are all recorded beside the
+   strings there.
 
-   ⚠️ NO DASHES, at the user's explicit request. No em dashes, no en dashes, and no hyphen
-   standing in for one. Commas, colons and full stops only. The original had a " - " in its
-   last paragraph, so this is a change from the source rather than a coincidence of style.
-
-   Shape is deliberately the original's, because the layout was measured against it: five
-   paragraphs, the second carrying an internal line break (a short line, then a long one). */
-const PARAGRAPHS = [
-  "Most teams do not have a software problem. They have a hundred small handoffs that nobody owns.",
-  "Copy this into that. Chase the reply. Update the sheet.\nNone of it is difficult. All of it takes someone’s afternoon, every day, and none of it ever shows up as work that anyone gets credit for.",
-  "Clix builds the quiet mechanisms that take those hours back. AI agents that answer, qualify and follow up in your own language and on your own data. WhatsApp assistants that sell and support where your customers already are. Integrations that keep your CRM, your calendar and your billing telling the same story.",
-  "Where nothing off the shelf fits, we build it: custom software, internal dashboards, mobile apps, and the webhooks and middleware that hold them together. Monitoring, retries and error handling come as standard, because an automation nobody trusts is worse than no automation at all.",
-  "The point was never the technology. It is that your team spends its day on the judgment, the relationships and the decisions only people can make, and not on the busywork in between.",
-];
+   ⚠️ THE TWO LOCALES DO NOT SAY THE SAME THING HERE, ON PURPOSE. English is this repo's own
+   2026-08-10 rewrite about clix's services. Hebrew is not a translation of it: it is a
+   RESTORATION from docs/reference/clixsolutions/ — the services page's own paragraphs and the
+   methodology line, in the words the real company already published. See he/clix.ts. */
 
 export default function ClixManifesto() {
+  const t = getDict().clix.manifesto;
+
   return (
     <section
       id="manifesto"
@@ -85,19 +74,27 @@ export default function ClixManifesto() {
         >
           <h2
             /* max-width 300px is deliberate: it forces the title to wrap to two lines at
-               every tier, which is how the target sets it. 240px on phone does the same at
-               the smaller size. The copy changed on 2026-08-10 (was "The future state of
-               finance"); the replacement was kept to a similar length so it still breaks
-               to two lines rather than three. */
+               tablet and above, which is how the target sets it. The copy changed on
+               2026-08-10 (was "The future state of finance"); the replacement was kept to a
+               similar length so it still breaks to two lines rather than three.
+
+               ⚠️ CORRECTION, 2026-08-12: this note used to claim "240px on phone does the
+               same at the smaller size". It does not. Measured on the built page in
+               Discovery, the ENGLISH title sets THREE lines at 40px in the 240px phone
+               measure, at every viewport from 390px down. So the two-line invariant holds at
+               tablet+ only, and the phone tier has always been three lines. Recorded because
+               the Hebrew title was fitted against this file's claim and had to be fitted
+               against the measurement instead: "המנגנונים שמאחורי העבודה" matches English
+               exactly, 2 lines at 48px/300px and 3 at 40px/240px. */
             className="h-auto w-full max-w-[240px] flex-none font-display text-paper
                        text-[40px] tablet:max-w-[300px] tablet:text-[48px]"
             style={{ letterSpacing: "-0.05em", lineHeight: "110%" }}
           >
-            The systems behind the work
+            {t.title}
           </h2>
 
           <div className="h-auto w-full flex-none">
-            {PARAGRAPHS.map((p, i) => (
+            {t.paragraphs.map((p, i) => (
               <p
                 key={i}
                 /* `-0.2px` is an absolute letter-spacing, not an em value — the original

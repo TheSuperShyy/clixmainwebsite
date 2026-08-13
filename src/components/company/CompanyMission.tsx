@@ -9,6 +9,10 @@
  * THE BOX IS ROGO'S, THE CONTENT IS CLIX'S. Every geometry value below is measured from the
  * capture. Nothing rogo wrote ever entered this file.
  *
+ * ⚠️ COPY LIVES IN `src/lib/i18n/{en,he}/company.ts` UNDER `mission`, not in this file. The
+ * geometry notes below are still the spec; the strings they were fitted against are two files
+ * away, and each Hebrew string carries its provenance and its measured line count there.
+ *
  * ⚠️ THE `FOUNDED BY` COLUMN IS DELIBERATELY NOT A LIST OF NAMES. The original names three
  * real founders. clix's seven team names live in docs/reference/clixsolutions/content.json
  * as machine-translated `alt` text: two are provably swapped between their own files and one
@@ -20,6 +24,14 @@
  * substantiation in this repo (docs/reference/clixsolutions/README.md:319-321). It ships
  * behind `robots: { index: false, follow: false }`, the same gate as ProductBenefits.tsx:67.
  * That gate is what makes the line shippable. See FEATURE.md → "noindex on first ship".
+ *
+ * ⚠️ AND IN HEBREW THAT CLAIM IS MADE TO THE AUDIENCE BEST PLACED TO CHECK IT. `mission.body`
+ * in he/company.ts is not a translation of the English: it is the real company site's own
+ * sentence, lifted verbatim from docs/reference/clixsolutions/pages/about.html, where the
+ * credential is stated in Hebrew already. So it is the company's claim rather than one this
+ * repo invented — but it is now legible to Hebrew readers, which is a change in exposure even
+ * though it is not a change in substance. Flagged for the user; the `noindex` guard is what
+ * holds the page in either language, and it stays.
  *
  * TIER MAP — measured on the live page. 1600 and 1440 are identical in every value on this
  * page, so there is no `xl:` variant anywhere:
@@ -81,15 +93,24 @@
  * `"use client"`.
  */
 
-/* `Founded By` in the original. See the note above on why it is not names here. */
+import { Fragment } from "react";
+
+import { getDict } from "@/lib/i18n/server";
+
+/* `Founded By` in the original. See the note above on why it is not names here. The
+   three items themselves live in the dictionary (`company.mission.teamItems`); only
+   the id, which is markup plumbing rather than copy, stays here. */
 const TEAM_LABEL_ID = "company-mission-team";
-const TEAM_ITEMS = ["Unit 8200 alumni", "Technion alumni", "Senior engineers"] as const;
 
 /* Shared by both eyebrows. `letterSpacing: "normal"` is measured, not an oversight. */
 const EYEBROW_CLASS = "w-full font-sans text-[12px] font-normal uppercase text-muted";
 const EYEBROW_STYLE = { lineHeight: "130%", letterSpacing: "normal" } as const;
 
 export default function CompanyMission() {
+  /* Server component, so the dictionary is read directly. No prop, no context: the
+     locale comes from the request-scoped seed CompanyRoute.tsx sets. */
+  const t = getDict().company.mission;
+
   return (
     /* `.framer-kh9jjb` — bg paper, column, centred, 96/64 vertical + 40/16 gutter. The
        band's own `gap: 96px` is inert: it has exactly one child. */
@@ -114,9 +135,20 @@ export default function CompanyMission() {
                        tablet:text-[40px] desktop:text-[44px]"
             style={{ lineHeight: "110%", letterSpacing: "-0.05em" }}
           >
-            The Speed Of A Lab,
-            <br />
-            The Discipline Of A Factory
+            {/* HARD LINES, one array entry each, welded by `<br>`. `Fragment` and not a
+                `span`: a keyed fragment renders NO element, so the h2's children stay
+                exactly what they were, text nodes and a `<br>`. Same idiom as
+                Footer.tsx:200-210.
+                THE COUNT IS THE LOCALE'S. `heading` is `readonly string[]`, not a
+                2-tuple, because this break is line fitting and nothing else — both runs
+                are `ink`, both are this one element — so a locale that sets the headline
+                in one line or three is right rather than broken. */}
+            {t.heading.map((line, i) => (
+              <Fragment key={i}>
+                {i > 0 && <br />}
+                {line}
+              </Fragment>
+            ))}
           </h2>
         </div>
 
@@ -131,7 +163,7 @@ export default function CompanyMission() {
           {/* `.framer-14sccda` [Column] — label → list gap 16, list gap 4. */}
           <div className="flex w-full flex-col gap-4 self-start">
             <p id={TEAM_LABEL_ID} className={EYEBROW_CLASS} style={EYEBROW_STYLE}>
-              Team
+              {t.teamLabel}
             </p>
             {/* Three sibling <p>s in the original. A list here instead: it is genuinely a
                 list of three, and the label is only tied to it for a screen reader by
@@ -142,7 +174,7 @@ export default function CompanyMission() {
               aria-labelledby={TEAM_LABEL_ID}
               className="flex w-full list-none flex-col gap-1"
             >
-              {TEAM_ITEMS.map((item) => (
+              {t.teamItems.map((item) => (
                 <li
                   key={item}
                   className="w-full font-sans text-[16px] font-normal text-ink"
@@ -161,15 +193,17 @@ export default function CompanyMission() {
               the city and the country stay a single announced phrase. */}
           <div className="flex w-full flex-col gap-4 self-start">
             <p className={EYEBROW_CLASS} style={EYEBROW_STYLE}>
-              Located In
+              {t.locatedInLabel}
             </p>
             <p
               className="w-full font-sans text-[16px] font-normal text-ink"
               style={{ lineHeight: "130%", letterSpacing: "-0.01em" }}
             >
-              <span>Tel Aviv</span>
+              {/* Two KEYS, not an array: this break is a city and a country, which is
+                  semantics, not line fitting. */}
+              <span>{t.city}</span>
               <br />
-              <span>Israel</span>
+              <span>{t.country}</span>
             </p>
           </div>
 
@@ -181,9 +215,7 @@ export default function CompanyMission() {
               className="w-full font-sans text-[16px] font-normal text-ink desktop:text-[18px]"
               style={{ lineHeight: "130%", letterSpacing: "-0.02em" }}
             >
-              At Clix, the point was never the technology. It is that your team spends its
-              day on the judgment, the relationships and the decisions only people can make,
-              and not on the busywork in between. That is the whole brief.
+              {t.body}
             </p>
           </div>
         </div>
