@@ -336,7 +336,9 @@ export default function ContactForm() {
      put, so the direct email and WhatsApp are still one glance away. */
   if (status === "sent") {
     return (
-      <div className="w-px flex-[1_0_0] desktop:max-w-[720px]">
+      /* Same width gate as the form below — see the note there. This panel replaces the form,
+         so it has to occupy the same column at every tier. */
+      <div className="w-full desktop:w-px desktop:max-w-[720px] desktop:flex-[1_0_0]">
         <div
           ref={successRef}
           tabIndex={-1}
@@ -438,12 +440,19 @@ export default function ContactForm() {
   };
 
   return (
-    /* `w-px flex-[1_0_0]` is Framer's own idiom, reproduced across this repo: the 1px basis
-       makes the max-width cap decide the column, not the content. */
+    /* ⚠️ `w-px flex-[1_0_0]` IS GATED TO `desktop:` AND MUST STAY GATED. It is Framer's idiom,
+       reproduced across this repo — a 1px basis so the max-width cap decides the column rather
+       than the content — but it is only meaningful in a ROW flex container. ContactBody is
+       `flex-col` below 1200 and sets `items-start`, so there the 1px is not a flex basis at all:
+       it is the cross-axis size, nothing stretches it, and the form rendered ONE PIXEL WIDE on
+       every phone and tablet (found 2026-08-13, after the page shipped). `w-full` is the correct
+       width in a column container; the idiom only applies from 1200 up, where the container
+       becomes `flex-row` and the aside sits beside this. Same gate on the success panel above. */
     <form
       onSubmit={onSubmit}
       noValidate
-      className="flex w-px flex-[1_0_0] flex-col items-start gap-8 desktop:max-w-[720px]"
+      className="flex w-full flex-col items-start gap-8
+                 desktop:w-px desktop:max-w-[720px] desktop:flex-[1_0_0]"
     >
       {/* ── 01 · about you ── */}
       <Group index="01" legend={t.groups.about} legendId={id("about")}>
