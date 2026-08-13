@@ -212,12 +212,18 @@ export const product: Translated<ProductDict> = {
           "היום. שאלו אותה שאלה בשפה פשוטה וקבלו תשובה שאפשר להחזיר עד לרשומה עצמה.",
       },
       {
-        /* AUTHORED. */
-        title: "דוחות לפי דרישה",
-        /* AUTHORED. */
+        /* AUTHORED. ⚠️ WAS `דוחות לפי דרישה` (Reports On Demand) until 2026-08-13 — the
+           target's product, not clix's. See the English file for why the card changed.
+           `נציג` rather than `אדם`: the site's own register for a person on the other end of a
+           customer conversation, and it carries no gender for the customer to trip over. */
+        title: "נענה או מועבר לנציג",
+        /* AUTHORED. Vocabulary is the capture's own: `עוזר`, `יומן`, `מעקב` and `ב-WhatsApp`
+           all appear in services.bodyText / industries.bodyText.
+           ⚠️ THE PREFIX HYPHEN STAYS on `ב-WhatsApp`, `ל-CRM` — orthography, not style; see the
+           file header's carve-out to the no-dashes rule. */
         body:
-          "מצגות, סיכומים וגיליונות שנבנים מאותם נתונים שהצוות שלכם עובד בהם. המספרים נשארים " +
-          "עקביים, התבנית נשארת שלכם, וקובץ המקור נשלח לצד כל ייצוא.",
+          "עוזר ב-WhatsApp Business שקובע פגישות, שולח הצעות ועושה מעקב, מחובר ליומן, " +
+          "ל-CRM ולתשלומים שלכם. ברגע שנדרשת החלטה השיחה עוברת לנציג, עם כל ההתכתבות.",
       },
     ],
     /*
@@ -334,23 +340,25 @@ export const product: Translated<ProductDict> = {
       /* AUTHORED ×3 — acquisition channels, not company names, exactly as the English is. */
       rows: ["לידים מ-WhatsApp", "אירועים", "חיפוש ממומן"],
     },
-    material: {
-      /* AUTHORED. */
-      assembling: "מרכיב את המצגת...",
-      /* AUTHORED ×3 — three explicit lines at measured y 75.5 / 123.5 / 171.5. The break
-         positions are the reference's, so this is three strings and not one paragraph.
-         Measured 418 / 361 / 447 source units against a 610-unit measure. */
-      prose: [
-        "הנה המצגת שלכם. בניתי אותה",
-        "על התבנית שלכם, וצירפתי",
-        "את מקורות הנתונים לכל שקופית.",
-      ],
-      /* AUTHORED. The `(2)` is a numeral. */
-      exportsLabel: "ייצוא (2)",
-      /* AUTHORED ×2 — the STEM translates, the extension does not: `.pptx` and `.xlsx` are
-         keyed to the P and X badges rendered beside them. Measured 333 / 309 source units
-         against the 454 a label has before the download glyph at x=548. */
-      exports: ["הטמעת אוטומציות.pptx", "גיבוי הרצות תהליך.xlsx"],
+    handoff: {
+      /* NOT TRANSLATED — a product name, and the one the customer sees on their own phone. */
+      channel: "WhatsApp Business",
+      /* AUTHORED ×5 — a booking thread that ends in a handoff. Register is a real customer
+         texting a business: short, lowercase-feeling, no marketing voice.
+         ⚠️ THESE ARE `whitespace-nowrap` INSIDE FIXED-WIDTH BUBBLES and cannot wrap — they can
+         only run past the bubble's edge, which is why they are this short. Measured against the
+         bubble insets in workflowMocks.tsx; Hebrew is shorter than English in all four, so
+         English is the binding case and these clear it with room. */
+      inbound1: "יש משהו פנוי בחמישי?",
+      /* ⚠️ NO GENDERED VERB FOR THE ASSISTANT. `אפשר לשמור` is impersonal where the English
+         "I can hold one" is not — Hebrew would force יכול/יכולה on a piece of software and
+         invite the reader to assign it a gender. The impersonal form says the same thing. */
+      outbound: ["14:00 ו-16:30 פנויים.", "אפשר לשמור אחד עכשיו."],
+      inbound2: "16:30. אפשר 10% הנחה?",
+      /* Invented mock chrome, as the English is. `·` needs no translation. */
+      handoffTo: "מאיה · מכירות",
+      /* ⚠️ NO EM DASH — the `·` carries the break, matching the English and the file's own rule. */
+      handoffReason: "התבקשה הנחה · הועבר לנציג",
     },
   },
 

@@ -272,6 +272,56 @@ just the picture.
 **Cleanup done in the same pass:** both round-2 candidates and their posters deleted, and
 `public/_hero-compare.html` — the temporary side-by-side review page — removed.
 
+### 7 · Block 2d card 3: "Reports On Demand" → "Answered Or Handed Over"
+
+User's call, and the reasoning is worth keeping because it applies to the rest of this clone:
+*"change this to something we actually do, be creative"*.
+
+**What was wrong with it.** The card sold decks, summaries and spreadsheets, and its mock drew a
+slide deck over two download rows (`.pptx`, `.xlsx`). That is structurally the capture's own,
+and correctly so — the target is a research tool for finance teams, where producing decks IS
+the product. clix does not do it. The card was advertising a capability we would have had to
+invent to honour, which is the same class of problem as the vendor logos and the placeholder
+quotes, just quieter: nobody was going to notice it was false.
+
+**Why the WhatsApp assistant, and not something else.** The other two cards already cover the
+plumbing ("Automations Built To Fit") and the querying ("Ask Your Own Data"). The gap is the
+CUSTOMER-FACING end, which is also clix's signature offering per its own site: *"assistants on
+WhatsApp Business that book, sell, support and follow up … handing off to a person the moment
+one is needed."* The thread was already running through this route — the hero types "route every
+whatsapp inquiry to the right person" and mock 1 runs "Qualify Inbound WhatsApp Leads" — so this
+closes it rather than introducing a new idea.
+
+**⚠️ THE MOCK IS BUILT AROUND THE HANDOFF, NOT THE ANSWER, and that is the whole creative call.**
+Three messages establish the assistant doing real work (a slot offered, a slot taken), then the
+customer asks for a discount and it *stops*: a rule, an avatar, "Maya · Sales", and
+"Discount requested · handed over". Every AI screenshot in the market shows a bot succeeding.
+The differentiating half of what clix sells is the other one — "human approval wherever it
+matters" — and `handoffReason` is therefore copy, not decoration. Deleting it would turn the
+mock back into a generic chatbot demo.
+
+**Geometry is unchanged and deliberately so.** Same 922×1040 artwork, same centred crop, same
+two-card stack at x=102 (header 150/130, body 338/564), same `Card`/`MarkTile`/`Line`/`--u`
+idiom. A content swap, not a re-measure, so mocks 1–3 still align along the top.
+
+**⚠️ IT MIRRORS FOR FREE.** The bubbles are `Box`es, so every x is an `inset-inline-start`, and
+under rtl the inbound bubbles move to the right edge and the assistant's to the left — exactly
+what a Hebrew WhatsApp thread looks like. Verified at /he/product. A flex row with physical
+alignment would have needed a second, mirrored variant. The bubble tails use
+`borderEndStartRadius`/`borderEndEndRadius` for the same reason.
+
+**⚠️ BUBBLE WIDTHS ARE HAND-FITTED AND THE TEXT CANNOT WRAP.** `Line` is `whitespace-nowrap`
+with no width, so an over-long string does not reflow, it runs out of its bubble. ~16 units per
+character at size 34, derived from the old mock (a 37-char line filled its 610-unit measure at
+size 36). English is binding; Hebrew is shorter in all four strings.
+
+Two Hebrew decisions: `אפשר לשמור` is impersonal where the English says "I can hold one",
+because Hebrew would otherwise force יכול/יכולה on a piece of software and invite the reader
+to gender it; and `handoffReason` uses `·` rather than an em dash, per the file's own rule.
+
+`Maya · Sales` is invented mock chrome, the same category the `.pptx` filenames were — a first
+name in a product screenshot, not a claim about an employee.
+
 ### Method note: driving a real browser with no Playwright in the repo
 
 There is no Playwright or Puppeteer here and installing one for a look-and-see was not worth it.

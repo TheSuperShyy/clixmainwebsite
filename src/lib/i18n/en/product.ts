@@ -194,15 +194,41 @@ export interface ProductDict {
       /** Three rows. The third is the dimmed one; the count is the measured 114-unit pitch. */
       readonly rows: readonly [string, string, string];
     };
-    readonly material: {
-      readonly assembling: string;
-      /** Three lines at measured y 75.5 / 123.5 / 171.5 on a 48-unit pitch. Tuple. */
-      readonly prose: readonly [string, string, string];
-      readonly exportsLabel: string;
-      /** Two export rows. ⚠️ The `.pptx` / `.xlsx` extensions stay Latin — they are keyed to
-          the P and X badges beside them and stop making sense without them. Only the stem
-          translates. */
-      readonly exports: readonly [string, string];
+    /**
+     * Mock 3 — a WhatsApp thread that the assistant handles and then HANDS OVER.
+     *
+     * ⚠️ REPLACED `material` ON 2026-08-13, on the user's call ("change this to something we
+     * actually do"). That mock showed a slide deck and two file exports — `.pptx` and `.xlsx`
+     * download rows lifted structurally from the capture, where the target is a research tool
+     * for finance teams and generating decks IS the product. It is not what clix does.
+     *
+     * What clix does, per its own site: "assistants on WhatsApp Business that book, sell,
+     * support and follow up, connected to your CRM, payments, calendar and catalogue, and
+     * handing off to a person the moment one is needed."
+     *
+     * ⚠️ THE MOCK IS BUILT AROUND THE HANDOFF, NOT AROUND THE ANSWER, and that is the point of
+     * the rewrite rather than a styling choice. Every competitor's screenshot shows a bot being
+     * clever. The line worth showing is the one where it stops: the thread runs
+     * booking → booking → a discount request → handed to a named person. `handoffReason` is
+     * what makes it read as judgement rather than failure, so it is copy, not decoration.
+     */
+    readonly handoff: {
+      /** The header strip's label, beside the mark tile. */
+      readonly channel: string;
+      /** Customer's opening message. Left bubble at ≤440 units — see the width note in
+          workflowMocks.tsx; these are `whitespace-nowrap` and CANNOT wrap, only overrun. */
+      readonly inbound1: string;
+      /** The assistant's reply. TWO lines at a measured 48-unit pitch, so the break is ours
+          and not the browser's. Tuple. */
+      readonly outbound: readonly [string, string];
+      /** Customer's second message — the one the assistant does not answer. */
+      readonly inbound2: string;
+      /** Who it went to. ⚠️ INVENTED MOCK CHROME, exactly as the old `.pptx` filenames were:
+          a first name and a team in a product screenshot, not a claim about an employee.
+          The `·` separator matches the Hebrew testimonial roles and needs no translation. */
+      readonly handoffTo: string;
+      /** WHY it went to a person. The load-bearing string in this mock. */
+      readonly handoffReason: string;
     };
   };
 
@@ -325,11 +351,21 @@ export const product: ProductDict = {
           "can trace back to the record.",
       },
       {
-        title: "Reports On Demand",
+        /* ⚠️ WAS "Reports On Demand" UNTIL 2026-08-13 — decks, summaries and spreadsheets.
+           That is the TARGET's product (a research tool for finance teams), not clix's, and the
+           user called it: "change this to something we actually do". This card now carries the
+           WhatsApp assistant, which is clix's own signature offering and the one capability the
+           other two cards do not touch — card 1 is the plumbing, card 2 is the querying, this
+           is the customer-facing end. The route's hero types "route every whatsapp inquiry to
+           the right person" a few hundred px above, and mock 1 runs "Qualify Inbound WhatsApp
+           Leads", so the thread was already there; this closes it.
+           Length held to the replaced string's: 184 characters against 199 here, inside the
+           ±10% the block's measured layout is fitted to. */
+        title: "Answered Or Handed Over",
         body:
-          "Decks, summaries and spreadsheets built from the same data your team works in. The " +
-          "numbers stay consistent, the template stays yours, and the source file ships " +
-          "alongside every export.",
+          "An assistant on WhatsApp Business that books, quotes and chases, wired to your " +
+          "calendar, CRM and payments. The moment a thread needs judgement it goes to a person, " +
+          "with the whole conversation attached.",
       },
     ],
     labels: [
@@ -373,15 +409,15 @@ export const product: ProductDict = {
       colClosed: "% of Pipeline Closed",
       rows: ["WhatsApp inbound", "Events", "Paid search"],
     },
-    material: {
-      assembling: "Assembling the deck...",
-      prose: [
-        "Here is your deck. I built it",
-        "on your own template, and attached",
-        "the source numbers behind every slide.",
-      ],
-      exportsLabel: "Exports (2)",
-      exports: ["Automation Rollout.pptx", "Workflow Run Backup.xlsx"],
+    handoff: {
+      channel: "WhatsApp Business",
+      inbound1: "Anything free Thursday?",
+      outbound: ["14:00 and 16:30 are open.", "I can hold one now."],
+      /* The turn the assistant does NOT take. A discount is a commercial decision, so this is
+         where it stops — which is the whole subject of the mock. */
+      inbound2: "16:30. Can you do 10% off?",
+      handoffTo: "Maya · Sales",
+      handoffReason: "Discount requested · handed over",
     },
   },
 
