@@ -14,9 +14,10 @@
  * ─── ⚠️ DESKTOP ONLY (>=1200), AND THAT IS DELIBERATE ────────────────────────────────────
  * `SecurityCanvas` renders this behind a `hidden desktop:block`. A three-pane console at the
  * 358px phone tier is unreadable at any type size that fits, and stacking it above the terminal
- * at the tablet tier would add ~460px to a hero that is already 952px there. So below 1200 the
- * hero is EXACTLY what it was before this window existed — terminal only, 952.41 and 905.19 —
- * and only the >=1200 tier changes. It is decoration; losing it on small screens costs nothing,
+ * at the tablet tier would add ~460px to a hero that is already over a thousand there. So below
+ * 1200 the hero is EXACTLY what it was before this window existed — the terminal alone — and
+ * nothing THIS file does reaches those tiers. (Their sums are 1072.41 and 997.19 since the
+ * terminal grew on 2026-08-14; they were 952.41 and 905.19 before it.) It is decoration; losing it on small screens costs nothing,
  * and every claim it makes is repeated as real prose in the Compliance band regardless.
  *
  * ─── ⚠️ EVERY ROW IS A CLAIM THIS PAGE ALREADY MAKES IN PROSE ───────────────────────────
@@ -96,7 +97,7 @@ export default function SecurityConsole() {
     <MockWindow
       title="clix@production: ~/runs"
       /* Sizing is fixed because the canvas that positions it is fixed: 900 x 440 sits inside the
-         1000 x 580 composite bounding box with the terminal overlapping its bottom-right.
+         1000 x 700 composite bounding box with the terminal overlapping its bottom-right.
          See SecurityCanvas for the arithmetic. */
       className="h-[440px] w-[900px]"
       bodyClassName="flex h-[402px] text-[12px]"

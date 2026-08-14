@@ -52,7 +52,7 @@
  * | Property            | >=1200 (1600 + 1440)  | 1024 (tablet)        | 390 (phone)          |
  * |---------------------|-----------------------|----------------------|----------------------|
  * | section padding     | `198px 40px 80px`     | same                 | `198px 16px 80px`    |
- * | section height      | `min-content` 1256    | `min-content` 952.41 | `min-content` 905.19 |
+ * | section height      | `min-content` 1376    | `min-content` 1072.41| `min-content` 997.19 |
  * | section gap         | 96 (LIVE since 08-13) | 96                   | 96                   |
  * | `Text & Button`     | gap 32, max-w none    | gap 24, max-w none   | gap 24, max-w 360    |
  * | `Text Container`    | 540 x 230, gap 16     | 540 x 194.41         | 358 x 179.19         |
@@ -60,9 +60,9 @@
  * | subtitle            | 18px / 130% / -0.02em | 16px                 | 16px                 |
  * | CTA frame           | 220 x 40              | same                 | same                 |
  * | CTA `<a>`           | 220 x 36              | same                 | same                 |
- * | canvas              | **1000 x 580**        | 720 x 320            | 358 x 288            |
+ * | canvas              | **1000 x 700**        | 720 x 440            | 358 x 380            |
  * | · console (>=1200)   | 900 x 440 at (0, 0)   | — not rendered —    | — not rendered —    |
- * | · terminal           | 720 x 320 at (280,260)| 720 x 320            | 358 x 288            |
+ * | · terminal           | 720 x 440 at (280,260)| 720 x 440            | 358 x 380            |
  *
  * ⚠️ THE HEIGHT WAS `70vh` ON THE TARGET AND IS A CONTENT SUM HERE (2026-08-13). Keep the
  * target's fact on record, because it is what the capture says and what a re-probe will find:
@@ -71,16 +71,22 @@
  * the 50px difference is absorbed by `place-content: center`.
  *
  * OURS CANNOT BE THAT, because the section is `overflow: hidden` and the windows are inside it:
- * a 320px window added to 580px of content inside a frozen 630px box is 270px of clipped
- * window. So the `tablet:h-[70vh]` rule is gone and the band grows instead. The new sums, and
- * they close exactly:
- *   >=1200  198 + 302    + 96 + 580 + 80 = 1256   (the composite, not just the terminal)
- *   1024    198 + 258.41 + 96 + 320 + 80 = 952.41 (terminal only — the console is >=1200)
- *   390     198 + 243.19 + 96 + 288 + 80 = 905.19 (terminal only)
+ * a 440px window added to 580px of content inside a frozen 630px box is 390px of clipped
+ * window. So the `tablet:h-[70vh]` rule is gone and the band grows instead. The sums, and they
+ * close exactly:
+ *   >=1200  198 + 302    + 96 + 700 + 80 = 1376    (the composite, not just the terminal)
+ *   1024    198 + 258.41 + 96 + 440 + 80 = 1072.41 (terminal only — the console is >=1200)
+ *   390     198 + 243.19 + 96 + 380 + 80 = 997.19  (terminal only)
  *
- * ⚠️ ONLY THE >=1200 TIER MOVED when the console arrived on 2026-08-13. 952.41 and 905.19 are
- * the same numbers measured before it existed, and that is by design — the console and the
- * dragging are both gated to one breakpoint precisely so the two smaller tiers never re-open.
+ * ⚠️ ALL THREE MOVED ON 2026-08-14 AND THE CONSOLE HAD NOTHING TO DO WITH IT. The user asked
+ * for a taller terminal, so the window went 320 -> 440 (tablet+) and 288 -> 380 (phone), and
+ * every tier carries its own window. The previous sums were 1256 / 952.41 / 905.19; each grew
+ * by exactly its window's delta (120 / 120 / 92) and by nothing else.
+ *
+ * ⚠️ ONLY THE >=1200 TIER MOVED when the console arrived on 2026-08-13, and that is still true
+ * OF THE CONSOLE — it and the dragging are gated to one breakpoint precisely so a change to the
+ * composite never re-opens the two smaller tiers. A change to the TERMINAL is a different thing
+ * and does reach all three, because the terminal is the one window every tier renders.
  * The 96 is the section's own `gap-24`, INERT until 2026-08-13 and live now that there are two
  * children. `heroH` is therefore an intentional divergence in docs/reference/security-diff.js,
  * listed beside the three heights already excluded for the dropped "Explore security portal"
@@ -344,7 +350,7 @@ export default function SecurityHero() {
           and neither the terminal's 720 nor the composite's 1000 would ever apply.
 
           ⚠️ WHAT IT CONTAINS DEPENDS ON THE TIER, and that is why this block's height does:
-          at >=1200 it is a 1000 x 580 composite of a 900 x 440 console with a 720 x 320 terminal
+          at >=1200 it is a 1000 x 700 composite of a 900 x 440 console with a 720 x 440 terminal
           overlapping its bottom-right, both draggable; below 1200 it is the terminal alone, in
           normal flow, exactly as it was before the console existed. See SecurityCanvas.tsx.
 

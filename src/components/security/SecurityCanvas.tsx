@@ -22,23 +22,31 @@
  * and down-right:
  *
  *     console   at (  0,   0)  900 x 440   ->  right edge  900, bottom edge 440
- *     terminal  at (280, 260)  720 x 320   ->  right edge 1000, bottom edge 580
- *     composite                1000 x 580
+ *     terminal  at (280, 260)  720 x 440   ->  right edge 1000, bottom edge 700
+ *     composite                1000 x 700
+ *
+ * ⚠️ THE TERMINAL WENT 320 -> 440 ON 2026-08-14 (user: "increase the height of the terminal",
+ * then a status strip inside its prompt box), so the box grew 580 -> 700. Only the HEIGHT moved: the terminal's origin, its 720 width and
+ * therefore the 1000 right edge are all untouched, and the 180px of vertical overlap with the
+ * console (260..440) is unchanged too — the extra 120px all hangs BELOW the console's bottom
+ * edge. That is why the composite still reads as an overlap rather than as two stacked windows.
  *
  * 1000 is the binding constraint and it is chosen against the NARROWEST tier that shows it: at
  * exactly 1200px the hero's content row is 1200 − 80 of padding = 1120, so 1000 leaves 120px of
  * air. At 1440 it leaves 360. Do not grow the composite past 1120 without checking 1200 first —
  * the section is `overflow-hidden` and the overflow would be silently clipped, not scrolled.
  *
- * The hero's height sum at >=1200 becomes 198 + 302 + 96 + 580 + 80 = 1256.
+ * The hero's height sum at >=1200 becomes 198 + 302 + 96 + 700 + 80 = 1376.
  *
  * ─── ⚠️ THE CONSOLE IS >=1200 ONLY, AND THE OTHER TIERS ARE UNCHANGED ───────────────────
  * Below 1200 this renders the terminal alone, exactly as the hero did before the console
- * existed — so the tablet and phone heights stay 952.41 and 905.19 and nothing that was already
- * measured moves. Three panes at the 358px phone tier are unreadable at any type size that
- * fits, and stacking them at the tablet tier would add ~460px to a hero that is already 952
- * there. It is decoration; every claim it makes is repeated as real prose in the Compliance
- * band, so a small screen loses nothing but the picture.
+ * existed — so those two tiers track the terminal alone and nothing the CONSOLE does moves them.
+ * (They are 1072.41 and 997.19 since the terminal grew on 2026-08-14; they were 952.41 and
+ * 905.19 before it, and the delta is the window's 120 / 92, nothing else.) Three panes at the
+ * 358px phone tier are unreadable at any type size that fits, and stacking them at the tablet
+ * tier would add ~460px to a hero that is already over a thousand there. It is decoration; every
+ * claim it makes is repeated as real prose in the Compliance band, so a small screen loses
+ * nothing but the picture.
  *
  * ─── ⚠️ DRAGGING IS >=1200 ONLY TOO, AND THAT IS A CORRECTNESS RULE, NOT A PREFERENCE ───
  * A drag surface sitting in the hero competes with touch scrolling, and at 390 the terminal is
@@ -65,9 +73,11 @@ import SecurityTerminal from "@/components/security/SecurityTerminal";
 gsap.registerPlugin(Draggable, useGSAP);
 
 /* The composite's geometry, in one place, because four files depend on it agreeing:
-   this file's box, the console's own `h-[440px] w-[900px]`, the terminal's 320px total, and the
-   hero tier map's 1256 sum. */
-const BOX = { w: 1000, h: 580 };
+   this file's box, the console's own `h-[440px] w-[900px]`, the terminal's 440px total, and the
+   hero tier map's 1376 sum. `h` is DERIVED in prose rather than in code — 260 + 440 — because
+   the terminal's height lives in its own `bodyClassName`, where the tier split makes it two
+   numbers rather than one. If that file's window total changes, this is the line that follows. */
+const BOX = { w: 1000, h: 700 };
 const TERMINAL_AT = { x: 280, y: 260 };
 
 export default function SecurityCanvas() {

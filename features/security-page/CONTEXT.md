@@ -3,6 +3,382 @@
 Newest entry on top. Append, never rewrite. Written so a cold session can resume without
 re-deriving anything: the spec is `FEATURE.md`, this file is what happened and why.
 
+## 2026-08-14 (fourth pass) — a taller window, and typing that is not a metronome
+
+**Why.** *"increase the height of the terminal, and make the typing random speed to make it look
+more natural, add more creativeness to it"*. Two unrelated asks in one sentence, done as two
+changes.
+
+### The height, and what it dragged with it
+
+| | before | after |
+|---|---|---|
+| window, tablet+ | 1 + 36 + **282** + 1 = **320** | 1 + 36 + **362** + 1 = **400** |
+| window, phone | 1 + 32 + **254** + 1 = **288** | 1 + 32 + **326** + 1 = **360** |
+| visible rows | 6 | **10** |
+| composite `BOX.h` | 580 | **660** (terminal bottom = 260 + 400) |
+| `#first` >=1200 / 1024 / 390 | 1256 / 952.41 / 905.19 | **1336 / 1032.41 / 977.19** |
+
+**Ten is derived, not picked.** The tablet+ tier binds because its rows are 22.4px against the
+phone's 19.2: `41 (panel) + 12 + 224 (ten rows) + 12 + 40.4 (box) = 329.4` inside 362, leaving
+32.6 of deliberate empty terminal. Phone is `37 + 10 + 192 + 10 + 33.2 = 282.2` inside 326.
+An eleventh row would need 351.8 of 362 at tablet+ — inside the box, but with no slack left for
+a copy edit, so **ten is the honest ceiling**.
+
+⚠️ **The third pass could say "this rewrite touches no other file"; this one cannot.** Three
+siblings carry the geometry and were edited with it: `SecurityCanvas.tsx` (`BOX.h`),
+`SecurityHero.tsx` (tier map + the three sums), `SecurityConsole.tsx` (the composite it quotes).
+`heroH` is excluded from `docs/reference/security-diff.js` by design, so **no harness asserts on
+any of this** — which is exactly why all four files carry the arithmetic in prose.
+
+⚠️ **All three tiers moved, which is new.** When the console arrived on 2026-08-13 only `>=1200`
+changed, because the console is gated to one breakpoint. The *terminal* is the one window every
+tier renders, so a change to it reaches all three. Each sum grew by exactly its window's delta
+(80 / 80 / 72) and by nothing else.
+
+⚠️ **`HEAD_0` is why the row count could move without touching a line of copy.** The invariant is
+`(head + RENDERED_ROWS - 1) % 4 === 0` — the hidden last row must always be the next PROMPT, and
+`head` advances by 4 forever, so it has to hold every cycle. `head = LINES.length - VISIBLE_ROWS`
+makes that sum `LINES.length` = 20 exactly, a multiple of 4, so it holds for **any** row count.
+A literal `14` would have broken the moment six became ten.
+
+### The typing
+
+⚠️ **`steps(n)` had to go, and not because it was tuned wrong.** An ease is baked in when the
+tween is built and is uniform by construction: one `steps(n)` tween can only ever produce one
+interval for every keystroke of every prompt. There is no ease that varies per character. The
+reveal is now **one zero-duration `set` per glyph at an accumulating jittered time** — ~35 sets
+per cycle, which costs nothing, and the mechanism is otherwise untouched (still a width clip over
+text that is already present, so SSR, reduced motion and the trailing caret all behave as before).
+
+What was added on top of plain jitter, because uniform jitter alone just reads as lag:
+
+- **burst runs** — 24% of glyphs land at 16-36ms against the ordinary 45-115ms. The *contrast* is
+  what sells it.
+- **think-pauses** — 90-300ms after a space, 32% of the time. At every space it reads as dictation.
+- **the fumble** — ~2 prompts in 5 hit a **QWERTY left-hand neighbour** (`e`→`w`, `k`→`j`,
+  `r`→`e`), sit on it 130-340ms, backspace, and carry on. Never in the first two or last two
+  characters: nothing is typed yet for the correction to read against, and a slip at the end
+  lands on the submit beat and reads as a stutter. The span holds the typo'd string only for
+  that beat — the backspace clips the width back, which is what makes swapping the correct
+  string in again invisible rather than a flicker.
+- **every duration in the file became a range** sampled per cycle. The three arrival gaps still
+  RISE (means 0.55 < 0.68 < 0.8) because that ordering is what makes the exchange read as a
+  reply; the ranges are staggered rather than overlapping wholesale so randomising cannot
+  flatten it.
+
+#### Second round, same day: the variance was at the wrong scale
+
+*"the typing is still fast, it should be random speed, sometimes lowkey fast something slow"* —
+and they were right for a reason that is arithmetic, not taste. The first attempt sampled a delay
+**per glyph**. Thirty independent samples from one range AVERAGE OUT: every prompt took about the
+same total time, and no stretch inside a prompt was faster than any other. Per character, jitter
+is invisible.
+
+Tempo now varies at **two scales above the glyph**, which is where a person's does:
+
+| scale | mechanism | effect |
+|---|---|---|
+| per prompt | one `TEMPO` multiplier `[0.7, 1.7]`, rolled once per cycle, applied to every key | one question is typed briskly, the next haltingly |
+| per run | a `MODE` held for 2-10 characters, then re-rolled: fast `[22, 50]ms` w0.3, ordinary `[60, 130]ms` w0.5, laboured `[150, 300]ms` w0.2 | stretches of muscle memory, then words picked out one at a time |
+
+They compose, so a slow prompt in a laboured run is genuinely slow. Think-pauses are scaled by
+tempo too — someone typing slowly also thinks longer between words. The fumble's reaction beat is
+NOT scaled, because noticing a typo is reaction time, not typing speed.
+
+**Measured, 12 prompts over 2 minutes:** totals **3.04s .. 8.08s**, a **2.65x spread**;
+101 .. 245 ms/char between prompts; within a prompt gaps run 20ms to 768ms. Before this round
+every prompt was ~2.1s at ~65ms/char with no spread worth the name.
+
+⚠️ **Randomness below the character is invisible — keep it above.** That is the whole lesson of
+this round, and it is why `BURST_CHANCE` (a per-glyph coin flip) is gone rather than retuned.
+
+⚠️ **A reported "rows stop updating" was HMR debris, not a bug.** The user's screenshot showed
+the strip painting its first 7 rows and leaving 4 at their server-rendered text — exactly what a
+stale effect closure from before the row count went 6 -> 10 would do, since React keeps the first
+seven `<li>` nodes and appends the rest. On a FRESH load: 55 strips sampled over 50s, **0
+non-contiguous**. Every strip was `LINES[h..h+10]` for some h. Hard-reload after changing
+`VISIBLE_ROWS`; there is nothing to fix in the component.
+
+⚠️ **The self-scheduling chain is now doubly required.** It already could not be a `repeat: -1`
+timeline (one baked ease, prompts of different lengths); now a repeat would replay the same
+"random" performance forever, which is the exact thing this pass exists to kill.
+
+**Measured over CDP, 1440 x 900, dev build:**
+
+| | |
+|---|---|
+| window / body / content / slack | 720 x 400 / 362 / 329.4 / 32.6, `overflow=false` |
+| clip | 224.0px = **10.00 rows** at 22.4; 192.0 = 10.01 at 19.2 (phone) |
+| panes | console 900 x 440 at (0,0), terminal 720 x 400 at (+280,+260) |
+| `#first` | **1336** / 1032.41 / 977.19 — the three sums, confirmed, not derived |
+| keystroke gaps | min 15, p25 40, med 70, p75 95, max 344 ms |
+| distinct gap values | 46 of 95 samples |
+| fumbles | 3 in 10 prompts over 60s, **all corrected**, 0 non-ASCII strings |
+
+### ⚠️ A bug found while measuring: `w-max` is poisoned project-wide
+
+The greeting **"Welcome to clix code" had never rendered**. It was in the DOM with the right
+text and the right colour, at **exactly 0px wide**, since the panel landed on 2026-08-13.
+
+Root cause: `globals.css`'s `@theme` defines `--container-max: 1280px` as this site's page
+container. **Tailwind v4 resolves `w-<name>` against the `--container-<name>` namespace**, so the
+project token collides with the built-in utility and the generated rule is:
+
+```css
+.w-max { width: max-content; width: var(--container-max) }
+```
+
+The second declaration wins. **Every `w-max` in this repo is `width: 1280px`.** Here that made a
+113px dot-matrix grid claim 1280px of a 678px flex line; `shrink-0` meant it could not give any
+back, so the `truncate` greeting next to it was squeezed to zero. Nothing errored, the dots still
+drew at the right size, and `overflow-hidden` on the window meant the 1280px box was clipped
+away — **a screenshot could not catch it**, only measuring the span's rect could.
+
+Fixed with an inline `width: max-content` on the grid: a class can be tidied away by someone
+cleaning up the list, an inline style cannot. `max-content` rather than the computed 113px
+because `MATRIX_COLS` already derives the column count.
+
+⚠️ **`ClixCapabilities.tsx:135`'s marquee track (`clix-marquee flex w-max flex-none`) has the
+same bug and is NOT fixed here** — different section, user's call. `w-min` / `h-min` / `h-max`
+are unaffected: there is no `--container-min` token to collide with them.
+
+#### Third round, same day: the reply streams, the work got technical, and the box grew a status strip
+
+*"the response of the terminal claude, can you make it like typing but also but fast, cuz right
+now it just spawns and also add more coding terms, or tech stuff to make it more like coding"*,
+then a screenshot of the real CLI's prompt box with *"add something like this to ours"*.
+
+**1. The agent's rows stream.** They arrived complete before. Now `streamInto` fills the bottom
+row progressively — but in **1-4 character CHUNKS at 18-45ms**, not keystrokes. That is the point:
+a hand presses one key, a model emits tokens, and the two motions in one window should not look
+alike. Measured: 16 lines over 45s, 180-630ms each, chunk sizes 1-4.
+
+⚠️ **`textContent = slice`, not the width clip the prompt box uses**, and it is not an
+inconsistency. The row's text span carries `truncate`, i.e. `text-overflow: ellipsis` — clipping
+it to a partial width makes the browser draw an ellipsis at the cut, so a half-arrived line would
+read `Read(infra/dep…`. A substring never overflows, so no ellipsis can appear.
+
+⚠️ **The arriving row is blanked TWICE, and both are load-bearing.** Once below the clip before
+it travels (or it slides in complete, then gets wiped — a flash exactly where the eye is), and
+again in the SAME synchronous callback as `paint()`, which has just written the full string back.
+Splitting the second one into its own callback reintroduces the flash.
+
+**2. Six rows per exchange, not four.** Each answer now makes TWO tool calls — the first
+establishes ground, the second reads the value the sentence rests on: `Read(infra/deploy.tf)` →
+`provider aws`, `Bash(clix env show)` → `region eu-west-1 (yours)`. Also `Grep(retention,
+config/run.yml)`, `Audit(iam policy)`, `Read(tokens/github.json)`, `Read(vault/kv/clix)`,
+`Read(.github/workflows/clix.yml)`, `Bash(git remote show origin)`.
+
+⚠️ **The extra rows are code artifacts, never new claims.** The five `say` lines are untouched and
+still map 1:1 onto the Compliance band's five cells. The page already established this vocabulary
+— the console beside it lists `sync.ts`, `auth.ts`, `schema.sql` with diff counts. `transit  tls`
+carries **no version number** deliberately: Benefit 5 is still an open question in FEATURE.md and
+naming a version would invent precision on top of an unsigned claim.
+
+⚠️ **`steps` is a fixed-length TUPLE `[Step, Step]`**, not `Step[]`. Uniform rows per exchange is
+what keeps `head` coherent; an array would let one exchange grow a row, which type-checks, renders,
+and desyncs the prompt box on the third cycle. The tuple makes it a compile error. `runCycle` walks
+`ROWS_PER_EXCHANGE - 1` and treats `GAPS` as a lookup with a fallback, so the COPY drives the walk
+and a gap-list mismatch degrades instead of desyncing.
+
+**3. The status strip**, from the user's screenshot: `[audit] clix code · read only` left,
+`~/audit` pushed right, inside the prompt box above the input. 11px so it costs 17.6px at both
+tiers and matches `MockWindow`'s title bar register. ⚠️ The reference named a model
+(`claude-opus-4.6`); ours does not, per the no-Anthropic rule. ⚠️ `·` is **U+00B7, inside the
+Latin-1 block the font covers** — the reference's `↵` (U+21B5) is not, so there is no return
+arrow and no `⇥` tab hint. Verified: the only non-ASCII character anywhere in the window is `·`.
+
+### ⚠️ The body budget had never subtracted its own padding
+
+Adding the strip made the prompt box clip **5px past the window's border**, and the cause was
+older than the strip. Every revision of the `bodyClassName` note compared the children's sum
+against the body's HEIGHT (`362`), but the body is `border-box` with `py-5`, so what children
+actually get is `362 - 40 = 322`:
+
+| | needed | available | |
+|---|---|---|---|
+| six rows (2026-08-13) | 329.4 | 322 | **7.4 over**, absorbed invisibly by the bottom padding |
+| ten rows | 347 | 322 | **25 over**, `scrollHeight` 367 vs `clientHeight` 362 |
+
+A screenshot showed a box that merely looked tight; only `scrollHeight > clientHeight` caught it.
+Fixed by growing the window rather than dropping a row, since the user had asked for taller:
+
+| | before | after |
+|---|---|---|
+| window | 400 / 360 | **440 / 380** |
+| body | 362 / 326 | **402 / 346** |
+| available (padding subtracted) | 322 / 294 | **362 / 314** |
+| needed | 347 / 299.8 | unchanged |
+| slack | **-25 / -5.8** | **+15 / +14.2** |
+| `BOX.h` | 660 | **700** |
+| `#first` | 1336 / 1032.41 / 977.19 | **1376 / 1072.41 / 997.19** |
+
+⚠️ **Compare against `available`, never against `h-[]`.** That is the whole lesson, and the note
+in the component now says so.
+
+#### Fourth round, same day: a boot sequence, and real model names
+
+The user sent a screenshot of the real CLI's slash menu: *"at first it selects agent you can put
+claude models there then it selects fable or something then it starts the operation it has now"*.
+
+**The window now opens EMPTY and fills itself.** `/agent` types into the box, a roster prints, one
+is picked; `/model` types, three models print, `claude-fable-5` is picked; then the endless
+exchange begins and the boot never replays.
+
+⚠️ **This reverses the no-Anthropic rule, for exactly three strings, on the user's explicit call.**
+They were asked directly, shown a neutral-tier alternative, and chose real model names. The
+reversal is coherent rather than a contradiction because (a) the home page's live ticker already
+names GPT, Gemini, Grok and DeepSeek in public — a model picker is that same register, not the
+endorsement badge the rule was written against — and (b) the rule's *second* reason survives
+intact: the agent's sentences are still clix's, spoken by `clix audit`, and no security claim is
+attributed to a model. The header keeps both reasons and says so.
+
+⚠️ **The IDs are real and current** — `claude-opus-5`, `claude-fable-5`, `claude-sonnet-5`, taken
+from the model reference, NOT from the user's screenshot, which showed `claude-opus-4.6`, a
+version string that does not exist. A wrong ID on a security page is the same class of small
+false detail this repo strips elsewhere.
+
+**The architecture change: scenes, and a played-once prefix.**
+
+| | before | after |
+|---|---|---|
+| model | one integer walking one array | a `head` **and** a `scene` index, advancing together |
+| invariant | `(head + VISIBLE_ROWS) % ROWS_PER_EXCHANGE === 0` | **retired** — no longer needed |
+| array | `LINES`, wrapped on its whole length | `FLAT`, wrapped only within `LOOP_LEN` |
+
+⚠️ **Retiring the modular invariant is a simplification, not a loss.** It required every exchange
+to contribute the same row count so `head + VISIBLE_ROWS` always landed on a prompt — which the
+boot steps (four rows) and the exchanges (five) cannot both satisfy. Tracking a scene index makes
+row counts free: the box types `SCENES[scene].typed` and `head` advances by exactly that scene's
+length, so they cannot drift however many rows a scene has.
+
+⚠️ **`lineAt(n)` is the one place the boot-then-loop shape lives** — `n < 0` → blank, `n <
+BOOT_LEN` → the boot, otherwise wrap within the exchanges. Wrapping on `LOOP_LEN` rather than
+`FLAT.length` is what makes the boot **unrepeatable**: past `BOOT_LEN` no arithmetic reaches back.
+`runScene`'s scene wrap goes to `LOOP_SCENE_0`, never 0, for the same reason — the two agree
+without either checking the other.
+
+⚠️ **`HEAD_0` and `HEAD_BOOT` are deliberately different starting points.** `HEAD_0` is the STATIC
+state (SSR, JS-off, reduced motion) and points into the looping tail, so a visitor who never sees
+the animation still gets a populated window making clix's real claims. `HEAD_BOOT` is
+`-VISIBLE_ROWS` — every visible row resolves through `lineAt`'s negative arm to a blank, with
+`FLAT[0]` waiting below the clip. **The animated branch therefore rewinds `head` before it fades
+anything in**, while rows are still at `opacity: 0`, so no frame shows the swap.
+
+⚠️ **The row stagger is gone**, as a consequence of the rewind rather than a style change: every
+row is blank at intro time, so staggering ten empty lines was 0.7s of nothing.
+
+**Verified over CDP** (recorder installed pre-navigation, so the opening frames are caught):
+
+| t | filled rows | box |
+|---|---|---|
+| 365ms | 11 (SSR, populated) | `where does my data get processed` |
+| 962ms | **1** — the hidden row only; all ten visible rows blank | `/agent` |
+| 3.5s+ | climbs as the boot prints | — |
+
+Boot visibility over 117s: **one contiguous run, then never again** — `1111…1110000…` — confirming
+it plays exactly once. Final strip is a clean exchange trace with correct markers.
+
+#### Follow-up: the strip shows what the boot picked
+
+*"the model selected should be shown in the reply box also, look how kiro has it"* — the reference
+strip reads `[plan] kiro_planner · claude-opus-4.6`, i.e. mode, agent, **model**. Ours read
+`[audit] clix code · read only`, which named neither selection.
+
+Now `[audit] clix audit · claude-fable-5`, and both fields are **live**: blanked at the rewind
+(the strip is just `[audit]` and the path while nothing is chosen), then filled as each `pick` row
+finishes streaming — appended *after* `streamInto`, so the strip commits in the same beat the
+transcript prints the choice rather than knowing before the pick appears. The separator hides
+until the model exists, or it floats alone through the whole `/agent` step.
+
+⚠️ **A `pick` row now carries `field` + `value`, and its printed text is derived** via
+`pickText`. The selection has two consumers (the transcript row and the strip) and hand-writing
+both is exactly the bug this ask describes: change the picked model and the strip still advertises
+the old one. `AGENT_0` / `MODEL_0` are read back out of `BOOT`, so SSR, the teardown and the boot
+all agree by construction.
+
+`read only` left the strip — the model earns the slot, and that line already appears in the
+transcript as a `scope` result. `~/audit` is now `hidden tablet:block`: the left group grew to 35
+columns against the phone strip's ~46, and `MockWindow`'s title bar already reads
+`clix@production: ~/audit` directly above it.
+
+#### Follow-up: the boot runs on its own clock, and the columns were collapsing
+
+*"make this stage of the bot reply faster"*. The boot was borrowing the exchange pace, and every
+one of those numbers is tuned for something the boot is not:
+
+| | exchange pace | why it was wrong for boot | boot pace |
+|---|---|---|---|
+| typing | human model: tempo, think-pauses, ~2-in-5 fumble | `/agent` is six characters of muscle memory, not a question being weighed — the human model made it a hesitant crawl | even strokes 30-60ms, **no pauses, no slips** |
+| arrival gaps | 0.3-0.95s, rising | a menu is not a reply; a real CLI prints one at once | 50-120ms for the three options, **0.22-0.4s only before the pick** |
+| slide | 0.35s | ten of those is 3.5s of pure scrolling before the security content | **0.16s** |
+| stream | 1-4 chars @ 18-45ms | a menu is printed, not generated | 2-6 chars @ 6-16ms |
+
+One `fast` flag on the Scene picks the whole clock — typing model, slide, gaps, stream and dwell
+all read off that single line in `runScene`, nowhere else.
+
+**Measured: boot play time 4.94s**, down from roughly fourteen. It is setup, not content; the
+exchanges are what a visitor is meant to read.
+
+#### ⚠️ `truncate` was collapsing every run of spaces in the transcript
+
+Visible in the user's screenshot: `clix audit    security review` rendered as `clix audit security
+review`, so the two-column menus came out ragged. `truncate` expands to `overflow-hidden
+text-ellipsis whitespace-nowrap`, and **`nowrap` collapses a run of spaces to one**. It had been
+quietly eating the result rows' gaps too (`region  eu-west-1` → `region eu-west-1`) since those
+rows were written.
+
+Fixed by spelling the utilities out with **`whitespace-pre`** — preserves the runs, still refuses
+to wrap, clipping behaviour unchanged. Spelled out rather than `truncate whitespace-pre` because
+`truncate` would re-assert `nowrap` from whichever rule the scanner emits last. Verified: both
+menu label columns now measure identically across all three rows (121.14px and 147.09px).
+
+#### ⚠️ A blank row had zero height, and that one fact caused everything that looked broken
+
+The user's screenshots showed `/model` already printed in the transcript while the box was still
+typing it, and the boot's content growing DOWNWARD from the welcome panel instead of scrolling up
+into it. Both are one bug, measured 2026-08-14: **a row whose text is `""` has no content, so its
+`<li>` collapsed to 0px.** Ten of them in the boot's opening screen:
+
+| consequence | why |
+|---|---|
+| the slide travelled 0px | `rowH()` measures `rows[0]`, which during boot is blank |
+| content bunched at the top of the clip | nine zero-height rows above it took no space |
+| **the eleventh row stopped being hidden** | with ten collapsed rows above it, the row that sits BELOW the clip sat inside it - so the next command was visible before it was typed |
+
+Fixed by pinning `h-[1.6em]` on every row, which is what the clip's own
+`calc(VISIBLE_ROWS * 1.6em)` has always assumed; it also makes `rowH()` content-independent.
+⚠️ **The class lives in a shared `ROW_CLASS` constant because `paint()` rebuilds
+`row.className` every tick** - a height written only in the JSX would be wiped on the first
+advance, the same drift `rowLook` exists to prevent.
+
+**Verified:** every row 22.4px, zero zero-height rows, row 10 at top=223.9 against a 224px clip
+(i.e. exactly below the fold), and content now enters at the bottom and scrolls up.
+
+#### The prompt line got its working directory
+
+*"add some directory maybe beside the >, you can see how cmd actually looks in real"* - with a
+`C:\Users\miko>` screenshot. A bare `>` reads as an empty box; `~/audit >` reads as a shell waiting for
+input. `CWD` is one constant feeding both the prompt and `MockWindow`'s title.
+
+⚠️ **Tablet+ only.** The phone box is 306px inner at 12px = ~42 columns, and `~/audit >`
+(10 with its gap) + the longest prompt (33) + the caret is 44. The path is the part that can go,
+since the title bar directly above already reads `clix@production: ~/audit`. For the same reason
+the path was **removed from the status strip** - keeping it would print `~/audit` twice in one
+box at tablet+.
+
+### Still open
+
+- The **drag regression the previous session was chasing was never confirmed** — its probe ran
+  against a dev server that was serving 500s (Turbopack's PostCSS worker could not spawn, because
+  a stale `next start -p 3008` was reading the same `.next` that `next dev -p 3001` was writing).
+  Cleared and restarted; **the drag has not been re-probed since**. Do not treat "the terminal
+  pane only drags from its title bar" as a finding — it has no evidence behind it.
+- Console and terminal copy **still unsigned by the user**, as of the third pass.
+
+---
+
 ## 2026-08-13 (third pass) — a second window, and both are draggable
 
 **Why.** *"can you add also something like this? in kiro both are dragable in the canva"* — the
