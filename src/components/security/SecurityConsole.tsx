@@ -1,3 +1,5 @@
+"use client";
+
 /**
  * SecurityConsole — the back window of the `/security` hero composite.
  *
@@ -7,9 +9,16 @@
  * Ours is a **run history**, which is the shape the user chose, and every value in it is a
  * design decision rather than a measurement. Spec: features/security-page/FEATURE.md → Block 1b.
  *
- * Presentational and stateless. No `"use client"`, no hooks, no motion of its own — the entry
+ * Presentational and stateless — no state, no effects, no motion of its own. The entry
  * animation and the dragging both live in `SecurityCanvas`, and the chrome lives in
  * `MockWindow`. This file is only the three panes.
+ *
+ * ⚠️ `"use client"` SINCE 2026-08-14, AND IT COSTS NOTHING. The one hook here is
+ * `usePageDict("security")`, which is a context read. The directive is not what puts this file
+ * in the client bundle either — `SecurityCanvas` is a client component and imports it, so it
+ * has always shipped to the browser; the directive only makes that legible at the top of the
+ * file instead of two files away. `usePageDict` rather than `getDict()` for the same reason:
+ * a client module must never `import` a dictionary, or BOTH locales land in the chunk.
  *
  * ─── ⚠️ DESKTOP ONLY (>=1200), AND THAT IS DELIBERATE ────────────────────────────────────
  * `SecurityCanvas` renders this behind a `hidden desktop:block`. A three-pane console at the
@@ -40,29 +49,43 @@
  *
  * NO DASHES IN CLIX COPY (standing user request). `eu-west-1` and `nightly-sync` are
  * identifiers, not punctuation, so they keep their hyphens.
+ *
+ * ─── ⚠️ WHAT IS TRANSLATED HERE AND WHAT IS NOT (2026-08-14) ────────────────────────────
+ * The user asked for the hero windows to speak Hebrew on /he, "only the necessary parts". The
+ * line is CODE VS PROSE, and it is drawn by the dictionary's shape rather than by judgement at
+ * each call site: `security.console` carries the pane headings, the six ages, the five detail
+ * VALUES and the progress line, and it carries nothing else. The run ids, the run names, the
+ * `#1482`, the detail KEY column, the file names and the diff counts are literals in this file
+ * and a locale cannot reach them. `MockWindow`'s `dir="ltr"` still stands: the window is not
+ * mirrored in either locale, and the only bidi accommodation is `dir="auto"` on the two spans
+ * that can hold a Hebrew run — see them below.
  */
 
 import MockWindow from "@/components/security/MockWindow";
+import { usePageDict } from "@/lib/i18n/LocaleProvider";
 
 /* The runs rail. `active` drives the marker fill and the row's text colour; there is exactly
-   one, and it is the row the middle pane is showing. Ages are relative and deliberately vague
-   — a wall-clock timestamp in a static mock is a lie with a specific number attached. */
-const RUNS: ReadonlyArray<{ id: string; name: string; age: string; active?: boolean }> = [
-  { id: "1482", name: "nightly-sync", age: "now", active: true },
-  { id: "1481", name: "invoice-pull", age: "2h" },
-  { id: "1480", name: "crm-export", age: "5h" },
-  { id: "1479", name: "log-archive", age: "9h" },
-  { id: "1478", name: "nightly-sync", age: "1d" },
-  { id: "1477", name: "invoice-pull", age: "1d" },
+   one, and it is the row the middle pane is showing.
+   ⚠️ THE AGE MOVED OUT ON 2026-08-14 and is now `console.ages[i]`, positionally — it is the one
+   field on this row that is a WORD rather than an identifier. Ages are relative and deliberately
+   vague; a wall-clock timestamp in a static mock is a lie with a specific number attached. */
+const RUNS: ReadonlyArray<{ id: string; name: string; active?: boolean }> = [
+  { id: "1482", name: "nightly-sync", active: true },
+  { id: "1481", name: "invoice-pull" },
+  { id: "1480", name: "crm-export" },
+  { id: "1479", name: "log-archive" },
+  { id: "1478", name: "nightly-sync" },
+  { id: "1477", name: "invoice-pull" },
 ];
 
-/* The five practice claims, in the order the Compliance band states them. */
-const DETAIL: ReadonlyArray<[string, string]> = [
-  ["region", "eu-west-1 (yours)"],
-  ["scope", "read only"],
-  ["secrets", "your vault"],
-  ["retention", "none"],
-  ["source", "your repo"],
+/* The five practice claims, in the order the Compliance band states them. KEYS ONLY — these are
+   a shell's field names and stay Latin in every locale; the values are `console.details[i]`. */
+const DETAIL_KEYS: readonly string[] = [
+  "region",
+  "scope",
+  "secrets",
+  "retention",
+  "source",
 ];
 
 /* The changed-files rail. This is the `ownership` claim made visible: the automation clix wrote
@@ -93,6 +116,8 @@ function PaneHeading({ children }: { children: string }) {
 }
 
 export default function SecurityConsole() {
+  const { console: copy } = usePageDict("security");
+
   return (
     <MockWindow
       title="clix@production: ~/runs"
@@ -104,9 +129,9 @@ export default function SecurityConsole() {
     >
       {/* ── Runs rail ────────────────────────────────────────────────────────────────── */}
       <div className="w-[220px] shrink-0 overflow-hidden border-e border-hairline-light p-4">
-        <PaneHeading>RUNS</PaneHeading>
+        <PaneHeading>{copy.headings[0]}</PaneHeading>
         <ul>
-          {RUNS.map((run) => (
+          {RUNS.map((run, i) => (
             <li
               key={run.id}
               className={`flex items-center py-[3px] ${
@@ -127,7 +152,13 @@ export default function SecurityConsole() {
               </span>
               <span className="w-[6ch] shrink-0">{run.id}</span>
               <span className="truncate">{run.name}</span>
-              <span className="ms-auto ps-2 opacity-60">{run.age}</span>
+              {/* ⚠️ `dir="auto"` — the age is the one field on this row that can be Hebrew, and
+                  without it a Hebrew run inside this LTR window takes the paragraph's direction
+                  for its neutrals (the `'` in `5 ש'`) and lands them at the wrong end. `auto`
+                  reads the first strong character, so it is a NO-OP on every English age. */}
+              <span dir="auto" className="ms-auto ps-2 opacity-60">
+                {copy.ages[i]}
+              </span>
             </li>
           ))}
         </ul>
@@ -135,28 +166,36 @@ export default function SecurityConsole() {
 
       {/* ── Run detail ───────────────────────────────────────────────────────────────── */}
       <div className="flex-1 overflow-hidden border-e border-hairline-light p-4">
-        <PaneHeading>RUN</PaneHeading>
+        <PaneHeading>{copy.headings[1]}</PaneHeading>
         <p className="mb-3 text-paper">
           nightly-sync <span className="text-paper-soft opacity-60">#1482</span>
         </p>
         <ul className="mb-3">
-          {DETAIL.map(([key, value]) => (
+          {DETAIL_KEYS.map((key, i) => (
             <li key={key} className="flex py-[3px]">
               {/* 11ch so the values line up into a column regardless of key length — the same
                   fixed-column reasoning the terminal feed uses. */}
               <span className="w-[11ch] shrink-0 text-paper-soft">{key}</span>
-              <span className="truncate text-paper">{value}</span>
+              {/* ⚠️ `dir="auto"` for the same reason as the age above, and it matters most on
+                  `eu-west-1 (שלכם)`: that value is Latin-first, so `auto` resolves it LTR and the
+                  parentheses stay around the Hebrew word rather than migrating to the far end.
+                  A value that is Hebrew-first resolves RTL and its full stop lands correctly. */}
+              <span dir="auto" className="truncate text-paper">
+                {copy.details[i]}
+              </span>
             </li>
           ))}
         </ul>
         {/* A progress statement, not a verdict. "6 of 6 steps" is a fact about a depicted run;
             "0 vulnerabilities" would be a claim about the product. */}
-        <p className="text-paper-soft">6 of 6 steps complete</p>
+        <p dir="auto" className="text-paper-soft">
+          {copy.progress}
+        </p>
       </div>
 
       {/* ── Changed files ────────────────────────────────────────────────────────────── */}
       <div className="w-[240px] shrink-0 overflow-hidden p-4">
-        <PaneHeading>FILES</PaneHeading>
+        <PaneHeading>{copy.headings[2]}</PaneHeading>
         <ul>
           {FILES.map(([name, added, removed]) => (
             <li key={name} className="flex items-center py-[3px]">

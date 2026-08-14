@@ -43,14 +43,25 @@
  *
  * ✅ THE PHOTO COLUMN PLAYS SINCE 2026-08-13. Those six "portraits" were always poster frames
  * cut from the clients' own testimonial videos, and the videos have been sitting unused in
- * `public/testimonials/<id>.mp4` since the accordion was retired. At ≥1200 the column is now a
+ * `public/testimonials/<id>.mp4` since the accordion was retired. At ≥1200 the column is a
  * play target: click it and it widens 360 → 480px over 400ms while the clip plays with SOUND;
- * pause, end, Escape, an arrow, a committed flick, or a resize under 1200 all collapse it back
- * to the poster. Below 1200 nothing changed — the column is `display:none` there and always was.
+ * pause, end, Escape, an arrow, a committed flick, or a resize across 1200 all collapse it back
+ * to the poster.
  *
- * FOUR THINGS ABOUT IT ARE LOAD-BEARING, each argued where it is written:
- *   1. exactly ONE `<video>` exists, mounted at `pos`, `preload="none"` — `LOOP` renders 18
- *      `<li>` and a video per slide would be ~68MB of clips fetched three times over
+ * ✅ AND IT PLAYS BELOW 1200 SINCE 2026-08-14, WHERE IT IS NOT A COLUMN. On the user's ask —
+ * "make this part show the video in mobile view, but I prefer that it also shows the quote AND
+ * the video" — a phone and a tablet now get a BYLINE TILE: the same player at 72 × 96 (96 × 128
+ * at 810–1199), sitting in the author row beside the name, growing to 168 × 224 (216 × 288) when
+ * tapped. Quote and clip are visible at once; the quote text does not move while it grows,
+ * because the `flex-1` quote block absorbs the height and only the card's bottom edge travels.
+ * A flip was considered and rejected by the user for exactly that reason — a flip hides one side.
+ *
+ * FIVE THINGS ABOUT IT ARE LOAD-BEARING, each argued where it is written:
+ *   1. exactly TWO `<video>` elements exist — one per media box — and both only at `pos`,
+ *      `preload="none"`. `LOOP` renders 18 `<li>` and a video per slide would be ~68MB of clips
+ *      fetched three times over. Two boxes cannot share one element because they are different
+ *      DOM POSITIONS; each box's own button plays the element beside it, so no `matchMedia` and
+ *      no tier state is needed, and an unplayed `preload="none"` element costs nothing
  *   2. `play()` is called INSIDE the click handler, which is why the element is mounted rather
  *      than created on click — Safari does not forgive a deferred gesture
  *   3. `go()` stops the clip SYNCHRONOUSLY before `setPos`, not in an effect — an effect runs
@@ -58,7 +69,9 @@
  *      element playing audio with nothing holding a reference to it
  *   4. `stopPropagation` on the button's `pointerdown` — the viewport's pointer CAPTURE
  *      retargets `pointerup` and the click would fire on the viewport, never on the button.
- *      The cost: the portrait is no longer a drag surface at ≥1200
+ *      The cost: the player is not a drag surface at any tier
+ *   5. the resize guard stops on ANY crossing of 1200, both directions. Each tier now has its
+ *      own box, so either can be `display:none`d out from under a running clip
  *
  * THE QUOTE GETS 120px NARROWER WHILE A CLIP RUNS, AND THAT WAS MEASURED, NOT ASSUMED. The card
  * is `flex-1 w-px` beside a `flex-none` column, so it absorbs the whole 120px; nothing else on
@@ -89,20 +102,29 @@
  * left empty. Nothing was substituted in. Do not reintroduce the slot without that decision
  * changing.
  *
- * THE ORIGINAL SHIPS THREE SUBTREES; THIS SHIPS TWO, AND THE COLLAPSE IS DELIBERATE.
+ * THE ORIGINAL SHIPS THREE SUBTREES; THIS SHIPS **ONE** SINCE 2026-08-14.
  *
  * | tier      | original                                  | here |
  * |-----------|-------------------------------------------|------|
- * | ≥1200     | `Desktop` slideshow: 3 slides WITH photos  | the slideshow, photo column visible |
- * | 810–1199  | `Mobile` slideshow: same 3 slides, NO photos | the same slideshow, photo column `hidden` |
- * | ≤809      | `Testimonials (Mobile)`: a static stack of **two** cards, no arrows, different copy | its own markup |
+ * | ≥1200     | `Desktop` slideshow: 3 slides WITH photos  | the slideshow, player as a 360→480px COLUMN |
+ * | 810–1199  | `Mobile` slideshow: same 3 slides, NO photos | the same slideshow, player as a 96×128 BYLINE TILE |
+ * | ≤809      | `Testimonials (Mobile)`: a static stack of **two** cards, no arrows, different copy | the same slideshow again — 72×96 tile, dots instead of arrows, card height 400→528 while playing |
  *
- * The first two are one component with one hidden column and two quote sizes — verified
- * identical, so duplicating the subtree would only duplicate the DOM. The third is NOT a
- * responsive variant of the other two and cannot be collapsed into them:
- *   · two testimonials, not three. The third slot (Sean Warneke there, Adir Peretz here)
- *     is absent below 810.
- *   · slot 1's quote was **different copy** at this width in the original — not a truncation
+ * ⚠️ THE ≤809 STATIC STACK IS GONE, AND WITH IT `PHONE_STYLE`. Until 2026-08-14 the phone tier
+ * was its own markup — six fixed-height cards, no arrows, no photos, ~2100px of scroll — because
+ * the original's own phone tier is not a responsive variant of its slideshow. That reasoning
+ * stopped applying the moment phones had to play video: the slideshow was ALREADY a swiper (1:1
+ * pointer tracking, velocity-projected commit, the triple loop) and it was gated off below 810
+ * by a single `hidden tablet:block`. Rendering it at every width bought swipe, the loop and
+ * "one clip at a time" for free — only the slide at `pos` mounts a video — and deleted ~40 lines
+ * of parallel markup that had to be kept in step by hand. The user chose the swiper explicitly.
+ *
+ * WHAT THAT DELIBERATELY GIVES UP, STATED: the phone reader no longer sees all six quotes by
+ * scrolling. Five are behind a swipe. The dots exist to say the other five are there.
+ *
+ * The capture's own phone quirks were already dead before this and are NOT resurrected:
+ *   · it shipped two testimonials, not three; clix ships all six at every tier
+ *   · slot 1's quote was **different copy** at that width in the original — not a truncation
  *     but a different sentence ("Rogo is going to transform" there versus "Rogo transforms"
  *     above 810). ⚠️ **WE NO LONGER REPRODUCE THAT.** The quirk was carried through the
  *     placeholder generation as `phoneLeadQuote` so it would survive the real copy landing; when
@@ -110,8 +132,9 @@
  *     thing Asaf Peretz said. Inventing a phone-only variant of a real endorsement is precisely
  *     what the placeholders existed to prevent, so the key was deleted from both locale files
  *     and every card at every width now reads its own slide.
- *   · slot 1 is FIRST on phones (`order:0`) and second in the DOM everywhere else
- *   · no photos, no arrows, and its own paddings (24 / `32 24 24 24`) and gaps (20 / 80)
+ * Its measured phone paddings and gaps (p-6, gap-5, 20px quote) DID survive — they are now
+ * responsive steps on the one card, and they preserve the 310px measure at 390px wide, so the
+ * line counts recorded in features/testimonials/CONTEXT.md still hold.
  *
  * MOTION IS MEASURED, NOT GUESSED — AND THE CAPTURE WOULD HAVE LIED ABOUT ALL OF IT.
  * Framer drives the slideshow in JS, so the frozen HTML shows three slides, `gap:8px`, and
@@ -285,55 +308,6 @@ const SLIDE_STYLE = [
   { id: "elyashiv-engineering", photo: "/testimonials/elyashiv-engineering.jpg", cream: false, quoteDesktop: "desktop:text-[36px]" },
 ] as const;
 
-/**
- * ≤809 ONLY. A static stack, no arrows. Per-card MEASURED box, padding and gap.
- *
- * ⚠️ SLOT 1 USED TO CARRY DIFFERENT COPY AT THIS WIDTH — the capture's own editorial quirk,
- * a different sentence rather than a shortened one, modelled here as a `phoneLeadQuote` key.
- * DROPPED 2026-08-13 when the real quotes arrived: one sentence per client, so there is nothing
- * to put in a phone-only variant that the client actually said. Every card now reads its own
- * slide at every width. See the note at the `CardBody` call below.
- *
- * ⚠️ THE BOXES ARE FIXED HEIGHTS, SO A LONG QUOTE CLIPS RATHER THAN GROWING THE CARD. Measured
- * 505 and 334. With the fixed author block below it that leaves 12 lines for card 1 and 8 for
- * the rest at 20px/1.3em in a 310px measure. Measured: English 9 / 5 / 6 / 5 / 5 / 6, Hebrew
- * 8 / 5 / 5 / 5 / 5 / 6. Re-measure if the real quotes come back long.
- *
- * ⚠️ SIX CARDS, A DELIBERATE DEPARTURE FROM THE CAPTURE, which ships exactly TWO here against
- * three slides above. That asymmetry was reproduced faithfully until 2026-08-12 and stops making
- * sense once the page carries clix's own six: a phone reader seeing two of six, with no arrows
- * and no affordance suggesting more exist, reads it as the list. The cost is scroll length —
- * roughly 2100px. If that proves too long, cut the TAIL rather than reordering, so the two tiers
- * keep agreeing on who comes first.
- *
- * Cards 3 to 6 take card 2's measured shape (334 / p-6 / gap-5), not card 1's. Card 1 is the
- * one-off: 505px because the original's lead card carries a longer quote and its own padding and
- * gap (`--u1dxzv` / `--50mq1o`; the two cards share neither value). `cream` is read from
- * SLIDE_STYLE above so the two tiers stripe identically by construction.
- *
- * The original's phone copy sets slot 2's ROLE in capitals AND applies
- * `text-transform: uppercase`, so it renders the same as the sentence-case one. Sentence case
- * everywhere here: identical output, one less thing to keep in step.
- */
-/* ⚠️ SLOT 1 WAS `h-[505px]` WITH ITS OWN PADDING AND AN 80px GAP, AND IT IS NOT ANY MORE.
-   That box was measured off the capture, and it was 171px taller than the rest for one reason:
-   in the original, slot 1 carried a LONGER, DIFFERENT quote at this width. We dropped that
-   `phoneLeadQuote` on 2026-08-13 because the real copy is one sentence per client and there is
-   no second thing Asaf Peretz said — so the tall box was left holding ~250px of dead space above
-   the author block, which is visible and reads as a layout bug rather than as air.
-   The height, padding and gap are therefore normalised to the other five. A DOCUMENTED
-   DIVERGENCE FROM THE CAPTURE, and the honest one: the measurement was correct for copy this
-   page no longer has. Card 1 stays distinguishable by its `cream` fill, as it always was.
-   Verified at 390 after the change: 6 lines in a 334px box, no clip, nothing else moved. */
-const PHONE_STYLE = [
-  { box: "h-[334px]", pad: "p-6", gap: "gap-5" },
-  { box: "h-[334px]", pad: "p-6", gap: "gap-5" },
-  { box: "h-[334px]", pad: "p-6", gap: "gap-5" },
-  { box: "h-[334px]", pad: "p-6", gap: "gap-5" },
-  { box: "h-[334px]", pad: "p-6", gap: "gap-5" },
-  { box: "h-[334px]", pad: "p-6", gap: "gap-5" },
-] as const;
-
 /* ---- Card internals, shared by all three tiers ---------------------------------------- */
 
 /* The original's `CompanyMark` (a 200 × 20 box at 70% opacity holding Nomura's 121 × 22 SVG,
@@ -346,11 +320,16 @@ function CardBody({
   name,
   role,
   quoteSize,
+  media,
 }: {
   quote: string;
   name: string;
   role: string;
   quoteSize: string;
+  /* The byline tile, below 1200 only — see `MediaBox`. A SLOT rather than props, because at
+     ≥1200 there is nothing here at all: the media is a sibling column, not part of the byline.
+     Passing `undefined` renders the author block exactly as it shipped before. */
+  media?: React.ReactNode;
 }) {
   return (
     <>
@@ -368,8 +347,13 @@ function CardBody({
         </blockquote>
       </div>
 
-      {/* `.framer-51h5ng` → `.framer-1h8s99a` — gap 24 outside, gap 4 between the two lines. */}
-      <div className="relative flex w-full flex-none flex-col items-start gap-6">
+      {/* `.framer-51h5ng` → `.framer-1h8s99a` — gap 24 outside, gap 4 between the two lines.
+          ⚠️ A ROW BELOW 1200 SINCE 2026-08-14, holding the byline tile beside the name; the
+          original's column layout is restored at `desktop:` where the media is a sibling
+          column instead. `flex-row` + a logical `gap` puts the tile at the INLINE START in
+          both directions, so this needs no `useDirSign()` — see the RTL list in the header. */}
+      <div className="relative flex w-full flex-none flex-row items-start gap-4 desktop:block">
+        {media}
         <div className="relative flex w-full flex-col items-start gap-1">
           <p className="w-full font-sans text-[16px] leading-[130%] tracking-[-0.02em] text-ink desktop:text-[18px]">
             {name}
@@ -392,6 +376,185 @@ function CardBody({
         </div>
       </div>
     </>
+  );
+}
+
+/* ---- The player, shared by the byline tile and the ≥1200 column -------------------------
+ * ONE COMPONENT, TWO CALL SITES, because the two are the same thing at two sizes: a poster,
+ * a <video> crossfading over it, and a single inset-0 button that is the entire transport.
+ * Only the box geometry and the badge scale differ, so those are props and nothing else is.
+ *
+ * ⚠️ IT IS RENDERED ON ALL EIGHTEEN <li>, LIVE ON ONE. Rendering only at `pos` would pop the
+ * badge in and out mid-transition — neighbours are visibly on screen for the whole 1100ms step,
+ * and permanently after a slow drag rests the track off-grid. So it is drawn everywhere, the
+ * handler is gated on `active`, and `tabIndex` follows the <li>'s own `aria-hidden` so the 17
+ * clones stay out of the tab order.
+ *
+ * ⚠️ THE <video> IS MOUNTED ONLY WHEN `active`, AND `preload="none"` IS WHAT MAKES THAT FREE.
+ * An unplayed `preload="none"` video fetches no media at all; `poster` is the same URL as the
+ * <img> above it, so that is a cache hit rather than a second download. It is set even though
+ * the element is invisible until it plays: without it the element paints transparent-to-black
+ * between `play()` returning and the first frame decoding, and the crossfade shows that flash.
+ *
+ * NOT muted — AUDIO IS THE POINT. NO `controls` — the button is the whole transport, by
+ * decision. `playsInline` is what keeps iOS from taking the clip fullscreen.
+ */
+function MediaBox({
+  photo,
+  clipId,
+  alt,
+  name,
+  active,
+  expanded,
+  playing,
+  still,
+  videoRef,
+  onToggle,
+  onPlaying,
+  box,
+  badge,
+  icon,
+  labels,
+}: {
+  photo: string;
+  clipId: string;
+  alt: string;
+  name: string;
+  active: boolean;
+  expanded: boolean;
+  playing: boolean;
+  still: boolean;
+  videoRef: React.RefObject<HTMLVideoElement | null>;
+  onToggle: () => void;
+  onPlaying: (v: boolean) => void;
+  /* Visibility + width/height, at every tier. Carries the tier gate itself (`desktop:hidden`
+     on the tile, `hidden desktop:block` on the column) so this component never knows the tier. */
+  box: string;
+  badge: string;
+  icon: string;
+  labels: { play: string; pause: string };
+}) {
+  return (
+    <div
+      className={`relative flex-none ${box}`}
+      /* Inline rather than `transition-[width,height]` classes for one reason: `still` has to
+         make it INSTANT, and this is the same shorthand the track already reads by.
+         NO `overflow-hidden` — both children are `w-full h-full` so there is nothing to clip,
+         and it would eat the button's focus ring. */
+      style={{
+        transition: still
+          ? "none"
+          : `width ${EXPAND_MS}ms var(--ease-rogo), height ${EXPAND_MS}ms var(--ease-rogo)`,
+      }}
+    >
+      {/* No `width`/`height` attributes, deliberately. The six files do not share an intrinsic
+          size (720 × 1014 through 720 × 1280), so a single pair would be false for most of
+          them. Nothing is lost: the box above fixes BOTH axes in CSS, so the intrinsic ratio
+          can cause no layout shift and the attributes would only be wrong metadata.
+          `object-position` is CENTRE, not left — these are poster frames pulled from the
+          clients' own 9:16 phone clips, and centre is what the live page shows. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={photo}
+        alt={alt}
+        /* Without this the browser's own image-drag ghost hijacks the gesture and the carousel
+           never sees the pointer move. */
+        draggable={false}
+        className="block h-full w-full object-cover object-center"
+      />
+
+      {active && (
+        <video
+          ref={videoRef}
+          src={`/testimonials/${clipId}.mp4`}
+          poster={photo}
+          preload="none"
+          playsInline
+          /* STATE MIRRORS THE ELEMENT, IT DOES NOT PREDICT IT. `play` fires the instant `paused`
+             flips to false — before any data — so the box starts growing on the tap rather than
+             on the first buffer. `pause` catches every stop we did not initiate as well: an OS
+             media key, a headphone button, another tab taking audio focus. */
+          onPlay={() => onPlaying(true)}
+          onPause={() => onPlaying(false)}
+          /* ⚠️ `ended` DOES NOT FIRE `pause`. Per spec the ended playback algorithm fires
+             `timeupdate` + `ended` and leaves `paused` FALSE, so `onPause` will not run and this
+             has to collapse on its own. (Some older WebKit builds fire both; both handlers are
+             idempotent, so a double fire is one render.) `currentTime = 0` so the next tap
+             restarts the clip rather than re-ending instantly. A PAUSE keeps its position by
+             contrast — collapsing is not the same as giving up. */
+          onEnded={(e) => {
+            e.currentTarget.currentTime = 0;
+            onPlaying(false);
+          }}
+          className={`absolute inset-0 block h-full w-full object-cover object-center ${
+            playing ? "opacity-100" : "opacity-0"
+          }`}
+          style={{ transition: still ? "none" : "opacity 300ms var(--ease-rogo)" }}
+        />
+      )}
+
+      {/* ONE BUTTON, INSET-0, LABEL AND GLYPH SWAPPING. Not two elements: the pause target IS
+          the whole box, so a separate pause control would be this same absolute box written
+          twice — and swapping the two would unmount the focused element, drop focus to <body>,
+          and leave a keyboard user who pressed Space to play unable to press Space to pause.
+
+          ⚠️ `stopPropagation` ON POINTERDOWN, AND IT IS LOAD-BEARING TWICE OVER. The viewport
+          owns onPointerDown/Move/Up and calls `setPointerCapture` on itself. Capture RETARGETS
+          the pointerup — and the compatibility mouseup with it — to the viewport, so the browser
+          computes `click` at the common ancestor and fires it on the VIEWPORT: onClick here
+          would simply never run. Left unstopped it would also start a drag under every tap.
+          THE COST, STATED: these pixels are not a drag surface. At ≥1200 that is 360 of 1280px;
+          below 1200 the tile is ~20% of the card's width and the rest of the card is the
+          natural place to grab. */}
+      <button
+        type="button"
+        onPointerDown={(e) => e.stopPropagation()}
+        onClick={() => {
+          if (active) onToggle();
+        }}
+        tabIndex={active ? 0 : -1}
+        /* The accessible name carries the person, not just "play" — a screen reader user moving
+           through the carousel needs to know whose. Both are `interpolate()` templates from
+           `chrome.a11y` rather than assembled here, because the Hebrew word order is not
+           "Play X's Y". */
+        aria-label={interpolate(expanded ? labels.pause : labels.play, { name })}
+        /* `bg-transparent` at rest, NOT a permanent scrim: the resting box has to look exactly
+           like the photograph. The scrim is hover-only. */
+        className="group absolute inset-0 flex cursor-pointer items-center justify-center bg-transparent transition-colors duration-300 hover:bg-ink/10 focus-visible:ring-2 focus-visible:ring-paper focus-visible:outline-none"
+        style={{ transitionTimingFunction: "var(--ease-rogo)" }}
+      >
+        {/* Fades out while playing so a running clip is clean, and comes back on hover or
+            keyboard focus so the pause stays discoverable. */}
+        <span
+          aria-hidden="true"
+          className={`flex items-center justify-center rounded-full bg-paper/90 backdrop-blur-sm transition-[transform,opacity] duration-300 group-hover:scale-110 group-hover:opacity-100 group-focus-visible:scale-110 group-focus-visible:opacity-100 ${badge} ${
+            expanded ? "opacity-0" : "opacity-100"
+          }`}
+          style={{ transitionTimingFunction: "var(--ease-rogo)" }}
+        >
+          {expanded ? (
+            /* NO `ml-[2px]` HERE, AND THAT IS NOT AN OVERSIGHT. The nudge on the play triangle
+               is an optical correction for a shape whose visual mass sits toward its flat edge;
+               the pause bars are symmetric about their own centre, so the same nudge would push
+               them 2px OFF centre. */
+            <svg viewBox="0 0 24 24" className={`fill-ink ${icon}`}>
+              <path d="M7 4.5h3.5v15H7zM13.5 4.5H17v15h-3.5z" />
+            </svg>
+          ) : (
+            /* ⚠️ `ml-[2px]` IS PHYSICAL ON PURPOSE — DO NOT MIGRATE IT TO `ms-`, and do not add
+               `rtl:-scale-x-100` to the glyph. Two reasons pointing the same way. (1) Play/pause
+               are MEDIA-TRANSPORT glyphs and no platform mirrors them; only skip-forward/back
+               mirror, because only those mean "the direction reading goes" — a left-pointing
+               play button on /he would read as rewind. (2) The nudge is an optical correction
+               tied to the un-mirrored artwork's visual mass, so it has to stay on the physical
+               side that mass is on. */
+            <svg viewBox="0 0 24 24" className={`ml-[2px] fill-ink ${icon}`}>
+              <path d="M8 5.14v13.72a1 1 0 0 0 1.54.84l10.3-6.86a1 1 0 0 0 0-1.68L9.54 4.3A1 1 0 0 0 8 5.14Z" />
+            </svg>
+          )}
+        </span>
+      </button>
+    </div>
   );
 }
 
@@ -509,13 +672,22 @@ export default function QuoteCarousel() {
      decide a gesture on. */
   const gesture = useRef<{ startX: number; lastT: number; samples: { x: number; t: number }[] } | null>(null);
   const viewport = useRef<HTMLDivElement>(null);
-  /* ⚠️ ONE `<video>` FOR THE WHOLE CAROUSEL, and this ref points at it. `LOOP` renders 18
-     `<li>`; a video per slide would be 18 elements and, on anything above `preload="none"`, the
-     six clips fetched three times over — ~68MB. So exactly one is mounted, in the `<li>` at
-     `pos`, and it is REMOUNTED on every index change (different parent — React cannot move a
-     DOM node across parents). That costs nothing: an unplayed `preload="none"` video fetches no
-     media at all. */
-  const video = useRef<HTMLVideoElement>(null);
+  /* ⚠️ TWO `<video>` ELEMENTS, ONE PER MEDIA BOX, AND BOTH ONLY ON THE SLIDE AT `pos`.
+     Until 2026-08-14 there was exactly one, because there was exactly one media box. The byline
+     tile and the ≥1200 column are different DOM POSITIONS, so one element cannot serve both.
+     The rejected alternative was a `matchMedia` tier state deciding which to mount: that adds
+     hydration surface — the server has no `window`, so it would render one branch and possibly
+     flip on hydration — for no gain.
+     THE INVARIANT THAT ACTUALLY MATTERED SURVIVES INTACT: `LOOP` renders 18 `<li>`, and a video
+     per slide would be 18 (now 36) elements and, on anything above `preload="none"`, the six
+     clips fetched three times over — ~68MB. Mounting is gated on `active` exactly as before, and
+     an unplayed `preload="none"` video fetches no media at all, so the second element costs
+     nothing. Both are REMOUNTED on every index change (different parent — React cannot move a
+     DOM node across parents), which is why `go()` must stop them synchronously; see below.
+     NOTHING HAS TO KNOW THE TIER: each box's own button plays the element beside it, and the
+     hidden box's button is `display:none` and therefore unclickable. */
+  const columnVideo = useRef<HTMLVideoElement>(null);
+  const tileVideo = useRef<HTMLVideoElement>(null);
   /* ⚠️ A BOOLEAN, NOT AN INDEX. The video only ever exists at `pos`, and every path that
      changes `pos` stops it first (see `go`), so "which slide is playing" is not an independent
      fact — it is always `pos`. Storing an index would make `playingIndex !== pos` representable,
@@ -528,8 +700,12 @@ export default function QuoteCarousel() {
      sections/Testimonials.tsx (see its note above `play`).
      Idempotent by construction: `pause()` on an already-paused element fires no event, and
      `setPlaying(false)` when it is already false is a React bail-out. */
+  /* Pauses BOTH boxes' elements without asking which one is visible. `pause()` on an
+     already-paused element fires no event, so hitting the hidden one is free and the whole
+     thing stays idempotent — which is the property every caller below relies on. */
   const stop = useCallback(() => {
-    video.current?.pause();
+    columnVideo.current?.pause();
+    tileVideo.current?.pause();
     setPlaying(false);
   }, []);
 
@@ -542,8 +718,10 @@ export default function QuoteCarousel() {
      promise instead (which is what Testimonials.tsx does, safely, because native `controls` back
      it up) would leave the button dead for as long as the first buffer takes — and with
      `preload="none"` the fetch only starts on this call. */
-  const toggle = useCallback(() => {
-    const el = video.current;
+  /* Takes the ref of the box that was CLICKED, which is how the tier stays out of the JS: the
+     button that ran this handler is, by construction, the visible one. */
+  const toggle = useCallback((ref: React.RefObject<HTMLVideoElement | null>) => {
+    const el = ref.current;
     if (!el) return;
     if (!el.paused) {
       el.pause();
@@ -561,7 +739,7 @@ export default function QuoteCarousel() {
      ⚠️ AND IT STOPS THE VIDEO, SYNCHRONOUSLY, BEFORE `setPos`. Not in an effect keyed on
      `pos`, which is what sections/Testimonials.tsx does and what does NOT work here: by the time
      such an effect ran, React would already have unmounted the video from the old `<li>` and
-     mounted a fresh one in the new, so `video.current` would point at the new SILENT element
+     mounted a fresh one in the new, so both refs would point at the new SILENT elements
      while the old, DETACHED one carried on playing audio with nothing left holding a reference
      to it. Pausing here, still inside the click/pointer handler, catches the element while it is
      mounted and the ref is valid. It also has to set `playing` itself rather than wait for the
@@ -643,18 +821,23 @@ export default function QuoteCarousel() {
     return () => window.removeEventListener("keydown", onKey);
   }, [playing, stop]);
 
-  /* ⚠️ `display:none` DOES NOT STOP PLAYBACK. Resizing under 1200 hides the whole column, and
-     without this the audio keeps running from an element nobody can see or click. This is the
-     one place the tier has to be known in JS — everywhere else `hidden desktop:block` does the
-     entire job and no `matchMedia` gate is needed.
-     Touches the ELEMENT ONLY; the resulting `pause` event flips `playing` through the handler on
-     the <video>, so there is no setState in this effect body.
+  /* ⚠️ `display:none` DOES NOT STOP PLAYBACK, AND NOW IT CUTS BOTH WAYS. Before 2026-08-14 only
+     the column existed and only shrinking under 1200 could hide a playing element. Now each
+     tier has its own box, so crossing 1200 in EITHER direction hides whichever one is running
+     and leaves audio playing from something nobody can see or click.
+     So the guard is no longer "pause if below" but "stop on any change of the query" — which is
+     also strictly simpler, and preserves today's observable behaviour: a resize across the
+     boundary stops the clip and collapses the box rather than trying to hand off. A hand-off
+     would have to call `play()` outside a user gesture, which Safari rejects silently.
+     `pause()` only, on both elements; the resulting `pause` event flips `playing` through the
+     handler on the <video>, so there is no setState in this effect body.
      1200 is `--breakpoint-desktop`, and a media-query string cannot read a custom property — if
      that tier ever moves, move both. */
   useEffect(() => {
     const mq = window.matchMedia("(min-width: 1200px)");
     const sync = () => {
-      if (!mq.matches) video.current?.pause();
+      columnVideo.current?.pause();
+      tileVideo.current?.pause();
     };
     mq.addEventListener("change", sync);
     return () => mq.removeEventListener("change", sync);
@@ -699,16 +882,38 @@ export default function QuoteCarousel() {
        `.framer-zrtsd2` — max-w 1280, gap 40. Only one of its two children is ever laid out,
        so the gap is inert; kept because the original's nesting is load-bearing for width. */
     <div className="relative flex w-full max-w-[var(--container-max)] flex-col items-center gap-10">
-        {/* ---- ≥810: the slideshow. 694px tall at both tiers, full container width. ---- */}
-        <div className="relative hidden h-[694px] w-full tablet:block">
+        {/* ---- THE SLIDESHOW, AT EVERY WIDTH SINCE 2026-08-14. 694px tall at ≥810 exactly as
+             measured; below that the height is state-driven and grows while a clip plays. ---- */}
+        <div
+          /* ⚠️ THE HEIGHT COMES FROM AN INLINE CUSTOM PROPERTY, NOT AN INLINE `height`, and that
+             is the whole trick: an inline `height` cannot be media-queried, so `tablet:h-[694px]`
+             could never win over it. A custom property CAN be shadowed by a class, so ≥810 keeps
+             its measured 694px box at rest AND while playing, and the var is simply inert there.
+             Phone numbers are measured: 24 (p-6) + 234 (9 lines × 26px, the longest English
+             quote in a 310px measure) + 20 (gap-5) + 96 (tile) + 24 = 398 → 400. Playing swaps
+             the 96px tile for 224px → 528. All six slides now share ONE height, so it is fitted
+             to the longest quote rather than per-card. */
+          style={
+            {
+              "--card-h": playing ? "528px" : "400px",
+              /* Harmless at ≥810: the computed height there is a constant 694px, so there is
+                 never anything to interpolate. `still` kills it, like everywhere else. */
+              transition: still ? "none" : `height ${EXPAND_MS}ms var(--ease-rogo)`,
+            } as React.CSSProperties
+          }
+          className="relative h-[var(--card-h)] w-full tablet:h-[694px]"
+        >
           {/* The arrows live 40px ABOVE the box, flush to its right edge — the original
               pins them `top:-80px; right:0` inside a box whose own overflow is visible, so
               they sit in the section's 124px top padding. */}
           {/* `end-0`, not `right-0`: the controls sit against the container's inline END, so
               under rtl they move to the left edge. Resolves to `right:0` in ltr. */}
+          {/* ⚠️ `hidden tablet:flex` SINCE 2026-08-14. Below 810 the dots below the carousel are
+              the pagination control instead — the arrows are pinned into the section's 80px
+              heading gap, which is not a place a thumb goes on a phone. */}
           <fieldset
             aria-label={t.a11y.controls}
-            className="absolute -top-20 end-0 m-0 flex flex-row items-center gap-3 border-0 p-0"
+            className="absolute -top-20 end-0 m-0 hidden flex-row items-center gap-3 border-0 p-0 tablet:flex"
           >
             {/* Never disabled — it loops. Measured, not assumed: both arrows report
                 `disabled=false, opacity:1` at every sample of the live page. */}
@@ -776,9 +981,12 @@ export default function QuoteCarousel() {
                   className="flex h-full w-full flex-none flex-row items-center gap-4"
                 >
                   {/* The card. `justify-center` with a `flex-1` body is what holds the
-                      author block to the bottom without a spacer. */}
+                      author block to the bottom without a spacer.
+                      The phone steps (p-6, gap-5, 20px quote) are the MEASURED values the
+                      deleted static stack used, carried over unchanged — same 310px measure at
+                      390, so its recorded line counts still hold. */}
                   <div
-                    className={`relative flex h-full w-px flex-1 flex-col items-start justify-center gap-20 overflow-hidden p-12 ${
+                    className={`relative flex h-full w-px flex-1 flex-col items-start justify-center gap-5 overflow-hidden p-6 tablet:gap-20 tablet:p-12 ${
                       style.cream ? "bg-bone" : "bg-surface"
                     }`}
                   >
@@ -786,210 +994,93 @@ export default function QuoteCarousel() {
                       quote={copy.quote}
                       name={copy.name}
                       role={copy.role}
-                      quoteSize={`text-[28px] ${style.quoteDesktop}`}
+                      quoteSize={`text-[20px] tablet:text-[28px] ${style.quoteDesktop}`}
+                      /* ⚠️ THE BYLINE TILE — BELOW 1200 ONLY. It is the same player as the
+                         column, at a smaller size, sitting in the author row so the quote and
+                         the video are visible AT ONCE. Tapping grows it in place while the clip
+                         crossfades in: the same gesture the column already makes at ≥1200
+                         (360 → 480px), turned onto the vertical axis.
+
+                         ⚠️ THE QUOTE TEXT DOES NOT MOVE WHEN IT GROWS, and that is structural
+                         rather than lucky. The quote block is `flex-1` and starts its content at
+                         the top, so the extra height the card gains is absorbed there; the tile
+                         and the byline extend DOWNWARD and only the card's bottom edge travels.
+
+                         ONE ASPECT RATIO (3:4) AT BOTH SIZES AND BOTH TIERS, so the growth is a
+                         pure scale — an aspect change mid-animation reads as a glitch. The
+                         sources are 9:16, so `object-cover` crops the sides; faces are centred.
+
+                         ⚠️ TABLET DOES NOT GROW THE CARD, AND THAT IS MEASURED SLACK. 694 − 48
+                         − 48 − 80 = 518px for quote + tile; a 288px tile leaves 230px, and the
+                         longest English quote at 28px in an 848px measure runs ~5 lines ≈ 182px.
+                         ~48px spare. IF QUOTE COPY GROWS, RE-CHECK THAT CELL FIRST: the quote
+                         block has `min-height:auto`, so it refuses to shrink and pushes the
+                         author block out through `overflow-hidden`, clipping the role line and
+                         then the name — invisibly, unless you look for it. */
+                      media={
+                        <MediaBox
+                          photo={style.photo}
+                          clipId={style.id}
+                          alt={interpolate(t.a11y.portraitAlt, { name: copy.name, role: copy.role })}
+                          name={copy.name}
+                          active={active}
+                          expanded={expanded}
+                          playing={playing}
+                          still={still}
+                          videoRef={tileVideo}
+                          onToggle={() => toggle(tileVideo)}
+                          onPlaying={setPlaying}
+                          box={
+                            expanded
+                              ? "h-[224px] w-[168px] desktop:hidden tablet:h-[288px] tablet:w-[216px]"
+                              : "h-24 w-[72px] desktop:hidden tablet:h-32 tablet:w-24"
+                          }
+                          badge="h-8 w-8 tablet:h-11 tablet:w-11"
+                          icon="h-3.5 w-3.5 tablet:h-5 tablet:w-5"
+                          labels={{ play: a11y.playTestimonial, pause: a11y.pauseTestimonial }}
+                        />
+                      }
                     />
                   </div>
-                  {/* The portrait: 360px wide at rest, full height. Hidden below 1200 — that
-                      is the whole difference between the original's `Desktop` and `Mobile`
-                      slideshow variants, and it is also the only gate the video needs: a
-                      `display:none` <video> with `preload="none"` and no autoplay does nothing,
-                      so the two lower tiers are covered by the class alone.
 
-                      ⚠️ IT PLAYS SINCE 2026-08-13, AND THE RESTING STATE IS UNCHANGED BY
-                      CONSTRUCTION. The <img> below is the one that shipped before, untouched;
-                      the <video> is layered ON TOP of it at `opacity-0` and only crossfades in
-                      once playback has actually started. The poster, the crop and the 360px box
-                      are exactly where they were. What is new at rest is one badge.
+                  {/* ⚠️ THE ≥1200 COLUMN — UNCHANGED IN EVERY VISIBLE RESPECT. 360px wide at
+                      rest, full card height, widening to 480 over 400ms while the clip runs.
+                      What changed on 2026-08-14 is only that its markup now comes from the
+                      shared `MediaBox` instead of being written out here, and that it is one of
+                      TWO players rather than the only one. The tier gate is still a class and
+                      still the entire mechanism.
 
-                      ⚠️ THE WIDTH IS THE ONLY THING THAT ANIMATES, AND THE CARD ABSORBS IT.
+                      ⚠️ THE WIDTH IS THE ONLY THING THAT ANIMATES HERE, AND THE CARD ABSORBS IT.
                       The <li> is `w-full flex-none` and the card beside this is `flex-1 w-px`,
                       so 360 → 480 takes 120px out of the card and NOTHING out of the track: the
                       ul's transform is a percentage of its own width, which does not change, and
-                      `h-[694px]` two levels up is untouched. No page reflow, no track shift. The
-                      quote reflows narrower and taller — measured, see the vertical budget in
-                      the header note.
+                      the box two levels up is a constant 694px at this tier. No page reflow, no
+                      track shift. The quote reflows narrower and taller — measured, see the
+                      vertical budget in the header note.
 
-                      ⚠️ 480 IS FIXED FOR ALL SIX, not derived from each clip's aspect ratio.
-                      The files run 720 × 1014 through 720 × 1280, so a per-clip width would move
-                      the column a different distance on every slide and reflow the quote by a
+                      ⚠️ 480 IS FIXED FOR ALL SIX, not derived from each clip's aspect ratio. The
+                      files run 720 × 1014 through 720 × 1280, so a per-clip width would move the
+                      column a different distance on every slide and reflow the quote by a
                       different amount — inconsistent motion for no gain, since `object-cover`
-                      crops either way.
-
-                      ⚠️ `object-position` is CENTRE, not left. The capture's inline style
-                      says `object-position:left center`; the hydrated component computes
-                      `50% 50%`, and centre is what the live page shows. Reading the capture
-                      alone gets this wrong, and it is visible — the crop lands on a
-                      different part of the frame. That matters more here than it did with the
-                      capture's studio headshots: these files are POSTER FRAMES pulled from the
-                      clients' testimonial videos, framed for a 9:16 phone clip, not portraits
-                      shot for a 360 × 694 slot. The video carries the same pair, so the swap at
-                      the moment of play is invisible. */}
-                  <div
-                    className={`relative hidden h-full flex-none desktop:block ${
-                      expanded ? "w-[480px]" : "w-[360px]"
-                    }`}
-                    /* Inline rather than a `transition-[width]` class for one reason: `still`
-                       has to make it INSTANT, and this is the same shorthand the track above
-                       already reads by. NO `overflow-hidden` — both children are `w-full` so
-                       there is nothing to clip, and it would eat the button's focus ring. */
-                    style={{ transition: still ? "none" : `width ${EXPAND_MS}ms var(--ease-rogo)` }}
-                  >
-                    {/* No `width`/`height` attributes, deliberately. The capture's three
-                        headshots shared one intrinsic size (781 × 1024) and could state it;
-                        ours do not (720 × 1014 for asaf, 720 × 1272 for the other two), so a
-                        single pair would be false for at least one of them. Nothing is lost:
-                        the box above fixes BOTH axes in CSS, so the intrinsic ratio can cause
-                        no layout shift and the attributes would only be wrong metadata. */}
-                    {/* ⚠️ THE ALT IS A TEMPLATE, `"{name}, {role}"`, so the glue between the two
-                        is a translator's decision and not a hard-coded English comma. It is the
-                        same comma in Hebrew, so the rendered string is unchanged in both — but
-                        the punctuation is now stated in the dictionary rather than in JSX.
-                        PRE-EXISTING WART, CARRIED: `elyashiv-engineering` has an empty role, so
-                        its alt has always ended in a trailing ", ". Not fixed here, because
-                        fixing it would move the English render. Reported. */}
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={style.photo}
-                      alt={interpolate(t.a11y.portraitAlt, { name: copy.name, role: copy.role })}
-                      /* Without this the browser's own image-drag ghost hijacks the
-                         gesture and the carousel never sees the pointer move. */
-                      draggable={false}
-                      className="block h-full w-full object-cover object-center"
-                    />
-
-                    {/* ⚠️ THE ONLY <video> IN THE CAROUSEL — see the note on the `video` ref.
-                        Mounted, not created on click, because `play()` has to run inside the
-                        click handler itself; `preload="none"` is what makes mounting free.
-
-                        `poster` is set even though this is invisible until it plays: without it
-                        the element paints transparent-to-black between `play()` returning and
-                        the first frame decoding, and the crossfade would show that flash. Same
-                        URL as the <img> above, so it is a cache hit, not a second download.
-
-                        NOT muted — AUDIO IS THE POINT. NO `controls` — the button below is the
-                        entire transport, by decision. No `tabIndex={-1}` either: a <video>
-                        without `controls` is not in the tab order in any engine, so the
-                        attribute would be inert. */}
-                    {active && (
-                      <video
-                        ref={video}
-                        src={`/testimonials/${style.id}.mp4`}
-                        poster={style.photo}
-                        preload="none"
-                        playsInline
-                        /* STATE MIRRORS THE ELEMENT, IT DOES NOT PREDICT IT. `play` fires the
-                           instant `paused` flips to false — before any data — so the column
-                           starts widening on the click rather than on the first buffer. `pause`
-                           catches every stop we did not initiate as well: an OS media key, a
-                           headphone button, another tab taking audio focus. */
-                        onPlay={() => setPlaying(true)}
-                        onPause={() => setPlaying(false)}
-                        /* ⚠️ `ended` DOES NOT FIRE `pause`. Per spec the ended playback
-                           algorithm fires `timeupdate` + `ended` and leaves `paused` FALSE, so
-                           `onPause` above will not run and this handler has to collapse on its
-                           own. (Some older WebKit builds fire both; both handlers are idempotent
-                           `setPlaying(false)`, so a double fire is one render.)
-                           `currentTime = 0` so the next click restarts the clip rather than
-                           re-ending instantly, and so the frame under the crossfade is frame 0
-                           and not the last one. A PAUSE keeps its position by contrast —
-                           collapsing is not the same as giving up. */
-                        onEnded={(e) => {
-                          e.currentTarget.currentTime = 0;
-                          setPlaying(false);
-                        }}
-                        className={`absolute inset-0 block h-full w-full object-cover object-center ${
-                          playing ? "opacity-100" : "opacity-0"
-                        }`}
-                        style={{ transition: still ? "none" : "opacity 300ms var(--ease-rogo)" }}
-                      />
-                    )}
-
-                    {/* ONE BUTTON, INSET-0, LABEL AND GLYPH SWAPPING. Not two elements: the
-                        pause target IS the whole column, so a separate pause control would be
-                        this same absolute box written twice — and swapping the two would unmount
-                        the focused element, drop focus to <body>, and leave a keyboard user who
-                        pressed Space to play unable to press Space to pause. sections/
-                        Testimonials.tsx can unmount its button safely because native `controls`
-                        appear and take over; here nothing takes over.
-
-                        ⚠️ RENDERED ON ALL EIGHTEEN <li>, LIVE ON ONE. Rendering it only at `pos`
-                        would pop the badge in and out mid-transition — neighbours are visibly on
-                        screen for the whole 1100ms step, and permanently after a slow drag rests
-                        the track off-grid. So it is drawn everywhere and the handler is gated on
-                        `active`; `tabIndex` follows the <li>'s own `aria-hidden`, so the 17
-                        clones stay out of the tab order.
-
-                        ⚠️ `stopPropagation` ON POINTERDOWN, AND IT IS LOAD-BEARING TWICE OVER.
-                        The viewport above owns onPointerDown/Move/Up and calls
-                        `setPointerCapture` on itself. Capture RETARGETS the pointerup — and the
-                        compatibility mouseup with it — to the viewport, so the browser computes
-                        `click` at the common ancestor and fires it on the VIEWPORT: onClick here
-                        would simply never run. Left unstopped it would also start a drag under
-                        every tap.
-                        THE COST, STATED: the portrait is no longer a drag surface at ≥1200 —
-                        360 of 1280px, 28%. Accepted, because while playing those pixels MUST be
-                        a click target by decision, and a surface that drags at rest but clicks
-                        while playing would be worse than one that never drags. The card beside
-                        it is the other 72% and is the natural place to grab. */}
-                    <button
-                      type="button"
-                      onPointerDown={(e) => e.stopPropagation()}
-                      onClick={() => {
-                        if (active) toggle();
-                      }}
-                      tabIndex={active ? 0 : -1}
-                      /* The accessible name carries the person, not just "play" — a screen
-                         reader user moving through the carousel needs to know whose. Both are
-                         `interpolate()` templates from `chrome.a11y` rather than assembled here,
-                         because the Hebrew word order is not "Play X's Y". `playTestimonial` is
-                         SOURCED from the real site's own aria-label; `pauseTestimonial` is
-                         authored — see the note in he/chrome.ts. */
-                      aria-label={interpolate(
-                        expanded ? a11y.pauseTestimonial : a11y.playTestimonial,
-                        { name: copy.name },
-                      )}
-                      /* `bg-transparent` at rest, NOT the permanent `bg-ink/10` scrim
-                         sections/Testimonials.tsx paints: the resting column has to look exactly
-                         like the photograph that shipped before. The scrim is hover-only. */
-                      className="group absolute inset-0 flex cursor-pointer items-center justify-center bg-transparent transition-colors duration-300 hover:bg-ink/10 focus-visible:ring-2 focus-visible:ring-paper focus-visible:outline-none"
-                      style={{ transitionTimingFunction: "var(--ease-rogo)" }}
-                    >
-                      {/* Fades out while playing so a running clip is clean, and comes back on
-                          hover or keyboard focus so the pause stays discoverable. 56px rather
-                          than the accordion's 48px: that badge sits on a 186px-wide clip, this
-                          one on 360–480. */}
-                      <span
-                        aria-hidden="true"
-                        className={`flex h-14 w-14 items-center justify-center rounded-full bg-paper/90 backdrop-blur-sm transition-[transform,opacity] duration-300 group-hover:scale-110 group-hover:opacity-100 group-focus-visible:scale-110 group-focus-visible:opacity-100 ${
-                          expanded ? "opacity-0" : "opacity-100"
-                        }`}
-                        style={{ transitionTimingFunction: "var(--ease-rogo)" }}
-                      >
-                        {expanded ? (
-                          /* NO `ml-[2px]` HERE, AND THAT IS NOT AN OVERSIGHT. The nudge on the
-                             play triangle is an optical correction for a shape whose visual mass
-                             sits toward its flat edge; the pause bars are symmetric about their
-                             own centre, so the same nudge would push them 2px OFF centre. */
-                          <svg viewBox="0 0 24 24" className="h-5 w-5 fill-ink">
-                            <path d="M7 4.5h3.5v15H7zM13.5 4.5H17v15h-3.5z" />
-                          </svg>
-                        ) : (
-                          /* ⚠️ `ml-[2px]` IS PHYSICAL ON PURPOSE — DO NOT MIGRATE IT TO `ms-`,
-                             and do not add `rtl:-scale-x-100` to the glyph. Two reasons pointing
-                             the same way. (1) Play/pause are MEDIA-TRANSPORT glyphs and no
-                             platform mirrors them; only skip-forward/back mirror, because only
-                             those mean "the direction reading goes" — a left-pointing play
-                             button on /he would read as rewind. (2) The nudge is an optical
-                             correction tied to the un-mirrored artwork's visual mass, so it has
-                             to stay on the physical side that mass is on. Same decision, same
-                             wording, as sections/Testimonials.tsx. */
-                          <svg viewBox="0 0 24 24" className="ml-[2px] h-5 w-5 fill-ink">
-                            <path d="M8 5.14v13.72a1 1 0 0 0 1.54.84l10.3-6.86a1 1 0 0 0 0-1.68L9.54 4.3A1 1 0 0 0 8 5.14Z" />
-                          </svg>
-                        )}
-                      </span>
-                    </button>
-                  </div>
+                      crops either way. */}
+                  <MediaBox
+                    photo={style.photo}
+                    clipId={style.id}
+                    alt={interpolate(t.a11y.portraitAlt, { name: copy.name, role: copy.role })}
+                    name={copy.name}
+                    active={active}
+                    expanded={expanded}
+                    playing={playing}
+                    still={still}
+                    videoRef={columnVideo}
+                    onToggle={() => toggle(columnVideo)}
+                    onPlaying={setPlaying}
+                    box={`hidden h-full desktop:block ${expanded ? "w-[480px]" : "w-[360px]"}`}
+                    /* 56px rather than the tile's 32: this badge sits on a 360–480px column. */
+                    badge="h-14 w-14"
+                    icon="h-5 w-5"
+                    labels={{ play: a11y.playTestimonial, pause: a11y.pauseTestimonial }}
+                  />
                 </li>
                 );
               })}
@@ -997,40 +1088,44 @@ export default function QuoteCarousel() {
           </div>
         </div>
 
-        {/* ---- ≤809: six static cards, slot 1 first, no arrows. ---- */}
-        <div className="relative flex w-full flex-col items-center gap-6 overflow-hidden tablet:hidden">
-          {PHONE_STYLE.map((box, i) => (
-            /* `pt-8 pr-6 pb-6 pl-6` on card 1 is a SYMMETRIC HORIZONTAL PAIR — `pr-6 pl-6` is
-               `px-6` written long, and only the vertical values differ. Direction-neutral by
-               construction, so it stays physical: migrating it would swap two identical numbers.
-               Verified, not overlooked. */
-            <div
-              key={SLIDE_STYLE[i].id}
-              className={`relative flex w-full flex-col items-start justify-center overflow-hidden ${box.box} ${box.pad} ${box.gap} ${
-                SLIDE_STYLE[i].cream ? "bg-bone" : "bg-surface"
-              }`}
-            >
-              <CardBody
-                /* ⚠️ SLOT 1 USED TO HAVE ITS OWN STRING HERE (`phoneLeadQuote`), REPRODUCING THE
-                   TARGET'S EDITORIAL QUIRK: the original ships a genuinely different sentence in
-                   this slot at ≤809, not a shortened one, and the placeholders kept the quirk
-                   structurally so it would survive the real copy landing.
+        {/* ---- ≤809: dots. The phone's pagination, and its "there are six of these" signal.
+             The wrapper's `gap-10` — inert until 2026-08-14, because only one of its two
+             children ever laid out — is what puts 40px between these and the carousel.
 
-                   It did not survive, and it should not have. The real quotes arrived 2026-08-13
-                   as one sentence per client — there is no second thing Asaf Peretz said, and
-                   inventing a phone-only variant of a real endorsement is the exact failure the
-                   placeholders existed to prevent. Duplicating his one quote into a second key
-                   would have been worse still: two strings to keep in step, for nothing.
-                   So `phoneLeadQuote` is deleted from both locale files and every card at every
-                   width now reads its own slide. */
-                quote={t.slides[i].quote}
-                name={t.slides[i].name}
-                role={t.slides[i].role}
-                quoteSize="text-[20px]"
-              />
-            </div>
-          ))}
-      </div>
+             `go()` TAKES A DELTA, so a dot targets its own slide by subtracting the current
+             modulo index. A multi-step jump animates across in one STEP_MS and can land outside
+             the middle copy; the clone-snap effect already handles exactly that, silently. ---- */}
+        <div
+          role="group"
+          aria-label={t.a11y.controls}
+          className="flex flex-row items-center gap-2 tablet:hidden"
+        >
+          {SLIDE_STYLE.map((s, i) => {
+            const current = ((pos % N) + N) % N;
+            return (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => go(i - current)}
+                /* `aria-current` rather than `aria-selected`: these are not tabs, and
+                   `aria-pressed` would claim a toggle that does not untoggle. */
+                aria-current={i === current}
+                aria-label={interpolate(a11y.slideOfTotal, { n: String(i + 1), total: String(N) })}
+                /* The hit area is 24px square while the ink is 8px — a 8px tap target fails
+                   WCAG 2.5.8 and misses under a thumb. Padding, not margin, so the gap-2 above
+                   still describes the visible spacing between dots. */
+                className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-full focus-visible:ring-2 focus-visible:ring-ink focus-visible:outline-none"
+              >
+                <span
+                  aria-hidden="true"
+                  className={`block h-2 w-2 rounded-full transition-colors duration-300 ease-[var(--ease-rogo)] ${
+                    i === current ? "bg-ink" : "bg-ink/25"
+                  }`}
+                />
+              </button>
+            );
+          })}
+        </div>
     </div>
   );
 }

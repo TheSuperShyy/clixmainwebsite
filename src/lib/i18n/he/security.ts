@@ -290,4 +290,119 @@ export const security: Translated<SecurityDict> = {
     body2:
       "אנחנו לא מאמנים מודלים על הנתונים שלכם, ולא שומרים עותק שני שלהם. כשתהליך עבודה נוגע במשהו רגיש, אתם יכולים לראות בדיוק במה הוא נגע ומתי. זו כל ההבטחה, והיא ניתנת לבדיקה.",
   },
+
+  /**
+   * ⚠️ EVERYTHING BELOW IS AUTHORED — the real company site has no terminal, no console and no
+   * security page, so there is nothing to source these from. Written in the same register as the
+   * rest of this file: second person plural possessive ("שלכם"), short declaratives, no hedging.
+   *
+   * ⚠️ WHAT IS DELIBERATELY STILL ENGLISH, AND WHY THAT IS NOT AN OMISSION. The user's ask was
+   * "translate this part also, only the necessary parts", and the boundary the English interface
+   * draws is CODE VS PROSE, not "what fits". Absent from this file, and unreachable from it:
+   *   · the tool calls          `Read(infra/deploy.tf)`, `Bash(clix env show)`, `Grep(...)`
+   *   · the result KEY column   `provider`, `region`, `scope`, `retention`, `backend`, `source`
+   *   · the slash commands      `/agent`, `/model`, and the `agent` / `model` pick labels
+   *   · the identifiers         `clix audit`, `claude-fable-5`, `eu-west-1`, `aws`, `tls`
+   *   · the shell chrome        `clix@production: ~/audit`, `~/audit >`, `[audit]`
+   *   · the console's rails     `nightly-sync`, `#1482`, `sync.ts`, `+42`, `-11`
+   * A shell does not translate its own output, and a Hebrew reader of a terminal expects those
+   * in Latin. `MockWindow`'s `dir="ltr"` likewise stands: the window is NOT mirrored.
+   *
+   * ⚠️ THE FIVE `say` LINES ARE THE FIVE `compliance.practices` CELLS AND THEY AGREE WITH THEM,
+   * in vocabulary as well as in order — "הענן שלכם", "בהרשאות מינימום", "בכספת", "בבעלותכם" all
+   * come back from the labels above. The window and the band must sound like one company saying
+   * one thing twice, exactly as the English pair does.
+   *
+   * ⚠️ FITTED AGAINST THE 43-COLUMN BUDGET AT THE 390px TIER, counted the same way the English
+   * file describes: a menu row is 14 (agents) or 17 (models) padding columns plus the string, a
+   * result row is its Latin key plus two spaces plus the value. The longest line here is
+   * `שום דבר לא נשמר אחרי שההרצה מסתיימת.` at 36 + the 2ch marker = 38. ⚠️ HEBREW DOES NOT COME
+   * FROM FRAGMENT MONO — the face's Latin subset has no Hebrew, so these glyphs fall back to the
+   * system monospace and a character is NOT exactly one column. Treat 43 as a ceiling with
+   * headroom, not as an exact fit, and keep new strings well under it.
+   *
+   * ⚠️ `ב-clix` / `ל-clix` KEEP THE PREFIX HYPHEN by this file's existing carve-out, the same one
+   * `ב-TLS` and `ה-CRM` use above. Orthography, not punctuation, so the no-dashes rule is intact.
+   */
+  terminal: {
+    /* AUTHORED. Names clix, never the CLI whose layout the window borrows. */
+    greeting: "ברוכים הבאים ל-clix code",
+    /* AUTHORED ×3. SOURCED-VOCAB: "סקירת אבטחה" is services 08's own
+       ("סקירת סיכונים, אבטחה ועמידה ברגולציה"), compressed to a menu label. */
+    agents: ["סקירת אבטחה", "כתיבת אוטומציות", "ניטור הרצות"],
+    /* AUTHORED ×3. These describe a RUNTIME in a picker and say nothing about clix's posture —
+       see the terminal header's note on why the model ids are named at all. */
+    models: ["כתיבת קוד אוטונומית", "עבודה ארוכת טווח", "מהירות ועלות"],
+    exchanges: [
+      {
+        /* AUTHORED. The visitor's own voice, so first person singular — they are asking about
+           THEIR data. The agent answers in the company's plural, as everywhere else. */
+        prompt: "איפה הנתונים שלי מעובדים",
+        /* `aws` is an identifier and stays; only "(yours)" is prose. */
+        results: ["aws", "eu-west-1 (שלכם)"],
+        /* AUTHORED · agrees with `compliance.practices[0]` ("הענן שלכם, החשבונות שלכם"). */
+        say: "זה רץ בחשבון הענן שלכם, לא שלנו.",
+      },
+      {
+        prompt: "מה נשמר אצלכם אחרי הרצה",
+        results: ["ללא", "0 קבצים"],
+        /* AUTHORED · agrees with `compliance.practices[1]` ("הנתונים שלכם נשארים שלכם"). */
+        say: "שום דבר לא נשמר אחרי שההרצה מסתיימת.",
+      },
+      {
+        /* AUTHORED. An instruction to the agent, so imperative singular — the visitor is talking
+           to one assistant, not to the company. Same for exchange 4. */
+        prompt: "בדוק איזו גישה נדרשת כאן",
+        /* `get, list` are API verbs, not words. */
+        results: ["get, list", "קריאה בלבד"],
+        /* AUTHORED · agrees with `compliance.practices[2]` ("גישה בהרשאות מינימום"). */
+        say: "כל הרשאה מוגבלת למשימה אחת.",
+      },
+      {
+        prompt: "בדוק איך נשמרים פרטי הגישה",
+        /* ⚠️ `tls` KEEPS NO VERSION NUMBER for the same reason `benefits.items[4]` names no
+           version: OPEN QUESTION 2 is unresolved and a number would invent precision. */
+        results: ["הכספת שלכם", "tls"],
+        /* AUTHORED · agrees with `compliance.practices[3]` ("הצפנה בתעבורה ובאחסון").
+           "כספת" rather than the band's "מאגר סודות", so it cannot be misread as the code
+           repository two rows below, which this file calls "המאגר שלכם". */
+        say: "המפתחות נשארים בכספת שלכם.",
+      },
+      {
+        prompt: "למי שייכת האוטומציה שאתם כותבים",
+        results: ["שלכם", "המאגר שלכם"],
+        /* AUTHORED · agrees with `compliance.practices[4]` ("הקוד בבעלותכם").
+           SOURCED-VOCAB: home's "והכל בבעלותכם המלאה" is the claim underneath it. */
+        say: "הקוד מגיע למאגר שלכם.",
+      },
+    ],
+  },
+
+  console: {
+    /* AUTHORED ×3. Plain nouns; Hebrew has no case, so the English ALL CAPS simply drops and the
+       `tracking-[0.08em]` on them is a Latin habit that costs nothing here. */
+    headings: ["הרצות", "הרצה", "קבצים"],
+    /**
+     * AUTHORED ×6. ⚠️ SHORT IS A LAYOUT CONSTRAINT, NOT A STYLE ONE. The runs rail is 220px with
+     * 32 of padding; the marker (2ch) and the id (6ch) take 57 of the 188 that leaves, and the
+     * run NAME beside these is `truncate`. `5 שעות` at ~43px pushes `nightly-sync` into an
+     * ellipsis; `5 ש'` at ~29px does not. Hence the abbreviation.
+     * ⚠️ ASCII `'` RATHER THAN THE GERESH `׳` (U+05F3) on purpose: the apostrophe is inside
+     * Fragment Mono's Latin-1 range and the geresh is not, so this way only the Hebrew letter
+     * falls back and the punctuation stays in the window's own face.
+     */
+    ages: ["עכשיו", "2 ש'", "5 ש'", "9 ש'", "יום", "יום"],
+    /* AUTHORED ×5. The same five values the terminal prints, because they are the same five
+       claims — the two windows must not disagree. Latin keys sit beside these in the component. */
+    details: [
+      "eu-west-1 (שלכם)",
+      "קריאה בלבד",
+      "הכספת שלכם",
+      "ללא",
+      "המאגר שלכם",
+    ],
+    /* AUTHORED. A statement about a depicted run, never a verdict about the product — the
+       English file's note applies unchanged. */
+    progress: "6 מתוך 6 שלבים הושלמו",
+  },
 };
