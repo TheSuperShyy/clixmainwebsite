@@ -17,6 +17,14 @@ Line format:
 
 ## 2026-08-14
 
+- `testimonials` — phone and tablet now play the client clips. The `≤809` static six-card stack
+  and `PHONE_STYLE` are DELETED; the slideshow (already a swiper, gated off by one
+  `hidden tablet:block`) renders at every width, so phones get drag/flick, the loop and dots.
+  Media is now tier-shaped rather than tier-gated: `≥1200` keeps the 360→480px column, below it
+  a BYLINE TILE sits in the author row beside the name and grows on tap, so the quote and the
+  video are visible at once. Two `<video>` elements now, one per box, both only at `pos`.
+  → [detail](../features/testimonials/CONTEXT.md)
+
 - `/security` hero windows now speak Hebrew on `/he`, PROSE ONLY - new `security.terminal`
   and `security.console` dict slices carry the greeting, prompts, answers, roster descriptions,
   result values and console labels; tool calls, result keys, identifiers and shell chrome stay

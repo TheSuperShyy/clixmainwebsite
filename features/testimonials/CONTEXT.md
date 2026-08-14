@@ -10,6 +10,90 @@ with no code scanning.
 
 ## Current state
 
+### 2026-08-14 — the phone tier became the slideshow, and the player became a byline tile
+
+**The ask.** "How can we make this part show the video when in mobile view — I can think of it
+as a flip, but I prefer that it also shows the quote AND the video." A flip was explicitly
+rejected by the user: it hides one side. So the two have to co-exist.
+
+**The finding that shaped everything.** The phone tier did not need a new carousel. The
+slideshow in `QuoteCarousel` was already a full swiper — 1:1 pointer tracking, velocity-projected
+commit, the triple loop with an invisible clone snap, the RTL sign handling — and it was gated
+off below 810px by a single `hidden … tablet:block`. Rendering it at every width bought swipe,
+the loop, and "one clip at a time" for free (only the slide at `pos` mounts a `<video>`), and let
+the parallel six-card static stack and `PHONE_STYLE` be deleted outright.
+
+**Decisions taken with the user before building** (all four were offered as alternatives):
+- byline tile that grows, not a flip and not a media band above the quote
+- the phone tier becomes swipeable with dots, rather than keeping six stacked cards
+- one clip at a time
+- the tile rule applies **below 1200**, not below 810 — so the 810–1199 tier gains video for the
+  first time, and there is one rule instead of a hole in the middle
+- the card **grows** when a clip expands and the page reflows, rather than reserving the taller
+  box up front. Reserving it would put ~190px of dead whitespace in every card at rest, which is
+  the exact defect the `h-[505px]` lead card was normalised to fix on 2026-08-13.
+
+**Measured geometry.** The phone card keeps the deleted stack's measured values (`p-6`, `gap-5`,
+20px quote), so the measure at 390px is still 310px and the line counts recorded below still
+hold. Card height at rest: 24 + 234 (9 lines × 26px, the longest English quote) + 20 + 96 (tile)
++ 24 = 398 → **400px**; playing swaps the 96px tile for 224px → **528px**. All six slides now
+share ONE height, fitted to the longest quote, where before each card had its own fixed box.
+
+**Tablet does not grow the card, and that is measured slack rather than luck.**
+694 − 48 − 48 − 80 = 518px for quote + tile; a 288px tile leaves 230px, and the longest English
+quote at 28px in an 848px measure runs ~5 lines ≈ 182px. ~48px spare. ⚠️ If quote copy grows,
+re-check that cell FIRST: the quote block has `min-height:auto`, so it refuses to shrink and
+pushes the author block out through `overflow-hidden` — the role line clips, then the name, and
+the quote itself never clips, so the regression is invisible unless you look for it.
+
+**The tile is 3:4 at both sizes and both tiers** (72×96 → 168×224 on phone, 96×128 → 216×288 on
+tablet). One aspect ratio throughout so the growth is a pure scale; an aspect change mid-animation
+reads as a glitch. Sources are 9:16, so `object-cover` crops the sides — faces are centred.
+
+**The quote text does not move while the tile grows, and that is structural.** The quote block is
+`flex-1` with its content top-aligned, so the height the card gains is absorbed there; the tile
+and the byline extend downward and only the card's bottom edge travels.
+
+**Height is driven by an inline CSS custom property, not an inline `height`.** An inline `height`
+cannot be media-queried, so `tablet:h-[694px]` could never beat it. A custom property CAN be
+shadowed by a class — so `≥810` keeps its measured 694px box at rest and while playing, and the
+var is simply inert there. This is the one non-obvious mechanic in the change.
+
+**TWO `<video>` elements now, and the invariant that mattered survives.** The old "exactly ONE
+video" rule existed because there was exactly one media box; the tile and the column are different
+DOM positions, so one element cannot serve both. The rejected alternative was `matchMedia` tier
+state deciding which to mount — that adds hydration surface (no `window` on the server) for no
+gain. Instead each box's own button plays the element beside it, so nothing has to know the tier,
+and the hidden box's button is `display:none` and unclickable. The real constraint is untouched:
+mounting is still gated on `active`, so 18 `<li>` still carry at most two elements, both
+`preload="none"`, which fetch no media at all until a deliberate tap.
+
+**The resize guard was generalised, not deleted.** It used to mean "pause if we dropped below
+1200", because only the column could be hidden. Now either tier's box can be `display:none`d out
+from under a running clip, so it stops on ANY change of the query, both directions. A hand-off
+between the two elements was considered and rejected: it would have to call `play()` outside a
+user gesture, which Safari rejects silently.
+
+**What this deliberately gives up.** A phone reader no longer sees all six quotes by scrolling —
+five are behind a swipe. The dots exist to say the other five are there. Scroll cost drops from
+~2100px to ~400px. `aria-label` on each dot reuses the existing `chrome.a11y.slideOfTotal`
+template, which was already in both locales and previously unused; **no new dictionary key was
+needed.**
+
+**Still open, both needing the client rather than code:**
+- ⚠️ `noam-tovi.jpg` carries a burned-in caption reading a different name (נווה דוידי / Nave
+  Davidi). This change makes it MORE prominent, not less — illegible at 72×96, possibly readable
+  at 168×224.
+- ⚠️ `achituv.mp4` is 9.4MB and is now reachable on cellular. `preload="none"` means nothing
+  downloads until a deliberate tap, so it is a cost to know rather than a bug — but it is the
+  first file to re-encode if it bites.
+
+**Verified:** `npx tsc --noEmit` clean, `npm run build` clean (20 routes). Visual verification at
+390 / 810 / 1024 / 1200 / 1440 and on `/he` is with the user.
+
+---
+
+
 ### 2026-08-13 — carousel order: Nevo Yahaloman is now first
 
 User asked for Nevo to lead the section. The slide order lives in **four** arrays that must agree, and
