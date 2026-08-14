@@ -153,6 +153,15 @@ export const home: Translated<HomeDict> = {
       {
         /* SOURCED — the client's own words, verbatim (quote.md, 2026-08-13). */
         quote:
+          "הם בנו לי אוטומציה שבעצם חסכה לי מלא שעות בהתעסקות עם לקוחות, ובעצם פינתה לי וחסכה לי "
+          + "מלא זמן וכסף. אז זו ככה המלצה בחום ממני.",
+        /* SOURCED ×2 — home.bodyText: `נבו יהלומן` / `מייסד`. */
+        name: "נבו יהלומן",
+        role: "מייסד",
+      },
+      {
+        /* SOURCED — the client's own words, verbatim (quote.md, 2026-08-13). */
+        quote:
           "האפיון עצמו וביצוע התהליך היו ברמה מאוד מאוד איכותית. המחירים היו הכי משתלמים שמצאתי, "
           + "והתוצר ברמה הכי גבוהה שיש. ממליץ בחום!",
         /* SOURCED ×2 — home.bodyText, the testimonial rail: `אסף פרץ` / `מייסד · SalesIQ`. */
@@ -168,15 +177,6 @@ export const home: Translated<HomeDict> = {
         /* SOURCED ×2 — home.bodyText: `אדיר פרץ` / `בעלים · סטודיו וידאו וצילום`. */
         name: "אדיר פרץ",
         role: "בעלים · סטודיו וידאו וצילום",
-      },
-      {
-        /* SOURCED — the client's own words, verbatim (quote.md, 2026-08-13). */
-        quote:
-          "הם בנו לי אוטומציה שבעצם חסכה לי מלא שעות בהתעסקות עם לקוחות, ובעצם פינתה לי וחסכה לי "
-          + "מלא זמן וכסף. אז זו ככה המלצה בחום ממני.",
-        /* SOURCED ×2 — home.bodyText: `נבו יהלומן` / `מייסד`. */
-        name: "נבו יהלומן",
-        role: "מייסד",
       },
       {
         /* SOURCED — the client's own words, verbatim (quote.md, 2026-08-13). */

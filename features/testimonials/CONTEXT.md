@@ -10,6 +10,30 @@ with no code scanning.
 
 ## Current state
 
+### 2026-08-13 — carousel order: Nevo Yahaloman is now first
+
+User asked for Nevo to lead the section. The slide order lives in **four** arrays that must agree, and
+all four were reordered identically:
+
+- `SLIDE_STYLE` in `sections/QuoteCarousel.tsx` (photo/video stem, `cream`, per-slide desktop size)
+- `CLIP_IDS` in `sections/Testimonials.tsx` — also the accordion fallback's initial open card
+- `slides` in `lib/i18n/en/home.ts` and `lib/i18n/he/home.ts`
+
+Order is now: `nevo-yahaloman` / `asaf-peretz` / `adir-peretz` / `noam-tovi` / `achituv` /
+`elyashiv-engineering`.
+
+**Decision — `cream` is a property of the POSITION, not of the person.** It was left as
+true/false/true/false/true/false so the stripe reads the same as before; only the ids under it moved.
+`quoteDesktop` is the opposite: it is fitted to that client's character count, so it travelled with the
+person (Nevo 36px, Asaf 36px, Adir keeps 32px, Achituv keeps 32px).
+
+Two comments that encoded the old order were corrected: the character-count list in `en/home.ts`
+(now 174 / 207 / 289 / 189 / 267 / 140) and the "third slot is Nevo Yahaloman" note in QuoteCarousel.tsx
+(now Adir Peretz). `PHONE_STYLE` needed no change — all six entries are identical since the tall
+lead card was normalised earlier the same day.
+
+Not verified: no build, lint or browser check — the user scoped this to the reorder alone.
+
 ### ⚠️ 2026-08-13 — this slot now holds TWO treatments, and the accordion is the fallback
 
 The section, its `id`, its `data-nav-theme` and its "In our clients' own words" `<h2>` are
