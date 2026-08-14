@@ -3,6 +3,94 @@
 Newest entry on top. Append, never rewrite. Written so a cold session can resume without
 re-deriving anything: the spec is `FEATURE.md`, this file is what happened and why.
 
+## 2026-08-14 (fifth pass) - the hero windows speak Hebrew, prose only
+
+User: *"in hebrew settings, can we translate this part also? only the necessary parts"*, on a
+screenshot of the whole canvas (console + terminal). This REVERSES half of the 2026-08-13
+decision recorded in `SecurityTerminal.tsx`'s header ("ENGLISH AND LTR IN BOTH LOCALES, ON
+PURPOSE"). Only the ENGLISH half was reversed. The LTR half stands: `MockWindow` still pins
+`dir="ltr"`, the marker column is still on the left, `~/audit >` is not mirrored.
+
+**Where the line was drawn: CODE VS PROSE, enforced by a type rather than by judgement.**
+Two new dictionary slices, `security.terminal` and `security.console`, carry ONLY what a person
+reads. Everything else stayed as literals in the components, where a locale cannot reach it:
+
+| Translated (in the dict)                      | Not translated (in the component)                   |
+|-----------------------------------------------|-----------------------------------------------------|
+| greeting, 5 prompts, 5 answers                 | tool calls `Read(infra/deploy.tf)`, `Bash(...)`      |
+| the 2 roster description columns               | result KEYS `provider` `region` `scope` `retention`  |
+| the 10 result VALUES                           | `/agent` `/model`, the `agent`/`model` pick labels   |
+| console headings, 6 ages, 5 details, progress  | ids `clix audit` `claude-fable-5` `eu-west-1` `tls`  |
+|                                                | chrome `clix@production: ~/audit`, `[audit]`         |
+|                                                | run ids/names, `#1482`, file names, diff counts      |
+
+The five Hebrew `say` lines agree with `compliance.practices` in vocabulary as well as order,
+because the window is only allowed to make claims at all on the strength of the band restating
+them in prose. The Hebrew word for the secret store and the one for the code repository are
+deliberately DIFFERENT (kaspet vs maagar): the two rows sit two lines apart and one word for both
+would read as the same thing said twice.
+
+**THE HARD PART WAS NOT THE COPY, IT WAS THE `ch` TYPING CLIP.** The prompt reveal is a width
+clip in `ch`, which is Fragment Mono's `0` advance. The face's subset has NO Hebrew block
+(fonts.css), so Hebrew falls back to the system monospace at a different advance: the clip drifts
+against the glyphs and cuts one in half. `typeInto` now branches on `isMonoSafe(text)` - a
+property of the STRING, not of the locale, so an English string in the Hebrew dictionary still
+takes the fast path. Latin keeps the width clip byte for byte; anything else reveals with
+`textContent = slice`, which cannot land between glyphs because there is no width to be wrong
+about. It costs one DOM write per glyph, which the clip's own comment says it exists to avoid -
+that trade is recorded in the file. The resting/SSR width branches the same way
+(`${n}ch` vs `max-content`), in two places that must stay the same expression.
+
+**Bidi: `dir="auto"` in four spans and nothing else.** Inside an LTR window a Hebrew sentence's
+NEUTRALS take the paragraph direction, so a Hebrew answer renders with its full stop on the
+RIGHT. `auto` resolves each run from its own first strong character, which is exactly the per-row
+decision needed: `paint()` rewrites a row's text every tick and a row can be any of eight kinds,
+so `region  eu-west-1 (<hebrew>)` stays LTR while a Hebrew answer resolves RTL. It is a NO-OP on
+every English string. Spans: the transcript row text, the greeting, the console's age and detail
+values, the console's progress line.
+
+**The caret moved INSIDE the auto span with the prompt text** (it was a sibling). That is what
+puts it on the GROWING edge in both scripts: the wrapper is a flex row, so RTL reverses it.
+Measured at 1440 mid-prompt: wrapper [608.5, 723.8], caret [608.5, 617.2], text [619.2, 723.8] -
+caret pinned left, text extending right. English unchanged: caret right of text, text
+left-anchored at 608.5, only the width moving.
+
+**Structural change: eight module consts became one `buildScript(copy)`.** `BOOT_SCENES`,
+`LOOP_SCENES`, `SCENES`, `FLAT`, `BOOT_LEN`, `LOOP_LEN`, `LOOP_SCENE_0`, `lineAt` and `HEAD_0`
+all derive from the strings, so they cannot be computed before the dictionary is read. Called
+once from a `useMemo`; locale changes are hard navigations, so it never rebuilds. Everything
+locale-INVARIANT (`VISIBLE_ROWS`, every timing range, `ROW_CLASS`) stayed at module scope. That
+is the split: if a value would change when the locale does, it moved.
+
+**Three smaller things worth keeping:**
+
+- The roster columns were hand-padded string literals (`clix audit` + 4 spaces -> col 14,
+  `claude-sonnet-5` + 2 -> col 17). They are `padEnd(BOOT_SHAPE.col)` now, because a translated
+  string sits in the second column and hand-counting a run of spaces per locale is how a list
+  shears. Verified the six English rows come out byte-identical - the two columns differ (14 vs
+  17) rather than both being "longest id + 2", which is why the numbers are stored, not derived.
+- `NEIGHBOUR` gained the Israeli keyboard layout in the SAME table. The two alphabets share no
+  characters, so one lookup is unambiguous and `slipIndex` needs no notion of language: a Hebrew
+  prompt fumbles on the Hebrew layout, an English one on QWERTY, with no branch anywhere.
+  Confirmed live - a prompt typed a wrong letter, held it, backspaced and corrected it, using the
+  key one position left on the Hebrew home row.
+- `SecurityConsole.tsx` took `"use client"`. It was already in the client bundle - `SecurityCanvas`
+  is a client component and imports it - so the directive costs nothing and only makes that
+  legible at the top of the file instead of two files away. `usePageDict`, never `getDict()`: a
+  client module importing a dictionary bundles BOTH locales.
+
+**Verified:** `npm run build` clean, 20/20 static pages; `tsc --noEmit` clean; eslint clean on
+`src/components/security` and `src/lib/i18n`. English static HTML checked against the previous
+render - 11 transcript rows identical, `data-tm-cmd` still `32ch`, console pane identical. Hebrew
+static HTML correct in both windows; longest transcript row 32 chars against the 43-column budget
+(and the Hebrew rows are the SHORT ones - the ceiling is hit by a Latin tool call). Runtime over
+CDP at 1440: the Hebrew window boots `/agent` -> roster -> `/model` -> roster -> all five
+exchanges and loops, `scrollHeight == clientHeight == 402` so no overflow.
+
+**Open, and deliberately not chased:** the 43-column budget is now approximate in Hebrew, not
+exact - a character is not a column when the glyph comes from the fallback face. It is recorded
+as a ceiling with headroom rather than a fit. Nothing measured close enough to matter.
+
 ## 2026-08-14 (fourth pass) — a taller window, and typing that is not a metronome
 
 **Why.** *"increase the height of the terminal, and make the typing random speed to make it look

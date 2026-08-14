@@ -105,11 +105,41 @@
  * to WCAG 1.4.11's 3:1 floor and clears it at 3.53:1. Every string a person reads is
  * `paper-soft` (11.84:1) or `paper` (18.26:1). Do not "tidy" a transcript row onto `muted`.
  *
- * ─── ⚠️ ENGLISH AND LTR IN BOTH LOCALES, ON PURPOSE (user's call, 2026-08-13) ────────────
- * `MockWindow` carries `dir="ltr"` so /he/security renders this unmirrored, and NOTHING here
- * comes from the dictionary. CLI output is a code artifact, not prose: mirroring a monospace
- * window reads as broken, and a Hebrew sentence followed by a latin identifier cannot hold a
- * column. That is why this file never reaches for `usePageDict` even though it could.
+ * ─── ⚠️ LTR IN BOTH LOCALES, BUT NO LONGER ENGLISH IN BOTH (reversed 2026-08-14) ─────────
+ * From 2026-08-13 this file said "ENGLISH AND LTR IN BOTH LOCALES, ON PURPOSE" and never
+ * reached for the dictionary. The user reversed the ENGLISH half on 2026-08-14 — *"in hebrew
+ * settings, can we translate this part also? only the necessary parts"* — and the LTR half
+ * STANDS UNCHANGED: `MockWindow` still pins `dir="ltr"`, the marker column is still on the left,
+ * and `~/audit >` still sits where a shell puts it. A mirrored monospace window reads as broken.
+ *
+ * ⚠️ THE LINE IS CODE VS PROSE, AND IT IS DRAWN BY A TYPE RATHER THAN BY JUDGEMENT PER STRING.
+ * `security.terminal` holds the greeting, the two roster description columns, the five prompts,
+ * the ten result VALUES and the five answers — and holds nothing else, so a locale physically
+ * cannot reach the rest. Everything below stays Latin in every locale, and stays in THIS file:
+ *   · tool calls        `Read(infra/deploy.tf)`, `Bash(clix env show)`, `Grep(...)`
+ *   · result KEYS       `provider`, `region`, `scope`, `retention`, `backend`, `source`
+ *   · slash commands    `/agent`, `/model`, and the `agent` / `model` pick labels
+ *   · identifiers       `clix audit`, `claude-fable-5`, `eu-west-1`, `aws`, `tls`
+ *   · shell chrome      `clix@production: ~/audit`, `~/audit >`, `[audit]`
+ *
+ * ⚠️⚠️ HEBREW DOES NOT COME FROM FRAGMENT MONO, AND THAT BREAKS THE `ch` TYPING CLIP. The face's
+ * subset (below) has no Hebrew block, so those glyphs fall back to the system monospace at an
+ * advance that is NOT the `0` advance `ch` is defined against. The prompt reveal is a width clip
+ * in `ch`, so on a Hebrew prompt it would cut mid-glyph and drift by a character or two over a
+ * line. `typeInto` therefore branches: an all-Latin prompt keeps the width clip EXACTLY as it
+ * was — the English render is untouched, byte for byte — and a prompt with any character outside
+ * the face falls back to `textContent = slice`, which cannot land between glyphs because there
+ * is no width to be wrong about. `isMonoSafe` is the test, and it is a property of the STRING,
+ * not of the locale, so an English string in the Hebrew dictionary still gets the fast path.
+ *
+ * ⚠️ BIDI IS HANDLED WITH `dir="auto"` IN EXACTLY TWO PLACES and nothing else. A transcript row
+ * and the prompt box can both hold a Hebrew run, and inside an LTR window a Hebrew sentence's
+ * NEUTRALS — its full stop, its parentheses — take the paragraph's direction and land at the
+ * wrong end (`.זה רץ בחשבון הענן שלכם` reading with the stop on the right). `dir="auto"` resolves
+ * each run from its own first strong character, so `region  eu-west-1 (שלכם)` stays LTR, a
+ * Hebrew answer resolves RTL, and every English string is unaffected — it is a no-op on Latin.
+ * The caret is INSIDE that auto span with the prompt text, so it sits at the growing edge in
+ * both directions. Do not add `dir` anywhere else; the window is not mirrored.
  *
  * ─── ⚠️ THE WHOLE WINDOW IS `aria-hidden`, WHICH IS ALSO WHAT LICENSES THE DOM CHURN ────
  * Every claim printed here appears verbatim as real prose in the Compliance band further down
@@ -122,11 +152,15 @@
  * focus order is unchanged: one control in <main>, the hero CTA.
  */
 
-import { useRef, type CSSProperties } from "react";
+import { useMemo, useRef, type CSSProperties } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 import MockWindow from "@/components/security/MockWindow";
+import { usePageDict } from "@/lib/i18n/LocaleProvider";
+/* `import type` only — types are erased, so this does NOT pull a dictionary module into the
+   client chunk. A value import from here would bundle BOTH locales; see LocaleProvider. */
+import type { TerminalCopy } from "@/lib/i18n/en/security";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
@@ -160,25 +194,28 @@ gsap.registerPlugin(ScrollTrigger, useGSAP);
    45 characters, less the 2ch marker column = 43. The longest string below is the exchange 3
    answer at 39 + 2 = 41. MEASURE a new string against 43 rather than eyeballing it — a longer
    one is silently truncated at 390 and nowhere else. */
-/** One tool call and what it returned. */
-type Step = {
+/** One tool call and the FIELD NAME its result prints under the elbow. Both halves are code
+    artifacts: `Read(infra/deploy.tf)` is a path and `region` is a key. The result's VALUE is the
+    only translatable part of the row and lives in the dictionary — see the block above. */
+type StepShape = {
   /** Shaped like a real call: `Verb(subject)`. */
   tool: string;
-  /** Rendered under the elbow. */
-  result: string;
+  /** The key column of the result row. Two spaces then the locale's value. */
+  key: string;
 };
 
-type Exchange = {
-  /** What the visitor is asking. Types itself into the prompt box, then enters the transcript. */
-  prompt: string;
+/** The CODE skeleton of an exchange. Everything a person reads — the question, the result
+    values, the answer — is `security.terminal.exchanges[i]`; nothing prose-shaped is here. */
+type ExchangeShape = {
   /* ⚠️ A FIXED-LENGTH TUPLE, NOT AN ARRAY, AND THE TYPE IS DOING REAL WORK. The whole animation
      is one integer walking a flat list, and that only stays coherent if EVERY exchange is the
-     same number of rows — see the note on `LINES`. A `Step[]` would let someone add a third call
-     to one exchange, which type-checks, renders, and then desynchronises the prompt box from the
-     transcript on the third cycle. `[Step, Step]` makes that a compile error. */
-  steps: readonly [Step, Step];
-  /** The agent's answer in prose. THIS IS THE CLAIM — see the note above. */
-  say: string;
+     same number of rows — see the note on `LINES`. A `StepShape[]` would let someone add a third
+     call to one exchange, which type-checks, renders, and then desynchronises the prompt box
+     from the transcript on the third cycle. `[StepShape, StepShape]` makes that a compile error.
+     ⚠️ THE DICTIONARY CARRIES THE MATCHING ARITY — `results` is a 2-tuple and `exchanges` is a
+     5-tuple, enforced by `Translated<T>` — so a locale cannot supply the wrong number of rows
+     either. Both halves have to agree and both are checked at build time. */
+  steps: readonly [StepShape, StepShape];
 };
 
 /* ⚠️ TWO CALLS PER ANSWER SINCE 2026-08-14 (user: "add more coding terms, or tech stuff to make
@@ -194,51 +231,42 @@ type Exchange = {
    ⚠️ Note `transit  tls` carries NO version number, deliberately. Benefit 5 (TLS + a managed
    secret store) is still an open question in FEATURE.md; naming a version would be inventing
    precision on top of a claim that is not yet signed off. */
-const EXCHANGES: readonly Exchange[] = [
+const EXCHANGE_SHAPE: readonly ExchangeShape[] = [
   {
-    prompt: "where does my data get processed",
     steps: [
-      { tool: "Read(infra/deploy.tf)", result: "provider  aws" },
-      { tool: "Bash(clix env show)", result: "region  eu-west-1 (yours)" },
+      { tool: "Read(infra/deploy.tf)", key: "provider" },
+      { tool: "Bash(clix env show)", key: "region" },
     ],
-    say: "It runs in your cloud account, not ours.",
   },
   {
-    prompt: "what do you keep after a run",
     steps: [
-      { tool: "Grep(retention, config/run.yml)", result: "retention  none" },
-      { tool: "Bash(clix runs artifacts 1482)", result: "artifacts  0 files" },
+      { tool: "Grep(retention, config/run.yml)", key: "retention" },
+      { tool: "Bash(clix runs artifacts 1482)", key: "artifacts" },
     ],
-    say: "Nothing is stored once a run finishes.",
   },
   {
-    prompt: "check the access this needs",
     steps: [
-      { tool: "Audit(iam policy)", result: "actions  get, list" },
-      { tool: "Read(tokens/github.json)", result: "scope  read only" },
+      { tool: "Audit(iam policy)", key: "actions" },
+      { tool: "Read(tokens/github.json)", key: "scope" },
     ],
-    say: "Every credential is scoped to one task.",
   },
   {
-    prompt: "verify how secrets are held",
     steps: [
-      { tool: "Read(vault/kv/clix)", result: "backend  your vault" },
-      { tool: "Audit(transport layer)", result: "transit  tls" },
+      { tool: "Read(vault/kv/clix)", key: "backend" },
+      { tool: "Audit(transport layer)", key: "transit" },
     ],
-    say: "Keys stay in your own vault.",
   },
   {
-    prompt: "who owns the automation you write",
     steps: [
-      { tool: "Read(.github/workflows/clix.yml)", result: "runner  yours" },
-      { tool: "Bash(git remote show origin)", result: "source  your repo" },
+      { tool: "Read(.github/workflows/clix.yml)", key: "runner" },
+      { tool: "Bash(git remote show origin)", key: "source" },
     ],
-    say: "The code lands in your repository.",
   },
 ];
 
-/** The greeting in the welcome panel. Names clix, never the CLI it borrows its layout from. */
-const GREETING = "Welcome to clix code";
+/** How a result row prints: the key, TWO spaces, the locale's value. The English rows this
+    replaced were hand-written with exactly that gap, so the English render is byte-identical. */
+const resultText = (key: string, value: string) => `${key}  ${value}`;
 
 /* ─── The boot sequence ───────────────────────────────────────────────────────────────────
    Added 2026-08-14 on a screenshot the user sent of the real CLI's slash menu: *"at first it
@@ -270,45 +298,55 @@ const GREETING = "Welcome to clix code";
    the user's follow-up ("the model selected should be shown in the reply box also") is exactly
    the bug two hand-written copies would produce: change the picked model here and the strip
    still advertises the old one. `field` + `value` is the single source; `pickText` renders it. */
-type BootRow =
-  | { kind: "menu"; text: string }
-  | { kind: "pick"; field: "agent" | "model"; value: string };
-type BootStep = { typed: string; rows: readonly BootRow[] };
+type BootShape = {
+  /** The slash command that types itself into the box. */
+  typed: string;
+  /** Which status-strip field this step commits, and the key half of its `pick` row. */
+  field: "agent" | "model";
+  /** Which of the dictionary's two description lists pairs with `ids`, positionally. */
+  list: "agents" | "models";
+  /** The left column of the roster. THREE — the count is the menu. Identifiers, never prose. */
+  ids: readonly [string, string, string];
+  /** Which of the three the sequence settles on. */
+  pick: 0 | 1 | 2;
+  /**
+   * The column the descriptions start on, applied with `padEnd`.
+   *
+   * ⚠️ THESE TWO NUMBERS REPRODUCE THE HAND-PADDED ENGLISH ROWS EXACTLY — the agent list ran to
+   * column 14 (`clix audit` + 4 spaces) and the model list to 17 (`claude-sonnet-5` + 2), which
+   * is why they differ rather than both being "longest id + 2". They are DERIVED now instead of
+   * typed as trailing spaces inside a string literal, because a Hebrew description sits in that
+   * second column and hand-counting a run of spaces per locale is exactly how a list shears.
+   */
+  col: number;
+};
 
-const BOOT: readonly BootStep[] = [
+const BOOT_SHAPE: readonly BootShape[] = [
   {
     typed: "/agent",
-    rows: [
-      { kind: "menu", text: "clix audit    security review" },
-      { kind: "menu", text: "clix build    automation authoring" },
-      { kind: "menu", text: "clix watch    run monitoring" },
-      { kind: "pick", field: "agent", value: "clix audit" },
-    ],
+    field: "agent",
+    list: "agents",
+    ids: ["clix audit", "clix build", "clix watch"],
+    pick: 0,
+    col: 14,
   },
   {
     typed: "/model",
-    rows: [
-      { kind: "menu", text: "claude-opus-5    agentic coding" },
-      { kind: "menu", text: "claude-fable-5   long horizon work" },
-      { kind: "menu", text: "claude-sonnet-5  speed and cost" },
-      { kind: "pick", field: "model", value: "claude-fable-5" },
-    ],
+    field: "model",
+    list: "models",
+    ids: ["claude-opus-5", "claude-fable-5", "claude-sonnet-5"],
+    pick: 1,
+    col: 17,
   },
 ];
 
-/** How a selection prints in the transcript: the field, two spaces, the value. */
-const pickText = (r: Extract<BootRow, { kind: "pick" }>) =>
-  `${r.field}  ${r.value}`;
+/** How a roster line prints: the identifier padded to its column, then the locale's description. */
+const menuText = (id: string, col: number, description: string) =>
+  id.padEnd(col) + description;
 
-/** What the boot settles on, read back out of it — the strip's resting state and SSR's. */
-const picked = (field: "agent" | "model") => {
-  for (const step of BOOT)
-    for (const r of step.rows)
-      if (r.kind === "pick" && r.field === field) return r.value;
-  return "";
-};
-const AGENT_0 = picked("agent");
-const MODEL_0 = picked("model");
+/** How a selection prints in the transcript: the field, two spaces, the value. `agent` and
+    `model` are the slash commands' own names, so they stay Latin in every locale. */
+const pickText = (field: string, value: string) => `${field}  ${value}`;
 
 /* ─── The transcript's line model ─────────────────────────────────────────────────────────
    The kinds of row. A row's appearance is a function of WHAT IT IS, not of where it sits — the
@@ -349,62 +387,13 @@ type Scene = {
   fast?: boolean;
 };
 
-const BOOT_SCENES: readonly Scene[] = BOOT.map((step) => ({
-  typed: step.typed,
-  fast: true,
-  rows: step.rows.map((r) =>
-    r.kind === "pick"
-      ? {
-          kind: "pick" as const,
-          text: pickText(r),
-          sets: { field: r.field, value: r.value },
-        }
-      : { kind: "menu" as const, text: r.text },
-  ),
-}));
-
-const LOOP_SCENES: readonly Scene[] = EXCHANGES.map((x) => ({
-  typed: x.prompt,
-  rows: [
-    ...x.steps.flatMap((s) => [
-      { kind: "tool" as const, text: s.tool },
-      { kind: "result" as const, text: s.result },
-    ]),
-    { kind: "say" as const, text: x.say },
-  ],
-}));
-
-const SCENES: readonly Scene[] = [...BOOT_SCENES, ...LOOP_SCENES];
-
 /** A scene's typed line is a `cmd` when it starts with `/`, a `prompt` when it is a question. */
 const typedLine = (s: Scene): Line => ({
   kind: s.typed.startsWith("/") ? "cmd" : "prompt",
   text: s.typed,
 });
 
-/* The flat transcript, in play order: every boot row, then every exchange row. */
-const FLAT: readonly Line[] = SCENES.flatMap((s) => [typedLine(s), ...s.rows]);
-
 const sceneLen = (s: Scene) => 1 + s.rows.length;
-/** Where the looping tail starts. Everything before this index plays exactly once, at boot. */
-const BOOT_LEN = BOOT_SCENES.reduce((n, s) => n + sceneLen(s), 0);
-const LOOP_LEN = FLAT.length - BOOT_LEN;
-/** The scene the walk returns to forever, i.e. the first exchange — never back to boot. */
-const LOOP_SCENE_0 = BOOT_SCENES.length;
-
-/* ⚠️ THE ONE PLACE THE BOOT-THEN-LOOP SHAPE LIVES. Three regions, and every reader of the
-   transcript goes through here:
-     n < 0            the window before anything has printed — a blank row
-     n < BOOT_LEN     the boot, played once and never returned to
-     otherwise        the exchanges, wrapping within their own span
-   Wrapping on `LOOP_LEN` rather than on `FLAT.length` is what makes the boot unrepeatable: once
-   the walk passes `BOOT_LEN` there is no arithmetic that can take it back. */
-const lineAt = (n: number): Line =>
-  n < 0
-    ? BLANK
-    : n < BOOT_LEN
-      ? FLAT[n]
-      : FLAT[BOOT_LEN + ((n - BOOT_LEN) % LOOP_LEN)];
 
 /* ⚠️ TEN VISIBLE, ELEVEN RENDERED — WAS SIX AND SEVEN UNTIL 2026-08-14, when the user asked for
    a taller window. Ten is not a free number: it is the largest row count the 400px window can
@@ -428,22 +417,105 @@ const RENDERED_ROWS = VISIBLE_ROWS + 1;
 
 /* ⚠️ TWO STARTING POINTS, AND THEY ARE DELIBERATELY DIFFERENT.
 
-   `HEAD_0` is the STATIC state — what SSR, JS-off and reduced-motion show. It points into the
-   LOOPING tail so a visitor who never sees the animation still gets a populated window making
+   `script.head0` is the STATIC state — what SSR, JS-off and reduced-motion show. It points into
+   the LOOPING tail so a visitor who never sees the animation still gets a populated window making
    clix's actual security claims, exactly as before the boot sequence existed. Derived so the
    hidden row lands on the first exchange's prompt: `head + VISIBLE_ROWS` comes to
-   `BOOT_LEN + LOOP_LEN`, which `lineAt` wraps to `FLAT[BOOT_LEN]`.
+   `bootLen + loopLen`, which `lineAt` wraps to `flat[bootLen]`. It is inside `buildScript`
+   because its value depends on how many rows the copy produced; `HEAD_BOOT` does not.
 
    `HEAD_BOOT` is where the ANIMATED branch starts, and it is NEGATIVE on purpose: at
    `-VISIBLE_ROWS` every visible row resolves through `lineAt`'s `n < 0` arm to a blank, and the
-   hidden eleventh row is `FLAT[0]` — the `/agent` command, already typed into the box. That is a
+   hidden eleventh row is `flat[0]` — the `/agent` command, already typed into the box. That is a
    terminal that has just been opened, which is the whole point of the sequence.
 
    ⚠️ THE ANIMATED BRANCH THEREFORE REWINDS `head` BEFORE IT FADES ANYTHING IN. The server sent
    the static screen; the boot has to start from an empty one. The swap happens while the rows
    are still at `opacity: 0`, so no frame shows the content changing. */
-const HEAD_0 = BOOT_LEN + LOOP_LEN - VISIBLE_ROWS;
 const HEAD_BOOT = -VISIBLE_ROWS;
+
+/* ─── The script, assembled from the shapes above plus the locale's prose ─────────────────
+   ⚠️ THIS USED TO BE EIGHT MODULE-LEVEL CONSTS AND IT IS NOW ONE FUNCTION, because on
+   2026-08-14 the copy stopped being a literal in this file (user: "in hebrew settings, can we
+   translate this part also? only the necessary parts"). Everything derived from the strings has
+   to be derived AFTER the dictionary is read, i.e. inside the component; everything structural —
+   `VISIBLE_ROWS`, the timing ranges, the row classes — is locale-invariant and stays above.
+   The split is exactly that: if a value would change when the locale does, it is in here.
+
+   It is called once per mount from a `useMemo`. The locale cannot change without a hard
+   navigation (see LocaleProvider), so the result is stable for the life of the window and every
+   invariant the old consts carried still holds — they are the same expressions. */
+function buildScript(copy: TerminalCopy) {
+  const bootScenes: readonly Scene[] = BOOT_SHAPE.map((step) => ({
+    typed: step.typed,
+    fast: true,
+    rows: [
+      ...step.ids.map((id, i) => ({
+        kind: "menu" as const,
+        text: menuText(id, step.col, copy[step.list][i]),
+      })),
+      {
+        kind: "pick" as const,
+        text: pickText(step.field, step.ids[step.pick]),
+        sets: { field: step.field, value: step.ids[step.pick] },
+      },
+    ],
+  }));
+
+  const loopScenes: readonly Scene[] = EXCHANGE_SHAPE.map((x, i) => {
+    const said = copy.exchanges[i];
+    return {
+      typed: said.prompt,
+      rows: [
+        ...x.steps.flatMap((s, k) => [
+          { kind: "tool" as const, text: s.tool },
+          { kind: "result" as const, text: resultText(s.key, said.results[k]) },
+        ]),
+        { kind: "say" as const, text: said.say },
+      ],
+    };
+  });
+
+  const scenes: readonly Scene[] = [...bootScenes, ...loopScenes];
+
+  /* The flat transcript, in play order: every boot row, then every exchange row. */
+  const flat: readonly Line[] = scenes.flatMap((s) => [
+    typedLine(s),
+    ...s.rows,
+  ]);
+
+  /** Where the looping tail starts. Everything before this plays exactly once, at boot. */
+  const bootLen = bootScenes.reduce((n, s) => n + sceneLen(s), 0);
+  const loopLen = flat.length - bootLen;
+  /** The scene the walk returns to forever, i.e. the first exchange — never back to boot. */
+  const loopScene0 = bootScenes.length;
+
+  return {
+    scenes,
+    loopScene0,
+    /** The strip's resting state and SSR's, read back out of `BOOT_SHAPE` rather than written
+        twice — so the strip cannot advertise a model the picker never chose. */
+    agent0: BOOT_SHAPE[0].ids[BOOT_SHAPE[0].pick],
+    model0: BOOT_SHAPE[1].ids[BOOT_SHAPE[1].pick],
+
+    /* ⚠️ THE ONE PLACE THE BOOT-THEN-LOOP SHAPE LIVES. Three regions, and every reader of the
+       transcript goes through here:
+         n < 0          the window before anything has printed — a blank row
+         n < bootLen    the boot, played once and never returned to
+         otherwise      the exchanges, wrapping within their own span
+       Wrapping on `loopLen` rather than on `flat.length` is what makes the boot unrepeatable:
+       once the walk passes `bootLen` there is no arithmetic that can take it back. */
+    lineAt: (n: number): Line =>
+      n < 0
+        ? BLANK
+        : n < bootLen
+          ? flat[n]
+          : flat[bootLen + ((n - bootLen) % loopLen)],
+
+    /** `HEAD_0` — the STATIC state. Same expression as the const it replaces. */
+    head0: bootLen + loopLen - VISIBLE_ROWS,
+  };
+}
 
 /* ─── Timing. EVERY VALUE BELOW IS A RANGE AS OF 2026-08-14, AND THAT IS THE POINT ────────
    The user's note was "make the typing random speed to make it look more natural". A fixed
@@ -594,10 +666,27 @@ const BOOT_GAPS: readonly Range[] = [
   [0.22, 0.4],
 ];
 
-/* ⚠️ QWERTY NEIGHBOURS, AND ALL 26 ARE ASCII LOWERCASE — check the glyph-coverage block in the
-   header before adding a key. A typo has to look like a FINGER landing one key early, not like a
-   random character: `secrets` slipping to `sercets` is a person, `sec$ets` is a glitch. Each
-   letter maps to the key to its left on the row, which is the miss a right-to-left reach makes. */
+/* ⚠️ CAN THIS STRING BE REVEALED BY A WIDTH CLIP IN `ch`? Only if every character comes from
+   Fragment Mono, because `ch` is that face's `0` advance and a fallback glyph is a different
+   width — see the header. Printable ASCII is the safe set: the face's subset is wider than that,
+   but nothing in this window's copy uses the rest of Latin-1, and a test that is too STRICT
+   costs a slower typing path while one that is too loose cuts glyphs in half. */
+const isMonoSafe = (text: string) => /^[\x20-\x7E]*$/.test(text);
+
+/* ⚠️ KEYBOARD NEIGHBOURS, ONE TABLE FOR BOTH SCRIPTS. A typo has to look like a FINGER landing
+   one key early, not like a random character: `secrets` slipping to `sercets` is a person,
+   `sec$ets` is a glitch. Each letter maps to the key to its LEFT on its row — the miss a
+   right-to-left reach makes — except the leftmost of each row, which maps right instead.
+
+   ⚠️ ONE TABLE RATHER THAN ONE PER LOCALE, and that is not laziness: the two alphabets share no
+   characters, so a single lookup is unambiguous and `slipIndex` needs no notion of language at
+   all. It simply asks "does this character have a neighbour", and a Hebrew prompt fumbles on the
+   Hebrew layout while an English one fumbles on QWERTY, with no branch anywhere.
+
+   ⚠️ THE LATIN KEYS ARE ASCII LOWERCASE — check the glyph-coverage block in the header before
+   adding one. The Hebrew keys are the standard Israeli layout and are NOT in Fragment Mono,
+   which is fine here for the same reason the Hebrew copy is: those prompts take the substring
+   typing path, where a fallback advance costs nothing. */
 const NEIGHBOUR: Record<string, string> = {
   q: "w",
   w: "e",
@@ -625,6 +714,37 @@ const NEIGHBOUR: Record<string, string> = {
   b: "v",
   n: "b",
   m: "n",
+
+  /* Hebrew, standard Israeli layout. Top row `קראטוןםפ`, home `שדגכעיחלךף`, bottom `זסבהנמצתץ`.
+     Same rule as above: left neighbour, and the row's leftmost reaches right instead. The five
+     final forms (ן ם ך ף ץ) are included because they are real keys a finger can land on. */
+  ק: "ר",
+  ר: "ק",
+  א: "ר",
+  ט: "א",
+  ו: "ט",
+  ן: "ו",
+  ם: "ן",
+  פ: "ם",
+  ש: "ד",
+  ד: "ש",
+  ג: "ד",
+  כ: "ג",
+  ע: "כ",
+  י: "ע",
+  ח: "י",
+  ל: "ח",
+  ך: "ל",
+  ף: "ך",
+  ז: "ס",
+  ס: "ז",
+  ב: "ס",
+  ה: "ב",
+  נ: "ה",
+  מ: "נ",
+  צ: "מ",
+  ת: "צ",
+  ץ: "ת",
 };
 
 /* An index worth fumbling: a letter that HAS a neighbour, and away from both ends of the string.
@@ -725,6 +845,14 @@ const show = (on: boolean) => (on ? "" : "none");
 export default function SecurityTerminal() {
   const root = useRef<HTMLDivElement>(null);
 
+  /* ⚠️ `usePageDict`, NEVER A STATIC IMPORT of `en/security` or `he/security`. A value import
+     from a client module bundles BOTH locales into the chunk; the type import at the top of this
+     file is erased and costs nothing. The provider is mounted by `SecurityRoute`. */
+  const copy = usePageDict("security").terminal;
+  /* Stable for the life of the mount — a locale change is a hard navigation across two root
+     layouts, so this never rebuilds and no timeline ever has to survive one. */
+  const script = useMemo(() => buildScript(copy), [copy]);
+
   useGSAP(
     () => {
       const q = gsap.utils.selector(root);
@@ -759,11 +887,11 @@ export default function SecurityTerminal() {
          `head` is where the transcript window sits in the flat line list; `scene` is which
          scene the box is typing. Every scene advances `head` by exactly `sceneLen`, so the two
          cannot drift — see the note on `Scene`. */
-      let head = HEAD_0;
-      let scene = LOOP_SCENE_0;
+      let head = script.head0;
+      let scene = script.loopScene0;
 
       /** What the box types next: the scene's own line, not a lookup. */
-      const nextTyped = () => SCENES[scene].typed;
+      const nextTyped = () => script.scenes[scene].typed;
 
       /** The strip's two fields, written in one place so the rewind, the boot and the teardown
           cannot disagree about what "empty" and "settled" look like. */
@@ -776,7 +904,7 @@ export default function SecurityTerminal() {
 
       const paint = () => {
         for (let i = 0; i < RENDERED_ROWS; i++) {
-          const line = lineAt(head + i);
+          const line = script.lineAt(head + i);
           const look = rowLook(line.kind, i === VISIBLE_ROWS - 1);
           const row = rows[i];
           const chevron = row.querySelector(
@@ -929,24 +1057,49 @@ export default function SecurityTerminal() {
         };
 
         /* ── Typing, one glyph at a time, at a rate nobody can set a metronome to ──────────
-           ⚠️ THE MECHANISM IS STILL A WIDTH CLIP over text that is already present — the span is
+           ⚠️ THE MECHANISM IS A WIDTH CLIP over text that is already present — the span is
            `overflow-hidden whitespace-pre` and `ch` is exact because the face is monospace, so
            the caret, SSR and the reduced-motion resting state all behave exactly as they did.
-           WHAT CHANGED is the schedule: a single `steps(n)` tween is a UNIFORM ease, baked in
-           when the tween is built, so it could only ever produce one interval for every
-           keystroke of every prompt. There is no ease that varies per character. So the reveal is
-           now one zero-duration `set` per glyph, placed at an accumulating jittered time.
+           WHAT CHANGED on 2026-08-14 is the schedule: a single `steps(n)` tween is a UNIFORM
+           ease, baked in when the tween is built, so it could only ever produce one interval for
+           every keystroke of every prompt. There is no ease that varies per character. So the
+           reveal is one zero-duration `set` per glyph, placed at an accumulating jittered time.
 
            ⚠️ THAT IS ~35 SETS PER CYCLE AND IT IS FINE. They are zero-duration and the timeline
            is rebuilt each cycle anyway; the thing the old comment was guarding against was a DOM
            WRITE per glyph, which an append-the-character approach would have cost and this still
-           does not — the text is written once, up front, and only a width moves. */
+           does not — the text is written once, up front, and only a width moves.
+
+           ⚠️⚠️ …UNLESS THE PROMPT IS NOT ALL LATIN, and then the clip is not merely imprecise but
+           WRONG. `ch` is Fragment Mono's `0` advance and the face has no Hebrew, so a Hebrew
+           prompt is drawn by the fallback at a different advance: the clip drifts against the
+           glyphs and cuts one in half. `clip` is therefore per PROMPT, decided by `isMonoSafe`,
+           and the substring branch below is what a Hebrew prompt takes. That branch costs one
+           DOM write per glyph — the exact thing the paragraph above says the clip avoids — and
+           it is the right trade: ~30 writes over four seconds is nothing, and a reveal that
+           cannot land between glyphs is the only correct one when a column is not a character.
+           ⚠️ THE ENGLISH PATH IS UNCHANGED, BYTE FOR BYTE. `isMonoSafe` is true for every string
+           in the English dictionary, so /security renders exactly what it rendered before. */
         const typeInto = (
           tl: gsap.core.Timeline,
           text: string,
           fast = false,
+          clip = true,
         ) => {
           let t = tl.duration();
+
+          /** Reveal `n` characters. The two mechanisms differ ONLY here; everything above this —
+              tempo, modes, think-pauses, the fumble — is shared, so the two paths cannot drift
+              in rhythm. Both are zero-duration and both are idempotent. */
+          const upto = (n: number, at: number) => {
+            if (clip) tl.set(cmd, { width: `${n}ch` }, at);
+            else
+              tl.call(
+                () => (cmd.textContent = text.slice(0, n)),
+                undefined,
+                at,
+              );
+          };
 
           /* ⚠️ THE BOOT SKIPS THE WHOLE HUMAN MODEL, and that is the point rather than a
              shortcut. Tempo, think-pauses and the fumble all exist to make a QUESTION look typed
@@ -956,7 +1109,7 @@ export default function SecurityTerminal() {
           if (fast) {
             for (let i = 0; i < text.length; i++) {
               t += rand(BOOT_KEY_S);
-              tl.set(cmd, { width: `${i + 1}ch` }, t);
+              upto(i + 1, t);
             }
             return;
           }
@@ -977,16 +1130,22 @@ export default function SecurityTerminal() {
             }
 
             if (i === slip) {
-              /* The wrong key goes in, sits there long enough to be seen, and is deleted. The
-                 span holds the typo'd string only for that beat; the backspace clips the width
-                 back to `i`, which is what makes swapping the correct string back in invisible
-                 rather than a flicker. */
+              /* The wrong key goes in, sits there long enough to be seen, and is deleted.
+                 ⚠️ UNDER THE CLIP the span holds the typo'd string only for that beat and the
+                 backspace clips the width back to `i`, which is what makes swapping the correct
+                 string back in invisible rather than a flicker. Under the SUBSTRING path there
+                 is no swap to hide: the wrong string is written, then `text.slice(0, i)` is,
+                 and `upto` picks up from there. Same three beats either way. */
               const wrong = text.slice(0, i) + NEIGHBOUR[text[i]];
               tl.call(() => (cmd.textContent = wrong), undefined, t);
-              tl.set(cmd, { width: `${i + 1}ch` }, t);
+              if (clip) tl.set(cmd, { width: `${i + 1}ch` }, t);
               t += rand(TYPO_NOTICE_S);
-              tl.set(cmd, { width: `${i}ch` }, t);
-              tl.call(() => (cmd.textContent = text), undefined, t);
+              if (clip) {
+                tl.set(cmd, { width: `${i}ch` }, t);
+                tl.call(() => (cmd.textContent = text), undefined, t);
+              } else {
+                upto(i, t);
+              }
               t += rand(TYPO_RECOVER_S);
             }
 
@@ -1000,7 +1159,7 @@ export default function SecurityTerminal() {
             left--;
 
             t += rand(mode.key) * tempo;
-            tl.set(cmd, { width: `${i + 1}ch` }, t);
+            upto(i + 1, t);
           }
         };
 
@@ -1011,30 +1170,42 @@ export default function SecurityTerminal() {
            sequence a copy change plus a scene index rather than a second animation. */
         const runScene = () => {
           if (stopped) return;
-          const current = SCENES[scene];
+          const current = script.scenes[scene];
           const text = current.typed;
           /* One flag picks the whole clock: typing model, slide, gaps, stream and dwell. Every
              boot-vs-exchange timing difference reads off this line and nowhere else. */
           const fast = current.fast === true;
           const slide = fast ? BOOT_SLIDE_S : SLIDE_S;
           const gaps = fast ? BOOT_GAPS : GAPS;
-          /* The box has to hold the string BEFORE the reveal starts — the animation is a width
-             clip over text that is already present, never an append. See the note on the span. */
-          cmd.textContent = text;
+          /* ⚠️ WHICH REVEAL THIS PROMPT GETS, decided ONCE per scene and threaded into both
+             `typeInto` and the two width writes below, so the three cannot disagree about what
+             the span's resting width means. See the note on `typeInto`. */
+          const clip = isMonoSafe(text);
+          /* Under the clip the box has to hold the string BEFORE the reveal starts — the
+             animation is a width clip over text that is already present, never an append. Under
+             the substring path the opposite is true: it starts empty and is appended to. */
+          cmd.textContent = clip ? text : "";
+          /** The span's width in its "nothing typed yet" state. `max-content` on the substring
+              path, where the box has to hug however much text has arrived; a hard 0 under the
+              clip, where the text is always complete and only the window over it moves. */
+          const zero = clip ? 0 : "max-content";
 
           const tl = gsap.timeline({
             onComplete: () => {
               /* ⚠️ WRAPS TO `LOOP_SCENE_0`, NOT TO ZERO — this is the line that makes the boot
                  play exactly once. `head` cannot go back either (`lineAt` wraps only within the
                  looping span), so the two agree without either one checking the other. */
-              scene = scene + 1 >= SCENES.length ? LOOP_SCENE_0 : scene + 1;
+              scene =
+                scene + 1 >= script.scenes.length
+                  ? script.loopScene0
+                  : scene + 1;
               runScene();
             },
           });
           cycle = tl;
 
-          tl.set(cmd, { width: 0 });
-          typeInto(tl, text, fast);
+          tl.set(cmd, { width: zero });
+          typeInto(tl, text, fast, clip);
           /* The beat before Enter. Without it the line vanishes the instant it finishes typing
              and the scene reads as one continuous stream rather than a submission. */
           tl.to(
@@ -1044,7 +1215,7 @@ export default function SecurityTerminal() {
           /* Submit: the box empties and the same line arrives in the transcript. */
           tl.add(() => {
             cmd.textContent = "";
-            gsap.set(cmd, { width: 0 });
+            gsap.set(cmd, { width: zero });
           });
           /* The typed line lands complete — it is what the box just finished typing, so
              streaming it again in the row above would be the same keystrokes twice. */
@@ -1138,17 +1309,22 @@ export default function SecurityTerminal() {
              makes sense as something that plays. `LOOP_SCENE_0` is the scene `HEAD_0` is derived
              against, so the box and the transcript agree after the revert exactly as they do in
              the server's markup. */
-          head = HEAD_0;
-          scene = LOOP_SCENE_0;
+          head = script.head0;
+          scene = script.loopScene0;
           paint();
-          setStrip(AGENT_0, MODEL_0);
+          setStrip(script.agent0, script.model0);
           /* ⚠️ AN EXPLICIT WIDTH, NOT `clearProps: "width"`. clearProps strips the inline
              style outright -- INCLUDING the `${n}ch` React itself rendered -- which would leave
              this span to absorb the whole flex row and strand the caret. That is the exact bug
              recorded on the span below. Restore the resting state instead of erasing it. */
           const seed = nextTyped();
           cmd.textContent = seed;
-          gsap.set(cmd, { width: `${seed.length}ch` });
+          /* Same two-branch resting width the JSX renders, and it has to BE the same expression
+             — this is the state a reduced-motion flip mid-session is left in, and it is compared
+             against the server's markup by eye more often than by anything else. */
+          gsap.set(cmd, {
+            width: isMonoSafe(seed) ? `${seed.length}ch` : "max-content",
+          });
         };
       });
     },
@@ -1160,7 +1336,7 @@ export default function SecurityTerminal() {
      JS-off or reduced-motion visitor is left in, and a slash command frozen in a box they can
      never see execute reads as broken. Read from the scene rather than written out, so the
      static screen cannot disagree with what the animation would type there. */
-  const seedPrompt = SCENES[LOOP_SCENE_0].typed;
+  const seedPrompt = script.scenes[script.loopScene0].typed;
 
   return (
     /* ⚠️ THE CHROME LIVES IN `MockWindow` — the border, radius, `bg-ink`, `font-mono`,
@@ -1270,7 +1446,11 @@ export default function SecurityTerminal() {
               )),
           )}
         </div>
-        <span className="truncate text-paper-soft">{GREETING}</span>
+        {/* `dir="auto"` for the same reason as the transcript rows below: a Hebrew greeting's
+            neutrals would otherwise take the window's LTR direction. No-op on English. */}
+        <span dir="auto" className="truncate text-paper-soft">
+          {copy.greeting}
+        </span>
       </div>
 
       {/* ── The transcript ──────────────────────────────────────────────────────────────────
@@ -1290,7 +1470,7 @@ export default function SecurityTerminal() {
             constant for the life of the page. */}
         <ul data-tm-list>
           {Array.from({ length: RENDERED_ROWS }, (_, i) => {
-            const line = lineAt(HEAD_0 + i);
+            const line = script.lineAt(script.head0 + i);
             const look = rowLook(line.kind, i === VISIBLE_ROWS - 1);
             return (
               <li data-tm-row key={i} className={`${ROW_CLASS} ${look.text}`}>
@@ -1333,10 +1513,23 @@ export default function SecurityTerminal() {
                       the other two utilities are spelled out because `truncate` would re-assert
                       `nowrap` from whichever rule the scanner emits last.
                       ⚠️ THE COLUMNS ARE PADDED WITH REAL SPACES in the copy above — `clix audit`
-                      + 4 spaces, `claude-sonnet-5` + 2 — all landing on one column per list. Keep
-                      that alignment when editing a label, or the list shears. */}
+                      + 4 spaces, `claude-sonnet-5` + 2 — all landing on one column per list. As
+                      of 2026-08-14 those runs are `padEnd`ed from `BOOT_SHAPE.col` rather than
+                      typed as trailing spaces, because the second column is a translated string.
+
+                      ⚠️ `dir="auto"` IS THE WINDOW'S ONLY BIDI ACCOMMODATION, and it is a NO-OP
+                      ON EVERY ENGLISH ROW. `paint()` rewrites this node's text on every tick and
+                      a row can be any of eight kinds, so the direction cannot be decided once:
+                      `region  eu-west-1 (שלכם)` is Latin-first and must stay LTR or the
+                      parentheses migrate to the far end, while `זה רץ בחשבון הענן שלכם.` is
+                      Hebrew-first and its full stop belongs on the LEFT. `auto` resolves each
+                      from its own first strong character and re-resolves when the text changes,
+                      which is exactly the per-row decision this needs. The marker column outside
+                      this span is untouched, so `>` and the bullets stay on the left in both
+                      locales — the window is NOT mirrored. */}
                   <span
                     data-tm-text
+                    dir="auto"
                     className="overflow-hidden text-ellipsis whitespace-pre"
                   >
                     {line.text}
@@ -1386,19 +1579,20 @@ export default function SecurityTerminal() {
               what the reference does with `kiro_planner · claude-opus-4.6`. The server renders
               the SETTLED values because the static screen is the post-boot state; the animated
               branch blanks all three at its rewind and the boot fills them back in as each
-              `pick` row lands. Both read `AGENT_0` / `MODEL_0`, which are read back out of
-              `BOOT` — so the strip cannot advertise a model the picker never chose.
+              `pick` row lands. Both read `script.agent0` / `script.model0`, which are read back
+              out of `BOOT_SHAPE` — so the strip cannot advertise a model the picker never chose.
+              ⚠️ NEITHER IS TRANSLATED, in either locale: both are identifiers.
               The old `read only` sat here and is gone: the model earns the slot, and that line
               already appears in the transcript as a `scope` result. */}
           <span data-tm-agent className="truncate">
-            {AGENT_0}
+            {script.agent0}
           </span>
           {/* Hidden until the model is chosen, or the separator floats alone during boot. */}
           <span data-tm-sep className="shrink-0">
             ·
           </span>
           <span data-tm-model className="shrink-0">
-            {MODEL_0}
+            {script.model0}
           </span>
           {/* ⚠️ THE PATH USED TO SIT HERE AND HAS MOVED TO THE PROMPT LINE BELOW, where a
               real shell puts it — see the note there. Keeping a copy on this row as well would
@@ -1437,22 +1631,43 @@ export default function SecurityTerminal() {
             two states that have no animation to hide it: JS off and reduced motion. A screenshot
             could not catch it, because `overflow-hidden` makes the excess invisible.
             Deriving the width from `.length` is also what keeps the resting width and the end of
-            the tween identical — they are literally the same expression. Do not put `w-max` back. */}
-          <span
-            data-tm-cmd
-            className="overflow-hidden whitespace-pre text-paper"
-            style={{ width: `${seedPrompt.length}ch` }}
-          >
-            {seedPrompt}
+            the tween identical — they are literally the same expression. Do not put `w-max` back.
+
+            ⚠️ `.length ch` IS A LATIN-ONLY EXPRESSION, hence the branch. `ch` is Fragment Mono's
+            `0` advance and the face has no Hebrew, so on a Hebrew prompt a character is not a
+            column and this width would be wrong at rest as well as mid-tween. `max-content` hugs
+            whatever the fallback actually drew, which is the same guarantee by another route —
+            and it is safe here for the reason `w-max` was not: it is an inline style, so the
+            `--container-max` collision that poisons the UTILITY cannot reach it.
+
+            ⚠️ THE CARET IS INSIDE THIS WRAPPER WITH THE TEXT, not a sibling of it, and the
+            wrapper carries the `dir="auto"`. That is what keeps the caret on the GROWING edge in
+            both scripts: LTR resolves and it sits to the right of the text as it always has,
+            Hebrew resolves RTL and the flex row reverses, putting it to the left where the next
+            character will land. `ms-[2px]` is already logical, so it follows without help. The
+            line OUTSIDE the wrapper stays LTR, which is why `~/audit >` keeps its place and the
+            `>` is not bidi-mirrored into a `<`. */}
+          <span dir="auto" className="flex min-w-0 items-center">
+            <span
+              data-tm-cmd
+              className="overflow-hidden whitespace-pre text-paper"
+              style={{
+                width: isMonoSafe(seedPrompt)
+                  ? `${seedPrompt.length}ch`
+                  : "max-content",
+              }}
+            >
+              {seedPrompt}
+            </span>
+            {/* Caret. A filled box rather than a block character, for the same glyph-coverage
+              reason everything else here is CSS — and a block is the terminal idiom, where
+              /product's `|` is the text-field one. It renders STEADY here and is set blinking
+              from the effect above; see the long note there for why it is not in the markup. */}
+            <span
+              data-tm-caret
+              className="ms-[2px] inline-block h-[1.05em] w-[1ch] shrink-0 bg-paper"
+            />
           </span>
-          {/* Caret. A filled box rather than a block character, for the same glyph-coverage reason
-            everything else here is CSS — and a block is the terminal idiom, where /product's `|`
-            is the text-field one. It renders STEADY here and is set blinking from the effect
-            above; see the long note there for why the animation is not in the markup. */}
-          <span
-            data-tm-caret
-            className="ms-[2px] inline-block h-[1.05em] w-[1ch] shrink-0 bg-paper"
-          />
         </div>
       </div>
     </MockWindow>

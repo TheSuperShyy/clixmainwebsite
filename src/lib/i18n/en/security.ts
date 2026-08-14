@@ -59,6 +59,54 @@ export interface PracticeCopy {
   readonly labelWidth: number;
 }
 
+/**
+ * One exchange in the hero terminal, translatable halves ONLY.
+ *
+ * ⚠️ THE TOOL CALLS AND THE RESULT KEYS ARE NOT HERE, AND THAT ABSENCE IS THE SPEC.
+ * `Read(infra/deploy.tf)`, `Bash(clix env show)` and the `region` / `scope` / `retention` key
+ * column are CODE ARTIFACTS — they stay as literals in `SecurityTerminal.tsx`, where a locale
+ * cannot reach them. The user's ask on 2026-08-14 was "translate this part also, only the
+ * necessary parts", and this interface is where that line is drawn: a locale may write what a
+ * person READS and nothing that a shell would print.
+ */
+export interface TerminalExchangeCopy {
+  /** The question that types itself into the prompt box. */
+  readonly prompt: string;
+  /** The VALUE half of the two result rows, in order. The key half is Latin, in the component. */
+  readonly results: readonly [string, string];
+  /** The agent's answer. ⚠️ THIS IS THE CLAIM — one per `compliance.practices` cell, in order. */
+  readonly say: string;
+}
+
+export interface TerminalCopy {
+  /** The welcome panel's greeting, beside the dot-matrix wordmark. */
+  readonly greeting: string;
+  /** Right-hand column of `/agent`'s roster. THREE — the count is the menu, so a tuple. */
+  readonly agents: readonly [string, string, string];
+  /** Right-hand column of `/model`'s roster. THREE. ⚠️ The model IDS are not here; see above. */
+  readonly models: readonly [string, string, string];
+  /** FIVE, in the Compliance band's order, same as `compliance.practices`. */
+  readonly exchanges: readonly [
+    TerminalExchangeCopy,
+    TerminalExchangeCopy,
+    TerminalExchangeCopy,
+    TerminalExchangeCopy,
+    TerminalExchangeCopy,
+  ];
+}
+
+/** The back window. Same rule as `TerminalCopy`: run names, file names and diffs are absent. */
+export interface ConsoleCopy {
+  /** The three pane headings, in rail order. */
+  readonly headings: readonly [string, string, string];
+  /** SIX run ages, in rail order. Short — the rail gives them ~37px beside a truncating name. */
+  readonly ages: readonly [string, string, string, string, string, string];
+  /** The VALUE half of the five detail rows. Keys are Latin, in the component. */
+  readonly details: readonly [string, string, string, string, string];
+  /** A progress statement, never a verdict — see the note in SecurityConsole.tsx. */
+  readonly progress: string;
+}
+
 export interface SecurityDict {
   readonly hero: {
     readonly title: string;
@@ -97,6 +145,8 @@ export interface SecurityDict {
     /** Run 2, after the two `<br/>`. */
     readonly body2: string;
   };
+  readonly terminal: TerminalCopy;
+  readonly console: ConsoleCopy;
 }
 
 export const security: SecurityDict = {
@@ -172,5 +222,78 @@ export const security: SecurityDict = {
       "Security is not a layer clix adds at the end. Every automation we build runs inside your own cloud, your own CRM and your own inboxes, under credentials you issue and can revoke in a minute. We ask for the narrowest scope a workflow needs, we log every read and every write, and we hand you the code so nothing depends on us staying in the room.",
     body2:
       "We do not train models on your data, and we do not keep a second copy of it. When a workflow touches something sensitive, you can see exactly what it touched and when. That is the whole of the promise, and it is checkable.",
+  },
+
+  /**
+   * ⚠️ EXTRACTED VERBATIM from `SecurityTerminal.tsx`'s module consts on 2026-08-14, when the
+   * user asked for the hero windows to speak Hebrew on /he ("can we translate this part also?
+   * only the necessary parts"). Byte-identical to what those consts held, because the English
+   * render of that window is signed off and a "tidied" string here is a regression.
+   *
+   * ⚠️ THIS REVERSES A DECISION THE TERMINAL'S HEADER STILL RECORDS. From 2026-08-13 that file
+   * said "ENGLISH AND LTR IN BOTH LOCALES, ON PURPOSE" and never reached for the dictionary. The
+   * LTR half of that finding STANDS — `MockWindow` still pins `dir="ltr"` and the chrome, the
+   * marker column and the shell prompt are unmirrored. Only the ENGLISH half was reversed, and
+   * only for prose. See the terminal's header for what that split cost mechanically.
+   *
+   * ⚠️ THE FIVE `say` LINES ARE THE FIVE `compliance.practices` CELLS, IN ORDER, and that
+   * mapping is the reason the window is allowed to make claims at all: every sentence it prints
+   * is restated as real prose further down the same page. A sixth exchange, or a `say` that
+   * asserts something the band does not, walks an unbacked claim back onto this route — which is
+   * the exact thing the SOC 2 / ISO 27001 removals of 2026-08-05 and 2026-08-12 were about.
+   *
+   * ⚠️ THE COLUMN BUDGET IS 43 CHARACTERS AND IT BINDS AT THE 390px TIER. A `menu` row is the id
+   * column (14 for agents, 17 for models — the component pads) plus the string below; a `result`
+   * row is its key plus two spaces plus the value. Longer silently clips at the phone tier and
+   * nowhere else.
+   */
+  terminal: {
+    greeting: "Welcome to clix code",
+    agents: ["security review", "automation authoring", "run monitoring"],
+    models: ["agentic coding", "long horizon work", "speed and cost"],
+    exchanges: [
+      {
+        prompt: "where does my data get processed",
+        results: ["aws", "eu-west-1 (yours)"],
+        say: "It runs in your cloud account, not ours.",
+      },
+      {
+        prompt: "what do you keep after a run",
+        results: ["none", "0 files"],
+        say: "Nothing is stored once a run finishes.",
+      },
+      {
+        prompt: "check the access this needs",
+        results: ["get, list", "read only"],
+        say: "Every credential is scoped to one task.",
+      },
+      {
+        prompt: "verify how secrets are held",
+        /* ⚠️ `tls` CARRIES NO VERSION NUMBER, deliberately — Benefit 5 is still an open question
+           in FEATURE.md and naming a version invents precision on an unsigned claim. */
+        results: ["your vault", "tls"],
+        say: "Keys stay in your own vault.",
+      },
+      {
+        prompt: "who owns the automation you write",
+        results: ["yours", "your repo"],
+        say: "The code lands in your repository.",
+      },
+    ],
+  },
+
+  /** Extracted from `SecurityConsole.tsx` in the same pass, under the same rule: run ids, run
+      names, file names and diff counts stayed behind as literals; only prose moved. */
+  console: {
+    headings: ["RUNS", "RUN", "FILES"],
+    ages: ["now", "2h", "5h", "9h", "1d", "1d"],
+    details: [
+      "eu-west-1 (yours)",
+      "read only",
+      "your vault",
+      "none",
+      "your repo",
+    ],
+    progress: "6 of 6 steps complete",
   },
 };
