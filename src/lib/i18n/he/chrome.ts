@@ -75,6 +75,7 @@ export const chrome: ChromeDict = {
       /* Product names, Latin by the keep-Latin rule. The bidi isolation that keeps them from
          reordering against neighbouring Hebrew is applied in the component, not here. */
       instagram: "Instagram",
+      linkedin: "LinkedIn",
       whatsapp: "WhatsApp",
     },
     /* SOURCED verbatim — home.bodyText closes on "תוכנה שעובדת, תוצאות שמדברות."

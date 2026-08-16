@@ -92,6 +92,7 @@ export interface ChromeDict {
       readonly letsStart: string;
       readonly email: string;
       readonly instagram: string;
+      readonly linkedin: string;
       readonly whatsapp: string;
     };
     /**

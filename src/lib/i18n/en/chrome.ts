@@ -50,6 +50,7 @@ export const chrome: ChromeDict = {
       letsStart: "Let’s start",
       email: "Email",
       instagram: "Instagram",
+      linkedin: "LinkedIn",
       whatsapp: "WhatsApp",
     },
     /* [["Software", "that works,"], ["results that speak."]] — the phone tier draws a break

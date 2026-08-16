@@ -24,8 +24,13 @@
  * second place on the site with a real authored transition rather than an estimate.
  */
 
-import { Fragment } from "react";
+import { Fragment, type ComponentType } from "react";
 import AppLink from "@/components/ui/AppLink";
+import {
+  InstagramMark,
+  LinkedInMark,
+  WhatsAppMark,
+} from "./socialMarks";
 import { getChrome } from "@/lib/i18n/server";
 import type { ChromeDict } from "@/lib/i18n/dictionary";
 import { CONTACT } from "@/lib/contact";
@@ -41,6 +46,9 @@ type FooterLink = {
   /* Per-tier visibility, for the two links the original does not ship at every tier.
      See the open questions in FEATURE.md — reproduced, not corrected. */
   only?: "desktop" | "below-desktop";
+  /* Brand mark, on the three social entries only (2026-08-16). Optional, and the links that
+     omit it render exactly the markup they rendered before — see FooterLinkItem. */
+  icon?: ComponentType<{ className?: string }>;
 };
 
 /* `titleIndex` indexes `chrome.footer.groupTitles`, a fixed-length 4-tuple — four columns is
@@ -139,12 +147,21 @@ const GROUPS: LinkGroup[] = [
          Hebrew footer sends you to /he/contact. */
       { key: "letsStart", href: "/contact" },
       { key: "email", href: CONTACT.email },
-      { key: "instagram", href: CONTACT.instagram, external: true },
+      { key: "instagram", href: CONTACT.instagram, external: true, icon: InstagramMark },
+      /* Added 2026-08-16 at the user's request, and it BREAKS the target's column length:
+         Contact now renders FIVE links per tier where the original renders four. That is a
+         deliberate content addition, not a layout drift — the column is a flex stack with a
+         12px gap, so a fifth row extends it downward and nothing reflows sideways. The three
+         sibling columns stay 2/3/3 as before, and the tallest column has always set this
+         row's height. Sits beside Instagram because both are social profiles; WhatsApp and
+         Email are direct channels and stay together below.
+         ⚠️ The href is a PERSONAL profile — see the note in src/lib/contact.ts. */
+      { key: "linkedin", href: CONTACT.linkedin, external: true, icon: LinkedInMark },
       /* The original splits "Press" by tier — a mailto at >=1200, an x.com profile below —
-         which is why this column renders four links at every tier from five entries. clix
+         which is why this column rendered four links at every tier from five entries. clix
          has one WhatsApp number and no tier-specific alternative, so this is a single
-         ungated entry. The visible count per tier is unchanged at four. */
-      { key: "whatsapp", href: CONTACT.whatsapp, external: true },
+         ungated entry. */
+      { key: "whatsapp", href: CONTACT.whatsapp, external: true, icon: WhatsAppMark },
     ],
   },
 ];
@@ -157,6 +174,8 @@ const tierClass = (only?: FooterLink["only"]) =>
       : "";
 
 function FooterLinkItem({ item, label }: { item: FooterLink; label: string }) {
+  const Icon = item.icon;
+
   return (
     <div
       className={`relative h-auto w-auto max-w-[1024px] ${tierClass(item.only)}`}
@@ -166,13 +185,28 @@ function FooterLinkItem({ item, label }: { item: FooterLink; label: string }) {
           href={item.href}
           external={item.external}
           /* paper -> surface on hover. The `.3s cubic-bezier(.44,0,.56,1)` is the
-             capture's own, not an estimate — it is declared on the link style preset. */
-          className="text-paper no-underline transition-[color] duration-300
-                     hover:text-surface
-                     focus-visible:rounded-[2px] focus-visible:ring-2
-                     focus-visible:ring-paper focus-visible:outline-none"
+             capture's own, not an estimate — it is declared on the link style preset.
+             The mark inherits all of it through `currentColor`, so icon and label cross-fade
+             on the same curve instead of the text moving under a fixed icon.
+
+             `inline-flex` ONLY when there is a mark. The nine link items without one keep the
+             plain inline anchor they have always rendered — an unconditional flex would change
+             the box of every link in this footer to buy alignment for three of them. */
+          className={`text-paper no-underline transition-[color] duration-300
+                      hover:text-surface
+                      focus-visible:rounded-[2px] focus-visible:ring-2
+                      focus-visible:ring-paper focus-visible:outline-none
+                      ${Icon ? "inline-flex items-center gap-2" : ""}`}
           style={{ transitionTimingFunction: "var(--ease-rogo)" }}
         >
+          {/* NO `rtl:` VARIANT, AND BOTH HALVES OF THAT ARE DELIBERATE.
+              · The mark's SIDE flips on /he for free: a flex row's main axis follows the
+                inline direction, so `dir="rtl"` on the Hebrew <html> moves the icon to the
+                right — the reading-start side — with no variant to maintain.
+              · The mark's ARTWORK never flips. It is a trademark, not a direction glyph;
+                see the RTL note in socialMarks.tsx.
+              `flex-none` stops the 16px square being squeezed by the label beside it. */}
+          {Icon && <Icon className="h-4 w-4 flex-none" />}
           {label}
         </AppLink>
       </p>

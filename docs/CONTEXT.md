@@ -17,6 +17,43 @@ Line format:
 
 ## 2026-08-16
 
+- `infra` — 🔴 **`npm run build` IS RED ON THIS WORKING TREE, and it is not a code fault.** The
+  uncommitted `src/app/favicon.ico` is `8-bit/color RGB`; Turbopack requires RGBA and fails with
+  *"The PNG is not in RGBA format"*. HEAD's copy is RGBA and builds. Found while verifying the
+  footer change, which needed HEAD's favicon swapped in temporarily to build at all (user's file
+  restored byte-for-byte, sha256 `d597aecf…`). **Left unfixed — it is the user's asset and their
+  call.** Re-export as 32-bit RGBA, or `git checkout src/app/favicon.ico` to drop it. This blocks
+  any Vercel deploy of `dev`. → [detail](../features/footer/CONTEXT.md)
+
+- `footer` — **Brand marks beside the three social links** (Instagram, LinkedIn, WhatsApp; not
+  `Let's start`/`Email`, which are not accounts). New `src/components/sections/socialMarks.tsx`,
+  which **deliberately breaks the repo's icon convention**: 24×24 `fill:currentColor` published
+  outlines, not the shared 32×32 `fill:none`/1.5px-stroke grid the drawn glyphs use — a brand mark
+  redrawn on our grid is a knock-off, not a house style. Monochrome by decision (three brand
+  colours would be the only accents in an `ink` block, and `forest` belongs to /clix); the marks
+  inherit the link's measured `.3s cubic-bezier(.44,0,.56,1)` hover through `currentColor`. RTL
+  needs no variant either way — the side flips with the inline axis, the artwork must never flip.
+  ⚠️ **16px/8px sizing is taste, not measurement** — the target footer has no icons to measure.
+  Build clean, not visually checked. → [detail](../features/footer/CONTEXT.md)
+
+- `footer` — **LinkedIn added to the Contact column**, which is the first change to make this
+  footer diverge from the target in COLUMN LENGTH rather than in destinations: five links per
+  tier where the original renders four. Flex stack with a 12px gap, so it extends downward only —
+  grid and sibling columns untouched. ⚠️ The URL is a **personal** profile (`/in/…`), not a company
+  page, unlike every other entry in `CONTACT`; flagged to the user and shipped as supplied. URL
+  lives in `src/lib/contact.ts` (a link target, not copy); label `"LinkedIn"` in both locales, Latin
+  in Hebrew by the existing keep-Latin rule. Build clean, not visually checked.
+  → [detail](../features/footer/CONTEXT.md)
+
+- `infra` — **`clixsolutions.info` connected to Vercel at GoDaddy.** `A @ → 216.198.79.1`,
+  `CNAME www → 74932f966cfb1a28.vercel-dns-017.com`, plus the `TXT _vercel` ownership record the
+  domain needed because it was **already claimed by another Vercel account**. All three verified
+  live against `8.8.8.8`, not just the GoDaddy panel; SSL issued on both hostnames.
+  🔴 **REDIRECT LOOP still open:** apex `308 →` www and www `307 →` apex, so the site is
+  unreachable in a browser (`ERR_TOO_MANY_REDIRECTS`). Fix is in the Vercel dashboard, not this
+  repo — set `www` to *Connect to an environment → Production* and leave the apex redirecting to
+  it. No MX records exist on this zone, so the domain has no email configured.
+
 - `legal-pages` — **/terms and /accessibility ported; the footer now has ZERO dead links** (it began
   the day with eight). Both fetched live and cross-checked against the captures. **Components
   generalised rather than tripled:** `PrivacyHero`/`PrivacyBody`/`PrivacyRoute` →

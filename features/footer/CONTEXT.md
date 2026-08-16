@@ -43,6 +43,90 @@ whether the map embed needs a consent gate before production.
 
 ## Log
 
+### 2026-08-16 — Brand marks beside the three social links
+
+**Trigger:** user, on a screenshot of the Contact column — *"add the logo beside the social
+links"*.
+
+**Scope read as the three SOCIAL entries** — Instagram, LinkedIn, WhatsApp — not all five in
+the column. `Let's start` is a CTA and `Email` is a channel; neither is an account, and neither
+has a mark to draw. The column therefore runs two bare links then three marked ones, which is a
+grouping, not an inconsistency.
+
+**New file `src/components/sections/socialMarks.tsx`, and it deliberately BREAKS the repo's
+icon convention.** `serviceGlyphs`, `WhyRogoIcons` and `ToolGlyphs` are all drawn on a shared
+32×32 grid with `fill:none` + 1.5px `currentColor` strokes. These are 24×24, `fill:currentColor`,
+no stroke — the inverse. Reason: a brand mark is not ours to redraw. Hand-stroking Instagram's
+camera or LinkedIn's `in` tile onto our grid produces a knock-off, not a house-styled icon. The
+published outlines ship unmodified; the convention we keep is `currentColor` and `aria-hidden`.
+
+**Monochrome, decided not defaulted.** Brand colour was rejected: Instagram's gradient,
+LinkedIn `#0A66C2` and WhatsApp `#25D366` would drop three unrelated accents into the one block
+on this site with none, and `forest` — the single brand colour this build owns — belongs to
+/clix. `currentColor` also means the marks inherit the link's **measured** `.3s
+cubic-bezier(.44,0,.56,1)` paper→surface hover, so mark and label cross-fade together.
+
+**RTL cost nothing, and that is the point.** No `rtl:` variant exists on either side:
+· the mark's SIDE flips for free — a flex row's main axis follows the inline direction, so
+`dir="rtl"` on the Hebrew `<html>` puts it on the reading-start (right) side unaided;
+· the mark's ARTWORK must never flip — a mirrored WhatsApp handset is a damaged trademark, not
+a translated glyph. Unlike the drawn glyphs, this one was not a judgement call.
+
+**`inline-flex` is applied ONLY to the three links that have a mark.** The other nine keep the
+plain inline anchor they have always rendered — making the anchor a flex box unconditionally
+would change every link's box in this footer to buy alignment for three of them.
+
+**Sizing:** `h-4 w-4` (16px) against 14px/1.5em text, `gap-2` (8px), `flex-none` so the square
+is not squeezed. ⚠️ **Not measured against anything — there is no capture for this.** The target
+footer has no icons at all, so these numbers are taste and are the first thing to change if the
+mark reads heavy beside the label. Filled marks carry more weight than the stroked glyphs
+elsewhere, so 16px may want to be 14–15px.
+
+**Verified:** `npm run build` clean, 26 routes. **Not looked at in a browser** — the sizing above
+is exactly the kind of value that needs an eye, at a wide tier and on /he.
+
+### 2026-08-16 — LinkedIn added to the Contact column (first divergence in COLUMN LENGTH)
+
+**Trigger:** user — *"add linked in to the footer, this is the link https://www.linkedin.com/in/ido-elmaliach-748413334/"*.
+
+**The Contact column now renders FIVE links per tier where the target renders four.** Every
+prior change to this footer swapped or removed a destination inside the target's shape; this one
+changes the shape. Recorded as a deliberate content addition, not drift. Layout consequence
+checked rather than assumed: the column is a `flex-col` with `gap-3` (12px), so a fifth row
+extends it downward only — the four-column grid, the sibling columns (2/3/3) and the map panel
+are untouched, and the tallest column has always set the row's height.
+
+**Placement:** between `instagram` and `whatsapp`. The column reads *destination, then direct
+channels, then social* in the original; grouping the two social profiles adjacently keeps Email
+and WhatsApp — the two channels that reach a human — together below.
+
+⚠️ **THE HREF IS A PERSONAL PROFILE, NOT A COMPANY PAGE.** `/in/ido-elmaliach-748413334/` is an
+individual's account; `CONTACT.instagram` and `CONTACT.whatsapp` are both org-level. Flagged to
+the user and shipped as given — it is the account they supplied. If clix opens a `/company/…`
+page this is a one-line change in `src/lib/contact.ts` and the label does not move.
+
+Ido Almaliach is the same person the ported accessibility statement names as the responsible
+party (see [features/legal-pages/](../legal-pages/CONTEXT.md)) — so the footer now links to
+their personal profile from a site whose legal page already carries their name. Noted because it
+is a privacy-adjacent fact about a real person, not because it blocks anything.
+
+**Files:** `CONTACT.linkedin` in `src/lib/contact.ts` (one source of truth — the URL is a link
+target, not copy, so no dictionary key holds it); `readonly linkedin: string` in the
+`ChromeDict` footer-links type; `linkedin: "LinkedIn"` in BOTH `en/chrome.ts` and `he/chrome.ts`
+— Latin in Hebrew too, by the existing keep-Latin rule that already governs `Instagram` and
+`WhatsApp`. The type is what forces the Hebrew entry: omitting it fails the build rather than
+rendering an empty row.
+
+**Verified:** `npm run build` — compiled, TypeScript clean, 26 routes generated. Not visually
+checked; handed to the user for that.
+
+⚠️ **The build only ran after temporarily restoring the committed `favicon.ico`.** The
+working-tree copy is uncommitted and **breaks `next build`** — Turbopack rejects it with *"The
+PNG is not in RGBA format"*. `file` confirms: HEAD's is `8-bit/color RGBA`, the working-tree one
+is `8-bit/color RGB`. Swapped HEAD's in to build, then restored the user's byte-for-byte
+(sha256 `d597aecf…` before and after). **Nothing here fixed it — the build is still red on a
+clean checkout of the working tree,** and it will block any Vercel deploy of this branch.
+
 ### 2026-08-16 — Company column repointed, `Playground` swapped for `Security`
 
 **Trigger:** user, on a screenshot of the Company column — *"now lets move to this section in
