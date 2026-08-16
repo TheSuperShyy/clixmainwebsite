@@ -53,28 +53,20 @@ type LinkGroup = { titleIndex: 0 | 1 | 2 | 3; links: FooterLink[] };
    target's shape lost to a working link, because the third had no honest destination. Every
    other column still matches, and the four-column grid is untouched. */
 
-/* ⚠️ TWO LINKS IN THIS FOOTER STILL 404 — `terms` and `accessibility`. Down from eight:
-   Overview and Company were both cleared 2026-08-16 by repointing, and `privacy` became a real
-   page the same day.
+/* ✅ EVERY LINK IN THIS FOOTER RESOLVES, as of 2026-08-16. It began that day with EIGHT of its
+   twelve internal links 404ing.
 
-   These two are the last of the ones that could NOT be repointed, and the reason is worth
-   keeping. All eight dead links named real pages on the real clix site, and all eight are
-   captured in docs/reference/clixsolutions/pages/. So what remains is a PORT of clix's own
-   Hebrew legal copy, not authorship — /privacy proved the shape, and terms.html and
-   accessibility.html are sitting in the same folder. Deliberately not repointed meanwhile: no
-   page here is a terms-of-use document, and pointing at one that is not would be worse than
-   the 404. Two routes × two locales, at the user's call.
+   How the eight closed, because the split matters more than the count:
+     · repointed at pages that already existed — Services → /product, Work → /#testimonials,
+       Insights → /news
+     · deleted or relabelled where no honest target existed — `industries` removed outright,
+       `playground` became `security`
+     · BUILT — /privacy, /terms and /accessibility, ported from the company's own published
+       documents in docs/reference/clixsolutions/pages/
 
-   None of them lands on Next's bare not-found any more — src/app/_routes/NotFoundRoute.tsx is
-   a real page with nav, footer and a way back, in both locales.
-
-   The four `#` placeholders left by the 2026-08-03 brand rename are gone — every link in
-   the Contact column now resolves to something clix actually owns.
-
-   The destinations themselves moved OUT of this file on 2026-08-13, to src/lib/contact.ts,
-   because /contact's aside lists the same four and two copies of a phone number drift. That
-   move also corrected the email to the hyphenated `info@clix-solution.com` — read that
-   file's header before assuming the old address was right. */
+   All eight named real pages on the real clix site, which is why the last three were a port
+   rather than authorship. See features/legal-pages/ for what they say and, more importantly,
+   for the four promises the accessibility statement makes that this build does not yet keep. */
 const GROUPS: LinkGroup[] = [
   {
     titleIndex: 0,

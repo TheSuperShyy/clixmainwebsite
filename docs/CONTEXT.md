@@ -17,6 +17,38 @@ Line format:
 
 ## 2026-08-16
 
+- `legal-pages` — **/terms and /accessibility ported; the footer now has ZERO dead links** (it began
+  the day with eight). Both fetched live and cross-checked against the captures. **Components
+  generalised rather than tripled:** `PrivacyHero`/`PrivacyBody`/`PrivacyRoute` →
+  `components/legal/LegalHero`/`LegalBody` + `_routes/LegalRoute` taking a NAMESPACE name (a shell
+  cannot pass a resolved doc — the locale is not seeded until the body runs), behind a shared
+  `LegalDoc` type in `src/lib/i18n/legal.ts`. Section shape changed `items`+`paras` →
+  **`lead` → `items` → `tail`**, because the accessibility statement's §06 is a paragraph, then a
+  list, then a paragraph, which two slots cannot express. → [detail](../features/legal-pages/CONTEXT.md)
+
+- `legal-pages` — ⚠️⚠️ **THE ACCESSIBILITY STATEMENT WAS PORTED KNOWING IT IS PARTLY UNTRUE OF THIS
+  BUILD.** It is a declaration under Israeli regulation 35 / ת״י 5568 and **names a real person**
+  (Almaliach Ido) as responsible. Verified by grep, not assumed: it promises a **skip-to-content
+  link that does not exist** (no skip link, no `id="main"` anywhere in `src/`); **WCAG AA contrast**
+  that this repo's own DESIGN-SYSTEM.md and SECTIONS.md contradict in **at least six places**
+  (3.85:1 security/footer/careers, 4.35 and 4.24 on /product, 2.50 and 1.92 on testimonials — the
+  eyebrow on the accessibility page IS one of them); **screen-reader testing** with VoiceOver/NVDA
+  across four browsers that this build has never had; and live regions for a **chat that does not
+  exist**. §05 describes remediating a playground node editor and 3D scenes neither of which is on
+  this site. `prefers-reduced-motion` is the one promise that checks out. All reported in plain
+  terms BEFORE the port; the instruction was to copy the page, so it is verbatim.
+  ⚠️ **Two of the four are cheaper to make TRUE than to amend** — a skip link is a small addition,
+  and DESIGN-SYSTEM.md already records that ONE token change (`#7f7f7f`, 4.56:1) closes every
+  3.85:1 instance at once. Recommended next step. → [detail](../features/legal-pages/FEATURE.md)
+
+- `legal-pages` — ⚠️ **/terms promises a cookie-consent dialog that does not exist.** §06 says a
+  visitor is asked to approve cookies on first entry and may set preferences; **there is no consent
+  UI of any kind in this build**, while `FooterMap.tsx` sets Google's third-party cookies on every
+  page. §05 also lists Facebook/Google ad cookies with no ad pixel anywhere in the repo, and §04
+  says the date sits at the bottom when it renders at the top. All left as published. A consent
+  gate would close this AND the /privacy cookie-clause gap AND the FooterMap risk open since
+  2026-08-11.
+
 - `privacy-page` — **the "This is a translation / the Hebrew version is binding" note was removed**
   at the user's request (*"remove this part"*), hours after it shipped. Gone in full: the rendered
   block, the `authoritativeNote` key in both dictionaries, and `PrivacyBody`'s `locale` prop, which
@@ -26,7 +58,7 @@ Line format:
   resolving a conflict. `he/privacy.ts` is still the source and still right by construction; that
   fact moved from the page into a code comment. Getting the English reviewed closes the same gap.
   **Do not re-add the note without asking — its absence is a decision.**
-  → [detail](../features/privacy-page/CONTEXT.md)
+  → [detail](../features/legal-pages/CONTEXT.md)
 
 - `privacy-page` — **/privacy and /he/privacy exist**, ported verbatim from the company's own
   published policy (capture + live fetch agree: ten sections, `עדכון אחרון · 16 במאי 2026`). Hebrew
@@ -38,7 +70,7 @@ Line format:
   confirmed 2026-08-13). Copying verbatim would have shipped a dead data-rights address, so the
   strings carry `{email}`/`{phone}` and substitute from `contact.ts`; `interpolate()` was not used
   because these must be anchors. Two bands borrowed from ContactHero/ContactBody, no new tokens.
-  Indexable, no `robots` guard. Footer dead links **3 → 2**. → [detail](../features/privacy-page/CONTEXT.md)
+  Indexable, no `robots` guard. Footer dead links **3 → 2**. → [detail](../features/legal-pages/CONTEXT.md)
 
 - `privacy-page` — ⚠️ **THREE STATEMENTS IN THE POLICY DO NOT DESCRIBE THIS BUILD, reported and
   deliberately NOT patched** (rewriting a published legal document is not a developer's call):
@@ -48,7 +80,7 @@ Line format:
   `FooterMap.tsx` embeds a Google Map setting third-party cookies with no consent gate anywhere on
   the site. The last one is the sharpest: there is now a published cookies clause that does not name
   the party setting the cookies. Needs the user and their lawyer.
-  → [detail](../features/privacy-page/FEATURE.md)
+  → [detail](../features/legal-pages/FEATURE.md)
 
 - `footer` — **Company column repointed; `Playground` swapped for `Security`.** `Insights` →
   `/news` (label kept — `תובנות` is clix's article hub and `/news` is ours; same nav-vs-footer
@@ -116,6 +148,107 @@ Line format:
   `min-h-svh` behave as under a real layout. ⚠️ **The three Hebrew strings are authored and unread by
   a native speaker.** Verified on `next start`: 9 unmatched EN paths and 3 HE paths all return status
   404 with the styled page, HE payload carries `dir:"rtl"`.
+
+- `infra` — **App icons rebuilt from `public/company/clix-brand-logo.jpeg`, so the favicon Google
+  shows beside a search result is the plated brand logo.** User: *"change the logo when yo search it
+  to google to the clix-brand-logo.jpeg in public/company"*. Replaced `src/app/icon.png` (512),
+  `apple-icon.png` (180) and `favicon.ico` (16/32/48). The JPEG is 1000x1000, `rgb(250,250,248)`
+  plate, ink bbox **653x616 at (177,190)** — ~18% padding a side, mark spanning **65%** of the
+  canvas. Downscaled **as supplied**: no re-crop, no re-pad. Tightening the padding so it reads
+  bigger at 16px is a real option and was left to the user rather than taken unasked.
+
+  Three things here are not guessable:
+
+  · **The plate is the point, not incidental.** What shipped before was a `#303641` silhouette on
+    TRANSPARENT. A SERP renders the favicon over its own background, so on Google in dark mode a
+    dark transparent mark all but disappears. An opaque plate is legible in both themes. Same
+    reasoning for the tab strip.
+  · **Turbopack rejects an ICO whose embedded PNGs are not RGBA** — `next build` exits 1 with
+    *"Format error decoding Ico: The PNG is not in RGBA format!"*. `sharp.flatten()` leaves colour
+    type 2 (RGB), which is what triggers it; `.ensureAlpha(1)` after the flatten is the fix, plus
+    `palette:false` so sharp does not quantise these small images to type 3. The plain `icon.png`
+    and `apple-icon.png` are fine as RGB — the constraint is the ICO container only.
+  · **`public/clix-mark.png` (the nav's CSS mask) was cropped out of the OLD transparent
+    `icon.png`,** and a mask reads only alpha, so the plated JPEG can never regenerate it. The 512
+    transparent master is preserved at **`docs/brand/clix-mark-512.png`** and the recipe in
+    `ClixMark.tsx` now points there. Nothing about the rendered nav changed.
+
+  Verified on `next start`: all three head links present in **both** locales (`/favicon.ico`
+  `sizes="48x48"`, `/icon.png` `512x512`, `/apple-icon.png` `180x180`), and all three URLs 200 with
+  the right content types. `npm run build` clean. ⚠️ **Not verified, and cannot be from here:** the
+  actual SERP thumbnail. Google recrawls a favicon on its own schedule — days to weeks after this
+  deploys — and it only ever reads the LIVE domain, so nothing about this is visible until
+  clixsolutions.info ships it. Regeneration script:
+
+  ```js
+  // node -e with NODE_PATH=./node_modules ; sharp 0.34.5
+  const sharp = require('sharp'), fs = require('fs');
+  const SRC = 'public/company/clix-brand-logo.jpeg';
+  const PLATE = { r: 250, g: 250, b: 248 };
+  const png = async (size, round = false) => {           // `round` — see the circle bullet below
+    let p = sharp(SRC).resize(size, size, { kernel: 'lanczos3', fit: 'cover' })
+      .flatten({ background: PLATE }).ensureAlpha(1);     // ICO payloads MUST be RGBA
+    if (round) {
+      const ss = size * 4;                                // mask drawn 4x, then downscaled
+      const mask = await sharp(Buffer.from(
+        `<svg width="${ss}" height="${ss}"><circle cx="${ss / 2}" cy="${ss / 2}" ` +
+        `r="${ss / 2}" fill="#fff"/></svg>`))
+        .resize(size, size, { kernel: 'lanczos3' }).png().toBuffer();
+      p = sharp(await p.png().toBuffer())
+        .composite([{ input: mask, blend: 'dest-in' }]);
+    }
+    return p.png({ compressionLevel: 9, palette: false }).toBuffer();
+  };
+  function ico(images) {                                   // 6-byte header, 16 bytes/entry, PNGs
+    const head = Buffer.alloc(6);
+    head.writeUInt16LE(1, 2); head.writeUInt16LE(images.length, 4);
+    let off = 6 + 16 * images.length;
+    const dir = images.map(({ size, buf }) => {
+      const e = Buffer.alloc(16);
+      e.writeUInt8(size, 0); e.writeUInt8(size, 1);
+      e.writeUInt16LE(1, 4); e.writeUInt16LE(32, 6);       // 1 plane, 32bpp
+      e.writeUInt32LE(buf.length, 8); e.writeUInt32LE(off, 12);
+      off += buf.length; return e;
+    });
+    return Buffer.concat([head, ...dir, ...images.map((i) => i.buf)]);
+  }
+  (async () => {
+    fs.writeFileSync('src/app/icon.png', await png(512, true));     // circle
+    fs.writeFileSync('src/app/apple-icon.png', await png(180));     // SQUARE — iOS masks it
+    const imgs = [];
+    for (const size of [16, 32, 48]) imgs.push({ size, buf: await png(size, true) });
+    fs.writeFileSync('src/app/favicon.ico', ico(imgs));
+  })();
+  ```
+
+- `infra` — **The favicon is a circle.** User, on seeing the square plate in the tab strip:
+  *"can it be circle?"*. `src/app/icon.png` and all three `favicon.ico` entries are now masked to
+  a full-bleed inscribed circle; the recipe above is the amended one, `round` is the new argument.
+  Three things decided here:
+
+  · **Safe to inscribe at `r = size/2`.** The mark's bbox is 653x616 centred in the 1000px source,
+    so its half-diagonal is **~449px against a 500px radius** — the circle only ever eats empty
+    plate, never ink. Checked before cutting rather than after.
+  · **The mask is drawn at 4x and downscaled**, not drawn at final size. A circle rasterised
+    directly at 16px is a staircase; rendering at 64 and lanczos-ing down gives a real antialiased
+    edge. `dest-in` keeps the photo's pixels and takes the circle's alpha.
+  · **`apple-icon.png` stays SQUARE, deliberately.** iOS applies its own rounded-square mask to a
+    touch icon and composites transparency onto BLACK first, so a pre-cut circle ships with black
+    corners showing through. Let iOS do the cutting.
+
+  ⚠️ **At 16px the mark is mush** — 65% of the canvas is ~10px of ink for a hexagon + star +
+  cursor, and the circle does not help. 32 and 48 read cleanly (a HiDPI tab strip takes the 32),
+  so this was left as-is rather than tightened unasked; the ~18% padding is the JPEG's own and
+  cropping it out is a one-line change if the 16px case matters.
+
+  Verified on `next start`: `/favicon.ico` 5039 B (3 entries, **all colour type 6**),
+  `/icon.png` 54868 B type 6, `/apple-icon.png` 11110 B; all three `<link>`s present in both
+  locales. `npm run build` clean. Two build-cache notes, both cosmetic and both gone on a clean
+  CI build: Turbopack served a **stale content hash** in the prerendered `<link href>` query
+  (`?favicon.12sdp3iplql6p.ico` while `.next/static/media/` held the new
+  `favicon.0ckepunznfiki.ico`) — the route ignores the query, so the bytes served were correct —
+  and an orphaned `next start` on a reused port will happily answer with the PREVIOUS build's
+  assets, which is what made the first verification of this change read as a no-op.
 
 ## 2026-08-14
 

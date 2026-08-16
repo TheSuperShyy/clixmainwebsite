@@ -45,8 +45,7 @@ export const privacy = {
     {
       n: "01",
       title: "The company and contact details",
-      items: [],
-      paras: [
+      lead: [
         "Clix — a business automation solutions company.",
         "For privacy enquiries: by email at {email} or by phone at {phone}.",
       ],
@@ -54,6 +53,7 @@ export const privacy = {
     {
       n: "02",
       title: "The information we collect",
+      lead: [],
       items: [
         "Full name.",
         "Phone number.",
@@ -62,24 +62,24 @@ export const privacy = {
         "A record of the enquiries you have made to us.",
         "Statistical usage data on the site, including cookies.",
       ],
-      paras: [],
+      tail: [],
     },
     {
       n: "03",
       title: "Purposes for which the information is used",
+      lead: [],
       items: [
         "Contacting users who asked to receive details.",
         "Sending marketing information about our automation services and commercial offers.",
         "Scheduling consultation calls and demonstration meetings.",
         "Improving the site and analysing behaviour using statistical tools.",
       ],
-      paras: [],
+      tail: [],
     },
     {
       n: "04",
       title: "Disclosure of information to third parties",
-      items: [],
-      paras: [
+      lead: [
         "Clix does not sell information to third parties.",
         "Clix may pass information to technical service providers in order to operate the system (WhatsApp, Facebook, Mundi and n8n connections, and further CRM tools). Information is transferred solely for the purpose of operating the service, and every provider is bound to maintain confidentiality.",
       ],
@@ -87,53 +87,53 @@ export const privacy = {
     {
       n: "05",
       title: "Storage of the information",
-      items: [],
-      paras: [
+      lead: [
         "The information is held in the Clix database. Access is restricted to authorised staff only. Clix applies technological and organisational security measures to prevent unauthorised access.",
       ],
     },
     {
       n: "06",
       title: "User rights under the Protection of Privacy Law",
+      lead: [],
       items: [
         "Every user is entitled to contact us with a request to review the information held about them.",
         "Every user is entitled to request that the information held be corrected, updated or deleted.",
       ],
-      paras: [
+      tail: [
         "Requests must be submitted in writing to {email}, or by phone at {phone}.",
       ],
     },
     {
       n: "07",
       title: "Retention period",
-      items: [],
-      paras: [
+      lead: [
         "Information is retained for as long as a business and operational need exists. Full deletion may be requested at any time.",
       ],
     },
     {
       n: "08",
       title: "Direct marketing and consent to receive messages",
+      lead: [],
       items: [
         "Submitting your details through the form constitutes consent to receive marketing messages, in accordance with the Communications Law (section 30a, the Spam Law).",
         "You may ask to be removed from the mailing list by sending a removal request by email, or a WhatsApp message with the word “removal”.",
       ],
-      paras: [],
+      tail: [],
     },
     {
       n: "09",
       title: "Use of cookies",
+      lead: [],
       items: [
         "The site uses cookies in order to operate the site, for statistical measurement and to improve the user experience.",
         "Cookies can be deleted in your browser settings. Use of the site constitutes consent to the use of cookies.",
       ],
-      paras: [],
+      tail: [],
     },
     {
       n: "10",
       title: "Deleting your details and privacy enquiries",
-      items: [],
-      paras: ["You can contact us at {email} or by phone at {phone}."],
+      lead: ["You can contact us at {email} or by phone at {phone}."],
     },
   ],
 

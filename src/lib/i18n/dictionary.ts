@@ -46,6 +46,10 @@ import { notFound as enNotFound } from "./en/notFound";
 import { notFound as heNotFound } from "./he/notFound";
 import { privacy as enPrivacy } from "./en/privacy";
 import { privacy as hePrivacy } from "./he/privacy";
+import { terms as enTerms } from "./en/terms";
+import { terms as heTerms } from "./he/terms";
+import { accessibility as enAccessibility } from "./en/accessibility";
+import { accessibility as heAccessibility } from "./he/accessibility";
 
 /* ── shared chrome: rendered on every one of the 6 routes ──────────────────────────────── */
 
@@ -180,6 +184,15 @@ export interface Dict {
      a legal document, published with an on-page note that the Hebrew governs. Read both file
      headers before editing either. */
   readonly privacy: Translated<typeof enPrivacy>;
+  /* Added 2026-08-16 with /terms and /accessibility. All three legal namespaces share the
+     `LegalDoc` shape in ./legal.ts and one pair of components, and all three are INVERTED like
+     `contact`: the `he/*` file is the source and the `en/*` file is an unreviewed machine
+     translation of a legal instrument.
+     ⚠️ `accessibility` is the one to read before touching this site's markup or palette — it
+     PROMISES a skip-to-content link, AA contrast and screen-reader testing that this build does
+     not currently have, and names a real person as responsible. See its file header. */
+  readonly terms: Translated<typeof enTerms>;
+  readonly accessibility: Translated<typeof enAccessibility>;
 }
 
 /** Every namespace except `chrome` — i.e. the ones scoped to a single route. */
@@ -197,6 +210,8 @@ export const DICTIONARIES: Record<Locale, Dict> = {
       contact: enContact,
       notFound: enNotFound,
       privacy: enPrivacy,
+      terms: enTerms,
+      accessibility: enAccessibility,
   },
   he: {
     chrome: heChrome,
@@ -209,5 +224,7 @@ export const DICTIONARIES: Record<Locale, Dict> = {
       contact: heContact,
       notFound: heNotFound,
       privacy: hePrivacy,
+      terms: heTerms,
+      accessibility: heAccessibility,
   },
 };

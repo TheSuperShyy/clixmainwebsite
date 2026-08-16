@@ -1,7 +1,7 @@
 /**
  * /privacy — thin route shell.
  *
- * The page BODY lives in src/app/_routes/PrivacyRoute.tsx and is shared with /he/privacy. Only
+ * The page BODY lives in src/app/_routes/LegalRoute.tsx and is shared by all six legal routes. Only
  * the locale literal, `metadata` and `revalidate` belong here.
  *
  * ⚠️ NO `robots` GUARD, deliberately — see the route body's header. The content is the
@@ -14,7 +14,7 @@
  */
 
 import type { Metadata } from "next";
-import PrivacyRoute from "@/app/_routes/PrivacyRoute";
+import LegalRoute from "@/app/_routes/LegalRoute";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
@@ -25,5 +25,5 @@ export const metadata: Metadata = {
 export const revalidate = 300;
 
 export default function Page() {
-  return <PrivacyRoute locale="en" />;
+  return <LegalRoute locale="en" namespace="privacy" />;
 }
