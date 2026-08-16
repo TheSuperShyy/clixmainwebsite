@@ -6,6 +6,11 @@
  * introduces no new copy and changes no existing copy: the English render must stay
  * byte-identical, because the whole LTR pass is verified as a no-op against the block-diff
  * baseline. If a string here differs from what the component said, that is a bug in this file.
+ *
+ * That no-op guarantee covers the strings, not the SET of them. Two keys have been removed
+ * since — `nav.labels`' seventh slot with /careers on 2026-08-13, and `footer.links.industries`
+ * on 2026-08-16 — both because the thing they labelled stopped existing. Neither rewrote a
+ * word; a removal is the one edit the baseline cannot express.
  */
 
 import type { ChromeDict } from "../dictionary";
@@ -29,13 +34,16 @@ export const chrome: ChromeDict = {
     groupTitles: ["Overview", "Company", "Legal", "Contact"],
     links: {
       services: "Services",
-      industries: "Industries",
       work: "Work",
       /* Labelled "About" here and "Company" in the nav, both pointing at /company. The lists
          differ because each kept its own capture's wording; preserved deliberately. */
       about: "About",
       insights: "Insights",
-      playground: "Playground",
+      /* Was "Playground" until 2026-08-16. Same word as `nav.labels[2]`, deliberately: it is
+         the same route, and two names for one page is the confusion `about`/`Company` is
+         already tolerated for. Tolerated there because each list kept its own capture's
+         wording; there is no capture behind this one, so it matches the nav. */
+      security: "Security",
       terms: "Terms of Use",
       privacy: "Privacy Policy",
       accessibility: "Accessibility",

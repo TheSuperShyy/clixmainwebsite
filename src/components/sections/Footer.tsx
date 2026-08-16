@@ -47,9 +47,26 @@ type FooterLink = {
    layout, so the count is pinned by the type rather than by a comment. */
 type LinkGroup = { titleIndex: 0 | 1 | 2 | 3; links: FooterLink[] };
 
-/* Remapped 2026-08-05 onto clix's real IA and real accounts. Structure is the target's and
-   is unchanged: four columns, three links each plus a four-link Contact column, and the
-   same per-tier gating. Only the destinations moved.
+/* Remapped 2026-08-05 onto clix's real IA and real accounts. Structure was the target's and
+   was unchanged until 2026-08-16 — four columns, three links each plus a four-link Contact
+   column, with the same per-tier gating. Overview now carries TWO links, not three: the
+   target's shape lost to a working link, because the third had no honest destination. Every
+   other column still matches, and the four-column grid is untouched. */
+
+/* ⚠️ TWO LINKS IN THIS FOOTER STILL 404 — `terms` and `accessibility`. Down from eight:
+   Overview and Company were both cleared 2026-08-16 by repointing, and `privacy` became a real
+   page the same day.
+
+   These two are the last of the ones that could NOT be repointed, and the reason is worth
+   keeping. All eight dead links named real pages on the real clix site, and all eight are
+   captured in docs/reference/clixsolutions/pages/. So what remains is a PORT of clix's own
+   Hebrew legal copy, not authorship — /privacy proved the shape, and terms.html and
+   accessibility.html are sitting in the same folder. Deliberately not repointed meanwhile: no
+   page here is a terms-of-use document, and pointing at one that is not would be worse than
+   the 404. Two routes × two locales, at the user's call.
+
+   None of them lands on Next's bare not-found any more — src/app/_routes/NotFoundRoute.tsx is
+   a real page with nav, footer and a way back, in both locales.
 
    The four `#` placeholders left by the 2026-08-03 brand rename are gone — every link in
    the Contact column now resolves to something clix actually owns.
@@ -62,9 +79,24 @@ const GROUPS: LinkGroup[] = [
   {
     titleIndex: 0,
     links: [
-      { key: "services", href: "/services" },
-      { key: "industries", href: "/industries" },
-      { key: "work", href: "/work" },
+      /* Repointed 2026-08-16, the same move made for `about` below on 2026-08-12 and for the
+         same reason: all three of this column's hrefs 404'd, and a footer link that lands on
+         Next's bare not-found is worse than no link.
+
+         `/product` is the page "Services" means — it is the route describing what clix
+         builds. `/#testimonials` is the home page's client-work band, which the nav already
+         calls "Customers"; it is the only client work on the site, so "Work" resolves there.
+         Note the LEADING SLASH: `#testimonials` alone would be a same-page scroll, correct
+         only in this footer's copy on `/`. `/#testimonials` is a real cross-route navigation
+         from the other five routes and AppLink's own same-route guard collapses it back to a
+         scroll on the home page — see the `/#contact` note in AppLink.tsx.
+
+         `industries` is GONE rather than repointed. Nothing on this site — no page, no
+         section, not a paragraph — is about industries, so every candidate target answered a
+         different question than the one clicked. Its EN and HE strings came out of the
+         dictionaries with it; git has them if the page is ever built. */
+      { key: "services", href: "/product" },
+      { key: "work", href: "/#testimonials" },
     ],
   },
   {
@@ -73,10 +105,23 @@ const GROUPS: LinkGroup[] = [
       /* Repointed 2026-08-12: was `/about`, which never existed and 404'd. `/company` is the
          clone of rogo.com/company and is the page this label means. The nav calls the same
          route "Company"; the labels differ because each list keeps its own capture's wording.
-         The other eight links in this footer still point at routes this repo does not have. */
+         The first of the three repointings; Overview's followed on 2026-08-16. */
       { key: "about", href: "/company" },
-      { key: "insights", href: "/insights" },
-      { key: "playground", href: "/playground" },
+      /* Repointed 2026-08-16. `/insights` 404'd. The real clix site's own `תובנות` is its
+         article hub ("what we learned from the workbench" — strategy and development pieces),
+         and `/news` is this repo's article page, so the KIND of page matches even though the
+         contents do not: ours aggregates external AI stories, theirs is clix's own writing.
+         The label stays "Insights" while the nav calls the same route "News" — the identical
+         divergence `about`/`Company` already carries two lines up, and for the same reason. */
+      { key: "insights", href: "/news" },
+      /* WAS `playground`, 2026-08-16 — a LABEL swap, not just a repoint, and the only one in
+         this footer. The real site's `פלייגראונד` is an interactive drag-and-drop node canvas
+         ("v0.1", desktop-only) where you wire up a system in the browser. Nothing here
+         resembles it and no existing page could answer that click, so the slot carries
+         `Security` instead: a real route, a trust page a business footer wants, and one of
+         three real pages (`/clix`, `/security`, `/news`) this footer linked to nowhere at all.
+         User's call, offered against deleting the slot the way `industries` was deleted. */
+      { key: "security", href: "/security" },
     ],
   },
   {

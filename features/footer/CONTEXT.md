@@ -22,13 +22,121 @@ variant only, and "Press" points at two different destinations by tier. Plus the
 `muted`-on-`ink` contrast failure as `security`, and now a third: the Google embed sets
 third-party cookies with no consent gate anywhere on the site.
 
+**Link destinations were decided 2026-08-16** in two passes — see the log entries. Overview's
+three are now two working links; Company's three are three working links. **Two links here
+still 404** (`terms`, `accessibility`) — `privacy` became a real page on 2026-08-16, see
+[features/privacy-page/](../privacy-page/CONTEXT.md). The remaining two are what could not be
+repointed, because no page here is a terms-of-use document and pointing at one that is not would
+be worse than the 404. They land on a styled, localised 404
+rather than Next's bare one, which downgrades this from a defect to a backlog item.
+
+⚠️ **All eight originally-dead links named REAL pages on the real clix site, and all eight are
+captured** in `docs/reference/clixsolutions/pages/`. So the Legal column is a PORT of clix's own
+Hebrew copy, not authorship — three routes × two locales, scheduled at the user's call.
+
 **Status:** `review`
-**Next action:** get those calls; decide what to do about link destinations that 404, and
+**Next action:** get the two inherited calls (Legal tier-gating, Press-by-tier) and the
+`muted`-on-`ink` contrast call; write the three legal pages, or drop their links; decide
 whether the map embed needs a consent gate before production.
 
 ---
 
 ## Log
+
+### 2026-08-16 — Company column repointed, `Playground` swapped for `Security`
+
+**Trigger:** user, on a screenshot of the Company column — *"now lets move to this section in
+the footer, you can change other links to relevant ones"*.
+
+**The finding that reframed the whole backlog.** Before proposing targets, read what these
+labels MEAN on the real clix site. `docs/reference/clixsolutions/pages/` contains
+`services.html`, `industries.html`, `work.html`, `insights.html`, `playground.html`,
+`terms.html`, `privacy.html`, `accessibility.html` — **every one of the eight dead links names
+a real, captured page.** None of them was ever a broken link on clix's site; they are pages
+this repo has not built. That turns the Legal column from "copy someone has to write" into "a
+port of clix's own Hebrew", which is a materially different job and was reported as such.
+
+| Link | Was | Now | Why |
+|---|---|---|---|
+| `About` | `/company` | unchanged | already worked |
+| `Insights` | `/insights` 404 | `/news` | `תובנות` is clix's article hub ("what we learned from the workbench"). `/news` is this repo's article page. |
+| `Playground` | `/playground` 404 | **`Security` → `/security`** | see below |
+
+**`Playground` is the footer's only LABEL swap, and the reason is that repointing it would have
+lied.** The real `פלייגראונד` is an interactive drag-and-drop node canvas, versioned "v0.1" and
+desktop-only, where you wire up a system in the browser. Nothing on this site resembles it, and
+the nearest candidate (`/clix`) is a brand showcase — it would have answered a different
+question than the one clicked, which is the exact test that got `industries` deleted. Offered to
+the user as delete-vs-swap; they took the swap.
+
+`Security` was the replacement because it is a real route, it is a trust page a business footer
+wants, and **`/clix`, `/security` and `/news` were all linked from this footer nowhere at all** —
+so the slot buys a missing page rather than a synonym for one already present. Two of those
+three are now covered.
+
+**On `Insights` → `/news`, the honest caveat:** the KIND of page matches, the contents do not.
+Clix's `תובנות` is clix's own writing; our `/news` aggregates external AI stories and its cards
+link out. Kept the label "Insights" while the nav calls the same route "News" — the identical
+divergence `about`/`Company` already carries, and tolerated for the same reason.
+
+**Hebrew is SOURCED, not authored.** `security: "אבטחה"` is the SAME STRING as `nav.labels[2]`,
+which came off the real site. One route, one Hebrew name — the alternative was inventing a
+second word for a page that already has one.
+
+**Not done, deliberately:** the Legal column. Flagged, not started.
+
+**Verified** on `next start`: `/news` and `/security` 200 in both locales; the rendered footer on
+`/company` contains zero occurrences of `/insights`, `/playground`, `/services`, `/industries` or
+`/work`; the Hebrew footer renders `אבטחה` and `תובנות` with `פלייגראונד` gone; `/terms`,
+`/privacy` and `/accessibility` still 404 in both locales, as expected.
+
+---
+
+### 2026-08-16 — Overview column repointed, `Industries` deleted
+
+**Trigger:** user, on a screenshot of the Overview column — *"lets start working on the footer
+buttons, how can we put data to each, can we just point these to existing pages?"*
+
+**The measurement that framed it.** Curled every internal footer href against the dev server
+before proposing anything: **8 of 12 returned 404.** Only `/company` and `/contact` resolved.
+The 2026-08-12 note in `Footer.tsx` had already said as much in prose ("the other eight links
+still point at routes this repo does not have"); the curl turned it into a list.
+
+**Decision, made by the user from three options.** Repoint the ones with an honest target, cut
+the one without, leave the rest for a separate pass.
+
+| Link | Was | Now | Why |
+|---|---|---|---|
+| `Services` | `/services` 404 | `/product` | That page IS what clix builds. Same move as `about` → `/company` on 2026-08-12. |
+| `Work` | `/work` 404 | `/#testimonials` | The only client work on the site. The nav already calls that band "Customers". |
+| `Industries` | `/industries` 404 | **deleted** | No page, no section, not a paragraph. Every candidate answered a different question than the one clicked. |
+
+⚠️ **The leading slash on `/#testimonials` is load-bearing.** A bare `#testimonials` is a
+same-page scroll — correct only in this footer's copy on `/`, and inert on the other five
+routes. With the slash, `AppLink` takes its `<Link>` branch, `localeHref` turns it into
+`/he#testimonials` on Hebrew pages, and its own same-route guard collapses it back to a scroll
+when you are already home. All three behaviours are pre-existing; nothing was added to
+`AppLink`.
+
+**`industries` was removed from the TYPE, not just the data** — `ChromeDict.footer.links` in
+`dictionary.ts`, plus the EN and HE strings. A dictionary key nothing reads is dead weight, and
+git holds the Hebrew (`תעשיות`) if the page is ever built. Note this made `en/chrome.ts`'s
+"changes no existing copy" guarantee need a caveat: the guarantee covers the strings, not the
+SET of them, and a removal is the one edit the block-diff baseline cannot express. Said so in
+that file's header.
+
+**Structure now diverges from the target by one link.** Overview carries two where the capture
+has three. The four-column grid, the column titles and the per-tier gating are untouched.
+
+**Not done, deliberately:** the other five dead links. The user scoped this pass to Overview.
+`terms` / `privacy` / `accessibility` are pages a business site is expected to actually have,
+so they want writing rather than repointing; `insights` / `playground` have no obvious home.
+
+**Verified** on `next start`, not dev: `/product` and `/he/product` 200, `id="testimonials"`
+present on `/`, and the rendered footer on `/company` emits `/product` and `/#testimonials`
+with zero occurrences of `/services`, `/industries` or `/work`.
+
+---
 
 ### 2026-08-11 — map panel added to the link row
 

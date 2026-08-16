@@ -15,6 +15,108 @@ Line format:
 
 ---
 
+## 2026-08-16
+
+- `privacy-page` — **the "This is a translation / the Hebrew version is binding" note was removed**
+  at the user's request (*"remove this part"*), hours after it shipped. Gone in full: the rendered
+  block, the `authoritativeNote` key in both dictionaries, and `PrivacyBody`'s `locale` prop, which
+  existed only to gate it. ⚠️ **Consequence, stated once and recorded rather than re-argued:**
+  `/privacy` and `/he/privacy` now present as two equally authoritative versions of one legal
+  document, with an unreviewed machine translation as one of them and nothing on either page
+  resolving a conflict. `he/privacy.ts` is still the source and still right by construction; that
+  fact moved from the page into a code comment. Getting the English reviewed closes the same gap.
+  **Do not re-add the note without asking — its absence is a decision.**
+  → [detail](../features/privacy-page/CONTEXT.md)
+
+- `privacy-page` — **/privacy and /he/privacy exist**, ported verbatim from the company's own
+  published policy (capture + live fetch agree: ten sections, `עדכון אחרון · 16 במאי 2026`). Hebrew
+  is the SOURCE, English a translation published under an on-page note that the Hebrew governs —
+  the user's call over serving Hebrew on both routes, and ⚠️ that note is what makes an unreviewed
+  machine translation of a legal document publishable, so it is not removable without a new
+  decision. **The stale-address trap:** the policy prints `info@clixsolution.com` FOUR times as the
+  channel for exercising a statutory data right, and that address is stale per contact.ts (user
+  confirmed 2026-08-13). Copying verbatim would have shipped a dead data-rights address, so the
+  strings carry `{email}`/`{phone}` and substitute from `contact.ts`; `interpolate()` was not used
+  because these must be anchors. Two bands borrowed from ContactHero/ContactBody, no new tokens.
+  Indexable, no `robots` guard. Footer dead links **3 → 2**. → [detail](../features/privacy-page/CONTEXT.md)
+
+- `privacy-page` — ⚠️ **THREE STATEMENTS IN THE POLICY DO NOT DESCRIBE THIS BUILD, reported and
+  deliberately NOT patched** (rewriting a published legal document is not a developer's call):
+  it lists a **phone number** among data collected (the form has no phone field); it claims
+  **statistical measurement** (there is NO analytics on this site — grepped gtag/GTM/Pixel/Hotjar,
+  zero hits); and it names WhatsApp/Facebook/Mundi/n8n/CRM as processors but **not Google**, while
+  `FooterMap.tsx` embeds a Google Map setting third-party cookies with no consent gate anywhere on
+  the site. The last one is the sharpest: there is now a published cookies clause that does not name
+  the party setting the cookies. Needs the user and their lawyer.
+  → [detail](../features/privacy-page/FEATURE.md)
+
+- `footer` — **Company column repointed; `Playground` swapped for `Security`.** `Insights` →
+  `/news` (label kept — `תובנות` is clix's article hub and `/news` is ours; same nav-vs-footer
+  divergence `about`/`Company` already carries). `Playground` → **`Security` → `/security`**, the
+  footer's ONLY label swap: the real `פלייגראונד` is an interactive drag-and-drop node canvas
+  ("v0.1", desktop-only) with no analogue here, and `/clix` would have answered a different
+  question than the one clicked — the same test that deleted `industries`. `Security` was chosen
+  because `/clix`, `/security` and `/news` were linked from this footer NOWHERE, so the slot buys a
+  missing page rather than a synonym. Hebrew `אבטחה` is SOURCED — the same string as
+  `nav.labels[2]`, not newly authored. Footer dead links **5 → 3**. → [detail](../features/footer/CONTEXT.md)
+
+- `docs` — ⚠️ **ALL EIGHT of the footer's originally-dead links name REAL, CAPTURED pages on the
+  real clix site** — `docs/reference/clixsolutions/pages/` holds `services/industries/work/insights/
+  playground/terms/privacy/accessibility.html`. Nothing there was ever a broken link; they are pages
+  this repo has not built. **This reclassifies the remaining Legal column from authorship to a PORT
+  of clix's own Hebrew copy** (3 routes × 2 locales), which is a materially different and smaller
+  job than "write a privacy policy". Deliberately NOT repointed: no page here is a privacy policy,
+  and pointing at one that is not would be worse than the 404. Scheduled at the user's call.
+
+- `footer` — **Overview column repointed; three of its links no longer 404.** `Services` → `/product`,
+  `Work` → `/#testimonials` (leading slash deliberate: a bare `#testimonials` would be a same-page
+  scroll, correct only in this footer's copy on `/`). `Industries` was **deleted, not repointed** —
+  nothing on this site is about industries, so every candidate target answered a different question
+  than the one clicked. Its `industries` key came out of `ChromeDict` and both locale chrome dicts
+  with it. Footer dead links now **8 → 5**; `insights`, `playground`, `terms`, `privacy` and
+  `accessibility` were deliberately left for their own pass (the three legal ones want writing, not
+  repointing). → [detail](../features/footer/CONTEXT.md)
+
+- `not-found` — **404 scroll fix, and the report pointed at the wrong thing.** User: *"in the 404,
+  when i click in the footer, it goes there but the scroll stays in the footer"*. A CDP probe over
+  four navigations says the FOOTER IS IRRELEVANT and so is the origin — the two that break are the
+  two whose DESTINATION is a 404 (`/company`→`/privacy` 4130→**596**, `/services`→`/privacy`
+  596→**596**), while both that land on a real page reset fine. Next's scroll reset runs on a normal
+  segment render and a `notFound()` render never reaches it; the stale offset then CLAMPS to the new
+  document's max (4130→596 = that page's exact scroll height), and because the page is short its max
+  IS the footer. Nobody was scrolled anywhere. Fixed with `ui/ScrollToTopOnRoute.tsx`, rendered by
+  this route only — keyed on `pathname` (not mount, or 404→404 never re-fires), `behavior:"instant"`
+  (or the smooth-scroll animation gets photographed by the view transition), and placed as a CHILD so
+  it runs before the provider's `resolve()`. Rejected fixing it in `ViewTransitions.tsx`: that fires
+  on popstate too and would have broken back/forward scroll restoration site-wide to fix one page.
+  After: normal→404 lands at 41, 404→404 at 0. → [detail](../features/not-found/CONTEXT.md)
+
+- `not-found` — **`features/not-found/` created** with `FEATURE.md` + `CONTEXT.md`, per CLAUDE.md §3.
+  ⚠️ **The first section in this repo with NO reference and no way to get one** — neither the clone
+  target nor the real clix site has a 404 page in any capture. "Measure, don't eyeball" has nothing
+  to measure, so the rule is replaced by a BORROWING TABLE: every value is traced to a section that
+  was measured (band from `security`/`footer`, `pt-[198px]` from `ContactHero`, h1 from the footer
+  tagline, button from the footer CTA), and a value that cannot name a source does not belong on the
+  page. No new tokens. → [detail](../features/not-found/CONTEXT.md)
+
+- `infra` — **the site has a real 404 for the first time, in both locales.** New `notFound`
+  namespace + `_routes/NotFoundRoute.tsx` (nav, dark band, `<h1>`, back-home button reusing the
+  footer CTA's internals, footer), behind `(en)/not-found.tsx` and `he/not-found.tsx`.
+  **Two findings that cost a rebuild each, both measured against `next start`, not assumed:**
+  (1) a per-locale `not-found.tsx` is only an ERROR BOUNDARY — it never catches an unmatched URL,
+  because only a ROOT `app/not-found.tsx` does that and this app cannot have one (no root layout at
+  `src/app/`). `/services` fell straight through to Next's built-in 404 even with both files in
+  place. Fixed by `(en)/[...notFound]/page.tsx` + `he/[...notFound]/page.tsx`, two catch-alls whose
+  only job is to call `notFound()` and thereby turn "no route matched" into a boundary hit.
+  (2) a not-found render does **not** get its locale root layout — both locales serve
+  `<html id="__next_error__">` with no `lang` and no `dir`. Body and `<title>` localise correctly, so
+  this was invisible in English and **laid the Hebrew 404 out left-to-right**: every `[dir="rtl"]`
+  rule and `rtl:` variant on this site is an ancestor selector. Fixed with a `display:contents`
+  wrapper inside the body carrying `lang`/`dir`, which generates no box, so `position:fixed` Nav and
+  `min-h-svh` behave as under a real layout. ⚠️ **The three Hebrew strings are authored and unread by
+  a native speaker.** Verified on `next start`: 9 unmatched EN paths and 3 HE paths all return status
+  404 with the styled page, HE payload carries `dir:"rtl"`.
+
 ## 2026-08-14
 
 - `testimonials` — phone and tablet now play the client clips. The `≤809` static six-card stack
