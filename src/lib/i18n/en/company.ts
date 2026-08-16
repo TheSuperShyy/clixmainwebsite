@@ -20,24 +20,27 @@
  * THE FIVE BLOCKS, in render order (CompanyRoute.tsx:66-70), one key each:
  *   hero → CompanyHero (the only `"use client"` file on the route, so the only one reading
  *          these through `usePageDict("company")`)
- *   mission → CompanyMission · services → CompanyServices · tools → CompanyTools ·
- *   careers → CompanyCareers — all four are server components and read `getDict().company`.
+ *   mission → CompanyMission · services → CompanyServices — both server components, both
+ *   reading `getDict().company` directly.
+ *
+ * ⚠️ `tools` AND `careers` ARE BOTH GONE AS OF 2026-08-16, each with the band it fed.
+ *   `CompanyTools` ("Built On Tools Your Team Already Uses") and `CompanyCareers` ("Join The
+ *   Team Building / What Comes Next") were deleted on the user's call — see
+ *   CompanyRoute.tsx's header for what went and why.
  *
  * WHICH ARRAYS ARE TUPLES HERE, and why each way:
- *   · `mission.heading` and `tools.heading` are `readonly string[]`. Both are HARD `<br>`
- *     breaks whose only job is line fitting — the two runs are the same colour, the same
- *     element, one sentence — so the count is the language's business. Hebrew is free to set
- *     either heading in one line or three.
- *   · `mission.teamItems` (3) and `services.items` (8) are TUPLES, left implicit by `as const`.
- *     Both counts are layout: the team column's three rows sit in one of three grid cells and
- *     the services grid is 4 → 4 → 1 over exactly eight tiles, which is what makes
- *     CompanyServices.tsx:33's `8 × 164 + 7 × 16 = 1424` true. A locale supplying seven must
- *     fail the build.
- *   · `careers.titleInk` / `careers.titleMuted` are NOT an array at all. That break is a
- *     COLOUR boundary (CompanyCareers.tsx:136-143: line 1 `ink`, line 2 inside a `muted`
- *     span), so the two runs are separately-named keys and the element stays in the component.
- *     Same for `mission.city` / `mission.country`, where the two runs are a city and a country
- *     rather than two halves of one phrase.
+ *   · `mission.heading` is `readonly string[]`. It is a HARD `<br>` break whose only job is
+ *     line fitting — the two runs are the same colour, the same element, one sentence — so the
+ *     count is the language's business. Hebrew is free to set it in one line or three.
+ *   · `mission.teamItems` (3) and `services.cards` (8) are TUPLES, left implicit by `as const`.
+ *     Both counts are layout: the team column's three rows sit in one of three grid cells, and
+ *     the services grid is exactly eight cards paired 1:1 with the eight scenes in
+ *     `serviceArt.tsx` and the eight marks in `serviceGlyphs.tsx` — both of which are typed as
+ *     8-slot tuples for the same reason. A locale supplying seven must fail the build.
+ *   · `mission.city` / `mission.country` are NOT an array at all: those two runs are a city
+ *     and a country rather than two halves of one phrase, so they are separately-named keys
+ *     and the `<br>` stays in the component. (`careers.titleInk` / `careers.titleMuted` was
+ *     the other instance of this pattern — a COLOUR boundary — and went with its band.)
  */
 
 export const company = {
@@ -83,46 +86,88 @@ export const company = {
 
   services: {
     /* Wraps NATURALLY into two lines at every tier — no hard break anywhere in this heading,
-       unlike the page's other three h3s. Measured 96.8 / 88 / 70.4 = 2 / 2 / 2 lines. */
+       unlike the page's other three h3s. Measured 96.8 / 88 / 70.4 = 2 / 2 / 2 lines.
+       ⚠️ The heading still says EIGHT and the grid still holds eight. If a ninth service is
+       ever added, this string is the second thing that has to change. */
     title: "Built From Eight Services That Work As One System",
     intro:
       "Clix builds AI agents, WhatsApp assistants, CRM implementations, integrations, " +
       "websites, mobile apps and custom software, plus the AI strategy that works out which " +
       "of them your business needs, and which it does not.",
-    /* The eight services, in the order the site lists them
-       (docs/reference/clixsolutions/README.md:173-182). Every label was fitted to ONE rendered
-       line at every tier during prep. TUPLE — the count is the grid. */
-    items: [
-      "AI Agents",
-      "WhatsApp Automation",
-      "CRM Implementation",
-      "Integrations",
-      "Web Development",
-      "Mobile Development",
-      "Custom Software",
-      "AI Strategy",
+    /* ─── THE EIGHT CARDS ──────────────────────────────────────────────────────────────────
+     *
+     * ⚠️ SHAPE CHANGED 2026-08-16. This was `items: [8 bare labels]` while the band was rogo's
+     * `Team` logo wall reused as eight 164px tiles. The band is now eight art cards, each with
+     * a kicker, a name and a one-line promise, so the tuple carries objects. `name` is the OLD
+     * `items` string, unchanged in both locales — nothing was re-fitted.
+     *
+     * `num` is NOT here. It is `String(i + 1).padStart(2, "0")` in the component: the real
+     * site prints Western digits in Hebrew too, so sixteen identical strings would be dead
+     * weight in both files.
+     *
+     * PROVENANCE, and it splits by locale rather than by field:
+     *   · `name`  ×8 — SOURCED in Hebrew (the H2s of pages/services.html), and these English
+     *                  renderings of them are what this route has always shipped.
+     *   · `kicker`×8 — AUTHORED here, SOURCED in Hebrew (`NN · …`, the numbered benefit line
+     *                  above each H2 in `services.bodyText`). The Hebrew is the earlier text.
+     *   · `promise`×8 — same split. Hebrew verbatim, English rendered from it.
+     * So sixteen of the twenty-four strings below are translations of captured Hebrew, not
+     * new marketing copy — which is the same relationship the rest of this file has.
+     *
+     * ⚠️ CSS UPPERCASES `kicker` (it renders through CompanyMission's EYEBROW_CLASS). Source
+     * strings are sentence case. Do not pre-uppercase them here.
+     *
+     * ⚠️ `promise` GROWS ITS CARD RATHER THAN CLIPPING — a deliberate divergence from
+     * /product's benefit bodies, which sit in an aspect-fixed card and genuinely clip. These
+     * cards are `min-h-*` in a stretched 2-column grid, so a longer string pushes its whole
+     * ROW taller and nothing is ever cut off. Line counts are therefore a look, not a risk.
+     */
+    cards: [
+      {
+        kicker: "To speed up sales and support",
+        name: "AI Agents",
+        promise: "Teammates that never rest.",
+      },
+      {
+        kicker: "To sell where your customers already are",
+        name: "WhatsApp Automation",
+        promise: "The channel your customers are already on.",
+      },
+      {
+        kicker: "To unify the customer picture",
+        name: "CRM Implementation",
+        promise: "One true customer picture, in one place.",
+      },
+      {
+        kicker: "To connect every system",
+        name: "Integrations",
+        promise: "Every tool you own, talking to every other.",
+      },
+      {
+        kicker: "To turn traffic into customers",
+        name: "Web Development",
+        promise: "Marketing sites that load fast and convert hard.",
+      },
+      {
+        kicker: "To reach straight into your customer’s pocket",
+        name: "Mobile Development",
+        promise: "Native apps customers actually open.",
+      },
+      {
+        kicker: "To build exactly what is needed",
+        name: "Custom Software",
+        promise: "For when off the shelf is not enough.",
+      },
+      {
+        /* ⚠️ THE REAL SITE PRINTS THE SAME SENTENCE TWICE HERE — `08 · להמר על הדברים הנכונים`
+           is also that service's promise line. Reproduced rather than "fixed": inventing a
+           second sentence would be the only unsourced kicker on the band. Flagged in
+           features/company-page/FEATURE.md as a copy question for the user. */
+        kicker: "To bet on the right things",
+        name: "AI Strategy",
+        promise: "To bet on the right things.",
+      },
     ],
-  },
-
-  tools: {
-    /* Hard `<br>`, one colour, one element — line fitting, so `readonly string[]`. Each line
-       has to fit a 490px column on its own at every tier. */
-    heading: ["Built On Tools", "Your Team Already Uses"] as readonly string[],
-  },
-
-  careers: {
-    /* THE COLOUR BOUNDARY. One `<h2>`; line 1 is `ink`, line 2 is a `muted` `<span>`. Two keys,
-       and NEITHER fragment may wrap on its own — the measured h3 box is 2 lines at every tier
-       (96.8 / 88 / 70.4). */
-    titleInk: "Join The Team Building",
-    titleMuted: "What Comes Next",
-    body:
-      "We are looking for engineers who want to ship systems real businesses depend on. " +
-      "If that is you, come talk to us.",
-    /* The full-bleed photograph. STOCK, not clix's team — see CompanyCareers.tsx:44-56. The
-       `alt` describes what is depicted and claims nothing about who is in it. */
-    photoAlt:
-      "Three colleagues working in an office, two seated at a wide monitor showing code while a third writes on a wall mounted display.",
   },
 } as const;
 

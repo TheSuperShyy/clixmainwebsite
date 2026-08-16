@@ -15,6 +15,373 @@ Line format:
 
 ---
 
+## 2026-08-16
+
+- `nav` — **The locale switch is gone from the nav, SITEWIDE** (user: "remove this translate
+  button"). Three call sites in `Nav.tsx` and `src/components/ui/LocaleToggle.tsx`, all deleted.
+  ⚠️ **`Nav.tsx` is shared by every route, so `/he/*` still builds and serves but has no link to
+  it from anywhere in the UI** — the Hebrew dictionaries, the `he/` route group and every RTL
+  mechanism are untouched; only the entry point went. Two prose comments cited the deleted file
+  for reasoning that is still true (`(en)/layout.tsx` on why the locale boundary must be a hard
+  document load, `i18n/config.ts` on why there is no middleware), so **the reasoning was
+  restated in place rather than left pointing at nothing**.
+  → [detail](../features/company-page/CONTEXT.md)
+- `company-page` — **Block 5 (`Reiteration` → `CompanyCareers`) deleted** (user: "remove this
+  part in company"). Taken as the WHOLE band rather than just the copy the user pointed at: the
+  headline is what identified the block, and the full-bleed photograph under no heading would be
+  a different block, not a smaller one. `company.careers` out of both dictionaries — 4 keys
+  each, all Hebrew ones AUTHORED, so Hebrew SOURCED moved 34/47 → 30/39 and no captured string
+  was lost. ⚠️ **`public/company/company-bg.jpg` is still on disk, referenced by nothing** —
+  left deliberately, since it was user-supplied and deleting it is its own call. ⚠️ **This
+  cleared one of the two `noindex` gate items as a SIDE EFFECT, not by decision** — the stock
+  photo standing in for a team picture was item 2; only the unsubstantiated "Unit 8200 and
+  Technion" line remains, **the guard is untouched, and nobody has been asked.** /company is
+  **four bands now, down from six**, both deletions the user's call the same day.
+  ⚠️ **Known open bug, reported and not fixed: Block 3's sticky heading hides under the nav when
+  scrolling UP** — the banner returns on upward scroll, taking the header 70px → 115px, while
+  the heading pins at 96px, so it clears the header in one direction only. A `--nav-peak-h`
+  token was drafted and not applied. → [detail](../features/company-page/CONTEXT.md)
+- `company-page` — **Two bugs the user caught on Block 3, plus the pinned panel reverted.**
+  ⚠️ **`overflow-hidden` ON THE SECTION WAS KILLING `position: sticky`** — inherited from the
+  capture and kept through the rebuild; an `overflow: hidden` ancestor becomes the sticky
+  element's scroll container. **The symptom was misleading**: the lift's observer watched a
+  sentinel rather than the element, so the white panel still appeared on cue and simply slid
+  away with the page. ⚠️ **A hovered card painted across the fixed nav** — `hover:z-10` vs the
+  nav's `z-[3]`, both in the ROOT stacking context; fixed with `isolation: isolate` on the
+  `<ul>`, which keeps the card z-order local. ⚠️ **BOTH VERIFICATION ATTEMPTS GAVE FALSE
+  READINGS FIRST, and both traps are this site's own:** `scroll-behavior: smooth` is global so
+  `scrollTo` animates and every rect read after it is mid-flight, and **the nav's banner
+  retracts ~300ms after a downward scroll** (115px → 70px), so a probe point computed before it
+  settles falls outside the header and `elementsFromPoint` reports the card on top of a build
+  that is already fixed. **Rule: on this site, never measure immediately after a programmatic
+  scroll — two independent animations have to settle, and neither is yours.** Verified over CDP
+  with headless Chrome driven from raw node (no puppeteer): sticky top locked at 96px while
+  card 1 runs −4 → −844, and the hovered hit stack reads `hero-nav-blur → HEADER → LI`.
+  Finally, the user saw the pinned white panel and asked for it gone — **`StickyLift.tsx` is
+  deleted and the band is a pure server component again with no client JS**, the pin itself
+  kept. Removing its padding hack also restored real alignment (heading and card 1 both at
+  531). A hover-scale bump 2.5% → 4% was proposed and **rejected mid-edit; it stays at 1.025.**
+  → [detail](../features/company-page/CONTEXT.md)
+- `company-page` — **Block 3 second pass: colour, a floating heading, a card hover** (user:
+  "add some colors and make the header floats when floating… when hovering to a card, make it
+  bigger"). ⚠️ **THE EIGHT `--color-svc-*` ACCENTS ARE THE FIRST COLOUR ON THIS SITE THAT WAS
+  CHOSEN RATHER THAN MEASURED**, and `shadow-float` the first shadow against a capture that has
+  none — both scoped to this one band, both recorded in DESIGN-SYSTEM.md with the precedent
+  noted as an open question. The accents are a **set**, not eight picks: all between 6.07 and
+  6.81:1 on white (a 0.74 spread, tuned down from 5.35–7.58 where the indigo card dominated),
+  and all AA on the three grounds they touch, because several carry real type. Each `<li>` sets
+  `--accent`; **no scene knows which colour it got**. The heading now lifts into a white panel
+  while pinned via `StickyLift` (sentinel + one IntersectionObserver, server-rendered children).
+  **Three things were wrong first and are worth remembering:** a sentinel cannot be a sibling of
+  a sticky flex item; **`desktop:items-start` made the heading never pin at all** (a stretched
+  wrapper IS the sticky child's travel — the exact opposite of what a directly-sticky flex item
+  needs); and padding cannot be part of the pinned state, since it shifts the headline and
+  animates a layout property. Card hover is `scale(1.025)` + lift + shadow + accent wash, all by
+  `transform` — **because each scene is a container query and a real width change would
+  re-resolve `--u` every frame.** ⚠️ **Found, not fixed: Tailwind is scanning
+  `docs/reference/clixsolutions/pages/*.html`** and emitting utilities for a captured
+  third-party site; pre-existing since 2026-08-11, sitewide, one `@source not` line, left for
+  its own task. Build/lint/two-locale render parse clean; **still not looked at.**
+  → [detail](../features/company-page/CONTEXT.md)
+- `company-page` — **Block 4 deleted and Block 3 rebuilt as eight animated cards** (user:
+  "huge ui update"). `CompanyTools` ("Built On Tools Your Team Already Uses") is gone from the
+  component tree and both dictionaries; `clix/toolMarks.tsx` survives for /clix. The services
+  band went from rogo's measured 8-tile grid to a **sticky heading beside a 2-column card
+  grid**, each card carrying a 280×168 scene that animates what the service produces. **Seven
+  of the eight scenes and all twenty-four new copy strings are SOURCED** from
+  `docs/reference/clixsolutions/` — clix's own services page already ships a mock, a numbered
+  kicker and a promise per service; only Mobile Development's picture is designed. Hebrew
+  SOURCED count 18/31 → 34/47, all sixteen new strings verbatim. The reference band the user
+  named uses framer-motion, **which is not installed** — the answer is /product Block 4's CSS
+  idle loops instead, but **three SHARED keyframes rather than eight bespoke ones**, because
+  all eight scenes animate the same mechanism (a sequence advancing) and sharing is what makes
+  them read as one band. Base-state invariant inherited verbatim, so reduced motion is an exact
+  no-op. **Scenes carry no prose** — grey bars plus `direction: ltr` machine tokens — so all
+  eight are locale-free and cost zero new dictionary keys. Build, lint and a two-locale render
+  parse all clean; **nobody has looked at it yet.**
+  → [detail](../features/company-page/CONTEXT.md)
+- `felix-page` — **The Hebrew hero rotor now names the same two roles as English** (`האנליסט` /
+  `המשקיע` under `החדש שלכם`), after a reviewer flagged that `/he/clix` said something different
+  from `/clix`. It did, on purpose — the Hebrew was four roles restored from clix's own services
+  page — and the user's call was that English wins. **It is a DOM-ORDER swap, not a translation:**
+  Hebrew puts the definite noun before its modifier, and `rtl` already reverses the row visually,
+  so reading order == DOM order. New `hero.rotorLeads` key (`as boolean`, or `Translated<>` would
+  pin Hebrew to English's value) drives both the order and the rotor box's `justify`, which must
+  flip so the fixed box's slack stays on the OUTSIDE of the lockup. `rotorWidth` re-measured
+  159/260 → 172/282 in headless Chrome, harness first validated against the numbers already in
+  the file. Build + types clean, lint unchanged from HEAD, prerendered HTML checked; not viewed in
+  a browser. → [detail](../features/felix-page/CONTEXT.md)
+
+- `infra` — 🔴 **`npm run build` IS RED ON THIS WORKING TREE, and it is not a code fault.** The
+  uncommitted `src/app/favicon.ico` is `8-bit/color RGB`; Turbopack requires RGBA and fails with
+  *"The PNG is not in RGBA format"*. HEAD's copy is RGBA and builds. Found while verifying the
+  footer change, which needed HEAD's favicon swapped in temporarily to build at all (user's file
+  restored byte-for-byte, sha256 `d597aecf…`). **Left unfixed — it is the user's asset and their
+  call.** Re-export as 32-bit RGBA, or `git checkout src/app/favicon.ico` to drop it. This blocks
+  any Vercel deploy of `dev`. → [detail](../features/footer/CONTEXT.md)
+
+- `footer` — **Brand marks beside the three social links** (Instagram, LinkedIn, WhatsApp; not
+  `Let's start`/`Email`, which are not accounts). New `src/components/sections/socialMarks.tsx`,
+  which **deliberately breaks the repo's icon convention**: 24×24 `fill:currentColor` published
+  outlines, not the shared 32×32 `fill:none`/1.5px-stroke grid the drawn glyphs use — a brand mark
+  redrawn on our grid is a knock-off, not a house style. Monochrome by decision (three brand
+  colours would be the only accents in an `ink` block, and `forest` belongs to /clix); the marks
+  inherit the link's measured `.3s cubic-bezier(.44,0,.56,1)` hover through `currentColor`. RTL
+  needs no variant either way — the side flips with the inline axis, the artwork must never flip.
+  ⚠️ **16px/8px sizing is taste, not measurement** — the target footer has no icons to measure.
+  Build clean, not visually checked. → [detail](../features/footer/CONTEXT.md)
+
+- `footer` — **LinkedIn added to the Contact column**, which is the first change to make this
+  footer diverge from the target in COLUMN LENGTH rather than in destinations: five links per
+  tier where the original renders four. Flex stack with a 12px gap, so it extends downward only —
+  grid and sibling columns untouched. ⚠️ The URL is a **personal** profile (`/in/…`), not a company
+  page, unlike every other entry in `CONTACT`; flagged to the user and shipped as supplied. URL
+  lives in `src/lib/contact.ts` (a link target, not copy); label `"LinkedIn"` in both locales, Latin
+  in Hebrew by the existing keep-Latin rule. Build clean, not visually checked.
+  → [detail](../features/footer/CONTEXT.md)
+
+- `infra` — **`clixsolutions.info` connected to Vercel at GoDaddy.** `A @ → 216.198.79.1`,
+  `CNAME www → 74932f966cfb1a28.vercel-dns-017.com`, plus the `TXT _vercel` ownership record the
+  domain needed because it was **already claimed by another Vercel account**. All three verified
+  live against `8.8.8.8`, not just the GoDaddy panel; SSL issued on both hostnames.
+  🔴 **REDIRECT LOOP still open:** apex `308 →` www and www `307 →` apex, so the site is
+  unreachable in a browser (`ERR_TOO_MANY_REDIRECTS`). Fix is in the Vercel dashboard, not this
+  repo — set `www` to *Connect to an environment → Production* and leave the apex redirecting to
+  it. No MX records exist on this zone, so the domain has no email configured.
+
+- `legal-pages` — **/terms and /accessibility ported; the footer now has ZERO dead links** (it began
+  the day with eight). Both fetched live and cross-checked against the captures. **Components
+  generalised rather than tripled:** `PrivacyHero`/`PrivacyBody`/`PrivacyRoute` →
+  `components/legal/LegalHero`/`LegalBody` + `_routes/LegalRoute` taking a NAMESPACE name (a shell
+  cannot pass a resolved doc — the locale is not seeded until the body runs), behind a shared
+  `LegalDoc` type in `src/lib/i18n/legal.ts`. Section shape changed `items`+`paras` →
+  **`lead` → `items` → `tail`**, because the accessibility statement's §06 is a paragraph, then a
+  list, then a paragraph, which two slots cannot express. → [detail](../features/legal-pages/CONTEXT.md)
+
+- `legal-pages` — ⚠️⚠️ **THE ACCESSIBILITY STATEMENT WAS PORTED KNOWING IT IS PARTLY UNTRUE OF THIS
+  BUILD.** It is a declaration under Israeli regulation 35 / ת״י 5568 and **names a real person**
+  (Almaliach Ido) as responsible. Verified by grep, not assumed: it promises a **skip-to-content
+  link that does not exist** (no skip link, no `id="main"` anywhere in `src/`); **WCAG AA contrast**
+  that this repo's own DESIGN-SYSTEM.md and SECTIONS.md contradict in **at least six places**
+  (3.85:1 security/footer/careers, 4.35 and 4.24 on /product, 2.50 and 1.92 on testimonials — the
+  eyebrow on the accessibility page IS one of them); **screen-reader testing** with VoiceOver/NVDA
+  across four browsers that this build has never had; and live regions for a **chat that does not
+  exist**. §05 describes remediating a playground node editor and 3D scenes neither of which is on
+  this site. `prefers-reduced-motion` is the one promise that checks out. All reported in plain
+  terms BEFORE the port; the instruction was to copy the page, so it is verbatim.
+  ⚠️ **Two of the four are cheaper to make TRUE than to amend** — a skip link is a small addition,
+  and DESIGN-SYSTEM.md already records that ONE token change (`#7f7f7f`, 4.56:1) closes every
+  3.85:1 instance at once. Recommended next step. → [detail](../features/legal-pages/FEATURE.md)
+
+- `legal-pages` — ⚠️ **/terms promises a cookie-consent dialog that does not exist.** §06 says a
+  visitor is asked to approve cookies on first entry and may set preferences; **there is no consent
+  UI of any kind in this build**, while `FooterMap.tsx` sets Google's third-party cookies on every
+  page. §05 also lists Facebook/Google ad cookies with no ad pixel anywhere in the repo, and §04
+  says the date sits at the bottom when it renders at the top. All left as published. A consent
+  gate would close this AND the /privacy cookie-clause gap AND the FooterMap risk open since
+  2026-08-11.
+
+- `privacy-page` — **the "This is a translation / the Hebrew version is binding" note was removed**
+  at the user's request (*"remove this part"*), hours after it shipped. Gone in full: the rendered
+  block, the `authoritativeNote` key in both dictionaries, and `PrivacyBody`'s `locale` prop, which
+  existed only to gate it. ⚠️ **Consequence, stated once and recorded rather than re-argued:**
+  `/privacy` and `/he/privacy` now present as two equally authoritative versions of one legal
+  document, with an unreviewed machine translation as one of them and nothing on either page
+  resolving a conflict. `he/privacy.ts` is still the source and still right by construction; that
+  fact moved from the page into a code comment. Getting the English reviewed closes the same gap.
+  **Do not re-add the note without asking — its absence is a decision.**
+  → [detail](../features/legal-pages/CONTEXT.md)
+
+- `privacy-page` — **/privacy and /he/privacy exist**, ported verbatim from the company's own
+  published policy (capture + live fetch agree: ten sections, `עדכון אחרון · 16 במאי 2026`). Hebrew
+  is the SOURCE, English a translation published under an on-page note that the Hebrew governs —
+  the user's call over serving Hebrew on both routes, and ⚠️ that note is what makes an unreviewed
+  machine translation of a legal document publishable, so it is not removable without a new
+  decision. **The stale-address trap:** the policy prints `info@clixsolution.com` FOUR times as the
+  channel for exercising a statutory data right, and that address is stale per contact.ts (user
+  confirmed 2026-08-13). Copying verbatim would have shipped a dead data-rights address, so the
+  strings carry `{email}`/`{phone}` and substitute from `contact.ts`; `interpolate()` was not used
+  because these must be anchors. Two bands borrowed from ContactHero/ContactBody, no new tokens.
+  Indexable, no `robots` guard. Footer dead links **3 → 2**. → [detail](../features/legal-pages/CONTEXT.md)
+
+- `privacy-page` — ⚠️ **THREE STATEMENTS IN THE POLICY DO NOT DESCRIBE THIS BUILD, reported and
+  deliberately NOT patched** (rewriting a published legal document is not a developer's call):
+  it lists a **phone number** among data collected (the form has no phone field); it claims
+  **statistical measurement** (there is NO analytics on this site — grepped gtag/GTM/Pixel/Hotjar,
+  zero hits); and it names WhatsApp/Facebook/Mundi/n8n/CRM as processors but **not Google**, while
+  `FooterMap.tsx` embeds a Google Map setting third-party cookies with no consent gate anywhere on
+  the site. The last one is the sharpest: there is now a published cookies clause that does not name
+  the party setting the cookies. Needs the user and their lawyer.
+  → [detail](../features/legal-pages/FEATURE.md)
+
+- `footer` — **Company column repointed; `Playground` swapped for `Security`.** `Insights` →
+  `/news` (label kept — `תובנות` is clix's article hub and `/news` is ours; same nav-vs-footer
+  divergence `about`/`Company` already carries). `Playground` → **`Security` → `/security`**, the
+  footer's ONLY label swap: the real `פלייגראונד` is an interactive drag-and-drop node canvas
+  ("v0.1", desktop-only) with no analogue here, and `/clix` would have answered a different
+  question than the one clicked — the same test that deleted `industries`. `Security` was chosen
+  because `/clix`, `/security` and `/news` were linked from this footer NOWHERE, so the slot buys a
+  missing page rather than a synonym. Hebrew `אבטחה` is SOURCED — the same string as
+  `nav.labels[2]`, not newly authored. Footer dead links **5 → 3**. → [detail](../features/footer/CONTEXT.md)
+
+- `docs` — ⚠️ **ALL EIGHT of the footer's originally-dead links name REAL, CAPTURED pages on the
+  real clix site** — `docs/reference/clixsolutions/pages/` holds `services/industries/work/insights/
+  playground/terms/privacy/accessibility.html`. Nothing there was ever a broken link; they are pages
+  this repo has not built. **This reclassifies the remaining Legal column from authorship to a PORT
+  of clix's own Hebrew copy** (3 routes × 2 locales), which is a materially different and smaller
+  job than "write a privacy policy". Deliberately NOT repointed: no page here is a privacy policy,
+  and pointing at one that is not would be worse than the 404. Scheduled at the user's call.
+
+- `footer` — **Overview column repointed; three of its links no longer 404.** `Services` → `/product`,
+  `Work` → `/#testimonials` (leading slash deliberate: a bare `#testimonials` would be a same-page
+  scroll, correct only in this footer's copy on `/`). `Industries` was **deleted, not repointed** —
+  nothing on this site is about industries, so every candidate target answered a different question
+  than the one clicked. Its `industries` key came out of `ChromeDict` and both locale chrome dicts
+  with it. Footer dead links now **8 → 5**; `insights`, `playground`, `terms`, `privacy` and
+  `accessibility` were deliberately left for their own pass (the three legal ones want writing, not
+  repointing). → [detail](../features/footer/CONTEXT.md)
+
+- `not-found` — **404 scroll fix, and the report pointed at the wrong thing.** User: *"in the 404,
+  when i click in the footer, it goes there but the scroll stays in the footer"*. A CDP probe over
+  four navigations says the FOOTER IS IRRELEVANT and so is the origin — the two that break are the
+  two whose DESTINATION is a 404 (`/company`→`/privacy` 4130→**596**, `/services`→`/privacy`
+  596→**596**), while both that land on a real page reset fine. Next's scroll reset runs on a normal
+  segment render and a `notFound()` render never reaches it; the stale offset then CLAMPS to the new
+  document's max (4130→596 = that page's exact scroll height), and because the page is short its max
+  IS the footer. Nobody was scrolled anywhere. Fixed with `ui/ScrollToTopOnRoute.tsx`, rendered by
+  this route only — keyed on `pathname` (not mount, or 404→404 never re-fires), `behavior:"instant"`
+  (or the smooth-scroll animation gets photographed by the view transition), and placed as a CHILD so
+  it runs before the provider's `resolve()`. Rejected fixing it in `ViewTransitions.tsx`: that fires
+  on popstate too and would have broken back/forward scroll restoration site-wide to fix one page.
+  After: normal→404 lands at 41, 404→404 at 0. → [detail](../features/not-found/CONTEXT.md)
+
+- `not-found` — **`features/not-found/` created** with `FEATURE.md` + `CONTEXT.md`, per CLAUDE.md §3.
+  ⚠️ **The first section in this repo with NO reference and no way to get one** — neither the clone
+  target nor the real clix site has a 404 page in any capture. "Measure, don't eyeball" has nothing
+  to measure, so the rule is replaced by a BORROWING TABLE: every value is traced to a section that
+  was measured (band from `security`/`footer`, `pt-[198px]` from `ContactHero`, h1 from the footer
+  tagline, button from the footer CTA), and a value that cannot name a source does not belong on the
+  page. No new tokens. → [detail](../features/not-found/CONTEXT.md)
+
+- `infra` — **the site has a real 404 for the first time, in both locales.** New `notFound`
+  namespace + `_routes/NotFoundRoute.tsx` (nav, dark band, `<h1>`, back-home button reusing the
+  footer CTA's internals, footer), behind `(en)/not-found.tsx` and `he/not-found.tsx`.
+  **Two findings that cost a rebuild each, both measured against `next start`, not assumed:**
+  (1) a per-locale `not-found.tsx` is only an ERROR BOUNDARY — it never catches an unmatched URL,
+  because only a ROOT `app/not-found.tsx` does that and this app cannot have one (no root layout at
+  `src/app/`). `/services` fell straight through to Next's built-in 404 even with both files in
+  place. Fixed by `(en)/[...notFound]/page.tsx` + `he/[...notFound]/page.tsx`, two catch-alls whose
+  only job is to call `notFound()` and thereby turn "no route matched" into a boundary hit.
+  (2) a not-found render does **not** get its locale root layout — both locales serve
+  `<html id="__next_error__">` with no `lang` and no `dir`. Body and `<title>` localise correctly, so
+  this was invisible in English and **laid the Hebrew 404 out left-to-right**: every `[dir="rtl"]`
+  rule and `rtl:` variant on this site is an ancestor selector. Fixed with a `display:contents`
+  wrapper inside the body carrying `lang`/`dir`, which generates no box, so `position:fixed` Nav and
+  `min-h-svh` behave as under a real layout. ⚠️ **The three Hebrew strings are authored and unread by
+  a native speaker.** Verified on `next start`: 9 unmatched EN paths and 3 HE paths all return status
+  404 with the styled page, HE payload carries `dir:"rtl"`.
+
+- `infra` — **App icons rebuilt from `public/company/clix-brand-logo.jpeg`, so the favicon Google
+  shows beside a search result is the plated brand logo.** User: *"change the logo when yo search it
+  to google to the clix-brand-logo.jpeg in public/company"*. Replaced `src/app/icon.png` (512),
+  `apple-icon.png` (180) and `favicon.ico` (16/32/48). The JPEG is 1000x1000, `rgb(250,250,248)`
+  plate, ink bbox **653x616 at (177,190)** — ~18% padding a side, mark spanning **65%** of the
+  canvas. Downscaled **as supplied**: no re-crop, no re-pad. Tightening the padding so it reads
+  bigger at 16px is a real option and was left to the user rather than taken unasked.
+
+  Three things here are not guessable:
+
+  · **The plate is the point, not incidental.** What shipped before was a `#303641` silhouette on
+    TRANSPARENT. A SERP renders the favicon over its own background, so on Google in dark mode a
+    dark transparent mark all but disappears. An opaque plate is legible in both themes. Same
+    reasoning for the tab strip.
+  · **Turbopack rejects an ICO whose embedded PNGs are not RGBA** — `next build` exits 1 with
+    *"Format error decoding Ico: The PNG is not in RGBA format!"*. `sharp.flatten()` leaves colour
+    type 2 (RGB), which is what triggers it; `.ensureAlpha(1)` after the flatten is the fix, plus
+    `palette:false` so sharp does not quantise these small images to type 3. The plain `icon.png`
+    and `apple-icon.png` are fine as RGB — the constraint is the ICO container only.
+  · **`public/clix-mark.png` (the nav's CSS mask) was cropped out of the OLD transparent
+    `icon.png`,** and a mask reads only alpha, so the plated JPEG can never regenerate it. The 512
+    transparent master is preserved at **`docs/brand/clix-mark-512.png`** and the recipe in
+    `ClixMark.tsx` now points there. Nothing about the rendered nav changed.
+
+  Verified on `next start`: all three head links present in **both** locales (`/favicon.ico`
+  `sizes="48x48"`, `/icon.png` `512x512`, `/apple-icon.png` `180x180`), and all three URLs 200 with
+  the right content types. `npm run build` clean. ⚠️ **Not verified, and cannot be from here:** the
+  actual SERP thumbnail. Google recrawls a favicon on its own schedule — days to weeks after this
+  deploys — and it only ever reads the LIVE domain, so nothing about this is visible until
+  clixsolutions.info ships it. Regeneration script:
+
+  ```js
+  // node -e with NODE_PATH=./node_modules ; sharp 0.34.5
+  const sharp = require('sharp'), fs = require('fs');
+  const SRC = 'public/company/clix-brand-logo.jpeg';
+  const PLATE = { r: 250, g: 250, b: 248 };
+  const png = async (size, round = false) => {           // `round` — see the circle bullet below
+    let p = sharp(SRC).resize(size, size, { kernel: 'lanczos3', fit: 'cover' })
+      .flatten({ background: PLATE }).ensureAlpha(1);     // ICO payloads MUST be RGBA
+    if (round) {
+      const ss = size * 4;                                // mask drawn 4x, then downscaled
+      const mask = await sharp(Buffer.from(
+        `<svg width="${ss}" height="${ss}"><circle cx="${ss / 2}" cy="${ss / 2}" ` +
+        `r="${ss / 2}" fill="#fff"/></svg>`))
+        .resize(size, size, { kernel: 'lanczos3' }).png().toBuffer();
+      p = sharp(await p.png().toBuffer())
+        .composite([{ input: mask, blend: 'dest-in' }]);
+    }
+    return p.png({ compressionLevel: 9, palette: false }).toBuffer();
+  };
+  function ico(images) {                                   // 6-byte header, 16 bytes/entry, PNGs
+    const head = Buffer.alloc(6);
+    head.writeUInt16LE(1, 2); head.writeUInt16LE(images.length, 4);
+    let off = 6 + 16 * images.length;
+    const dir = images.map(({ size, buf }) => {
+      const e = Buffer.alloc(16);
+      e.writeUInt8(size, 0); e.writeUInt8(size, 1);
+      e.writeUInt16LE(1, 4); e.writeUInt16LE(32, 6);       // 1 plane, 32bpp
+      e.writeUInt32LE(buf.length, 8); e.writeUInt32LE(off, 12);
+      off += buf.length; return e;
+    });
+    return Buffer.concat([head, ...dir, ...images.map((i) => i.buf)]);
+  }
+  (async () => {
+    fs.writeFileSync('src/app/icon.png', await png(512, true));     // circle
+    fs.writeFileSync('src/app/apple-icon.png', await png(180));     // SQUARE — iOS masks it
+    const imgs = [];
+    for (const size of [16, 32, 48]) imgs.push({ size, buf: await png(size, true) });
+    fs.writeFileSync('src/app/favicon.ico', ico(imgs));
+  })();
+  ```
+
+- `infra` — **The favicon is a circle.** User, on seeing the square plate in the tab strip:
+  *"can it be circle?"*. `src/app/icon.png` and all three `favicon.ico` entries are now masked to
+  a full-bleed inscribed circle; the recipe above is the amended one, `round` is the new argument.
+  Three things decided here:
+
+  · **Safe to inscribe at `r = size/2`.** The mark's bbox is 653x616 centred in the 1000px source,
+    so its half-diagonal is **~449px against a 500px radius** — the circle only ever eats empty
+    plate, never ink. Checked before cutting rather than after.
+  · **The mask is drawn at 4x and downscaled**, not drawn at final size. A circle rasterised
+    directly at 16px is a staircase; rendering at 64 and lanczos-ing down gives a real antialiased
+    edge. `dest-in` keeps the photo's pixels and takes the circle's alpha.
+  · **`apple-icon.png` stays SQUARE, deliberately.** iOS applies its own rounded-square mask to a
+    touch icon and composites transparency onto BLACK first, so a pre-cut circle ships with black
+    corners showing through. Let iOS do the cutting.
+
+  ⚠️ **At 16px the mark is mush** — 65% of the canvas is ~10px of ink for a hexagon + star +
+  cursor, and the circle does not help. 32 and 48 read cleanly (a HiDPI tab strip takes the 32),
+  so this was left as-is rather than tightened unasked; the ~18% padding is the JPEG's own and
+  cropping it out is a one-line change if the 16px case matters.
+
+  Verified on `next start`: `/favicon.ico` 5039 B (3 entries, **all colour type 6**),
+  `/icon.png` 54868 B type 6, `/apple-icon.png` 11110 B; all three `<link>`s present in both
+  locales. `npm run build` clean. Two build-cache notes, both cosmetic and both gone on a clean
+  CI build: Turbopack served a **stale content hash** in the prerendered `<link href>` query
+  (`?favicon.12sdp3iplql6p.ico` while `.next/static/media/` held the new
+  `favicon.0ckepunznfiki.ico`) — the route ignores the query, so the bytes served were correct —
+  and an orphaned `next start` on a reused port will happily answer with the PREVIOUS build's
+  assets, which is what made the first verification of this change read as a no-op.
+
 ## 2026-08-14
 
 - `testimonials` — phone and tablet now play the client clips. The `≤809` static six-card stack

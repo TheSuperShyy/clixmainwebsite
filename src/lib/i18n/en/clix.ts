@@ -29,8 +29,10 @@
  *     `manifesto.paragraphs` (five, the shape the block's layout was measured against) and
  *     `testimonial.quotes` (ten cards per marquee row).
  *   - `hero.words` is widened to `readonly string[]` ON PURPOSE. Its count is content, not
- *     layout: English is two words and known-incomplete (see ClixHero.tsx), Hebrew is four
- *     restored from clix's own service page, and the rotor cycles whatever length it is given.
+ *     layout: English is two words and known-incomplete (see ClixHero.tsx), and the rotor
+ *     cycles whatever length it is handed. Hebrew carried four of its own until 2026-08-16,
+ *     when the user asked for the two locales to name the same roles; it now carries the same
+ *     two. The widening stays — the divergence was allowed on purpose and may return.
  */
 
 export const clix = {
@@ -50,6 +52,27 @@ export const clix = {
      * and why nothing was invented to pad it.
      */
     words: ["analyst", "investor"] as readonly string[],
+    /*
+     * WHICH RUN LEADS LINE 2. IT IS A GRAMMAR FACT, NOT A STYLE CHOICE, which is the reason it
+     * is a dictionary value at all.
+     *
+     * English modifies BEFORE the noun ("your new" + "[analyst]"), so the static run leads and
+     * the rotor follows. Hebrew is the other way round: the noun carries the definite article
+     * and its modifier trails it ("[האנליסט]" + "החדש שלכם"), so there the rotor must come
+     * FIRST in the DOM. Under rtl a `flex-row` reverses visually, which means DOM order is
+     * reading order in both locales, and flipping that order is the only way to flip the
+     * sentence.
+     *
+     * `as boolean` and not a bare `false`, for the same reason `words` is widened one key up:
+     * `Translated<>` passes booleans through UNWIDENED (see shape.ts), so a literal `false`
+     * would pin Hebrew to `false` as well — the exact opposite of the point.
+     *
+     * ClixHero.tsx swaps the rotor box's justification off this flag too. The rotor is the
+     * OUTER element of the row in either arrangement, and its ink has to hug the INNER edge so
+     * the fixed box's slack falls on the outside instead of opening a gap that changes width
+     * in the middle of the sentence.
+     */
+    rotorLeads: false as boolean,
     /*
      * THE ROTOR BOX'S WIDTH, AND IT IS LOCALE-SPECIFIC, which is why it is a dictionary value
      * and not a class.

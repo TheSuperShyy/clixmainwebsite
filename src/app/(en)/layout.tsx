@@ -12,7 +12,13 @@
  *     For the RTL work that is strictly better: nothing has to read a request to know which
  *     direction it is rendering.
  *   · Navigating between `/product` and `/he/product` crosses a root-layout boundary, so Next
- *     does a full document load. That is correct here, not a cost — see LocaleToggle.tsx.
+ *     does a full document load. That is correct here, not a cost: `<html dir>` flips across
+ *     that boundary, so a client-side transition would crossfade an LTR snapshot into an RTL
+ *     live frame — a full-width horizontal jump of every line on the page — and a hard load
+ *     rebuilds every GSAP timeline from zero, which is what lets `useDirSign()` be treated as
+ *     stable for a mount's lifetime. (This used to cite `LocaleToggle.tsx`, which carried the
+ *     reasoning; that component was deleted 2026-08-16 with the nav's locale switch, so the
+ *     argument is restated here rather than lost.)
  *   · ⚠️ NEVER ADD `src/app/not-found.tsx`. With no root layout at `src/app/`, Next injects its
  *     own built-in layout for `/_not-found`; adding a custom one makes the file a non-builtin
  *     page, the injection stops, and the build EXITS 1 with "doesn't have a root layout". A

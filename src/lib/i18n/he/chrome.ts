@@ -57,11 +57,14 @@ export const chrome: ChromeDict = {
     links: {
       /* SOURCED — the real site's own nav labels, home.bodyText. */
       services: "שירותים",
-      industries: "תעשיות",
       work: "עבודות",
       about: "אודותינו",
       insights: "תובנות",
-      playground: "פלייגראונד",
+      /* SOURCED — replaced `playground` ("פלייגראונד") on 2026-08-16. Not newly authored: this
+         is the SAME STRING as `nav.labels[2]`, which was itself taken from the real site. The
+         slot now points at /security, and reusing the nav's word rather than inventing a
+         second one is the point — one route, one Hebrew name. */
+      security: "אבטחה",
       /* SOURCED — the real site's own three legal links, home.bodyText footer run. */
       terms: "תנאי שימוש",
       privacy: "מדיניות פרטיות",
@@ -72,6 +75,7 @@ export const chrome: ChromeDict = {
       /* Product names, Latin by the keep-Latin rule. The bidi isolation that keeps them from
          reordering against neighbouring Hebrew is applied in the component, not here. */
       instagram: "Instagram",
+      linkedin: "LinkedIn",
       whatsapp: "WhatsApp",
     },
     /* SOURCED verbatim — home.bodyText closes on "תוכנה שעובדת, תוצאות שמדברות."

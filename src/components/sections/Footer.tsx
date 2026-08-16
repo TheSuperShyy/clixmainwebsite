@@ -24,8 +24,13 @@
  * second place on the site with a real authored transition rather than an estimate.
  */
 
-import { Fragment } from "react";
+import { Fragment, type ComponentType } from "react";
 import AppLink from "@/components/ui/AppLink";
+import {
+  InstagramMark,
+  LinkedInMark,
+  WhatsAppMark,
+} from "./socialMarks";
 import { getChrome } from "@/lib/i18n/server";
 import type { ChromeDict } from "@/lib/i18n/dictionary";
 import { CONTACT } from "@/lib/contact";
@@ -41,30 +46,57 @@ type FooterLink = {
   /* Per-tier visibility, for the two links the original does not ship at every tier.
      See the open questions in FEATURE.md — reproduced, not corrected. */
   only?: "desktop" | "below-desktop";
+  /* Brand mark, on the three social entries only (2026-08-16). Optional, and the links that
+     omit it render exactly the markup they rendered before — see FooterLinkItem. */
+  icon?: ComponentType<{ className?: string }>;
 };
 
 /* `titleIndex` indexes `chrome.footer.groupTitles`, a fixed-length 4-tuple — four columns is
    layout, so the count is pinned by the type rather than by a comment. */
 type LinkGroup = { titleIndex: 0 | 1 | 2 | 3; links: FooterLink[] };
 
-/* Remapped 2026-08-05 onto clix's real IA and real accounts. Structure is the target's and
-   is unchanged: four columns, three links each plus a four-link Contact column, and the
-   same per-tier gating. Only the destinations moved.
+/* Remapped 2026-08-05 onto clix's real IA and real accounts. Structure was the target's and
+   was unchanged until 2026-08-16 — four columns, three links each plus a four-link Contact
+   column, with the same per-tier gating. Overview now carries TWO links, not three: the
+   target's shape lost to a working link, because the third had no honest destination. Every
+   other column still matches, and the four-column grid is untouched. */
 
-   The four `#` placeholders left by the 2026-08-03 brand rename are gone — every link in
-   the Contact column now resolves to something clix actually owns.
+/* ✅ EVERY LINK IN THIS FOOTER RESOLVES, as of 2026-08-16. It began that day with EIGHT of its
+   twelve internal links 404ing.
 
-   The destinations themselves moved OUT of this file on 2026-08-13, to src/lib/contact.ts,
-   because /contact's aside lists the same four and two copies of a phone number drift. That
-   move also corrected the email to the hyphenated `info@clix-solution.com` — read that
-   file's header before assuming the old address was right. */
+   How the eight closed, because the split matters more than the count:
+     · repointed at pages that already existed — Services → /product, Work → /#testimonials,
+       Insights → /news
+     · deleted or relabelled where no honest target existed — `industries` removed outright,
+       `playground` became `security`
+     · BUILT — /privacy, /terms and /accessibility, ported from the company's own published
+       documents in docs/reference/clixsolutions/pages/
+
+   All eight named real pages on the real clix site, which is why the last three were a port
+   rather than authorship. See features/legal-pages/ for what they say and, more importantly,
+   for the four promises the accessibility statement makes that this build does not yet keep. */
 const GROUPS: LinkGroup[] = [
   {
     titleIndex: 0,
     links: [
-      { key: "services", href: "/services" },
-      { key: "industries", href: "/industries" },
-      { key: "work", href: "/work" },
+      /* Repointed 2026-08-16, the same move made for `about` below on 2026-08-12 and for the
+         same reason: all three of this column's hrefs 404'd, and a footer link that lands on
+         Next's bare not-found is worse than no link.
+
+         `/product` is the page "Services" means — it is the route describing what clix
+         builds. `/#testimonials` is the home page's client-work band, which the nav already
+         calls "Customers"; it is the only client work on the site, so "Work" resolves there.
+         Note the LEADING SLASH: `#testimonials` alone would be a same-page scroll, correct
+         only in this footer's copy on `/`. `/#testimonials` is a real cross-route navigation
+         from the other five routes and AppLink's own same-route guard collapses it back to a
+         scroll on the home page — see the `/#contact` note in AppLink.tsx.
+
+         `industries` is GONE rather than repointed. Nothing on this site — no page, no
+         section, not a paragraph — is about industries, so every candidate target answered a
+         different question than the one clicked. Its EN and HE strings came out of the
+         dictionaries with it; git has them if the page is ever built. */
+      { key: "services", href: "/product" },
+      { key: "work", href: "/#testimonials" },
     ],
   },
   {
@@ -73,10 +105,23 @@ const GROUPS: LinkGroup[] = [
       /* Repointed 2026-08-12: was `/about`, which never existed and 404'd. `/company` is the
          clone of rogo.com/company and is the page this label means. The nav calls the same
          route "Company"; the labels differ because each list keeps its own capture's wording.
-         The other eight links in this footer still point at routes this repo does not have. */
+         The first of the three repointings; Overview's followed on 2026-08-16. */
       { key: "about", href: "/company" },
-      { key: "insights", href: "/insights" },
-      { key: "playground", href: "/playground" },
+      /* Repointed 2026-08-16. `/insights` 404'd. The real clix site's own `תובנות` is its
+         article hub ("what we learned from the workbench" — strategy and development pieces),
+         and `/news` is this repo's article page, so the KIND of page matches even though the
+         contents do not: ours aggregates external AI stories, theirs is clix's own writing.
+         The label stays "Insights" while the nav calls the same route "News" — the identical
+         divergence `about`/`Company` already carries two lines up, and for the same reason. */
+      { key: "insights", href: "/news" },
+      /* WAS `playground`, 2026-08-16 — a LABEL swap, not just a repoint, and the only one in
+         this footer. The real site's `פלייגראונד` is an interactive drag-and-drop node canvas
+         ("v0.1", desktop-only) where you wire up a system in the browser. Nothing here
+         resembles it and no existing page could answer that click, so the slot carries
+         `Security` instead: a real route, a trust page a business footer wants, and one of
+         three real pages (`/clix`, `/security`, `/news`) this footer linked to nowhere at all.
+         User's call, offered against deleting the slot the way `industries` was deleted. */
+      { key: "security", href: "/security" },
     ],
   },
   {
@@ -102,12 +147,21 @@ const GROUPS: LinkGroup[] = [
          Hebrew footer sends you to /he/contact. */
       { key: "letsStart", href: "/contact" },
       { key: "email", href: CONTACT.email },
-      { key: "instagram", href: CONTACT.instagram, external: true },
+      { key: "instagram", href: CONTACT.instagram, external: true, icon: InstagramMark },
+      /* Added 2026-08-16 at the user's request, and it BREAKS the target's column length:
+         Contact now renders FIVE links per tier where the original renders four. That is a
+         deliberate content addition, not a layout drift — the column is a flex stack with a
+         12px gap, so a fifth row extends it downward and nothing reflows sideways. The three
+         sibling columns stay 2/3/3 as before, and the tallest column has always set this
+         row's height. Sits beside Instagram because both are social profiles; WhatsApp and
+         Email are direct channels and stay together below.
+         ⚠️ The href is a PERSONAL profile — see the note in src/lib/contact.ts. */
+      { key: "linkedin", href: CONTACT.linkedin, external: true, icon: LinkedInMark },
       /* The original splits "Press" by tier — a mailto at >=1200, an x.com profile below —
-         which is why this column renders four links at every tier from five entries. clix
+         which is why this column rendered four links at every tier from five entries. clix
          has one WhatsApp number and no tier-specific alternative, so this is a single
-         ungated entry. The visible count per tier is unchanged at four. */
-      { key: "whatsapp", href: CONTACT.whatsapp, external: true },
+         ungated entry. */
+      { key: "whatsapp", href: CONTACT.whatsapp, external: true, icon: WhatsAppMark },
     ],
   },
 ];
@@ -120,6 +174,8 @@ const tierClass = (only?: FooterLink["only"]) =>
       : "";
 
 function FooterLinkItem({ item, label }: { item: FooterLink; label: string }) {
+  const Icon = item.icon;
+
   return (
     <div
       className={`relative h-auto w-auto max-w-[1024px] ${tierClass(item.only)}`}
@@ -129,13 +185,28 @@ function FooterLinkItem({ item, label }: { item: FooterLink; label: string }) {
           href={item.href}
           external={item.external}
           /* paper -> surface on hover. The `.3s cubic-bezier(.44,0,.56,1)` is the
-             capture's own, not an estimate — it is declared on the link style preset. */
-          className="text-paper no-underline transition-[color] duration-300
-                     hover:text-surface
-                     focus-visible:rounded-[2px] focus-visible:ring-2
-                     focus-visible:ring-paper focus-visible:outline-none"
+             capture's own, not an estimate — it is declared on the link style preset.
+             The mark inherits all of it through `currentColor`, so icon and label cross-fade
+             on the same curve instead of the text moving under a fixed icon.
+
+             `inline-flex` ONLY when there is a mark. The nine link items without one keep the
+             plain inline anchor they have always rendered — an unconditional flex would change
+             the box of every link in this footer to buy alignment for three of them. */
+          className={`text-paper no-underline transition-[color] duration-300
+                      hover:text-surface
+                      focus-visible:rounded-[2px] focus-visible:ring-2
+                      focus-visible:ring-paper focus-visible:outline-none
+                      ${Icon ? "inline-flex items-center gap-2" : ""}`}
           style={{ transitionTimingFunction: "var(--ease-rogo)" }}
         >
+          {/* NO `rtl:` VARIANT, AND BOTH HALVES OF THAT ARE DELIBERATE.
+              · The mark's SIDE flips on /he for free: a flex row's main axis follows the
+                inline direction, so `dir="rtl"` on the Hebrew <html> moves the icon to the
+                right — the reading-start side — with no variant to maintain.
+              · The mark's ARTWORK never flips. It is a trademark, not a direction glyph;
+                see the RTL note in socialMarks.tsx.
+              `flex-none` stops the 16px square being squeezed by the label beside it. */}
+          {Icon && <Icon className="h-4 w-4 flex-none" />}
           {label}
         </AppLink>
       </p>

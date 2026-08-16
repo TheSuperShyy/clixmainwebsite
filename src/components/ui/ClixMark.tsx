@@ -30,8 +30,14 @@
  * 24px it renders at, which covers 3x DPR. RGB is flattened to white by `geq` since a mask
  * reads only alpha; that drops it from 9.8 KB to 4.6 KB. Regenerate with:
  *
- *   ffmpeg -i src/app/icon.png -vf "crop=480:440:16:36,scale=96:88:flags=lanczos,\
+ *   ffmpeg -i docs/brand/clix-mark-512.png -vf "crop=480:440:16:36,scale=96:88:flags=lanczos,\
  *     format=rgba,geq=r=255:g=255:b=255:a='alpha(X,Y)'" -pix_fmt rgba public/clix-mark.png
+ *
+ * ⚠️ The source above is `docs/brand/clix-mark-512.png`, NOT `src/app/icon.png` — it was the
+ * latter until 2026-08-16, when the app icons were rebuilt from the plated brand JPEG so the
+ * Google-results favicon would stop being a transparent silhouette. `icon.png` now has no
+ * alpha channel and different padding, so the crop numbers above only hold for the 512
+ * transparent master, which was moved to `docs/brand/` for exactly this reason.
  *
  * `aria-hidden` always: the <Link> wrapping this already carries `aria-label="clix home"`,
  * and the wordmark beside it is the visible name. A third label would just be noise.

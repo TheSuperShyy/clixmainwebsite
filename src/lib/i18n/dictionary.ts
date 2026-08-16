@@ -42,6 +42,14 @@ import { clix as enClix } from "./en/clix";
 import { clix as heClix } from "./he/clix";
 import { contact as enContact } from "./en/contact";
 import { contact as heContact } from "./he/contact";
+import { notFound as enNotFound } from "./en/notFound";
+import { notFound as heNotFound } from "./he/notFound";
+import { privacy as enPrivacy } from "./en/privacy";
+import { privacy as hePrivacy } from "./he/privacy";
+import { terms as enTerms } from "./en/terms";
+import { terms as heTerms } from "./he/terms";
+import { accessibility as enAccessibility } from "./en/accessibility";
+import { accessibility as heAccessibility } from "./he/accessibility";
 
 /* ── shared chrome: rendered on every one of the 6 routes ──────────────────────────────── */
 
@@ -65,18 +73,26 @@ export interface ChromeDict {
     /** Four columns. Structural — tuple. */
     readonly groupTitles: readonly [string, string, string, string];
     readonly links: {
+      /* `industries` sat between these two until 2026-08-16, when the link was removed from
+         Footer.tsx for having no page and no section to point at. The key came out with it
+         rather than lingering as a string nothing reads — git holds the Hebrew if the page
+         is ever built. */
       readonly services: string;
-      readonly industries: string;
       readonly work: string;
       readonly about: string;
       readonly insights: string;
-      readonly playground: string;
+      /* Replaced `playground` on 2026-08-16. That label named an interactive canvas the real
+         clix site has and this one does not; `security` names a route that exists. The key
+         changed rather than the href alone because the visible WORD changed — this is the
+         footer's only label swap. */
+      readonly security: string;
       readonly terms: string;
       readonly privacy: string;
       readonly accessibility: string;
       readonly letsStart: string;
       readonly email: string;
       readonly instagram: string;
+      readonly linkedin: string;
       readonly whatsapp: string;
     };
     /**
@@ -158,6 +174,26 @@ export interface Dict {
      still points the right way — it widens the English literals so the Hebrew can differ, and
      that is a statement about TYPES, not about which file was written first. */
   readonly contact: Translated<typeof enContact>;
+  /* Added 2026-08-16 with the site's first 404 page. THE ONE NAMESPACE THAT IS NOT SCOPED TO
+     A ROUTE IN THE USUAL SENSE — `not-found.tsx` answers every unmatched path under its
+     locale segment, so this copy renders for URLs nobody wrote down. It is still a page
+     namespace and not `chrome`: it is read by exactly one body, the way `contact` is.
+     Authored in both locales; nothing to source. */
+  readonly notFound: Translated<typeof enNotFound>;
+  /* Added 2026-08-16 with /privacy. ⚠️ INVERTED like `contact`: he/privacy.ts is the SOURCE
+     (lifted verbatim from the real company site) and en/privacy.ts is a MACHINE TRANSLATION of
+     a legal document, published with an on-page note that the Hebrew governs. Read both file
+     headers before editing either. */
+  readonly privacy: Translated<typeof enPrivacy>;
+  /* Added 2026-08-16 with /terms and /accessibility. All three legal namespaces share the
+     `LegalDoc` shape in ./legal.ts and one pair of components, and all three are INVERTED like
+     `contact`: the `he/*` file is the source and the `en/*` file is an unreviewed machine
+     translation of a legal instrument.
+     ⚠️ `accessibility` is the one to read before touching this site's markup or palette — it
+     PROMISES a skip-to-content link, AA contrast and screen-reader testing that this build does
+     not currently have, and names a real person as responsible. See its file header. */
+  readonly terms: Translated<typeof enTerms>;
+  readonly accessibility: Translated<typeof enAccessibility>;
 }
 
 /** Every namespace except `chrome` — i.e. the ones scoped to a single route. */
@@ -173,6 +209,10 @@ export const DICTIONARIES: Record<Locale, Dict> = {
       news: enNews,
       clix: enClix,
       contact: enContact,
+      notFound: enNotFound,
+      privacy: enPrivacy,
+      terms: enTerms,
+      accessibility: enAccessibility,
   },
   he: {
     chrome: heChrome,
@@ -183,5 +223,9 @@ export const DICTIONARIES: Record<Locale, Dict> = {
       news: heNews,
       clix: heClix,
       contact: heContact,
+      notFound: heNotFound,
+      privacy: hePrivacy,
+      terms: heTerms,
+      accessibility: heAccessibility,
   },
 };

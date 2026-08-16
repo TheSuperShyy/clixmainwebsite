@@ -28,6 +28,12 @@ export const CONTACT_PHONE = "+972 55-948-3457";
 export const CONTACT = {
   email: `mailto:${CONTACT_EMAIL}`,
   instagram: "https://www.instagram.com/clix_solution/",
+  /* ⚠️ A PERSONAL PROFILE, NOT A COMPANY PAGE (added 2026-08-16, user-supplied). Every other
+     entry here is an org-level account; this one is `/in/…`, an individual's. It is the
+     account the user gave, so it is the account that ships — but if clix ever opens a
+     `/company/…` page, this is the line to change, and the footer label stays "LinkedIn"
+     either way. */
+  linkedin: "https://www.linkedin.com/in/ido-elmaliach-748413334/",
   /* The same number in wa.me's digits-only form. Kept next to CONTACT_PHONE rather than
      derived from it: stripping punctuation with a regex would be three lines of cleverness
      protecting one literal that changes when the company changes phone provider. */

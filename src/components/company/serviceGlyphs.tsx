@@ -173,14 +173,18 @@ export function TargetGlyph({ className }: GlyphProps) {
 /**
  * The roster, in the dictionary's order.
  *
- * ⚠️ INDEXED, NOT KEYED BY LABEL. `company.services.items` is a different eight strings on
- * /he, so a `Record<string, …>` lookup would silently render nothing in Hebrew. This array
- * and that tuple are the same eight things in the same order.
+ * ⚠️ INDEXED, NOT KEYED BY LABEL. `company.services.cards` is a different eight names on /he,
+ * so a `Record<string, …>` lookup would silently render nothing in Hebrew. This array and that
+ * tuple are the same eight things in the same order.
  *
  * The type is written as an eight-slot TUPLE, not `Glyph[]`, for the same reason the
- * dictionary's `items` is one: the count is the grid (2 rows × 4 = 344px, the measured box).
- * Adding a ninth service has to be a deliberate edit in three places — both dictionaries and
- * here — and this type is what makes the third one fail the build instead of the eye.
+ * dictionary's `cards` is one: the count is the grid. Adding a ninth service has to be a
+ * deliberate edit in FOUR places — both dictionaries, here, and `serviceArt.tsx` — and these
+ * tuple types are what make the last two fail the build instead of the eye.
+ *
+ * ⚠️ THEY RENDER AT 20px NOW, NOT 32px (2026-08-16). The tiles these sat above are gone; each
+ * mark is a card header mark beside its kicker, and the card's real illustration is the scene
+ * in `serviceArt.tsx`. Nothing about the drawings changed — only their box.
  */
 type ServiceGlyph = (props: GlyphProps) => ReactNode;
 

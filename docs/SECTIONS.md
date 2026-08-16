@@ -19,7 +19,7 @@ come from the target's own `data-framer-name` attributes — not from guessing a
 | 5 | `why-rogo` | Why financial institutions choose Rogo | `Series C Tenants` | **`review`** | **Built** → [features/why-rogo/](../features/why-rogo/). Two equal columns (`flex:1 0 0; width:1px`) with a **CSS-sticky headline** at `top:96px`; 5 items, each an icon tile + heading + body over a hairline rule. **The items are deliberately not uniform:** item 1 alone has `padding-top:72px` (what aligns the h2 with the first tile), items 4–5 gap 32 where 1–3 gap 28, item 5 alone has no rule, item 4's icon is 3px high in its frame. **Tablet headings are *bigger* than desktop's** — 28px vs 24px, on all five. Built with **no animation library** — the pin is native `position:sticky` and the capture emits zero `data-framer-appear-id` here, so a GSAP pin would add a pin-spacer the original doesn't have. **Framer's internal name is stale** ("Series C" vs. the Series D banner; "Tenants" is the author's spelling of *tenets*) — ignore it, slug is descriptive. Unticked: not diffed against the live site; hover states unobserved (the capture has no `:hover` anywhere in the subtree). |
 | 6 | `by-the-numbers` | By the numbers | `By the Numbers` | **`review`** | **Built** → [features/by-the-numbers/](../features/by-the-numbers/). 3 rows on a `card` `#eeedec` panel — 40,000+ users, 50,000+ daily queries, 300+ institutions — each a display number beside a bottom-aligned caption, over a `hairline` `border-top`. **`844 + 436 = 1280`**: the number cell's cap and the caption cell's cap sum to `--container-max`, so both bind at once and the caption column never drifts. Number leading is an **absolute `128px`**, so 96px (1200–1599.98) and 108px (≥1600) give identical 161px rows. **The count-up guess in this row was wrong** — the capture has zero `data-framer-appear-id`, zero transitions and no `:hover` in the subtree, so it was built static and `gsap` was declined; a JS code component could still do it, and that is the section's top open question. Unticked: not diffed against the live site. |
 | 7 | `security` | Built for enterprise, secure by design | `Security` (`#security`) | **`review`** | **Built** → [features/security/](../features/security/). The one dark section below the hero. Centred headline (**no `<br>`** — both lines come from a `400px` measure) over a 5-badge grid that drops 5 → 2 → 1 columns. 5 badge SVGs vendored to [public/badges/](../public/badges/), validated by rasterising. **Framer paints `data-border` on an `::after` overlay, not the box model** — which is how the original leaves the grid outline **ragged below 1200px** without anything reflowing: GDPR has `border-right:0` at both the 2-col and 1-col tiers, so the shape is open. Reproduced verbatim; **needs the user's call**. Also **needs a call: labels are `3.85:1` on `ink` and fail AA** (`#7f7f7f` would reach 4.56:1) — inherited, not introduced. Two delivery mechanisms and two label weights split the same way across the five badges, i.e. two authoring sessions. Unticked: only the ≥1200 tier compared to a live screenshot. |
-| 8 | `footer` | Footer + closing CTA | `Footer` | **`review`** | **Built** → [features/footer/](../features/footer/). CTA "Unlock financial AI for your firm" + demo button sits **inside** the footer block, as the inventory said. A **nested Framer component with its own tier-gating hashes** (`hidden-1leoyz4`/`16n7npo`/`d23fwj`/`1roolzl`) — re-derived, not reused. ⚠️ **Two of its five variants are never rendered and their CSS is a trap** — `framer-v-1cxbn18` declares a 2-up grid on the link row that looks like the tablet rule and is not. Divider is **two colours by tier** (`ink-soft/50` below 1200, `paper/10` at and above). Link hover is the site's **second measured transition** (`.3s cubic-bezier(.44,0,.56,1)`, colour only). **Three content differences between tiers**, all flagged: "Legal" ships at ≥1200 only, "Press" points at a mailto vs x.com, and the CTA has **no `href` at ≥1200** (the one deliberate deviation — ours uses the original's own `/demo` from its sibling variants). **Needs a call: `muted` titles/copyright are `3.85:1` on `ink` and fail AA.** **Map panel added 2026-08-11** (user request, ported from clix's own live site) as a fifth item in the link row, right-aligned — the one element here with no counterpart in the target. Keyless Google embed of Tel Aviv-Yafo at `z=12`; radius, filter, width and height all re-decided against this site's tokens rather than copied. ⚠️ Third-party embed, sets Google cookies, no consent gate anywhere on the site. |
+| 8 | `footer` | Footer + closing CTA | `Footer` | **`review`** | **Built** → [features/footer/](../features/footer/). CTA "Unlock financial AI for your firm" + demo button sits **inside** the footer block, as the inventory said. A **nested Framer component with its own tier-gating hashes** (`hidden-1leoyz4`/`16n7npo`/`d23fwj`/`1roolzl`) — re-derived, not reused. ⚠️ **Two of its five variants are never rendered and their CSS is a trap** — `framer-v-1cxbn18` declares a 2-up grid on the link row that looks like the tablet rule and is not. Divider is **two colours by tier** (`ink-soft/50` below 1200, `paper/10` at and above). Link hover is the site's **second measured transition** (`.3s cubic-bezier(.44,0,.56,1)`, colour only). **Three content differences between tiers**, all flagged: "Legal" ships at ≥1200 only, "Press" points at a mailto vs x.com, and the CTA has **no `href` at ≥1200** (the one deliberate deviation — ours uses the original's own `/demo` from its sibling variants). **Needs a call: `muted` titles/copyright are `3.85:1` on `ink` and fail AA.** **Map panel added 2026-08-11** (user request, ported from clix's own live site) as a fifth item in the link row, right-aligned — the one element here with no counterpart in the target. Keyless Google embed of Tel Aviv-Yafo at `z=12`; radius, filter, width and height all re-decided against this site's tokens rather than copied. ⚠️ Third-party embed, sets Google cookies, no consent gate anywhere on the site. **Link destinations decided 2026-08-16:** the Overview column's three hrefs all 404'd, so `Services` → `/product`, `Work` → `/#testimonials` (leading slash deliberate — a bare hash is a same-page scroll and would be inert on the other five routes), and **`Industries` was deleted rather than repointed** because nothing on this site is about industries. Its key came out of `ChromeDict` and both locale dicts too. **Structure now differs from the target by one link** — Overview carries two where the capture has three; the four-column grid and the gating are untouched. **Company column repointed the same day:** `Insights` → `/news`, and `Playground` → **`Security` → `/security`**, the footer's only LABEL swap — the real `פלייגראונד` is an interactive drag-and-drop node canvas with no analogue here, and `Security` was chosen because `/clix`, `/security` and `/news` were linked from this footer nowhere at all. Hebrew `אבטחה` is SOURCED (same string as `nav.labels[2]`). ✅ **Footer dead links 8 → 0 the same day** — `/privacy`, `/terms` and `/accessibility` were all built (see the legal-pages block below). Every link in this footer now resolves. ⚠️ **The remaining three are the whole Legal column, and they were NOT repointed on purpose** — no page here is a privacy policy and pointing at one that is not is worse than a 404. **All eight originally-dead links name real, captured pages** in `docs/reference/clixsolutions/pages/`, so Legal is a PORT of clix's own Hebrew copy (3 routes × 2 locales), not authorship. All three land on the styled 404 (below) meanwhile. |
 
 ## `/clix` — clone of `rogo.com/felix`
 
@@ -240,17 +240,100 @@ and the four-item gate is clear. It is guarded pending two answers, both the use
 the "Unit 8200 and Technion" credential is substantiable, and the placeholder photograph in
 Block 5. One line lifts it.
 
-⚠️ **Six bands, not five.** `Video` is a sibling of `Hero`, not a child.
+⚠️ **Six bands, not five** — ~~six~~ **FOUR as of 2026-08-16**, see the notes under the table.
+`Video` is a sibling of `Hero`, not a child.
 
 | # | Framer name | Component | Status |
 |---|---|---|---|
 | 1 | `Hero` | `CompanyHero` | `review` |
 | 2 | `Video` | `CompanyHero` (same file) | `review` |
 | 3 | `Mission` | `CompanyMission` | `review` |
-| 4 | `Team` → eight services | `CompanyServices` | `review` |
-| 5 | `Investors` → twelve tools | `CompanyTools` | `review` |
-| 6 | `Reiteration` | `CompanyCareers` | `review` ⚠️ see below |
-| 7 | `Footer` | shared `Footer` | `review` |
+| 4 | `Team` → eight services | `CompanyServices` | `review` ⚠️ **REBUILT 2026-08-16** |
+| ~~5~~ | ~~`Investors` → twelve tools~~ | ~~`CompanyTools`~~ | **DELETED 2026-08-16** |
+| ~~5~~ | ~~`Reiteration`~~ | ~~`CompanyCareers`~~ | **DELETED 2026-08-16** |
+| 5 | `Footer` | shared `Footer` | `review` |
+
+⚠️ **BAND 5 IS ALSO GONE (2026-08-16).** User: *"remove this part in company"*, pointing at
+"Join The Team Building / What Comes Next". Removed **whole** — headline, paragraph and the
+full-bleed photograph — because the copy was what identified the band and a headless photograph
+under no heading is a different block, not a smaller one. `company.careers` went from both
+dictionaries (4 keys each, all Hebrew ones AUTHORED, so Hebrew SOURCED moved 34/47 → 30/39).
+**`public/company/company-bg.jpg` is still on disk and now referenced by nothing** — left there
+deliberately, since deleting a user-supplied asset is its own call.
+
+⚠️ **THIS CLEARED ONE OF THE TWO `noindex` GATE ITEMS AS A SIDE EFFECT.** The stock photograph
+standing in for a team picture was gate item 2; only the unsubstantiated "Unit 8200 and
+Technion" line remains. **The guard has NOT been lifted and nobody has been asked.**
+
+**So /company is four bands now, down from six**, and both deletions were the user's call on the
+same day. The page closes on the services cards.
+
+⚠️ **BAND 5 IS GONE AND BAND 4 IS NO LONGER A CLONE (2026-08-16).** The user asked for a "huge
+ui update" here, naming the `#services` band on `clix-main-page.vercel.app`
+("פתרון מותאם לכל עסק.") as the reference — a sticky heading beside cards, each carrying an
+animation that presents what the service means.
+
+`CompanyTools` was **deleted outright**: it was rogo's `Investors` logo wall reused as clix's
+twelve tools, sitting directly beneath the services logo wall — the same shape saying less.
+Component, route wiring and the `tools` key in both dictionaries all went. `clix/toolMarks.tsx`
+survives untouched; /clix's `ClixLogoProof` still renders all twelve.
+
+`CompanyServices` went from rogo's **measured 4 → 4 → 1 grid of 164px tiles** to a **sticky
+heading column beside a 2-column grid of eight cards**, each with a mark, a numbered kicker, the
+service name, a 280×168 animated scene, and a one-line promise. **Its measured geometry is
+therefore GONE, not mislaid** — what survives verbatim is the band's outer box (`bone` ground,
+`96/64px` padding, `40/16px` gutter, `--container-max`) and the two type presets, which three
+other bands on this page share. This is the only block on the route that can no longer be
+diffed against the capture; it is judged on taste now, not fidelity.
+
+⚠️ **SEVEN OF THE EIGHT SCENES AND ALL 24 NEW COPY STRINGS ARE SOURCED**, which is what made the
+rebuild cheap and honest: `docs/reference/clixsolutions/content.json` (`services.bodyText`)
+already describes a distinct UI mock per service — the `Agent OS` roster, the WhatsApp thread,
+the `CRM · Q3` board, the `new-lead.workflow` node chain, the `98 PSI` browser, the
+`dashboard.tsx` editor, the `78 ai ready` scorecard — plus a numbered benefit kicker and a
+promise for all eight. **Mobile Development is the exception**: the capture describes no artwork
+for it, so that one scene is designed from the service's own bullet list and is the band's only
+invented picture. Hebrew SOURCED count went **18/31 → 34/47**, all sixteen new strings verbatim
+— the kickers had been *deliberately* omitted before, because the label-only tiles gave them
+nowhere to go without adding English copy to a route whose English render had to stay still.
+
+⚠️ **THE SCENES CARRY NO PROSE, SO ALL EIGHT ARE LOCALE-FREE.** Everything sentence-shaped is a
+grey bar; only machine tokens (`POST /lead`, `dashboard.tsx`, `98`, `1.2s`) are set as type,
+each `direction: ltr` so it reads correctly on /he. **Not one new dictionary key.** It also
+avoided porting the real site's chat mock, which is a stock template in someone else's business
+("2 kurtas", "Rs.1200"). The reference band does the same for three of its four arts — and two
+of those four do not animate at all.
+
+⚠️ **MOTION IS THREE SHARED CSS KEYFRAMES, NOT EIGHT BESPOKE ONES** — `service-step` (31
+elements), `service-pulse` (5), `service-rise` (6). The reference uses framer-motion, **which is
+not installed here** (`package.json`: `gsap` + `@gsap/react` only), and this repo already had
+the answer in /product Block 4's idle loops. The departure from that precedent is the sharing:
+/product's six each animated a different mechanism, whereas these eight all animate a sequence
+advancing through a list, so one staggered `service-step` covers roster rows, chat bubbles, flow
+nodes, page blocks, app screens, code lines, pipeline stages and score rows alike — and sharing
+is what makes eight very different pictures read as one band. The base-state invariant is
+inherited verbatim (overlays rest at `opacity: 0`, so the unanimated scene is the finished
+picture), which keeps the global reduced-motion clamp an exact no-op. Opacity and `translateY`
+only — Y because it is the one axis that does not flip under RTL, so unlike `.benefit-bar` these
+need no `[dir="rtl"]` companion.
+
+Other decisions: sticky offset `top: 96px` is **`why-rogo`'s existing value**, not a new number;
+`desktop:self-start` is load-bearing (a stretched flex item has no travel to stick in); the card
+column lands at **~304px, four pixels off the 308px tile it replaces**; cards **grow rather than
+clip** (`min-h-*` in a stretched grid — a deliberate divergence from /product's aspect-fixed
+benefit cards, affordable because this grid is 2 × 8 and that one is 3 × 6); card radius stays
+**0** against the reference's 8px, because this site's scale is `--radius-none` / `--radius-pill`;
+`serviceGlyphs.tsx` was **kept**, its eight marks moving to 20px in the card header, as the one
+constant across eight dissimilar scenes; and `EYEBROW_CLASS` is now **exported from
+`CompanyMission.tsx`** rather than a second preset being authored.
+
+Unticked: **nobody has looked at it.** Build, lint and a two-locale render parse are clean, but
+there is no render at 1600 / 1440 / 1024 / 390, no sticky check against the fixed nav, no RTL
+eyeball and no in-browser reduced-motion pass. Line counts for the sixteen new kickers and
+promises are unmeasured in both locales — they cannot clip, but they can look wrong. **Card 08
+prints the same sentence as both its kicker and its promise**, reproduced from the real site
+rather than "fixed"; that is an open copy question. The eight English kickers and promises are
+authored translations of the sourced Hebrew and have not been read by the user.
 
 ⚠️ **BAND 6 LOST ITS CTA ON 2026-08-13 AND NO LONGER MATCHES THE TARGET AT TWO TIERS.** The
 "See Careers" button pointed at `/careers`, which the user deleted the same day; it was removed
@@ -391,3 +474,39 @@ inside `#roles`, pills first. Two of the four broke the block-diff before it ran
 **Resolved 2026-08-02 — fidelity policy is 1:1.** Fonts and logos are no longer blockers:
 the real `.woff2` files (57) and the real customer logo SVGs (14) are vendored under
 [public/](../public/). Nothing on this page gets substituted or redrawn.
+
+## Page: 404 (`not-found`) — no clone target
+
+Added 2026-08-16. **The site's first page with no counterpart in the target OR on the real clix
+site**, so every string and every value in it is this repo's own. Spec + all borrowings:
+[features/not-found/](../features/not-found/). Copy in `src/lib/i18n/{en,he}/notFound.ts`.
+
+⚠️ **No reference exists and none can be captured**, so `FEATURE.md` replaces the measure-don't-
+eyeball rule with a **borrowing table** — every value traced to a section that WAS measured, and
+a value that cannot name a source does not belong on the page. No new tokens.
+
+| # | Section | Status | Notes |
+|---|---|---|---|
+| 1 | `not-found` | **`review`** | One `ink` band (`data-nav-theme="dark"`, `min-h-svh`) — 14px `muted` "404" label over a 44/48px `<h1>` and a back-home button reusing the footer CTA's internals verbatim. Nav and Footer are the shared ones. **Two Next.js findings, both measured against `next start` and both worth knowing before touching any route file:** (1) **a per-locale `not-found.tsx` is an error boundary, not a route** — it catches `notFound()` calls in its own segment and NEVER an unmatched URL, because only a root `app/not-found.tsx` does that and this app cannot have one (no root layout at `src/app/`; see the warning in `(en)/layout.tsx`). With both not-found files in place `/services` still fell through to Next's built-in 404. The fix is `(en)/[...notFound]/page.tsx` + `he/[...notFound]/page.tsx`, catch-alls that exist only to call `notFound()` and turn "no route matched" into a boundary hit. Static routes still win over catch-alls, and route handlers (`/api/*`) and metadata routes (`/icon.png`) resolve ahead of the page tree — all three checked. (2) **a not-found render does not get its locale root layout** — both locales serve `<html id="__next_error__">` with no `lang`/`dir`. The body and `<title>` localise correctly, which is why this was invisible in English and **laid the Hebrew out LTR**: every `[dir="rtl"]` rule and `rtl:` variant on this site is an ancestor selector. Fixed by a `display:contents` wrapper inside the body carrying `lang`/`dir` — no box generated, so fixed-position Nav and `min-h-svh` behave as under a real layout. **(3) A not-found render also never reaches Next's SCROLL RESET** (found 2026-08-16 from the user's report that the page opened in its own footer). A CDP probe over four navigations shows the failures are the two whose DESTINATION is a 404 — origin and footer both irrelevant: the stale offset simply CLAMPS to the new document's max (4130 → 596, that page's exact scroll height), and a short page's max IS its footer. Fixed by `ui/ScrollToTopOnRoute.tsx`, rendered by this route ONLY — it would fight `ScrollAndFocusHandler` and break back/forward restoration on any normal route. Keyed on `pathname` not mount, `behavior:"instant"`, and placed as a child so it precedes the view transition's `resolve()`. ⚠️ **The three Hebrew strings are AUTHORED and unread by a native speaker.** Unticked: never looked at in a browser at any tier — verified by status code, RSC payload and CDP scroll numbers only. |
+
+## Pages: `/privacy` · `/terms` · `/accessibility` — the company's own documents, not clones
+
+All three added 2026-08-16 at the user's request. **Not rogo routes and not measured against one** —
+the copy is ported verbatim from clix's own published documents
+(`docs/reference/clixsolutions/pages/{privacy,terms,accessibility}.html`, each re-checked against
+its live page the same day). **Six routes, ONE shared component pair** (`components/legal/`) behind
+the `LegalDoc` shape in `src/lib/i18n/legal.ts`; section slots are `lead` → `items` → `tail`,
+because the accessibility statement's §06 puts paragraphs on both sides of a list. Spec, the
+borrowing table and all the flags: [features/legal-pages/](../features/legal-pages/).
+
+⚠️⚠️ **THE ACCESSIBILITY STATEMENT PROMISES FOUR THINGS THIS BUILD DOES NOT DO** — a
+skip-to-content link (none exists), WCAG AA contrast (six documented failures in this repo's own
+docs, one of them on that very page), screen-reader testing (never done), and live regions for a
+chat (there is none). It is a declaration under Israeli regulation 35 / ת״י 5568 and **names a real
+person** as responsible. Reported in plain terms before the port; ported verbatim on the user's
+instruction. **Two of the four are cheaper to make true than to amend** — see the FEATURE.md.
+
+| # | Section | Status | Notes |
+|---|---|---|---|
+| 1 | `privacy-hero` | **`review`** | Dark band, `data-nav-theme="dark"`, every value borrowed from `ContactHero` (`pt-[198px]`, 14px `muted` eyebrow, 44/48px `<h1>`). Last-updated line is `paper-soft` not `muted` — it carries information found nowhere else on the page, so it does not get the eyebrow's sub-AA treatment. |
+| 2 | `privacy-body` | **`review`** | Light band, ten numbered sections + closing line. ⚠️ **THIS IS A LEGAL INSTRUMENT — do not reword anything.** Hebrew is the SOURCE (`he/privacy.ts`), English a machine translation. ⚠️ **It shipped under an on-page note that the Hebrew governs and the user had that note REMOVED the same day**, so the two routes now present as equally authoritative versions of one legal document with nothing on either page resolving a conflict; `he/privacy.ts` is still the source and still right by construction. Its absence is a decision — do not re-add it without asking. ⚠️ **The contact details are `{email}`/`{phone}` PLACEHOLDERS, not literals** — the published policy prints the stale `info@clixsolution.com` four times as the channel for exercising a statutory data right, so the page substitutes `CONTACT_EMAIL`/`CONTACT_PHONE` from `src/lib/contact.ts`; `interpolate()` is not used because these must be anchors. ⚠️ **`items` vs `paras` is an editorial split, not the source's** — the original is `<p>` throughout with no `<ul>`, and the enumerations were separated so a screen reader announces them as lists; it changes no word. Render order is items-then-paras and **section 06 is the only one that depends on it** (two rights, then a procedural note). ⚠️ **THREE POLICY STATEMENTS DO NOT DESCRIBE THIS BUILD** and were reported rather than patched: a phone number is listed as collected (no phone field on the form), statistical measurement is claimed (no analytics exists on this site), and Google is not named as a processor although the footer's map sets its cookies with no consent gate. Indexable, no `robots` guard — the content belongs to the company it is about. Unticked: never looked at in a browser; Hebrew unread by a native speaker; **English translation unreviewed by a lawyer**. |

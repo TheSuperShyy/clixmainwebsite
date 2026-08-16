@@ -273,6 +273,72 @@ not a drop-in substitute, being a near-black reserved for display type.
 Dark mode: **no** `prefers-color-scheme` support in the original. Sections are individually
 light or dark by design, not theme-switched.
 
+## Added 2026-08-16 — `/company` Block 3's eight service accents
+
+⚠️ **THE FIRST COLOUR ON THIS SITE THAT IS NOT INHERITED FROM A CAPTURE.** Every other row in
+this file was measured off rogo's pages or clix's own; these eight were chosen. They are a
+deliberate, scoped exception to two rules stated elsewhere in this document — "the home page is
+monochrome and must stay that way" and "the site's one brand colour is `forest` and it belongs
+to `/clix`" — and **both of those rules still stand**. Nothing below is used anywhere except
+`/company`'s services band.
+
+**Why here.** That band stopped being a clone on 2026-08-16 (see
+`features/company-page/FEATURE.md`, Block 3): it is now eight cards, each presenting a service
+through a small animated UI scene, and the user asked for colour on it. There is no capture to
+defer to, so this is a design decision recorded as one.
+
+**One accent per card, matched POSITIONALLY** — the same contract as `SERVICE_GLYPHS` and
+`SERVICE_ART`, and named by index for the same reason: the eight service names are different
+strings on `/he`, so nothing may key off them. The mapping lives in `SERVICE_ACCENTS` in
+`CompanyServices.tsx` and nowhere else.
+
+| Token | Value | Card | On white | On `bone` | On `mock-panel` |
+|---|---|---|---|---|---|
+| `svc-1` | `#0f6b63` | AI Agents — teal | 6.36:1 | 5.69:1 | 6.09:1 |
+| `svc-2` | `#186b3d` | WhatsApp Automation — green | 6.54:1 | 5.85:1 | 6.27:1 |
+| `svc-3` | `#1f5c9e` | CRM Implementation — blue | 6.81:1 | 6.09:1 | 6.53:1 |
+| `svc-4` | `#4a53b8` | Integrations — indigo | 6.52:1 | 5.83:1 | 6.25:1 |
+| `svc-5` | `#7647b0` | Web Development — violet | 6.37:1 | 5.69:1 | 6.10:1 |
+| `svc-6` | `#a63878` | Mobile Development — plum | 6.07:1 | 5.43:1 | 5.82:1 |
+| `svc-7` | `#8a5312` | Custom Software — bronze | 6.31:1 | 5.65:1 | 6.05:1 |
+| `svc-8` | `#a3441c` | AI Strategy — rust | 6.17:1 | 5.52:1 | 5.92:1 |
+
+⚠️ **THEY ARE A SET, NOT EIGHT PICKS.** The whole point is that no card reads louder than its
+neighbours, so every one lands between **6.07 and 6.81:1 on white — a 0.74 spread**. That was
+tuned, not guessed: the first pass ran 5.35 to 7.58 and the indigo card visibly dominated the
+grid. If a ninth is ever added, match the band or the set stops working.
+
+⚠️ **ALL EIGHT CLEAR AA ON ALL THREE GROUNDS THEY TOUCH.** Worst case is the plum at 5.43:1 on
+`bone`. That is not decorative headroom — several of them carry real type inside the scenes
+(`+38%`, `98`, `build ok`, `78`), which is why the check covers three backgrounds and not one.
+
+⚠️ **RESTRAINT IS THE DESIGN, AND IT IS ENFORCED BY CONVENTION, NOT BY CODE.** An accent may
+paint only: a scene's live dot, its ONE outcome element, its primary bar fill, the travelling
+highlight, and the card's mark and number on hover. Card chrome, headings, body copy and every
+supporting bar stay `ink` / `muted`. Eight cards each shouting in their own colour would be
+worse than the monochrome band this replaced.
+
+**How they reach the artwork.** `CompanyServices` sets `--accent` on each `<li>`;
+`serviceArt.tsx` reads `var(--accent, var(--color-ink))` and never knows which colour it got —
+so a scene rendered outside a card degrades to the monochrome version it was built as.
+
+## Added 2026-08-16 — the first shadow on this site
+
+The Radius · Shadow · Border table below has said "Shadows — none found in the capture" since
+2026-08-02, and that is still true **of the capture**. This one is ours.
+
+| Token | Value | Where |
+|---|---|---|
+| `shadow-float` | `0 1px 2px rgb(21 21 21 / 0.05), 0 16px 40px -12px rgb(21 21 21 / 0.16)` | `/company` Block 3 — the sticky heading while pinned, and a card on hover |
+
+Built from **`ink` at low alpha, not from black**, so it derives from an existing token rather
+than introducing a colour. Two layers because one cannot do both jobs: the 1px contact shadow
+keeps the edge crisp against `bone`, the wide one is what reads as height.
+
+Used in exactly two places, both on that band. It exists because the user asked for a heading
+that "floats when floating" and for cards that lift on hover — neither of which a flat design
+can express.
+
 ## Typography
 
 **Type scale observed** (px): 108 · 96 · 64 · 56 · 48 · 44 · 40 · 36 · 32 · 28 · 24 · 20 ·
@@ -405,7 +471,7 @@ not noise. The large end (56/72/80/88/108/164) is **section-specific rhythm**, n
 | `radius-pill` | `10000px` ×2 | buttons / badges |
 | `radius-sm` | `6px` ×1 | single one-off |
 | `border` | `#a8a29e33` hairline | |
-| Shadows | none found in the capture | flat design; confirm visually per section |
+| Shadows | none found in the capture | flat design. ⚠️ **One was ADDED 2026-08-16** — `shadow-float`, ours not rogo's, scoped to `/company` Block 3. See its section above. |
 
 ## Breakpoints
 
