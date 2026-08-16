@@ -17,6 +17,89 @@ Line format:
 
 ## 2026-08-16
 
+- `nav` — **The locale switch is gone from the nav, SITEWIDE** (user: "remove this translate
+  button"). Three call sites in `Nav.tsx` and `src/components/ui/LocaleToggle.tsx`, all deleted.
+  ⚠️ **`Nav.tsx` is shared by every route, so `/he/*` still builds and serves but has no link to
+  it from anywhere in the UI** — the Hebrew dictionaries, the `he/` route group and every RTL
+  mechanism are untouched; only the entry point went. Two prose comments cited the deleted file
+  for reasoning that is still true (`(en)/layout.tsx` on why the locale boundary must be a hard
+  document load, `i18n/config.ts` on why there is no middleware), so **the reasoning was
+  restated in place rather than left pointing at nothing**.
+  → [detail](../features/company-page/CONTEXT.md)
+- `company-page` — **Block 5 (`Reiteration` → `CompanyCareers`) deleted** (user: "remove this
+  part in company"). Taken as the WHOLE band rather than just the copy the user pointed at: the
+  headline is what identified the block, and the full-bleed photograph under no heading would be
+  a different block, not a smaller one. `company.careers` out of both dictionaries — 4 keys
+  each, all Hebrew ones AUTHORED, so Hebrew SOURCED moved 34/47 → 30/39 and no captured string
+  was lost. ⚠️ **`public/company/company-bg.jpg` is still on disk, referenced by nothing** —
+  left deliberately, since it was user-supplied and deleting it is its own call. ⚠️ **This
+  cleared one of the two `noindex` gate items as a SIDE EFFECT, not by decision** — the stock
+  photo standing in for a team picture was item 2; only the unsubstantiated "Unit 8200 and
+  Technion" line remains, **the guard is untouched, and nobody has been asked.** /company is
+  **four bands now, down from six**, both deletions the user's call the same day.
+  ⚠️ **Known open bug, reported and not fixed: Block 3's sticky heading hides under the nav when
+  scrolling UP** — the banner returns on upward scroll, taking the header 70px → 115px, while
+  the heading pins at 96px, so it clears the header in one direction only. A `--nav-peak-h`
+  token was drafted and not applied. → [detail](../features/company-page/CONTEXT.md)
+- `company-page` — **Two bugs the user caught on Block 3, plus the pinned panel reverted.**
+  ⚠️ **`overflow-hidden` ON THE SECTION WAS KILLING `position: sticky`** — inherited from the
+  capture and kept through the rebuild; an `overflow: hidden` ancestor becomes the sticky
+  element's scroll container. **The symptom was misleading**: the lift's observer watched a
+  sentinel rather than the element, so the white panel still appeared on cue and simply slid
+  away with the page. ⚠️ **A hovered card painted across the fixed nav** — `hover:z-10` vs the
+  nav's `z-[3]`, both in the ROOT stacking context; fixed with `isolation: isolate` on the
+  `<ul>`, which keeps the card z-order local. ⚠️ **BOTH VERIFICATION ATTEMPTS GAVE FALSE
+  READINGS FIRST, and both traps are this site's own:** `scroll-behavior: smooth` is global so
+  `scrollTo` animates and every rect read after it is mid-flight, and **the nav's banner
+  retracts ~300ms after a downward scroll** (115px → 70px), so a probe point computed before it
+  settles falls outside the header and `elementsFromPoint` reports the card on top of a build
+  that is already fixed. **Rule: on this site, never measure immediately after a programmatic
+  scroll — two independent animations have to settle, and neither is yours.** Verified over CDP
+  with headless Chrome driven from raw node (no puppeteer): sticky top locked at 96px while
+  card 1 runs −4 → −844, and the hovered hit stack reads `hero-nav-blur → HEADER → LI`.
+  Finally, the user saw the pinned white panel and asked for it gone — **`StickyLift.tsx` is
+  deleted and the band is a pure server component again with no client JS**, the pin itself
+  kept. Removing its padding hack also restored real alignment (heading and card 1 both at
+  531). A hover-scale bump 2.5% → 4% was proposed and **rejected mid-edit; it stays at 1.025.**
+  → [detail](../features/company-page/CONTEXT.md)
+- `company-page` — **Block 3 second pass: colour, a floating heading, a card hover** (user:
+  "add some colors and make the header floats when floating… when hovering to a card, make it
+  bigger"). ⚠️ **THE EIGHT `--color-svc-*` ACCENTS ARE THE FIRST COLOUR ON THIS SITE THAT WAS
+  CHOSEN RATHER THAN MEASURED**, and `shadow-float` the first shadow against a capture that has
+  none — both scoped to this one band, both recorded in DESIGN-SYSTEM.md with the precedent
+  noted as an open question. The accents are a **set**, not eight picks: all between 6.07 and
+  6.81:1 on white (a 0.74 spread, tuned down from 5.35–7.58 where the indigo card dominated),
+  and all AA on the three grounds they touch, because several carry real type. Each `<li>` sets
+  `--accent`; **no scene knows which colour it got**. The heading now lifts into a white panel
+  while pinned via `StickyLift` (sentinel + one IntersectionObserver, server-rendered children).
+  **Three things were wrong first and are worth remembering:** a sentinel cannot be a sibling of
+  a sticky flex item; **`desktop:items-start` made the heading never pin at all** (a stretched
+  wrapper IS the sticky child's travel — the exact opposite of what a directly-sticky flex item
+  needs); and padding cannot be part of the pinned state, since it shifts the headline and
+  animates a layout property. Card hover is `scale(1.025)` + lift + shadow + accent wash, all by
+  `transform` — **because each scene is a container query and a real width change would
+  re-resolve `--u` every frame.** ⚠️ **Found, not fixed: Tailwind is scanning
+  `docs/reference/clixsolutions/pages/*.html`** and emitting utilities for a captured
+  third-party site; pre-existing since 2026-08-11, sitewide, one `@source not` line, left for
+  its own task. Build/lint/two-locale render parse clean; **still not looked at.**
+  → [detail](../features/company-page/CONTEXT.md)
+- `company-page` — **Block 4 deleted and Block 3 rebuilt as eight animated cards** (user:
+  "huge ui update"). `CompanyTools` ("Built On Tools Your Team Already Uses") is gone from the
+  component tree and both dictionaries; `clix/toolMarks.tsx` survives for /clix. The services
+  band went from rogo's measured 8-tile grid to a **sticky heading beside a 2-column card
+  grid**, each card carrying a 280×168 scene that animates what the service produces. **Seven
+  of the eight scenes and all twenty-four new copy strings are SOURCED** from
+  `docs/reference/clixsolutions/` — clix's own services page already ships a mock, a numbered
+  kicker and a promise per service; only Mobile Development's picture is designed. Hebrew
+  SOURCED count 18/31 → 34/47, all sixteen new strings verbatim. The reference band the user
+  named uses framer-motion, **which is not installed** — the answer is /product Block 4's CSS
+  idle loops instead, but **three SHARED keyframes rather than eight bespoke ones**, because
+  all eight scenes animate the same mechanism (a sequence advancing) and sharing is what makes
+  them read as one band. Base-state invariant inherited verbatim, so reduced motion is an exact
+  no-op. **Scenes carry no prose** — grey bars plus `direction: ltr` machine tokens — so all
+  eight are locale-free and cost zero new dictionary keys. Build, lint and a two-locale render
+  parse all clean; **nobody has looked at it yet.**
+  → [detail](../features/company-page/CONTEXT.md)
 - `felix-page` — **The Hebrew hero rotor now names the same two roles as English** (`האנליסט` /
   `המשקיע` under `החדש שלכם`), after a reviewer flagged that `/he/clix` said something different
   from `/clix`. It did, on purpose — the Hebrew was four roles restored from clix's own services

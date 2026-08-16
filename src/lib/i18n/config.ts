@@ -9,10 +9,12 @@
  * under `/he`, served by two route groups — `src/app/(en)/**` and `src/app/he/**` — not by a
  * `[lang]` segment behind a rewrite. A rewrite was the first design and was rejected on
  * evidence: Next sets `x-nextjs-rewritten-path`, so under a rewrite `usePathname()` can return
- * the INTERNAL path (`/en/product`) rather than the public one. Both `LocaleToggle` (which
- * builds the counterpart path) and `ViewTransitions.tsx` (whose commit resolver compares
- * pathnames) sit on `usePathname()`, so a rewrite aims a hazard at the two files this repo
- * stabilised on 2026-08-12. Route groups contribute nothing to the URL, so the bare English
+ * the INTERNAL path (`/en/product`) rather than the public one. `ViewTransitions.tsx` (whose
+ * commit resolver compares pathnames) sits on `usePathname()`, so a rewrite aims a hazard at a
+ * file this repo stabilised on 2026-08-12. `LocaleToggle` was the second such file and the
+ * reason this was written in the plural; it was deleted 2026-08-16 with the nav's locale
+ * switch. The argument is unchanged — anything that rebuilds a counterpart path from
+ * `usePathname()` hits the same hazard, and a locale switch is the obvious thing to re-add. Route groups contribute nothing to the URL, so the bare English
  * paths survive by construction, with no middleware in front of a site that is otherwise a
  * CDN plus one function.
  *
@@ -35,8 +37,16 @@ export const DIRECTION: Record<Locale, Direction> = { en: "ltr", he: "rtl" };
     without changing every url in the app. */
 export const HTML_LANG: Record<Locale, string> = { en: "en", he: "he" };
 
-/** What the toggle prints. Each label is written IN its own language on purpose — see
-    LocaleToggle.tsx for why that is the accessibility win and not a styling choice. */
+/** Each label is written IN its own language on purpose, and that is an accessibility win
+    rather than a styling choice: carried on a `lang` attribute, a screen reader switches voice
+    and pronounces the destination language correctly (WCAG technique G81). ⚠️ If a switch is
+    ever re-added, do NOT give it an English `aria-label` — that overrides the label below and
+    destroys exactly this benefit.
+
+    ⚠️ NOTHING RENDERS THESE AS OF 2026-08-16. The nav's locale switch was removed on the
+    user's call and `LocaleToggle.tsx` deleted with it, so `/he/*` still builds and still
+    serves but has no link to it from the UI. Kept because the locales themselves are intact
+    and this is the record of how their labels are meant to be written. */
 export const LOCALE_LABEL: Record<Locale, string> = { en: "English", he: "עברית" };
 
 export function isLocale(value: string): value is Locale {

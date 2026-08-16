@@ -240,17 +240,100 @@ and the four-item gate is clear. It is guarded pending two answers, both the use
 the "Unit 8200 and Technion" credential is substantiable, and the placeholder photograph in
 Block 5. One line lifts it.
 
-⚠️ **Six bands, not five.** `Video` is a sibling of `Hero`, not a child.
+⚠️ **Six bands, not five** — ~~six~~ **FOUR as of 2026-08-16**, see the notes under the table.
+`Video` is a sibling of `Hero`, not a child.
 
 | # | Framer name | Component | Status |
 |---|---|---|---|
 | 1 | `Hero` | `CompanyHero` | `review` |
 | 2 | `Video` | `CompanyHero` (same file) | `review` |
 | 3 | `Mission` | `CompanyMission` | `review` |
-| 4 | `Team` → eight services | `CompanyServices` | `review` |
-| 5 | `Investors` → twelve tools | `CompanyTools` | `review` |
-| 6 | `Reiteration` | `CompanyCareers` | `review` ⚠️ see below |
-| 7 | `Footer` | shared `Footer` | `review` |
+| 4 | `Team` → eight services | `CompanyServices` | `review` ⚠️ **REBUILT 2026-08-16** |
+| ~~5~~ | ~~`Investors` → twelve tools~~ | ~~`CompanyTools`~~ | **DELETED 2026-08-16** |
+| ~~5~~ | ~~`Reiteration`~~ | ~~`CompanyCareers`~~ | **DELETED 2026-08-16** |
+| 5 | `Footer` | shared `Footer` | `review` |
+
+⚠️ **BAND 5 IS ALSO GONE (2026-08-16).** User: *"remove this part in company"*, pointing at
+"Join The Team Building / What Comes Next". Removed **whole** — headline, paragraph and the
+full-bleed photograph — because the copy was what identified the band and a headless photograph
+under no heading is a different block, not a smaller one. `company.careers` went from both
+dictionaries (4 keys each, all Hebrew ones AUTHORED, so Hebrew SOURCED moved 34/47 → 30/39).
+**`public/company/company-bg.jpg` is still on disk and now referenced by nothing** — left there
+deliberately, since deleting a user-supplied asset is its own call.
+
+⚠️ **THIS CLEARED ONE OF THE TWO `noindex` GATE ITEMS AS A SIDE EFFECT.** The stock photograph
+standing in for a team picture was gate item 2; only the unsubstantiated "Unit 8200 and
+Technion" line remains. **The guard has NOT been lifted and nobody has been asked.**
+
+**So /company is four bands now, down from six**, and both deletions were the user's call on the
+same day. The page closes on the services cards.
+
+⚠️ **BAND 5 IS GONE AND BAND 4 IS NO LONGER A CLONE (2026-08-16).** The user asked for a "huge
+ui update" here, naming the `#services` band on `clix-main-page.vercel.app`
+("פתרון מותאם לכל עסק.") as the reference — a sticky heading beside cards, each carrying an
+animation that presents what the service means.
+
+`CompanyTools` was **deleted outright**: it was rogo's `Investors` logo wall reused as clix's
+twelve tools, sitting directly beneath the services logo wall — the same shape saying less.
+Component, route wiring and the `tools` key in both dictionaries all went. `clix/toolMarks.tsx`
+survives untouched; /clix's `ClixLogoProof` still renders all twelve.
+
+`CompanyServices` went from rogo's **measured 4 → 4 → 1 grid of 164px tiles** to a **sticky
+heading column beside a 2-column grid of eight cards**, each with a mark, a numbered kicker, the
+service name, a 280×168 animated scene, and a one-line promise. **Its measured geometry is
+therefore GONE, not mislaid** — what survives verbatim is the band's outer box (`bone` ground,
+`96/64px` padding, `40/16px` gutter, `--container-max`) and the two type presets, which three
+other bands on this page share. This is the only block on the route that can no longer be
+diffed against the capture; it is judged on taste now, not fidelity.
+
+⚠️ **SEVEN OF THE EIGHT SCENES AND ALL 24 NEW COPY STRINGS ARE SOURCED**, which is what made the
+rebuild cheap and honest: `docs/reference/clixsolutions/content.json` (`services.bodyText`)
+already describes a distinct UI mock per service — the `Agent OS` roster, the WhatsApp thread,
+the `CRM · Q3` board, the `new-lead.workflow` node chain, the `98 PSI` browser, the
+`dashboard.tsx` editor, the `78 ai ready` scorecard — plus a numbered benefit kicker and a
+promise for all eight. **Mobile Development is the exception**: the capture describes no artwork
+for it, so that one scene is designed from the service's own bullet list and is the band's only
+invented picture. Hebrew SOURCED count went **18/31 → 34/47**, all sixteen new strings verbatim
+— the kickers had been *deliberately* omitted before, because the label-only tiles gave them
+nowhere to go without adding English copy to a route whose English render had to stay still.
+
+⚠️ **THE SCENES CARRY NO PROSE, SO ALL EIGHT ARE LOCALE-FREE.** Everything sentence-shaped is a
+grey bar; only machine tokens (`POST /lead`, `dashboard.tsx`, `98`, `1.2s`) are set as type,
+each `direction: ltr` so it reads correctly on /he. **Not one new dictionary key.** It also
+avoided porting the real site's chat mock, which is a stock template in someone else's business
+("2 kurtas", "Rs.1200"). The reference band does the same for three of its four arts — and two
+of those four do not animate at all.
+
+⚠️ **MOTION IS THREE SHARED CSS KEYFRAMES, NOT EIGHT BESPOKE ONES** — `service-step` (31
+elements), `service-pulse` (5), `service-rise` (6). The reference uses framer-motion, **which is
+not installed here** (`package.json`: `gsap` + `@gsap/react` only), and this repo already had
+the answer in /product Block 4's idle loops. The departure from that precedent is the sharing:
+/product's six each animated a different mechanism, whereas these eight all animate a sequence
+advancing through a list, so one staggered `service-step` covers roster rows, chat bubbles, flow
+nodes, page blocks, app screens, code lines, pipeline stages and score rows alike — and sharing
+is what makes eight very different pictures read as one band. The base-state invariant is
+inherited verbatim (overlays rest at `opacity: 0`, so the unanimated scene is the finished
+picture), which keeps the global reduced-motion clamp an exact no-op. Opacity and `translateY`
+only — Y because it is the one axis that does not flip under RTL, so unlike `.benefit-bar` these
+need no `[dir="rtl"]` companion.
+
+Other decisions: sticky offset `top: 96px` is **`why-rogo`'s existing value**, not a new number;
+`desktop:self-start` is load-bearing (a stretched flex item has no travel to stick in); the card
+column lands at **~304px, four pixels off the 308px tile it replaces**; cards **grow rather than
+clip** (`min-h-*` in a stretched grid — a deliberate divergence from /product's aspect-fixed
+benefit cards, affordable because this grid is 2 × 8 and that one is 3 × 6); card radius stays
+**0** against the reference's 8px, because this site's scale is `--radius-none` / `--radius-pill`;
+`serviceGlyphs.tsx` was **kept**, its eight marks moving to 20px in the card header, as the one
+constant across eight dissimilar scenes; and `EYEBROW_CLASS` is now **exported from
+`CompanyMission.tsx`** rather than a second preset being authored.
+
+Unticked: **nobody has looked at it.** Build, lint and a two-locale render parse are clean, but
+there is no render at 1600 / 1440 / 1024 / 390, no sticky check against the fixed nav, no RTL
+eyeball and no in-browser reduced-motion pass. Line counts for the sixteen new kickers and
+promises are unmeasured in both locales — they cannot clip, but they can look wrong. **Card 08
+prints the same sentence as both its kicker and its promise**, reproduced from the real site
+rather than "fixed"; that is an open copy question. The eight English kickers and promises are
+authored translations of the sourced Hebrew and have not been read by the user.
 
 ⚠️ **BAND 6 LOST ITS CTA ON 2026-08-13 AND NO LONGER MATCHES THE TARGET AT TWO TIERS.** The
 "See Careers" button pointed at `/careers`, which the user deleted the same day; it was removed

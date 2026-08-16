@@ -102,9 +102,13 @@ import { getDict } from "@/lib/i18n/server";
    the id, which is markup plumbing rather than copy, stays here. */
 const TEAM_LABEL_ID = "company-mission-team";
 
-/* Shared by both eyebrows. `letterSpacing: "normal"` is measured, not an oversight. */
-const EYEBROW_CLASS = "w-full font-sans text-[12px] font-normal uppercase text-muted";
-const EYEBROW_STYLE = { lineHeight: "130%", letterSpacing: "normal" } as const;
+/* Shared by both eyebrows. `letterSpacing: "normal"` is measured, not an oversight.
+   ⚠️ EXPORTED SINCE 2026-08-16 — CompanyServices' eight card kickers are the same eyebrow and
+   must not drift from these two. `w-full` is deliberately NOT in the class: this band centres
+   its eyebrow in a block and Services sets it beside a 20px mark in a flex row, so the width
+   belongs to the call site. Both callers add it (or do not) themselves. */
+export const EYEBROW_CLASS = "font-sans text-[12px] font-normal uppercase text-muted";
+export const EYEBROW_STYLE = { lineHeight: "130%", letterSpacing: "normal" } as const;
 
 export default function CompanyMission() {
   /* Server component, so the dictionary is read directly. No prop, no context: the
@@ -162,7 +166,7 @@ export default function CompanyMission() {
         >
           {/* `.framer-14sccda` [Column] — label → list gap 16, list gap 4. */}
           <div className="flex w-full flex-col gap-4 self-start">
-            <p id={TEAM_LABEL_ID} className={EYEBROW_CLASS} style={EYEBROW_STYLE}>
+            <p id={TEAM_LABEL_ID} className={`w-full ${EYEBROW_CLASS}`} style={EYEBROW_STYLE}>
               {t.teamLabel}
             </p>
             {/* Three sibling <p>s in the original. A list here instead: it is genuinely a
@@ -192,7 +196,7 @@ export default function CompanyMission() {
               (`<span>New York, NY</span><br><span>United States</span>`). One paragraph, so
               the city and the country stay a single announced phrase. */}
           <div className="flex w-full flex-col gap-4 self-start">
-            <p className={EYEBROW_CLASS} style={EYEBROW_STYLE}>
+            <p className={`w-full ${EYEBROW_CLASS}`} style={EYEBROW_STYLE}>
               {t.locatedInLabel}
             </p>
             <p

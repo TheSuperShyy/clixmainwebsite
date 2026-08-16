@@ -43,7 +43,6 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import AppLink from "@/components/ui/AppLink";
-import LocaleToggle from "@/components/ui/LocaleToggle";
 import { useChrome, useLocale } from "@/lib/i18n/LocaleProvider";
 import { localeHref } from "@/lib/i18n/config";
 import ClixWordmark from "@/components/ui/ClixWordmark";
@@ -511,8 +510,10 @@ export default function Nav({
                 <ClixWordmark />
               </Link>
             </div>
+            {/* `gap-2` and the wrapper are kept even though this now holds a single child —
+                the locale switch that sat here was removed 2026-08-16 (user's call), and
+                re-adding any second control should not mean re-deriving the row. */}
             <div className="flex w-min items-center gap-2">
-              <LocaleToggle light={light} />
               <button
                 ref={toggleRef}
                 type="button"
@@ -584,9 +585,6 @@ export default function Nav({
                 here but kept in NavButton — the >=1200 header still has no second button
                 either, and re-adding one should not mean re-deriving the variant. */}
               <div className="mt-4 flex items-center gap-2">
-                {/* Panel is `bg-ink` in every theme state, so `light` is unconditionally false
-                    here — the dark-surface palette always applies. */}
-                <LocaleToggle light={false} />
                 <NavButton variant="inverse" light={false} href="/contact">
                   {t.nav.cta}
                 </NavButton>
@@ -684,8 +682,9 @@ export default function Nav({
             <div className="flex w-min items-center gap-2 overflow-hidden">
               {/* Safe to widen this group: the link row beside it is ABSOLUTELY centred
                   (`left-1/2 -translate-x-1/2` below), which its own comment says is deliberate
-                  so the links stay optically centred however wide the button group gets. */}
-              <LocaleToggle light={light} />
+                  so the links stay optically centred however wide the button group gets. That
+                  property is why a locale switch could be added here without re-measuring the
+                  nav, and why removing it on 2026-08-16 moved nothing either. */}
               <NavButton variant="inverse" light={light} href="/contact">
                 {t.nav.cta}
               </NavButton>

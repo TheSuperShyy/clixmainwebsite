@@ -4,11 +4,24 @@ Memory for `/company`. Newest day at the top. Decisions and measurements, not na
 
 ## Current state
 
-**Status:** `review`. All six bands built, geometry verified, docs written. Build and lint
-clean; `npx tsc --noEmit` clean across the project.
+**Status:** `review`. **FOUR bands, down from six, all on 2026-08-16** — `Investors`/
+`CompanyTools` and `Reiteration`/`CompanyCareers` were both deleted on the user's call, and
+Block 3 was rebuilt from a measured grid into eight animated cards. Build and lint clean; both
+locales render-checked.
 
-**Next action:** the two user answers that hold `noindex` — the Unit 8200 credential and Block
-5's placeholder photograph. Then the contrast decision below.
+⚠️ **ONE KNOWN OPEN BUG, REPORTED AND NOT YET FIXED:** Block 3's sticky heading hides under the
+nav when scrolling UP. The nav's banner returns on upward scroll, taking the fixed header from
+70px to 115px, while the heading pins at `top-24` (96px) — so it clears the header in one scroll
+direction only. The fix is to pin against the header's PEAK height rather than its row height;
+a `--nav-peak-h` token (`--nav-row-h + 45px`) was drafted and not applied.
+
+⚠️ **Block 3 is no longer a clone of anything and cannot be diffed against the capture.** It is
+the one block on this route judged on taste rather than fidelity. Everything else on the page
+still holds its measured geometry.
+
+**Next action:** the user looks at Block 3 at 1600 / 1440 / 1024 / 390 in both locales. Then
+the two answers that hold `noindex` — the Unit 8200 credential and Block 5's placeholder
+photograph. Then the contrast decision below.
 
 **Route:** `/company`, nav `Company` wired to it, footer `About` repointed at it.
 
@@ -24,6 +37,338 @@ clean; `npx tsc --noEmit` clean across the project.
 >   and re-read immediately before editing.
 > - Block 5's CTA points at `/careers`, which is their route. If it 404s, that is the
 >   integration point to check, not a bug in this block.
+
+---
+
+## 2026-08-16 (fourth pass) — the careers band deleted, and the nav's locale switch
+
+### Block 5 removed whole
+
+User: *"remove this part in company"* over the "Join The Team Building / What Comes Next"
+heading and paragraph. Taken as the **whole band**, not just the text: the copy is what
+identified the block, and the full-bleed photograph beneath it under no heading would be a
+different block rather than a smaller one. `CompanyCareers.tsx` deleted; `company.careers` (4
+keys) out of both dictionaries; import and render out of `CompanyRoute`.
+
+Hebrew SOURCED tally **34/47 → 30/39** — all four Hebrew careers strings were AUTHORED, so no
+captured text was lost.
+
+⚠️ **`public/company/company-bg.jpg` IS STILL ON DISK, REFERENCED BY NOTHING** (167 KB). Left
+deliberately: it was supplied by the user on 2026-08-12 after both stock sources refused an
+automated fetch, and deleting a user-supplied asset is its own decision, not a tidy-up.
+
+⚠️ **ONE OF THE TWO `noindex` GATE ITEMS CLEARED AS A SIDE EFFECT, NOT BY DECISION.** That
+photograph was stock standing in for a picture of clix's team that does not exist — gate item 2
+in `CompanyRoute.tsx`'s header. It is gone, so only the unsubstantiated "Unit 8200 and Technion
+alumni" line remains. **The guard is untouched and nobody has been asked whether it should
+lift.** The route header now says so explicitly, so the next reader does not mistake a side
+effect for a resolved question.
+
+### The nav's locale switch removed — SITEWIDE, not just here
+
+User: *"remove this translate button"*. `LocaleToggle` was rendered at three call sites in
+`Nav.tsx` (the compact header beside the burger, the mobile panel, and the ≥1200 header); all
+three and the import are gone, and `src/components/ui/LocaleToggle.tsx` is deleted.
+
+⚠️ **THIS IS NOT A /company CHANGE. `Nav.tsx` is shared by every route**, so `/he/*` still
+builds and still serves but now has **no link to it from anywhere in the UI**. The Hebrew
+dictionaries, the `he/` route group, `HTML_LANG`, `LOCALE_LABEL` and every RTL mechanism are all
+untouched — only the entry point went. Reaching Hebrew now means typing the URL.
+
+Two prose comments cited the deleted file for reasoning that is still true, so the reasoning was
+**restated in place rather than left pointing at nothing**:
+- `src/app/(en)/layout.tsx` — why crossing the root-layout boundary must be a hard document
+  load (`<html dir>` flips; a crossfade would be a full-width horizontal jump, and a hard load
+  rebuilds every GSAP timeline, which is what lets `useDirSign()` be stable for a mount).
+- `src/lib/i18n/config.ts` — why there is no middleware. That argument was written in the plural
+  because `LocaleToggle` was the second `usePathname()` consumer; it now names
+  `ViewTransitions.tsx` alone and records that a re-added switch would hit the same hazard.
+- `LOCALE_LABEL`'s comment now carries the G81 accessibility argument itself (labels written in
+  their own language, never an English `aria-label` over them) and flags that nothing renders it.
+
+### Not done in this pass
+
+- ⚠️ **The sticky-heading-under-the-nav bug is still open** (see Current state above). A
+  `--nav-peak-h` fix was drafted and not applied.
+- The hover-scale bump 2.5% → 4% was rejected earlier and stays rejected.
+- Tailwind scanning `docs/reference/clixsolutions/pages/*.html` — still open, still deliberate.
+
+---
+
+## 2026-08-16 (third pass) — two bugs the user caught, and the panel reverted
+
+Three round trips on the same band, all of them corrections to the second pass.
+
+### 1 — "the header doesnt moves while scrolling"
+
+⚠️ **`overflow-hidden` ON THE `<section>` WAS KILLING `position: sticky`, AND IT HAD BEEN THERE
+ALL ALONG** — inherited from the capture, kept verbatim through the rebuild. An ancestor with
+`overflow: hidden` becomes the sticky element's scroll container, so the heading pinned to a box
+that scrolls away with the page.
+
+⚠️ **THE SYMPTOM WAS ACTIVELY MISLEADING.** `StickyLift`'s observer watched the sentinel, not the
+element, so it still fired on cue and the white panel still appeared — it just slid up under the
+nav with everything else. The band looked like it had a working lift and a broken pin; it had
+neither.
+
+Fixed by removing the clip. Nothing needed it: a hovered card's 2.5% scale overhangs ~4px into
+a 40px gutter, so no horizontal page scroll is possible either way, and removing it also stopped
+`shadow-float` being cut off at the band edge.
+
+**Verified over CDP** (headless Chrome, raw WebSocket — node 24 has one built in, so no
+puppeteer): `position: sticky`, panel top locked at **96px** across scrollY 1771 → 2611 while
+card 1's top ran **−4 → −844**.
+
+### 2 — "hover is not good yet it overlaps"
+
+A hovered card in the band's top row painted straight across the fixed nav. Cause:
+`hover:z-10` on the card vs the nav's `z-[3]` (Nav.tsx:438), both in the ROOT stacking context.
+`z-10` on a grid item was meant to solve a purely local problem — grid items paint in source
+order, so a scaling card grows *under* its neighbours without it — but it was competing site-wide.
+
+Fixed with **`isolation: isolate` on the `<ul>`**: the z-order still works between cards, and the
+whole list sits at `z-auto` in the root context, below the nav. The two go together; neither
+works alone.
+
+⚠️ **THE FIRST TWO ATTEMPTS TO VERIFY THIS BOTH GAVE FALSE READINGS, and both traps are this
+site's own behaviour:**
+
+1. **`scroll-behavior: smooth` is set globally**, so `window.scrollTo` ANIMATES. Every rect read
+   after it was sampled mid-flight, and the synthetic mouse event landed on empty space. Fix:
+   force `scroll-behavior: auto` for the probe and spin on `requestAnimationFrame` until
+   `scrollY` is stable for three frames.
+2. **The nav's banner is direction-aware and retracts ~300ms after a downward scroll**, so the
+   header's height changes *after* the scroll settles — 115px → 70px. A probe point computed
+   from the pre-retraction rect fell BELOW the header, and `elementsFromPoint` then reported the
+   card on top when the header simply was not there. This produced a confident "❌ CARD PAINTS
+   OVER THE NAV" against a build that was already fixed. Fix: wait 1200ms for the banner, then
+   measure the header rect, then probe its vertical centre.
+
+**Rule worth keeping: on this site, never measure immediately after a programmatic scroll.**
+Two independent animations have to settle first, and neither is yours.
+
+Final reading, hovered: `hero-nav-blur → HEADER → LI` — the nav is above the card.
+
+### 3 — "remove this effect when scrolling down"
+
+The pinned white panel, reverted on sight. The PIN stays; only the treatment went.
+
+- **`StickyLift.tsx` deleted.** With nothing to toggle, its sentinel and IntersectionObserver
+  bought nothing — and **the band is a pure server component again, with no client JS at all**,
+  which is where it started.
+- **`desktop:p-6` and the `-mt-6 -ms-6` that compensated for it, both removed.** They existed
+  only to give the panel breathing room. Their removal also restored the alignment they were
+  designed to fake: measured, the heading and card 1 now sit level at exactly 531.
+- `shadow-float` stays in `globals.css`; the card hover still uses it. The `--color-svc-*`
+  accents are untouched.
+
+⚠️ **A hover-scale bump from 2.5% to 4% was proposed and the user rejected it mid-edit.** The
+scale stays at **1.025**. Do not "finish" that change.
+
+### Left as-is
+
+The mangled triple-apostrophe sequences that an earlier shell-escaped edit wrote into two comments were
+cleaned up in this pass. The Tailwind-scanning-the-captures finding from the second pass is
+still open and still deliberately untouched.
+
+---
+
+## 2026-08-16 (second pass) — colour, a floating heading, a card hover
+
+User, after seeing the band: *"okay i like it, add some colors and make the header floats when
+floating, and when hovering to a card, make it bigger add a hover animation that is good"*.
+
+Asked before building, because two of the three are decisions the user owns: how much colour
+(one accent per card vs four families vs one band-wide accent — **per card** chosen), and which
+header "floats" (the section heading when pinned vs always vs the site nav — **when pinned**
+chosen).
+
+### Colour — eight accents, and the argument for them
+
+⚠️ **THIS IS THE FIRST COLOUR ON THIS SITE THAT WAS CHOSEN RATHER THAN MEASURED**, and it
+breaks — narrowly, and on purpose — two rules DESIGN-SYSTEM.md states: the monochrome rule, and
+`forest` being the one brand colour and belonging to /clix. Both still hold everywhere else;
+nothing here is used off this band. `serviceGlyphs.tsx`'s own header records `forest` being
+rejected for this band in August on the grounds that it would "spend it somewhere it was never
+measured" — that objection died with the clone.
+
+The values, the contrast table and the usage rule are in DESIGN-SYSTEM.md. Two things worth
+repeating here because they are what took the time:
+
+- **They are a SET.** All eight sit between 6.07 and 6.81:1 on white — a 0.74 spread. The first
+  pass ran 5.35 (green) to 7.58 (indigo) and the indigo card visibly dominated the grid; the
+  fix was to darken the green and lighten the indigo and violet until the band closed.
+- **Checked against three grounds, not one** — white (the card), `bone` (the band) and
+  `mock-panel` (a scene's interior). Worst case 5.43:1. That matters because the accents carry
+  real type inside the scenes, not just dots.
+
+Mechanism: `CompanyServices` sets `--accent` on each `<li>`; `serviceArt.tsx` reads
+`var(--accent, var(--color-ink))`. **No scene knows which colour it got**, and one rendered
+outside a card falls back to the monochrome version it was built as.
+
+### The floating heading — three things that were wrong first
+
+`StickyLift.tsx`, a client component that wraps server-rendered `children`. Only the observer
+ships; no dictionary string crosses the boundary.
+
+1. ⚠️ **THE SENTINEL CANNOT BE A SIBLING OF THE STICKY ELEMENT.** First cut rendered it as a
+   preceding sibling — inside a `flex-row` that makes it a third flex item taking a share of the
+   row. It has to live inside a wrapper, which is why the heading column is now two boxes.
+2. ⚠️ **`desktop:items-start` ON THE CONTAINER MADE THE HEADING NEVER PIN.** Caught in the build
+   check, not by eye. A stretched wrapper is what gives the sticky child its travel;
+   `items-start` collapses it to content height and sticky has nowhere to go. The band had
+   carried `items-start` since the first pass, where the sticky element WAS the flex item and
+   needed `self-start` — the exact opposite requirement. Both are now gone.
+3. ⚠️ **PADDING CANNOT BE PART OF THE PINNED STATE.** First cut went `p-0` → `p-8` on pin, which
+   (a) shifted the headline 32px sideways every time it pinned and (b) animated a LAYOUT
+   property, reflowing the sticky box on every frame of the transition. Now the padding is
+   constant at 24px and the wrapper is pulled back `-mt-6 -ms-6`, so the h2 sits exactly where
+   it always did and only colour and shadow change. 24px rather than 32 so the panel still
+   clears the viewport edge at exactly 1200px wide.
+
+### The card hover
+
+`scale(1.025)` + 4px lift + `shadow-float` + an accent radial wash from the bottom edge; mark
+and number tint to the accent; the scene leans in 1.5%. 400ms on `--ease-rogo`.
+
+- ⚠️ **`hover:z-10` is not optional** — grid items paint in source order, so a scaling card
+  without it grows *under* its neighbours on two edges. Only the last card in a row looked right.
+- ⚠️ **Everything moves by `transform`, nothing by layout.** Not just for smoothness: each scene
+  is a **container query**, so a real width change would re-resolve `--u` on every frame of the
+  transition and the artwork would visibly re-flow inside the card.
+- 400ms is a judgement against the site's 300ms link preset — 300 reads snatched on a 400px
+  card. The curve is unchanged.
+- Every `hover:` has a `focus-within:` twin, and `motion-reduce` cancels the transform itself
+  rather than only its transition (a scaled card with no transition is a jump).
+
+### Found while verifying, NOT fixed
+
+⚠️ **Tailwind is scanning `docs/reference/clixsolutions/pages/*.html` and generating utilities
+for classes that appear only there.** The captured pages are a Tailwind site, so the production
+bundle carries rules for class names no component uses — `hover:shadow-[0_34px_66px_-30px_
+color-mix(in_srgb,var(--accent)_30%,transparent)]` and friends, which is also where the name
+`--accent` collides (harmlessly — those rules only match elements carrying those exact class
+names, and nothing in `src/` does). Pre-existing since the captures landed 2026-08-11, sitewide,
+and the fix is a `@source not` line in globals.css. **Left alone deliberately**: it is a
+build-config change affecting every route, and it belongs in its own task with its own check.
+
+### Verified
+
+Build clean (TypeScript included), lint clean in every touched file, both routes served from a
+production build and parsed: all eight `--color-svc-*` assigned, `items-start` absent, wrapper
+pull and constant panel padding present, sentinel mounted, 8 card hovers × (scale + shadow +
+2 accent tints), 31/5/6 loops, 86 accent washes — identical on `/company` and `/he/company`.
+
+**Still nobody has looked at it.** The pin/un-pin transition, the hover at each tier, and the
+eight accents next to each other are all things only an eye can judge.
+
+---
+
+## 2026-08-16 — Block 4 deleted; Block 3 rebuilt as eight animated cards
+
+User: *"in the company section we have to do change and huge ui update — 1. remove the Built On
+Tools Your Team Already Uses section 2. enhance the Built From Eight Services That Work As One
+System, we have to take inspiration from [clix-main-page.vercel.app] the פתרון מותאם לכל עסק.
+section, it has per feature an animation that presents what it means"*.
+
+### 1 — `CompanyTools` deleted
+
+The `Investors` band. Gone in five places: the component file, `CompanyRoute`'s import and
+render, and the `tools` key in both locale dictionaries. **`clix/toolMarks.tsx` was NOT
+touched** — `ClixLogoProof` on /clix still renders all twelve marks; only this consumer went.
+
+The reason it went, recorded because it is a judgement and not a bug: it was a second logo-wall
+grid sitting directly under the first, the same shape saying less.
+
+### 2 — the reference band was read, not guessed
+
+`clix-main-page.vercel.app` is a Vite SPA; its `#services` component was pulled out of
+`assets/main-jce_OKWt.js` (component `ss()`) and its copy out of
+`assets/AccessibilityWidget-ZW5hrED9.js` (that chunk is misnamed — it is the shared app bundle).
+What that band actually does:
+
+- `md:sticky md:top-[120px] md:w-[45%]` heading beside a `md:w-1/2` card stack, `gap-6`
+- per-index fixed card heights (`h-[300px] md:h-[400px]`, one 450, one 300)
+- art is an `aria-hidden` `absolute inset-0` layer **behind** the copy, bleeding off the edge
+- **two of its four arts are static.** Only the node flow and the chat thread animate.
+- it uses framer-motion — **which is not installed here** (`package.json`: `gsap` +
+  `@gsap/react` only). Not added; see Motion below.
+
+### 3 — the eight scenes are SOURCED, and that was the find
+
+`docs/reference/clixsolutions/content.json` → `services.bodyText` already describes a distinct
+UI mock for **seven of the eight** services, plus a numbered benefit kicker and a one-line
+promise for all eight. So the band's new copy and its new artwork are clix's own, recovered —
+not marketing written in-repo. The one exception is **Mobile Development, for which the capture
+describes no artwork**; that scene is designed from the service's own bullet list and is the
+only invented picture on the band.
+
+Knock-on for `he/company.ts`: **sixteen new Hebrew strings, every one verbatim.** The file's
+own history recorded these kickers as *deliberately* omitted — "this band's tiles render a
+label and nothing else, English included, so adding them would mean adding English copy to a
+route whose English render must not move". The card layout is exactly what lifted that
+constraint. Hebrew SOURCED count 18/31 → 34/47.
+
+### 4 — decisions worth keeping
+
+- **The card column is ~304px wide at desktop** (`1280 − 576 − 80 = 624`, `(624 − 16) / 2`),
+  four pixels off the 308px tile the band used to render. Not a coincidence that was designed
+  for, but it is why the new grid needed no new width measurement.
+- **Sticky offset is `top: 96px`** — `why-rogo`'s existing value, off the target. Not a new
+  number. `desktop:self-start` is load-bearing: a stretched flex item has no travel to stick in.
+- **Cards grow, they do not clip** — `min-h-*` in a stretched grid. A deliberate divergence
+  from /product's aspect-fixed benefit cards, whose bodies genuinely clip. 2 × 8 can absorb a
+  taller row where 3 × 6 could not, and it removes the per-locale clipping risk entirely.
+- **The scenes carry no prose.** Everything sentence-shaped is a grey bar; only machine tokens
+  (`POST /lead`, `dashboard.tsx`, `98`, `1.2s`) are set as type, each `direction: ltr`. That
+  makes all eight **locale-free — not one new dictionary key** — and it also avoids porting the
+  real site's chat mock, which is a stock template in someone else's business ("2 kurtas",
+  "Rs.1200"). The reference band does the same for three of its four arts.
+- **`serviceGlyphs.tsx` was kept, not deleted.** The eight marks moved to 20px in the card
+  header. The eight scenes look nothing like one another; the marks are the constant that
+  holds the set together. Reversible in one line.
+- **Radius 0 on the card**, against the reference's 8px — this site's scale is
+  `--radius-none` / `--radius-pill` and nothing else on it is 8px. Radii *inside* a scene are
+  depiction (a chat bubble, a handset) and stay.
+- **`EYEBROW_CLASS` is now exported from `CompanyMission.tsx`** rather than a second preset
+  being authored. `w-full` came out of the constant and went to its two original call sites,
+  because Services sets the eyebrow beside a 20px mark in a flex row.
+
+### 5 — motion: three keyframes, not eight
+
+`service-step` (31 elements), `service-pulse` (5), `service-rise` (6), in `globals.css`.
+
+⚠️ **Three SHARED keyframes was the call, and it is the opposite of /product Block 4's six
+bespoke ones.** Those six each animated a different mechanism. These eight all animate the
+same one — a sequence advancing through a list — so one `service-step` staggered by
+`animation-delay` covers roster rows, chat bubbles, flow nodes, page blocks, app screens, code
+lines, pipeline stages and score rows alike. It is also what makes eight very different
+pictures read as one band.
+
+⚠️ **The base-state invariant is inherited verbatim and is load-bearing.** `service-step` runs
+on a dedicated overlay resting at `opacity: 0`, so the unanimated scene is the *finished*
+picture. The global reduced-motion clamp is an exact no-op; SSR first paint is complete.
+Written the other way round — elements starting hidden and animating in — a reduced-motion
+visitor would get eight empty panels.
+
+⚠️ **Opacity and `translateY` only.** The Y is not stylistic: it is the one axis that does not
+flip under RTL, so unlike `.benefit-bar` these need no `[dir="rtl"]` companion rule. ~40 loops
+run at once when the band is on screen, so every one is compositor-only.
+
+### 6 — verified, and what is not
+
+Verified: `npm run build` clean (TypeScript included); `npm run lint` clean in every touched
+file (the 8 remaining problems are pre-existing, in `ClixHero.tsx` and `docs/reference/*.js`);
+both routes served from a production build and parsed — 31 step overlays, 5 pulses, 6 rises and
+all eight scene token sets present on `/company`, the same counts plus all sixteen sourced
+Hebrew strings and 38 `direction: ltr` tokens on `/he/company`; `Built On Tools` absent from
+both.
+
+**NOT verified: nobody has looked at it.** No render at 1600 / 1440 / 1024 / 390, no sticky
+behaviour check against the fixed nav, no RTL eyeball, no reduced-motion pass in a browser.
+Line counts for the sixteen new kickers and promises are unmeasured in both locales — they
+cannot clip, but they can look wrong. Handed to the user at this point deliberately, per
+CLAUDE.md §7: the band is a taste call now, and converging alone on it would be the wrong move.
 
 ---
 

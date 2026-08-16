@@ -154,6 +154,48 @@
   --measure-wide: 1100px;
   --measure: 844px;
 
+  /* ---- /company Block 3 · the eight service accents (2026-08-16) -------------------------
+   *
+   * ⚠️ THIS IS THE FIRST COLOUR ON THIS SITE THAT IS NOT INHERITED FROM A CAPTURE, and it is
+   * a deliberate exception to a rule this file states twice: "the home page is monochrome and
+   * must stay that way", and "the site's one brand colour is `--color-forest` and it belongs
+   * to /clix". Both still hold — nothing below is used anywhere except /company's services
+   * band, where the user asked for colour on a block that is no longer a clone of anything.
+   *
+   * ONE ACCENT PER CARD, matched to the eight services POSITIONALLY — same contract as
+   * `SERVICE_GLYPHS` and `SERVICE_ART`, and named by index for the same reason: the eight
+   * names are different strings on /he, so nothing may key off them. The mapping lives in
+   * `SERVICE_ACCENTS` in CompanyServices.tsx and nowhere else.
+   *
+   * ⚠️ THEY ARE A SET, NOT EIGHT PICKS. Every one lands between **6.07 and 6.81 : 1 on white**
+   * — a 0.74 spread — so no card reads louder than its neighbours. That was tuned, not
+   * guessed: the first pass ran 5.35 to 7.58 and the indigo card visibly dominated the grid.
+   *
+   * ⚠️ ALL EIGHT CLEAR AA ON ALL THREE GROUNDS THEY TOUCH — white (the card), `bone` (the
+   * band) and `mock-panel` (a scene's interior). Worst case is 5.43:1, the plum on `bone`.
+   * That matters because several of them carry real type: `+38%`, `98`, `build ok`, `78`.
+   *
+   * RESTRAINT IS THE WHOLE DESIGN. An accent only ever paints a scene's live dot, its one
+   * OUTCOME element, its primary bar fill, the travelling highlight, and the card's mark and
+   * number on hover. Card chrome, headings, body copy and every supporting bar stay
+   * `ink` / `muted`, exactly as before.
+   */
+  --color-svc-1: #0f6b63; /* AI Agents          — teal   */
+  --color-svc-2: #186b3d; /* WhatsApp           — green  */
+  --color-svc-3: #1f5c9e; /* CRM                — blue   */
+  --color-svc-4: #4a53b8; /* Integrations       — indigo */
+  --color-svc-5: #7647b0; /* Web Development    — violet */
+  --color-svc-6: #a63878; /* Mobile Development — plum   */
+  --color-svc-7: #8a5312; /* Custom Software    — bronze */
+  --color-svc-8: #a3441c; /* AI Strategy        — rust   */
+
+  /* The one elevation on this site. Built from `ink` at low alpha rather than from black, so
+     it is derived from an existing token and not a new colour. Used in exactly two places,
+     both on /company Block 3: the sticky heading while it is pinned, and a card on hover.
+     Two layers because one cannot do both jobs — the 1px contact shadow keeps the edge
+     crisp against `bone`, the wide one is what reads as height. */
+  --shadow-float: 0 1px 2px rgb(21 21 21 / 0.05), 0 16px 40px -12px rgb(21 21 21 / 0.16);
+
   /* Radius — this is a square-cornered design; 0 is the default. */
   --radius-none: 0px;
   --radius-pill: 10000px;
@@ -217,6 +259,26 @@ body {
   :root {
     --nav-row-h: 70px;
   }
+}
+
+/* The header at its TALLEST — the row PLUS the announcement banner (2026-08-16).
+ *
+ * `--nav-row-h` above is the row alone, which is the right number for `<Nav spacer>` because
+ * that reserves space on a page where the header sits in flow. It is the WRONG number for
+ * anything that has to clear the FIXED header, and the reason is the banner's behaviour: it
+ * eases OUT on the way down and BACK IN on the way up (Nav.tsx — `bannerShift`, 45px, eased
+ * 300ms both ways, at any scroll depth). So the fixed header is 70px tall while you scroll
+ * down and 115px the moment you scroll up.
+ *
+ * ⚠️ ANYTHING PINNED BENEATH IT MUST CLEAR 115, NOT 70. /company Block 3's sticky heading was
+ * pinned at 96px — `why-rogo`'s inherited value, which is fine there because that band's
+ * headline has slack above it — and it tucked 19px under the returning banner on every upward
+ * scroll. User-reported. A value that clears the row but not the banner is a bug you only see
+ * when scrolling the wrong way, which is why this is a token and not a number at a call site.
+ *
+ * 45px is the banner's own measured height (Nav.tsx:447) and it does not vary by tier. */
+:root {
+  --nav-peak-h: calc(var(--nav-row-h) + 45px);
 }
 
 /* Nav header backdrop blur. Both header tiers carry `backdrop-filter: blur(5px)` in the
@@ -608,6 +670,86 @@ html {
 [dir="rtl"] .benefit-bar {
   transform-origin: right center;
 }
+
+/* ---- /company Block 3 · the eight service-card scenes (2026-08-16) ----------------------
+ *
+ * THREE KEYFRAMES, SHARED BY ALL EIGHT SCENES. Applied in
+ * src/components/company/serviceArt.tsx — read that file for which loop belongs to what.
+ *
+ * The band was eight static tiles until the user asked for "animation for it that presents
+ * what it means", pointing at the `#services` band on clix-main-page.vercel.app. That band
+ * uses framer-motion, which is not installed here and is not needed: the answer this repo
+ * already had is /product Block 4's idle loops, and this is the same answer at a larger scale.
+ *
+ * ⚠️ WHY THREE SHARED KEYFRAMES AND NOT EIGHT BESPOKE ONES. /product's six cards each got their
+ * own, because each animated a different mechanism. These eight all animate the SAME
+ * mechanism — a sequence advancing through a list of things — so one `service-step` staggered
+ * by `animation-delay` covers roster rows, chat bubbles, workflow nodes, page blocks, app
+ * screens, code lines, pipeline stages and score rows alike. That is also what makes the eight
+ * cards read as one band rather than eight separate toys.
+ *
+ * ⚠️ THE INVARIANT, INHERITED FROM THE BLOCK ABOVE: **EVERY KEYFRAME'S BASE STATE IS THE
+ * SHIPPED STATIC DESIGN.** `service-step` runs on a dedicated OVERLAY element that rests at
+ * `opacity: 0`, so the unanimated scene is the finished picture — every roster row present,
+ * every bar at its scored length, every code line drawn. The reduced-motion clamp at the end
+ * of this file is therefore an exact no-op, and SSR first paint is complete. Written the other
+ * way round — scene elements starting hidden and animating IN — a reduced-motion visitor would
+ * get eight empty panels, which is the one outcome this band cannot have.
+ *
+ * ⚠️ OPACITY AND translateY ONLY, and the Y is not a stylistic choice: it is the one axis that
+ * does not flip under RTL, so these loops need no `[dir="rtl"]` companion rule the way
+ * `.benefit-bar` above does. Nothing here animates a width, a colour, a box-shadow or an X
+ * transform. That matters more here than it did for /product: around forty of these run at
+ * once when the band is on screen, so every one has to be compositor-only.
+ *
+ * ⚠️ NOT VIEWPORT-GATED. No IntersectionObserver and no `"use client"` — serviceArt.tsx is a
+ * server component and CompanyServices reads the dictionary server-side, exactly as
+ * benefitArt.tsx does. Gating decoration would cost more than the decoration does.
+ */
+
+/* The travelling highlight. `linear` and long flat holds, because the interesting part is
+   WHICH element is lit, not how it got there; an eased fade over a 4-6s cycle reads as a
+   throb. Each scene sets one cycle length and staggers its members with `animation-delay`, so
+   exactly one is lit at a time and the sequence closes cleanly. */
+@keyframes service-step {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  4%,
+  18% {
+    opacity: 1;
+  }
+  24% {
+    opacity: 0;
+  }
+}
+
+/* A live indicator — the dot in a scene's header, or beside `build ok`. Base is fully lit, so
+   reduced motion leaves it simply on rather than half-faded. */
+@keyframes service-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+/* The one OUTCOME element per scene — the `+38%` chip, the `98` dial, the push notification,
+   `build ok`, the `78` verdict. Two source pixels of lift, so it is felt rather than watched.
+   Returns to 0, which is where the static design has it. */
+@keyframes service-rise {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(calc(-2 * var(--u, 1px)));
+  }
+}
+
 
 /* Page transition (2026-08-12, second pass). Driven by
    src/components/ui/ViewTransitions.tsx — read that file for why this is a view transition

@@ -20,9 +20,12 @@
  * is misspelled. The real site writes `ב-WhatsApp`, `ה-AI`, `רב-לשוני`. Orthography, not style.
  *
  * ── THIS ROUTE IS MOSTLY RESTORATION, NOT TRANSLATION ────────────────────────────────────
- * 18 of the 31 strings below are SOURCED and 13 are AUTHORED. The sourced set includes all
- * eight service names, both runs of the Mission headline, the Hero's h1, the Hero's subhead,
- * the Hero's CTA and the Mission paragraph. The English on this route was written by rendering
+ * 30 of the 39 strings below are SOURCED and 9 are AUTHORED. The sourced set includes all
+ * twenty-four service-card strings, both runs of the Mission headline, the Hero's h1, the
+ * Hero's subhead, the Hero's CTA and the Mission paragraph. (Was 18 of 31 until 2026-08-16,
+ * when the `tools` heading went with its band and the services band grew from eight labels
+ * to eight cards — sixteen NEW strings, every one of them captured. Then 34/47 → 30/39 the
+ * same day, when `careers` went with its band: four AUTHORED strings out, no sourced ones.) The English on this route was written by rendering
  * that Hebrew into English in the first place, so the Hebrew is the earlier text of the two —
  * "translation" is the wrong word for most of this file.
  *
@@ -146,85 +149,101 @@ export const company: Translated<CompanyDict> = {
     /* AUTHORED — the English is this repo's own headline for a band whose original held
        employer logos, so there is no counterpart to lift. Sets 2 / 2 / 2 / 2 lines, the same
        count as English, so the measured h3 boxes 96.8 / 88 / 70.4 hold. A `בנוי מ…` opening
-       was tried first, to echo `tools.heading`, and dropped: with no subject in the sentence it
-       reads as a fragment in Hebrew where it reads as a headline in English. */
+       was tried first and dropped: with no subject in the sentence it reads as a fragment in
+       Hebrew where it reads as a headline in English.
+       ⚠️ THE BOX MOVED. This heading now sets in a 440px sticky column, not the old 640px
+       full-width one, so the 2/2/2/2 count above is STALE and must be re-measured. */
     title: "שמונה שירותים שעובדים יחד כמערכת אחת",
     /* AUTHORED, but the list inside it is SOURCED — `services.desc` and `home.bodyText` both
        run the same enumeration (`סוכני AI, אוטומציות WhatsApp, מערכות CRM, אינטגרציות ותוכנה
        מותאמת אישית`), and the eight names are the section headings of pages/services.html.
-       ⚠️ RECORDED DIVERGENCE, AT ONE TIER ONLY. Sets 3 / 3 / 3 / 4 against English's
-       3 / 3 / 3 / 5, so only the 390 box shrinks, by one line: 83.19 against 103.98, taking
-       that band to 1747.59 from 1768.39. At 1600, 1440 and 1024 the band is identical to
-       English (793.03 / 793.03 / 672.39).
+       ⚠️ ITS RECORDED DIVERGENCE IS ALSO STALE. It read 3 / 3 / 3 / 4 against English's
+       3 / 3 / 3 / 5 — one line short at 390 only — but that was measured against the old
+       max-w 640 / none text column. Re-measure against the sticky column.
        `ה-AI` carries the prefix hyphen the real site uses (`ה-AI הנכון`, services.bodyText). */
     intro:
       "Clix בונה סוכני AI, אוטומציות WhatsApp, הטמעת CRM, אינטגרציות, אתרים, אפליקציות " +
       "מובייל ותוכנה מותאמת אישית, ולצידם את אסטרטגיית ה-AI שקובעת מה מכל אלה העסק שלכם " +
       "צריך, ומה לא.",
-    /* SOURCED ×8, VERBATIM — the eight H2s of pages/services.html, in the order that page
-       lists them (`services.headings[1..8]`). These are the company's own product names, so
-       none of them may be paraphrased to fit a box.
-       ⚠️ THE FIT WAS THE OPEN RISK ON THIS ROUTE AND IT CLEARS. Three of the eight are longer
-       in Hebrew than in English by character count (`Integrations` → `אינטגרציות ואוטומציות`),
-       which is the opposite of the contract's §9 expectation, and the tiles were fitted to
-       exactly one rendered line at every tier. Measured, all eight still set on ONE line
-       everywhere, with room: the widest Hebrew label is `אינטגרציות ואוטומציות` at 168px in
-       the 308px desktop tile and 134px in the 224px tablet tile, against English's widest
-       (`WhatsApp Automation`) at 181px / 145px. So the Hebrew grid is in fact SLACKER than the
-       English one and no box was widened. Chrome agrees on all eight in both locales: every
-       label's box is 22.00px at 1600/1440 and 17.59px at 1024/390, i.e. exactly one line, and
-       the whole band is pixel-identical to English at every tier (793.03 / 793.03 / 672.39 /
-       1747.59, the last differing only by the intro above it).
-       ⚠️ The eight benefit kickers the real site pairs with these names
-       (`להאיץ מכירות ותמיכה`, `למכור איפה שהלקוח נמצא`, …) are deliberately NOT here: this
-       band's tiles render a label and nothing else, English included, so adding them would mean
-       adding English copy to a route whose English render must not move. Reported instead. */
-    items: [
-      "סוכני AI",
-      "אוטומציות WhatsApp",
-      "הטמעת CRM",
-      "אינטגרציות ואוטומציות",
-      "בניית אתרים",
-      "פיתוח מובייל",
-      "תוכנה מותאמת אישית",
-      "אסטרטגיית AI וייעוץ",
+    /* ─── THE EIGHT CARDS ──────────────────────────────────────────────────────────────────
+     *
+     * ⚠️ SHAPE CHANGED 2026-08-16, and this side of it is almost pure RESTORATION. The band
+     * was eight bare labels; it is now eight cards carrying a kicker and a promise as well.
+     * ALL TWENTY-FOUR HEBREW STRINGS BELOW ARE SOURCED VERBATIM from `services.bodyText`,
+     * which sets each service as `NN · <kicker>` / `<name>` / `<promise>`. Nothing here is
+     * authored, and the eight `name` values are byte-identical to the `items` tuple they
+     * replace — so the one-line fit measured for them still holds.
+     *
+     * ⚠️ THE EIGHT BENEFIT KICKERS WERE DELIBERATELY LEFT OUT UNTIL NOW, and the reason is
+     * recorded in this file's own history: the tiles rendered a label and nothing else,
+     * English included, so adding them would have meant adding English copy to a route whose
+     * English render had to stay still. The card layout is what changed that — the slot now
+     * exists in both locales, so the captured text can finally land where it belongs.
+     *
+     * ⚠️ LINE COUNTS FOR `kicker` AND `promise` ARE NOT MEASURED. Every other count in this
+     * file was read off real glyph advances and confirmed in Chrome; these sixteen strings are
+     * new to the route and their cards are new geometry. Nothing CLIPS, though — the cards are
+     * `min-h-*` in a stretched grid, so a long Hebrew promise pushes its row taller instead of
+     * being cut off. An unmeasured count here is a look to check, not a silent failure.
+     *
+     * ⚠️ UNREAD BY A NATIVE SPEAKER — but sourced, so the risk here is placement, not wording.
+     */
+    cards: [
+      {
+        /* SOURCED ×3 — `services.bodyText`, block `01`. */
+        kicker: "להאיץ מכירות ותמיכה",
+        name: "סוכני AI",
+        promise: "חברי צוות שאף פעם לא נחים.",
+      },
+      {
+        /* SOURCED ×3 — block `02`. */
+        kicker: "למכור איפה שהלקוח נמצא",
+        name: "אוטומציות WhatsApp",
+        promise: "הערוץ שבו הלקוחות שלכם כבר נמצאים.",
+      },
+      {
+        /* SOURCED ×3 — block `03`. */
+        kicker: "לאחד את תמונת הלקוח",
+        name: "הטמעת CRM",
+        promise: "תמונת לקוח אחת ואמיתית במקום אחד.",
+      },
+      {
+        /* SOURCED ×3 — block `04`. The name is LONGER than English's `Integrations` and was
+           already the widest label on the old grid at 168px; the card column is no narrower
+           than the tile it replaces, so it still sets on one line. */
+        kicker: "לחבר את כל המערכות",
+        name: "אינטגרציות ואוטומציות",
+        promise: "כל הכלים שלכם מדברים זה עם זה.",
+      },
+      {
+        /* SOURCED ×3 — block `05`. */
+        kicker: "להמיר תנועה ללקוחות",
+        name: "בניית אתרים",
+        promise: "אתרי שיווק שטוענים מהר וממירים חזק.",
+      },
+      {
+        /* SOURCED ×3 — block `06`. This is the one service whose MOCK had to be designed
+           rather than rebuilt — the capture describes no artwork for it — but its three
+           strings are captured like all the others. */
+        kicker: "להגיע ישר לכיס של הלקוח",
+        name: "פיתוח מובייל",
+        promise: "אפליקציות נייטיב שלקוחות באמת פותחים.",
+      },
+      {
+        /* SOURCED ×3 — block `07`. */
+        kicker: "לבנות בדיוק מה שצריך",
+        name: "תוכנה מותאמת אישית",
+        promise: "כשפתרון מדף פשוט לא מספיק.",
+      },
+      {
+        /* SOURCED ×3 — block `08`. ⚠️ THE KICKER AND THE PROMISE ARE THE SAME SENTENCE ON THE
+           REAL SITE, and both are reproduced rather than "fixed". English carries the same
+           repetition for the same reason — see en/company.ts. The band's one open copy
+           question, flagged in features/company-page/FEATURE.md. */
+        kicker: "להמר על הדברים הנכונים",
+        name: "אסטרטגיית AI וייעוץ",
+        promise: "להמר על הדברים הנכונים.",
+      },
     ],
-  },
-
-  tools: {
-    /* AUTHORED, both runs — the original band held venture-fund logos and the real site has no
-       equivalent heading. Two runs as in English, each on ONE line at every tier. The second
-       run is the tight one: 462px in the 490px column at 1600/1440 and 336px in the 358px
-       column at 390, which is why it was read in Chrome rather than trusted from the static
-       number. It holds: the h2 measures 96.81 / 96.81 / 88 / 70.41, identical to English, so
-       each run sets one line at every tier. `שהצוות שלכם כבר מכיר` (270px at 390) is the
-       fallback if the face is ever swapped and this starts to wrap. */
-    heading: ["בנוי על הכלים", "שהצוות שלכם כבר עובד איתם"],
-  },
-
-  careers: {
-    /* AUTHORED, both runs — THE COLOUR BOUNDARY. Run 1 is `ink`, run 2 is the `muted` span, so
-       the break must fall exactly here and neither run may wrap on its own. Measured 317 / 317
-       / 288 / 231px and 222 / 222 / 202 / 161px against a 490 / 490 / 944 / 358px column: one
-       line each at every tier, so the measured h3 box (96.8 / 88 / 70.4, two lines) holds.
-       `ועוד צוות שלם` from `about.bodyText` was considered for run 1 and rejected: on the real
-       site it labels the unnamed remainder of a roster shown directly above it, and `ועוד`
-       has nothing to continue from on this band. */
-    titleInk: "הצטרפו לצוות שבונה",
-    titleMuted: "את הדבר הבא",
-    /* AUTHORED, built on a SOURCED clause — `about.bodyText`'s
-       `מפתחים, מהנדסים ואנשי מקצוע מוכשרים שמאחורי כל מערכת.` This is the box wide enough to
-       carry that clause whole, which is why `mission.teamItems[2]` gives up its compressed
-       form to it rather than the other way round. Sets 2 / 2 / 1 / 3 lines — the SAME count as
-       English, measured 46.81 / 46.81 / 20.80 / 62.39, so the target's 46.8 / 20.8 / 62.4 are
-       reproduced to the pixel and this whole band is identical in both locales
-       (912.81 / 912.81 / 944.80 / 672.80). */
-    body:
-      "אנחנו מחפשים מפתחים, מהנדסים ואנשי מקצוע מוכשרים שרוצים לבנות מערכות שעסקים " +
-      "אמיתיים סומכים עליהן. אם זה אתם, בואו נדבר.",
-    /* AUTHORED — describes a stock photograph (CompanyCareers.tsx:44-56), and like the English
-       it claims nothing about who the people in it are. */
-    photoAlt:
-      "שלושה עובדים במשרד, שניים יושבים מול מסך רחב שמוצג בו קוד ושלישי כותב על מסך התלוי על הקיר.",
   },
 };
