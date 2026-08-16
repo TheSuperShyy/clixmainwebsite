@@ -15,6 +15,14 @@
  * centre never moves as the word changes. That fixed width is the whole trick — remove it
  * and every swap reflows the line.
  *
+ * ⚠️ THE ORDER OF THOSE TWO BOXES IS LOCALE-DEPENDENT (2026-08-16), driven by
+ * `hero.rotorLeads`. English modifies before the noun ("your new" + "[analyst]"); Hebrew puts
+ * the definite noun first and its modifier after ("[האנליסט]" + "החדש שלכם"). Under rtl a
+ * `flex-row` reverses visually, so DOM order is reading order in BOTH locales, which makes a
+ * DOM-order swap the only correct fix — not a `flex-row-reverse`, which would reverse the
+ * visual order in ltr too. The rotor box's `justify` flips with it, for the reason spelled
+ * out on that element.
+ *
  * ⚠️ THE WIDTH IS NOW A DICTIONARY VALUE, BECAUSE IT IS LOCALE-SPECIFIC (2026-08-12). English
  * keeps the original's 270px at >=810 and 306px on phone. Hebrew is 260px / 159px, derived as
  * max(advance of every rotating word) at the largest size each tier renders — measured, since
@@ -56,10 +64,15 @@ import AppLink from "@/components/ui/AppLink";
    "analyst" came from the user's screenshot of the live page. Nothing was invented to pad the
    cycle; a made-up word would read as measured and it is not.
 
-   HEBREW IS A DIFFERENT LENGTH ON PURPOSE — four words against English's two, restored from
-   the real company's own service page rather than translated off rogo's two finance roles.
-   That is why `words` is typed `readonly string[]` and not a tuple: the count is content. The
-   rotor cycles whatever length it is handed, and nothing else here depends on it. */
+   HEBREW NOW NAMES THE SAME TWO ROLES, as of 2026-08-16. It used to carry four of its own,
+   restored from the real company's service page rather than translated off rogo's two finance
+   roles; a reviewer read the two locales side by side, and the user's call was that they
+   should say the same thing. The old strings and the reasoning behind them are preserved in
+   he/clix.ts rather than deleted.
+
+   `words` is still typed `readonly string[]` and not a tuple: English's list is
+   known-incomplete, so the count is content and the divergence may return. The rotor cycles
+   whatever length it is handed and nothing else here depends on it. */
 
 /* ESTIMATED, both of them — a static capture cannot encode a rate, and this is the only
    thing on the section that is not a measured value. The capture DOES pin the enter state
@@ -127,10 +140,20 @@ function RotatingWord() {
          properties because an inline style cannot carry a media query.
 
          `w-[var(--rotor-w)]` computes to exactly the 306px it computed to before in English —
-         the token is set on this same element, one line down. */
-      className="relative flex h-[100px] w-[var(--rotor-w)] items-center justify-center
-                 overflow-visible p-5 -m-5
-                 tablet:w-[var(--rotor-w-tablet)] tablet:justify-start"
+         the token is set on this same element, one line down.
+
+         ⚠️ THE JUSTIFICATION FLIPS WITH `rotorLeads`, and `start`/`end` alone do not cover it.
+         A fixed box wider than its word has slack, and this is what decides where the slack
+         goes. The rotor is the OUTER element of the row in BOTH arrangements — last in ltr,
+         first (so rightmost) in rtl — and its ink must hug the INNER edge so the slack falls
+         on the outside of the lockup instead of opening a gap that changes width in the
+         middle of the sentence. With the lead leading, inner is the logical start; with the
+         rotor leading, inner is the logical end. Hence the swap, not a shared logical class.
+         The row itself is a fixed total width either way, so the line's centre never moves. */
+      className={`relative flex h-[100px] w-[var(--rotor-w)] items-center justify-center
+                 overflow-visible p-5 -m-5 tablet:w-[var(--rotor-w-tablet)] ${
+                   t.rotorLeads ? "tablet:justify-end" : "tablet:justify-start"
+                 }`}
       style={
         {
           "--rotor-w": t.rotorWidth.phone,
@@ -151,7 +174,9 @@ function RotatingWord() {
            its text. `text-align` on a box with no slack does nothing. Probed in headless
            Chrome at 1600/1440/1024/390: `clientWidth === getClientRects()[0].width` at all
            four. The alignment that actually happens is the parent's `justify-center` /
-           `tablet:justify-start`, which is already logical. */
+           `tablet:justify-start|end`, which is already logical — and which is why the
+           `rotorLeads` flip lives up there on the box and not here. This pair is left as-is
+           precisely because it is inert; flipping a no-op would only imply it does something. */
         className="inline-block font-display text-forest
                    text-end text-[56px] leading-[100%]
                    tablet:text-start tablet:text-[72px]
@@ -175,6 +200,29 @@ function RotatingWord() {
 
 export default function ClixHero() {
   const t = usePageDict("clix").hero;
+
+  /* Line 2's STATIC run, lifted out of the JSX below so it can be placed on either side of
+     the rotor without duplicating the class list. See `hero.rotorLeads`.
+
+     `text-end` was `text-right`, and it is INERT at every tier for the same reason as the
+     rotating span: `flex-none` means the box cannot grow or shrink, so it is exactly
+     max-content wide and there is no slack for `text-align` to distribute.
+     `tablet:whitespace-pre` removes even the theoretical wrap. Probed at 1600/1440/1024/390.
+     Note this one has no `tablet:` override, so it never needed an `ltr:`/`rtl:` pair. */
+  const leadRun = (
+    <p
+      aria-hidden="true"
+      className="relative h-auto w-auto max-w-[var(--measure)] flex-none
+                 font-display text-forest text-end
+                 text-[56px] leading-[100%]
+                 tablet:max-w-none tablet:whitespace-pre tablet:text-[72px]
+                 desktop:max-w-[var(--measure)] desktop:whitespace-normal
+                 desktop:text-[92px]"
+      style={{ letterSpacing: "-0.06em" }}
+    >
+      {t.lead}
+    </p>
+  );
 
   return (
     <section
@@ -230,31 +278,29 @@ export default function ClixHero() {
               {t.headline}
             </p>
 
-            {/* Row: "your new" + the rotating word. Phone stacks it (column, gap 0). */}
+            {/* Row: the static run + the rotating word. Phone stacks it (column, gap 0).
+
+                ORDER IS THE DICTIONARY'S CALL, not this file's. Under rtl a `flex-row`
+                already reverses the row visually, so DOM order is reading order in both
+                locales and this swap is what puts the Hebrew noun ahead of its modifier.
+                Stacked on phone the same swap gives the two lines the right vertical order,
+                which `flex-row-reverse` could not have done at all. */}
             <div
               className="relative flex h-min w-full flex-col items-center justify-center
                             overflow-visible
                             tablet:flex-row tablet:gap-4"
             >
-              <p
-                aria-hidden="true"
-                /* `text-end` was `text-right`, and it is INERT at every tier for the
-                   same reason as the rotating span above: `flex-none` means the box cannot
-                   grow or shrink, so it is exactly max-content wide and there is no slack for
-                   `text-align` to distribute. `tablet:whitespace-pre` removes even the
-                   theoretical wrap. Probed at 1600/1440/1024/390. Note this one has no
-                   `tablet:` override, so it never needed an `ltr:`/`rtl:` pair. */
-                className="relative h-auto w-auto max-w-[var(--measure)] flex-none
-                           font-display text-forest text-end
-                           text-[56px] leading-[100%]
-                           tablet:max-w-none tablet:whitespace-pre tablet:text-[72px]
-                           desktop:max-w-[var(--measure)] desktop:whitespace-normal
-                           desktop:text-[92px]"
-                style={{ letterSpacing: "-0.06em" }}
-              >
-                {t.lead}
-              </p>
-              <RotatingWord />
+              {t.rotorLeads ? (
+                <>
+                  <RotatingWord />
+                  {leadRun}
+                </>
+              ) : (
+                <>
+                  {leadRun}
+                  <RotatingWord />
+                </>
+              )}
             </div>
           </div>
 

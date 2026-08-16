@@ -17,6 +17,18 @@ Line format:
 
 ## 2026-08-16
 
+- `felix-page` — **The Hebrew hero rotor now names the same two roles as English** (`האנליסט` /
+  `המשקיע` under `החדש שלכם`), after a reviewer flagged that `/he/clix` said something different
+  from `/clix`. It did, on purpose — the Hebrew was four roles restored from clix's own services
+  page — and the user's call was that English wins. **It is a DOM-ORDER swap, not a translation:**
+  Hebrew puts the definite noun before its modifier, and `rtl` already reverses the row visually,
+  so reading order == DOM order. New `hero.rotorLeads` key (`as boolean`, or `Translated<>` would
+  pin Hebrew to English's value) drives both the order and the rotor box's `justify`, which must
+  flip so the fixed box's slack stays on the OUTSIDE of the lockup. `rotorWidth` re-measured
+  159/260 → 172/282 in headless Chrome, harness first validated against the numbers already in
+  the file. Build + types clean, lint unchanged from HEAD, prerendered HTML checked; not viewed in
+  a browser. → [detail](../features/felix-page/CONTEXT.md)
+
 - `infra` — 🔴 **`npm run build` IS RED ON THIS WORKING TREE, and it is not a code fault.** The
   uncommitted `src/app/favicon.ico` is `8-bit/color RGB`; Turbopack requires RGBA and fails with
   *"The PNG is not in RGBA format"*. HEAD's copy is RGBA and builds. Found while verifying the

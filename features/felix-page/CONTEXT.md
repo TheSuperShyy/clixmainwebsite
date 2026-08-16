@@ -49,6 +49,72 @@ pass.
 
 ## Log
 
+### 2026-08-16 — the Hebrew hero names the SAME two roles as English, and the row order flips to allow it
+
+**Reported:** a reviewer read `/clix` and `/he/clix` side by side and said the rotating headline
+word "is not the same words when it's Hebrew settings". Correct, and it was deliberate: the
+English is rogo's `analyst / investor`, the Hebrew was four roles restored from clix's own
+services page (`למכירות / לתמיכה / למחקר / לתפעול` under `חבר צוות חדש`). **User's call: Hebrew
+adopts English's set.** The English side is unchanged.
+
+**It could not be done as a translation, because of word order.** English modifies before the
+noun (`your new` + `[analyst]`); Hebrew puts the definite noun first and the modifier after
+(`[האנליסט]` + `החדש שלכם`). Under `rtl` a `flex-row` already reverses the row visually, so DOM
+order is READING order in both locales — which makes this a **DOM-order swap**, not a class.
+`flex-row-reverse` would have been wrong twice over: it reverses ltr too, and on phone the row
+is a `flex-col` where only DOM order sets the vertical sequence.
+
+**Shipped:**
+
+- `hero.rotorLeads` — new dictionary key, `false as boolean` in `en/clix.ts` (the `as boolean` is
+  load-bearing: `Translated<>` passes booleans through UNWIDENED, so a bare `false` would have
+  pinned Hebrew to `false`), `true` in `he/clix.ts`.
+- `ClixHero.tsx` — the static run is lifted to a `leadRun` const so the two boxes can be ordered
+  either way without duplicating its class list; the row renders `rotor → lead` or `lead → rotor`
+  off the flag.
+- Hebrew copy — `lead: "החדש שלכם"`, `words: ["האנליסט", "המשקיע"]`,
+  `srHeading: "הכירו את Clix, האנליסט או המשקיע החדש שלכם."` The `sr-only` heading is written out
+  rather than joined, as before: `החדש שלכם` governs both nouns and belongs once, at the end.
+  `אנליסט` over `מנתח` — the former is what Israeli finance writing uses; the latter reads as a
+  data role.
+- The definite `ה` prefix rides on the **rotating** word, not on `lead`. It has to: the article
+  belongs to the noun, and a stranded `ה` in its own box with a 16px gap behind it is not a word.
+
+**Re-measured, headless Chrome, Discovery 400 at -0.06em** (the harness reproduced every number
+already recorded in the file — `למכירות` 259.9/203.4/158.2, `investor` 273.0 — before it was
+trusted for the new ones):
+
+|            | 92px  | 72px  | 56px  |
+|------------|-------|-------|-------|
+| `האנליסט`  | **281.9** | 220.6 | **171.6** |
+| `המשקיע`   | 276.3 | 216.3 | 168.2 |
+| `החדש שלכם` (lead) | 415.3 | 325.0 | 252.8 |
+
+`hero.rotorWidth` 159/260 → **172/282** (phone off the 56px max, tablet off the 92px max, since
+that one class stop serves both the 72 and 92 tiers). The lead is 20.6px NARROWER than the run it
+replaces at 56px, so phone single-line headroom improved rather than regressed.
+
+**The rotor box's `justify` flips with the order, and this is the subtle part.** A fixed box wider
+than its word has slack, and `justify` decides which side it lands on. The rotor is the OUTER
+element of the row in BOTH arrangements — last in ltr, first (so rightmost) in rtl — and its ink
+must hug the INNER edge so the slack falls outside the lockup instead of opening a gap that
+changes width mid-sentence. With the lead leading, inner is the logical **start**; with the rotor
+leading, inner is the logical **end**. So `tablet:justify-start` / `tablet:justify-end`, not one
+shared logical class. The rotating span's own `text-start`/`text-end` pair was left alone — it is
+provably inert (the span is `max-content` wide with no slack), and flipping a no-op would imply
+it does something.
+
+**Verified:** `npm run build` clean; `tsc --noEmit` clean; `npm run lint` at the same 8 problems
+as HEAD (all pre-existing, incl. the `reduced.current` ref read at ClixHero.tsx:190). Prerendered
+`/he/clix` confirms DOM order (`האנליסט` before `החדש שלכם`), `tablet:justify-end`, and the new
+`sr-only` sentence. **Not looked at in a browser** — the user verifies visually.
+
+**Open:** the Hebrew is authored and still unread by a native speaker, same as the rest of this
+route. And the old four-role phrasing was clix's own copy where the new pair is rogo's framing —
+if the finance wording is ever dropped from English, `he/clix.ts` keeps the previous strings and
+their reasoning in place to return to.
+
+
 ### 2026-08-13 — block 6 stops being a testimonial
 
 User, on the section: *"what do you think we can put here? we dont have that much details for
