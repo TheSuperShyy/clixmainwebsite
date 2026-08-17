@@ -95,10 +95,27 @@ export const accessibility: Translated<AccessibilityDict> = {
         "שדות טופס עם תוויות מפורשות, הודעות שגיאה המקושרות לשדה הרלוונטי, ובקרות מקובצות לפי הצורך.",
         "פריסה רספונסיבית הנפרשת באופן נקי עד 320 פיקסלים ללא גלילה אופקית, ותומכת בהגדלת טקסט של עד 200% ללא אובדן תוכן.",
         "אזורי ARIA Live להודעות סטטוס (שליחת טופס, עדכוני צ׳אט) כך שכל שינוי מוכרז לטכנולוגיה המסייעת.",
+        /* ADDED 2026-08-17 from the live page’s `תכונות נגישות באתר` list. ⚠️ BOTH DESCRIBE
+           THE WIDGET IN §04 AND ARE FALSE OF THIS BUILD — there is no text-resize control and
+           no high-contrast mode in `src/`. Added because the live site is the source of
+           truth; see the ⚠️ block at the top of this file. */
+        "אפשרות להגדלת והקטנת גודל הטקסט.",
+        "מצב ניגודיות גבוהה לקריאה נוחה יותר.",
       ],
     },
     {
       n: "04",
+      /* ADDED 2026-08-17 from the live https://www.clix-solution.com/accessibility.
+         ⚠️ THE LIVE SITE SHIPS THIS WIDGET AND THIS BUILD DOES NOT. The clause names a
+         concrete control at a concrete screen position, so until that button exists here it
+         is the most checkable false promise on the page. Flagged in FEATURE.md. */
+      title: "כפתור נגישות",
+      lead: [
+        "בצד שמאל של המסך תמצאו כפתור נגישות המאפשר התאמות מהירות כגון שינוי גודל טקסט והפעלת מצב ניגודיות גבוהה.",
+      ],
+    },
+    {
+      n: "05",
       title: "טכנולוגיה מסייעת תואמת",
       /* ⚠️ The first line asserts testing this build has never had. */
       lead: [
@@ -107,7 +124,7 @@ export const accessibility: Translated<AccessibilityDict> = {
       ],
     },
     {
-      n: "05",
+      n: "06",
       title: "עמודים ורכיבים בתהליך נגשה",
       /* ⚠️ Describes a playground node editor and 3D scenes that do not exist on this site. */
       items: [
@@ -117,7 +134,7 @@ export const accessibility: Translated<AccessibilityDict> = {
       ],
     },
     {
-      n: "06",
+      n: "07",
       title: "רכז הנגישות",
       /* The only section using all three slots: intro, contact list, response-time note. The
          NAME is published on the live site and is kept verbatim. */
@@ -134,12 +151,20 @@ export const accessibility: Translated<AccessibilityDict> = {
       ],
     },
     {
-      n: "07",
+      n: "08",
       title: "שינויים בהצהרה זו",
       /* The source repeats the date inside this section as well as at the top. Kept. */
       lead: [
         "הצהרה זו נסקרת ומתעדכנת בכל שינוי מהותי באתר ובכל מהדורת שיפורי נגישות שאנו משחררים. תאריך העדכון האחרון בתחתית העמוד משקף את הגרסה הנוכחית.",
         "עדכון אחרון: 16 במאי 2026.",
+      ],
+    },
+    {
+      n: "09",
+      /* ADDED 2026-08-17 — the live page’s closing section, which this port lacked. */
+      title: "שיפור מתמיד",
+      lead: [
+        "אנו עובדים באופן שוטף לשפר את נגישות האתר ולהתאימו לתקנים העדכניים ביותר. המחויבות שלנו לנגישות היא חלק בלתי נפרד מהשירות שאנו מספקים.",
       ],
     },
   ],

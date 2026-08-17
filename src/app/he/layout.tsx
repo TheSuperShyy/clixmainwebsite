@@ -32,6 +32,7 @@ import type { Metadata } from "next";
 import "../globals.css";
 import { ViewTransitionProvider } from "@/components/ui/ViewTransitions";
 import { I18nProvider } from "@/lib/i18n/LocaleProvider";
+import CookieBanner from "@/components/legal/CookieBanner";
 import { DICTIONARIES } from "@/lib/i18n/dictionary";
 import { HTML_LANG, DIRECTION } from "@/lib/i18n/config";
 import { seedLocale } from "@/lib/i18n/server";
@@ -63,6 +64,10 @@ export default function HeRootLayout({
       <body>
         <I18nProvider locale="he" chrome={DICTIONARIES.he.chrome}>
           <ViewTransitionProvider>{children}</ViewTransitionProvider>
+          {/* Last in the DOM so a screen reader reaches the page content first. It is
+              `position: fixed`, so document order costs it nothing visually. Mounted
+              inside I18nProvider because it reads `chrome.cookies`. */}
+          <CookieBanner />
         </I18nProvider>
       </body>
     </html>

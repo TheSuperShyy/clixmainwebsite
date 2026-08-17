@@ -7,6 +7,99 @@ Reading this file plus `FEATURE.md` should be enough to resume work on this sect
 no code scanning.
 
 ---
+## 2026-08-17 — cookie banner shipped (cosmetic, by decision)
+
+`src/components/legal/CookieBanner.tsx` + a `cookies` block in `chrome` + one `@keyframes` in
+globals.css + a mount in each of the two layout shells. Requested as "my boss wants that";
+brainstormed first, and the user chose **cosmetic — matches the live site** when asked directly
+whether it should gate anything.
+
+**So it stores a choice nothing reads.** `FooterMap`'s Google Maps iframe still loads on every
+route regardless. terms §07 goes from unkept to half-kept: the prompt exists, "להגדיר העדפות"
+does not. Full reasoning and the one-step path to making it real are in FEATURE.md under
+"The cookie banner".
+
+### Two things that cost time and should not cost it twice
+
+- **`chrome`, not a new namespace.** `I18nProvider` passes exactly one dictionary to the client.
+  A layout-level component cannot read a page namespace — those are seeded per route body.
+- **`useSyncExternalStore` is mandatory here, not a preference.** The obvious
+  `useState(false)` + `useEffect(() => setOpen(true))` fails `npm run lint`:
+  `react-hooks/set-state-in-effect` (React Compiler rules) rejects it. The same rule is why the
+  entrance is a keyframe rather than a transition — a transition would need a second render to
+  create a "before" frame. Both dead ends were hit before the current shape.
+
+Copy is verbatim from the live banner; Hebrew is the source, English the translation.
+⚠️ `bodyLead` / `bodyTail` carry their own edge spacing (Hebrew's lead ends on the bare prefix
+`ב` with NO space; English's ends on `our ` WITH one). A trim breaks both.
+
+`npm run build` passes. Verified by curl, not by eye: banner absent from server HTML, dictionary
+present in the client payload in both locales. **The visual pass at 1600/1440/1024/390 is the
+user's** — not yet done.
+
+
+## 2026-08-17 — re-sourced against clix-solution.com (content only)
+
+The user pointed at `https://www.clix-solution.com/` and said it **is the source of truth**. It
+is a client-rendered Vite SPA — the HTML shell is 1.8 KB and empty — so the three pages were read
+out of `/assets/index-BUEpsVI-.js` (865 KB). Offsets, for anyone re-checking: privacy
+~826400–830700, terms ~830950–833500, accessibility ~833850–836200, footer link array 792799.
+
+**The 2026-08-16 port came from a different site.** Those file headers cite `clixsolutions.info`
+/ `docs/reference/clixsolutions/`. The two document sets share hrefs and topic order and
+essentially nothing else: the live pages carry no section numbers, no eyebrow, no `עדכון אחרון`
+(except accessibility's `עודכן לאחרונה: דצמבר 2024`), a `חזרה לדף הבית` link at the top, and say
+`קליקס` in prose where ours says `Clix`.
+
+**DECISION (user's, explicit): copy the DATA, not the structure.** Our shell stays; only copy
+that exists live and was missing here was added. Nothing was deleted.
+
+### Added
+
+| Page | Added | Was |
+|---|---|---|
+| terms | §01 `כללי` — "השימוש באתר … מהווה הסכמה מלאה" | absent entirely |
+| terms | © line, as `tail` on the last section | absent |
+| privacy | §02 `מבוא` | absent entirely |
+| privacy | `CLIX, קליקס פתרונות אוטומציה לעסקים` | paraphrased as "Clix — חברת …" |
+| accessibility | §04 `כפתור נגישות` | absent entirely |
+| accessibility | §09 `שיפור מתמיד` | absent entirely |
+| accessibility | §03 bullets: text resize, high-contrast mode | absent |
+
+Sections renumbered (terms 6→7, privacy 10→11, accessibility 7→9) and `en/` mirrored in the same
+edit — `Translated<T>` type-checks TUPLE ARITY, so a one-sided addition is a build error.
+`npm run build` passes.
+
+### ⚠️ Three conflicts left UNCHANGED — these are NOT omissions
+
+1. **Spam-law citation.** Live privacy says `חוק הספאם סעיף 13`; ours says
+   `חוק התקשורת (סעיף 30א חוק הספאם)`. §30א is the correct provision. A conflicting value is not
+   a missing one, and downgrading a statute reference to a wrong one on the user's behalf is not
+   a developer's call. Ours kept; user's decision pending.
+2. **Email.** Live prints `info@clixsolution.com` (no hyphen). `src/lib/contact.ts` records the
+   user confirming `info@clix-solution.com` on 2026-08-13, and the pages still render `{email}`
+   → `CONTACT_EMAIL`. Kept hyphenated. This is the channel for statutory data requests, so it
+   must not drift.
+3. **`מונדי`.** Live privacy's third-party clause lists `ווטסאפ, פייסבוק, מונדי, n8n`. This port
+   transliterated `מונדי` as **"Mundi"**; in a CRM list it is almost certainly **monday.com**.
+   Not touched — same reason as (1).
+
+### ⚠️ The accessibility statement now makes TWO MORE promises this build does not keep
+
+`כפתור נגישות` names a control at a named screen position ("בצד שמאל של המסך"), and the two new
+§03 bullets promise text resize and a high-contrast mode. **The live site ships that widget; this
+build has none of it** — there is no such component in `src/`. That takes the page's
+false-promise count from four to six. Reported to the user at the time of the edit. Same shape as
+the cookie-banner clause in terms §07: the live site has a real consent banner
+(`האתר משתמש בעוגיות` / `קבל את כל העוגיות` / `רק עוגיות חיוניות`), and this build does not.
+
+### Not touched (outside the "data only" scope the user set)
+
+The live footer renders the three links as `נגישות · פרטיות · תנאי שימוש`, in that order, at
+every width. Ours renders `תנאי שימוש · מדיניות פרטיות · הצהרת נגישות` with terms gated to
+desktop (`Footer.tsx:136`). Labels, order and the gate all differ. Left alone deliberately.
+
+
 ## Current state
 
 All three documents built 2026-08-16 and building clean — six routes, two bands each (dark hero,

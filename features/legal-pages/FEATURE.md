@@ -143,7 +143,7 @@ developer's call. Flagged here for the user and their lawyer:
 
 | The terms say | This site |
 |---|---|
-| §06: on first visit you are asked to approve cookies and may set preferences | ❌ **There is no cookie banner and no consent UI of any kind** |
+| §07: on first visit you are asked to approve cookies and may set preferences | 🟡 **HALF TRUE since 2026-08-17.** The prompt now exists — `src/components/legal/CookieBanner.tsx`. "להגדיר העדפות" still does not: there are two buttons and no settings panel, and neither button gates anything. See "The cookie banner" below. (Was §06; the section renumbered when `כללי` was added.) |
 | §05: marketing cookies for tailored advertising on Facebook and Google | ❌ **No ad pixels** — no gtag, no GTM, no Facebook Pixel |
 | §04: the last-updated date appears at the *bottom* of the document | ⚠️ It is at the **top**, on the live page and therefore here. The source contradicts itself; kept as published. |
 
@@ -156,6 +156,43 @@ Over-declaring (privacy §02's phone) is safer than under-declaring. The cookie 
 opposite case.
 
 ---
+
+## The cookie banner (2026-08-17)
+
+`src/components/legal/CookieBanner.tsx`, mounted once in each layout shell. Ported from the live
+clix-solution.com banner, which is the source of truth for this site's legal surface.
+
+**⚠️ IT IS COSMETIC, AND THAT WAS DECIDED, NOT OVERLOOKED.** The user was asked outright whether
+it should gate anything and chose "cosmetic — matches the live site", which is also all the live
+site does (its buttons set a flag and nothing reads it). So:
+
+- Both buttons write `localStorage["clix-cookie-consent"]` — `"all"` or `"essential"` — and
+  dismiss. **Nothing in this app reads that value.**
+- `FooterMap.tsx` still loads its Google Maps iframe on every route, before any click and
+  regardless of which button is clicked. It remains the only third-party cookie source in the
+  build.
+
+**To make it real** — the change was kept to one step deliberately: import `readConsent()` from
+the banner into `FooterMap`, and render the reserved `bg-ink-soft` box instead of the `<iframe>`
+until it returns `"all"`. The storage key and its two values exist for exactly that.
+
+### Two implementation notes worth not rediscovering
+
+1. **The strings live in `chrome`, not a page namespace.** `I18nProvider` hands the client
+   exactly one dictionary. Page namespaces are seeded per route body; the banner mounts in the
+   LAYOUT, above every route, so a `cookies` namespace would be unreachable from it.
+2. **`useSyncExternalStore`, not `useState` + `useEffect`.** This project's lint runs the React
+   Compiler rules, and `react-hooks/set-state-in-effect` rejects the read-storage-on-mount idiom
+   outright. The store's third argument (`getServerSnapshot`, returning `"unknown"`) is also what
+   makes the server render and the hydration pass agree on rendering nothing — which is why a
+   returning visitor never sees the bar flash before it removes itself. Verified: the banner is
+   absent from the server HTML (`aria-label="הודעת עוגיות"` count 0) while the dictionary reaches
+   the client in the RSC payload (count 1, both locales).
+
+The entrance is a `@keyframes cookie-banner-in` in globals.css rather than a Tailwind transition,
+for the same lint reason — an element mounted already in its resting state has no earlier frame
+to transition from, and forcing one needs a second render. `motion-reduce:animate-none` on the
+element.
 
 ## Structure and where the values came from
 

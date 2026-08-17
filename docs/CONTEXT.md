@@ -15,6 +15,27 @@ Line format:
 
 ---
 
+## 2026-08-17
+
+- `legal-pages` — **Cookie banner shipped** (`src/components/legal/CookieBanner.tsx`), ported from
+  the live clix-solution.com banner and mounted in both layout shells. ⚠️ **COSMETIC BY DECISION** —
+  the user was asked and chose it: both buttons write `localStorage` and nothing reads it, so
+  `FooterMap`'s Google Map still sets third-party cookies unconditionally. terms §07 is now
+  half-kept. Strings live in `chrome` (a layout component cannot reach a page namespace) and the
+  storage read is `useSyncExternalStore` (the `useEffect` form fails `react-hooks/set-state-in-effect`).
+  → [detail](../features/legal-pages/CONTEXT.md)
+
+- `legal-pages` — **The source of truth for the three legal pages changed to
+  `https://www.clix-solution.com`** (user). The 2026-08-16 port was taken from
+  `clixsolutions.info`, a DIFFERENT site; the two documents share almost no structure. Per the
+  user's instruction (*"only the data … if there are missing from ours that is in the live one,
+  then put it to ours"*) our numbering/eyebrow/date shell was KEPT and only missing copy was
+  added: Terms gained §01 `כללי` and the closing © line; Privacy gained §02 `מבוא` and the live
+  `שם החברה` string; Accessibility gained §04 `כפתור נגישות`, §09 `שיפור מתמיד`, and two feature
+  bullets. Sections renumbered; `en/` mirrored (tuple arity is type-checked). `npm run build`
+  passes. ⚠️ Three known conflicts left UNCHANGED and listed in FEATURE.md.
+  → [detail](../features/legal-pages/CONTEXT.md)
+
 ## 2026-08-16
 
 - `nav` — **The locale switch is gone from the nav, SITEWIDE** (user: "remove this translate

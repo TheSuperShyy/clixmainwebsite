@@ -41,6 +41,16 @@ export const terms: Translated<TermsDict> = {
   sections: [
     {
       n: "01",
+      /* ADDED 2026-08-17. Present on the live https://www.clix-solution.com/terms as its first
+         heading and absent from this port entirely — this is the clause that makes the rest of
+         the document binding, so its absence was the sharpest content gap on the page. */
+      title: "כללי",
+      lead: [
+        "השימוש באתר ובדף הנחיתה של קליקס מהווה הסכמה מלאה לתנאי שימוש אלו. אם אינך מסכים לתנאים, אנא הימנע משימוש באתר.",
+      ],
+    },
+    {
+      n: "02",
       title: "שימוש הוגן באתר",
       items: [
         "אין להעתיק, להפיץ, לשכפל, לפרסם או למסור כל חומר או מידע מהאתר לצד שלישי, ללא אישור מראש ובכתב.",
@@ -48,7 +58,7 @@ export const terms: Translated<TermsDict> = {
       ],
     },
     {
-      n: "02",
+      n: "03",
       title: "הגבלת אחריות",
       items: [
         "השימוש בשירותי Clix ובמידע באתר הוא באחריותם הבלעדית של המשתמשים.",
@@ -56,14 +66,14 @@ export const terms: Translated<TermsDict> = {
       ],
     },
     {
-      n: "03",
+      n: "04",
       title: "קישורים לאתרים חיצוניים",
       lead: [
         "האתר עשוי לכלול קישורים לאתרים חיצוניים. Clix אינה אחראית לתוכן באתרים אלה.",
       ],
     },
     {
-      n: "04",
+      n: "05",
       title: "עדכון התנאים",
       /* ⚠️ "בתחתית המסמך" — the live page puts the date at the TOP. Kept as published. */
       lead: [
@@ -71,7 +81,7 @@ export const terms: Translated<TermsDict> = {
       ],
     },
     {
-      n: "05",
+      n: "06",
       title: "סוגי עוגיות",
       /* ⚠️ The third line names Facebook and Google advertising cookies. This repo has no ad
          pixel of any kind. Kept as published; flagged in FEATURE.md. */
@@ -82,12 +92,17 @@ export const terms: Translated<TermsDict> = {
       ],
     },
     {
-      n: "06",
+      n: "07",
       title: "ניהול העוגיות",
       /* ⚠️ THE SHARPEST MISMATCH ON THIS PAGE — this promises a consent dialog that does not
          exist anywhere in this build. Kept as published; flagged in FEATURE.md. */
       lead: [
         "בכניסה הראשונה לאתר תתבקשו לאשר את השימוש בעוגיות. ניתן לבחור באישור כל העוגיות או להגדיר את ההעדפות באופן אישי.",
+      ],
+      /* ADDED 2026-08-17. The live page's closing line. It has no heading of its own there, so
+         it rides the last section's `tail` rather than becoming a phantom §08. */
+      tail: [
+        "© כל הזכויות שמורות לקליקס | השימוש באתר כפוף למדיניות פרטיות, תנאי שימוש ומדיניות עוגיות",
       ],
     },
   ],

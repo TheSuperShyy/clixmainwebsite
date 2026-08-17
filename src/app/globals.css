@@ -423,6 +423,27 @@ html {
    The reduced-motion path does NOT rely on the global neutraliser below — ProductHero drops
    the animation class entirely and renders a steady caret, because a caret frozen mid-cycle
    by `animation-duration: 0.01ms` can land invisible. */
+/* The cookie notice's entrance, added 2026-08-17 with `src/components/legal/CookieBanner.tsx`.
+
+   A KEYFRAME RATHER THAN A TAILWIND TRANSITION, on purpose. The banner is mounted by
+   `useSyncExternalStore` already in its resting state, so there is no earlier frame for a
+   transition to interpolate from -- driving one would need a second render purely to create a
+   "before", which is exactly the setState-in-effect this project's lint forbids. An animation
+   needs no before: it plays once on mount and `both` holds the final frame.
+
+   The component also carries `motion-reduce:animate-none`, so a visitor asking for reduced
+   motion gets the bar in place with no travel. */
+@keyframes cookie-banner-in {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
 @keyframes blink {
   0%,
   100% {

@@ -60,10 +60,21 @@ export const accessibility = {
         "Form fields with explicit labels, error messages tied to the relevant field, and controls grouped where appropriate.",
         "A responsive layout that reflows cleanly down to 320 pixels with no horizontal scrolling, and supports text enlargement of up to 200% without loss of content.",
         "ARIA live regions for status messages (form submission, chat updates) so that every change is announced to assistive technology.",
+        /* ADDED 2026-08-17 — see he/accessibility.ts. ⚠️ Both are false of this build. */
+        "The ability to increase and decrease the text size.",
+        "A high-contrast mode for easier reading.",
       ],
     },
     {
       n: "04",
+      /* ADDED 2026-08-17 — see he/accessibility.ts. ⚠️ This build ships no such widget. */
+      title: "Accessibility button",
+      lead: [
+        "On the left-hand side of the screen you will find an accessibility button offering quick adjustments such as changing the text size and turning on high-contrast mode.",
+      ],
+    },
+    {
+      n: "05",
       title: "Compatible assistive technology",
       lead: [
         "The site has been tested with VoiceOver on macOS and iOS, with NVDA on Windows, and with keyboard-only navigation on the last two stable versions of Chrome, Safari, Firefox and Edge.",
@@ -71,7 +82,7 @@ export const accessibility = {
       ],
     },
     {
-      n: "05",
+      n: "06",
       title: "Pages and components still being made accessible",
       items: [
         "The node editor in the playground is currently operated by mouse and touch only; keyboard-only drag and drop on the canvas is on our roadmap.",
@@ -80,7 +91,7 @@ export const accessibility = {
       ],
     },
     {
-      n: "06",
+      n: "07",
       title: "Accessibility coordinator",
       lead: [
         "If you have encountered an accessibility barrier on the site, or you have feedback or questions about accessibility at Clix, we would be glad to hear from our accessibility coordinator.",
@@ -95,11 +106,19 @@ export const accessibility = {
       ],
     },
     {
-      n: "07",
+      n: "08",
       title: "Changes to this statement",
       lead: [
         "This statement is reviewed and updated on every material change to the site and with every accessibility improvement release we ship. The last-updated date at the bottom of the page reflects the current version.",
         "Last updated: 16 May 2026.",
+      ],
+    },
+    {
+      n: "09",
+      /* ADDED 2026-08-17 — see he/accessibility.ts. */
+      title: "Continuous improvement",
+      lead: [
+        "We work continuously to improve the accessibility of the site and to bring it in line with the most current standards. Our commitment to accessibility is an inseparable part of the service we provide.",
       ],
     },
   ],

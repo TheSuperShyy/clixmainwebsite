@@ -64,12 +64,21 @@ export const privacy: Translated<PrivacyDict> = {
       n: "01",
       title: "החברה ופרטי קשר",
       lead: [
-        "Clix — חברת פתרונות אוטומציה עסקית.",
+        "CLIX, קליקס פתרונות אוטומציה לעסקים",
         "לפניות בנושאי פרטיות: באימייל {email} או בטלפון {phone}.",
       ],
     },
     {
       n: "02",
+      /* ADDED 2026-08-17. The live https://www.clix-solution.com/privacy opens on a
+         `מבוא` heading that this port did not carry at all. */
+      title: "מבוא",
+      lead: [
+        "מסמך זה מפרט כיצד קליקס אוספת, משתמשת, שומרת ומגנה על מידע שנמסר במסגרת שימוש בדף הנחיתה ובשירותי החברה.",
+      ],
+    },
+    {
+      n: "03",
       title: "המידע שאנו אוספים",
       lead: [],
       items: [
@@ -83,7 +92,7 @@ export const privacy: Translated<PrivacyDict> = {
       tail: [],
     },
     {
-      n: "03",
+      n: "04",
       title: "מטרות השימוש במידע",
       lead: [],
       items: [
@@ -95,7 +104,7 @@ export const privacy: Translated<PrivacyDict> = {
       tail: [],
     },
     {
-      n: "04",
+      n: "05",
       title: "מסירת מידע לצד שלישי",
       lead: [
         "Clix אינה מוכרת מידע לצדדים שלישיים.",
@@ -103,14 +112,14 @@ export const privacy: Translated<PrivacyDict> = {
       ],
     },
     {
-      n: "05",
+      n: "06",
       title: "שמירת המידע",
       lead: [
         "המידע נשמר במאגר הנתונים של Clix. הגישה מוגבלת לצוות מורשה בלבד. Clix נוקטת באמצעי אבטחה טכנולוגיים וארגוניים למניעת גישה בלתי מורשית.",
       ],
     },
     {
-      n: "06",
+      n: "07",
       title: "זכויות המשתמש על פי חוק הגנת הפרטיות",
       /* The only mixed section — see the render-order note in this file's header. */
       lead: [],
@@ -121,14 +130,14 @@ export const privacy: Translated<PrivacyDict> = {
       tail: ["יש להגיש פניות בכתב לכתובת {email} או בטלפון {phone}."],
     },
     {
-      n: "07",
+      n: "08",
       title: "תקופת שמירת המידע",
       lead: [
         "המידע נשמר כל עוד קיים צורך עסקי ותפעולי. ניתן לבקש מחיקה מלאה בכל עת.",
       ],
     },
     {
-      n: "08",
+      n: "09",
       title: "שיווק ישיר ואישור משלוח הודעות",
       lead: [],
       items: [
@@ -138,7 +147,7 @@ export const privacy: Translated<PrivacyDict> = {
       tail: [],
     },
     {
-      n: "09",
+      n: "10",
       title: "שימוש בעוגיות (Cookies)",
       lead: [],
       items: [
@@ -148,7 +157,7 @@ export const privacy: Translated<PrivacyDict> = {
       tail: [],
     },
     {
-      n: "10",
+      n: "11",
       title: "מחיקת פרטים ופניות בנושא פרטיות",
       /* `ל-{email}` — the Hebrew prefix hyphen, kept. See the header. */
       lead: ["ניתן לפנות אלינו ל-{email} או בטלפון {phone}."],
