@@ -68,6 +68,21 @@ export const contact = {
     locationValue: "Global",
   },
 
+  /* ── the brief-rail beside the form (AUTHORED, 2026-08-17) ───────────────────────────────
+     The reference has no heading column beside its form — it is a single centred card — so
+     there is nothing to source here. Added when the page gained its two-column layout: the
+     rail carries this heading, this intro and a live list of the four group legends, which it
+     reads from `form.groups` rather than restating. */
+  panel: {
+    title: "One brief, then a real reply.",
+    intro:
+      "Four short steps. Three fields are required; everything else just helps us answer better.",
+    /* Sits under the intro and beside the submit button. The SAME promise `successBody` makes
+       — moved to where it can still change someone's mind, because after a successful send it
+       is reassurance and before one it is a reason to write. */
+    reply: "We reply within one business day.",
+  },
+
   form: {
     /* The four group legends, each with its own numeral in the component. */
     groups: {
@@ -153,6 +168,13 @@ export const contact = {
          own accessible name; the visible legend supplies it via aria-labelledby, and these
          two describe the INTERACTION, which the legend does not. */
       needsHint: "Choose any that apply.",
+      /* Announced by an sr-only `role="status"`, never seen. The visible count badge beside the
+         legend is `aria-hidden` — it duplicates what these say. `{n}`/`{total}` go through
+         `interpolate()` (src/lib/i18n/format.ts), which is what `chrome.ts` already uses. */
+      needsCount: "{n} of {total} selected.",
+      /* Only announced once the remaining count is low, and BUCKETED to the nearest 50 by the
+         component — an exact figure would fire this live region on every keystroke. */
+      charsLeft: "About {n} characters left.",
       budgetHint: "Choose one.",
       /* The honeypot's label. Never seen; read aloud only if a screen reader ignores
          `aria-hidden`, which is why it says what to do rather than what it is. */

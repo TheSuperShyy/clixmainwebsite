@@ -329,7 +329,7 @@ The Radius · Shadow · Border table below has said "Shadows — none found in t
 
 | Token | Value | Where |
 |---|---|---|
-| `shadow-float` | `0 1px 2px rgb(21 21 21 / 0.05), 0 16px 40px -12px rgb(21 21 21 / 0.16)` | `/company` Block 3 — the sticky heading while pinned, and a card on hover |
+| `shadow-float` | `0 1px 2px rgb(21 21 21 / 0.05), 0 16px 40px -12px rgb(21 21 21 / 0.16)` | `/company` Block 3 — the sticky heading while pinned, and a card on hover. ⚠️ **Third use added 2026-08-17 and it is the first RESTING one:** `/contact`'s form panel, and its submit button on hover. Until then this shadow only ever appeared on hover. |
 
 Built from **`ink` at low alpha, not from black**, so it derives from an existing token rather
 than introducing a colour. Two layers because one cannot do both jobs: the 1px contact shadow
@@ -338,6 +338,85 @@ keeps the edge crisp against `bone`, the wide one is what reads as height.
 Used in exactly two places, both on that band. It exists because the user asked for a heading
 that "floats when floating" and for cards that lift on hover — neither of which a flat design
 can express.
+
+## Added 2026-08-17 — `/contact`'s two state colours
+
+The first colours on this site that mean a **state** rather than a brand, a service or a
+surface. `/contact` was strictly monochrome until now, and that was recorded in
+`features/contact-page/FEATURE.md` as a decision, not a gap. The user lifted it — along with
+motion, elevation and an error red — when asking for the page to be redesigned in `/company`
+Block 3's language.
+
+| Token | Value | Means |
+|---|---|---|
+| `signal` | `#0e6472` | on track — step complete, focus, progress, counters, the success mark |
+| `alert` | `#b42318` | wrong — invalid field, error message, failed submit |
+
+### Ratios
+
+From `node docs/reference/contrast-check.js --check "<fg>" "<bg>"`.
+
+| | on `paper` | on `bone` | on `surface` | `paper` on it | on its own 8–10% wash |
+|---|---|---|---|---|---|
+| `signal` | **6.81** | 6.09 | 6.24 | 6.81 | 5.84 (`#e7eff1`) |
+| `alert` | **6.57** | 5.88 | 6.03 | 6.57 | 5.75 (`#f9edec`) |
+
+All AA. Not headroom either: `signal` carries the 12px count badges and `alert` carries 12px
+error prose, so both are doing real work at small sizes.
+
+### Why they are a pair and not two picks
+
+1. **0.24 spread on white**, so an error never visually outranks a completion tick and a form
+   showing one of each does not look lopsided. Same tuning argument `--color-svc-*` makes with
+   its 0.74 spread.
+2. **Both land inside the svc set's 6.07–6.81 band on white.** They are *not* members of that
+   set and must never appear on `/company` — but sitting in its contrast band is what makes them
+   read as this site's colours rather than a stock palette.
+3. **CVD-safe against each other, which is why `signal` is a teal and not a green.** The obvious
+   pairing for complete/invalid is green/red, and it is the one pairing that collapses under
+   deuteranopia and protanopia — ~8% of male visitors — on a page whose entire new state language
+   is these two colours. Cyan-teal against warm red is the maximum-separation axis instead.
+4. **No dark-ground variants, deliberately.** `signal` is 2.68:1 on `ink` and `alert` 2.78:1;
+   both fail. So the accent never appears on `/contact`'s dark hero. That is the restraint
+   clause, not a gap — the accent is the *form's* state channel and the hero has no state.
+
+**Rejected: reusing `--color-svc-1` `#0f6b63`** (6.36:1), which would have added zero new hues
+and had precedent — this file records four tokens whose scope widened. Rejected because a
+service accent and a form state colour are different things: coupling them means a future
+retune of `/company`'s palette silently moves `/contact`'s focus rings and completion ticks.
+
+**Rejected: `--color-price-high` `#f87171`** for `alert`. Its own token note says it is semantic
+to the banner ticker and that nothing may use it for an accent; it is also only ~3.0:1 on white
+and could not carry error text.
+
+### ⚠️ Restraint clause
+
+> `signal` paints **only**: the step chip when complete or focused, the field underline on focus,
+> the panel progress bar, the count badges, the character counter once the minimum is met, the
+> pill focus ring, and the success mark.
+> `alert` paints **only**: the field underline when invalid, the error message and its glyph, the
+> step chip when its group holds an error, the form-level alert banner, and the character counter
+> above 90% of the maximum.
+> Headings, body copy, labels, placeholders, consent, **the submit button** and all panel chrome
+> stay `ink` / `ink-soft` / `muted` / `hairline`. The submit button stays `bg-ink` — an
+> accent-filled primary would be the accent doing decoration.
+
+### ⚠️ Two contrast findings from this pass, and one is not `/contact`'s
+
+Measured while choosing the band's ground:
+
+| Pair | Ratio | |
+|---|---|---|
+| `muted` `#737373` on `bone` `#f5f2eb` | **4.24:1** | **fails AA** (it is 4.74:1 on white, which passes) |
+| `mark` `#8b8b8b` on `bone` | **3.05:1** | fails — worse than its already-failing 3.41:1 on white |
+
+This is why `/contact`'s form is a **white panel on a `bone` band** rather than a tinted form:
+every label, placeholder, hint and the consent line is `muted`, and tinting the form would have
+failed all of them at once. **The rule for any `bone` ground is `ink` and `ink-soft` only.**
+
+⚠️ **Pre-existing failure found, not introduced, and not fixed here:** `/company` Block 3's
+intro paragraph (`CompanyServices.tsx`) is `muted` on `bone` at 16/18px — i.e. 4.24:1 on a
+shipping page. Out of scope for the `/contact` pass; recorded so it is not re-discovered as new.
 
 ## Typography
 
@@ -471,7 +550,7 @@ not noise. The large end (56/72/80/88/108/164) is **section-specific rhythm**, n
 | `radius-pill` | `10000px` ×2 | buttons / badges |
 | `radius-sm` | `6px` ×1 | single one-off |
 | `border` | `#a8a29e33` hairline | |
-| Shadows | none found in the capture | flat design. ⚠️ **One was ADDED 2026-08-16** — `shadow-float`, ours not rogo's, scoped to `/company` Block 3. See its section above. |
+| Shadows | none found in the capture | flat design. ⚠️ **One was ADDED 2026-08-16** — `shadow-float`, ours not rogo's. Scoped to `/company` Block 3 until 2026-08-17, when `/contact`'s form panel became its first resting use. See its section above. |
 
 ## Breakpoints
 

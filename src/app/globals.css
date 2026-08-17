@@ -189,6 +189,57 @@
   --color-svc-7: #8a5312; /* Custom Software    — bronze */
   --color-svc-8: #a3441c; /* AI Strategy        — rust   */
 
+  /* ---- /contact's two STATE colours (2026-08-17) ----------------------------------------
+   *
+   * ⚠️ A PAIR, NOT TWO PICKS, AND THEY ARE STATE COLOURS RATHER THAN DECORATION. /contact was
+   * strictly monochrome until today — an invalid field said "wrong" by thickening its underline
+   * to `ink`, which is the SAME value focus used, so the two states were visually identical.
+   * The user lifted that constraint on 2026-08-17 along with motion and elevation. These two
+   * are what the page spends it on, and nothing else.
+   *
+   * ⚠️ TUNED AS A SET, exactly as `--color-svc-*` above was. 6.81 and 6.57 on `paper` — a 0.24
+   * spread — so an error message never visually outranks a completion tick and a form showing
+   * one of each does not look lopsided. Both also land INSIDE the svc set's 6.07–6.81 band,
+   * which is what makes them read as this site's colours rather than a stock palette. They are
+   * NOT members of that set and must never appear on /company.
+   *
+   * ⚠️ CVD-SAFE AGAINST EACH OTHER, and that is why `signal` is a teal and not a green. The
+   * obvious pairing for complete/invalid is green/red — and it is the one pairing that
+   * collapses for deuteranopia and protanopia, i.e. ~8% of male visitors, on a page whose whole
+   * new state language is these two colours. Cyan-teal against warm red is the maximum
+   * separation axis instead.
+   *
+   * ⚠️ NEITHER HAS A DARK-GROUND VARIANT, ON PURPOSE. `signal` is 2.68:1 on `ink` and `alert`
+   * 2.78:1 — both fail. So the accent NEVER appears on the /contact hero. That is the restraint
+   * clause rather than a gap: the accent is the FORM's state channel, and the hero has no state.
+   *
+   * Ratios, from `node docs/reference/contrast-check.js --check "<fg>" "<bg>"`:
+   *            on paper   on bone   on surface   paper on it   on its own 8-10% wash
+   *   signal     6.81       6.09       6.24         6.81            5.84  (#e7eff1)
+   *   alert      6.57       5.88       6.03         6.57            5.75  (#f9edec)
+   *
+   * ⚠️ RESTRAINT CLAUSE — the same shape the svc accents carry, and it is the whole design.
+   *   `signal` paints ONLY: the step chip when complete or focused, the field underline on
+   *   focus, the panel progress bar, the count badges, the character counter once the minimum
+   *   is met, the pill focus ring, and the success mark.
+   *   `alert` paints ONLY: the field underline when invalid, the error message and its glyph,
+   *   the step chip when its group holds an error, the form-level alert banner, and the
+   *   character counter above 90% of the maximum.
+   *   Headings, body copy, labels, placeholders, consent, THE SUBMIT BUTTON and all panel
+   *   chrome stay `ink` / `ink-soft` / `muted` / `hairline`.
+   *
+   * ⚠️ `--color-svc-1` #0f6b63 WAS CONSIDERED AND REJECTED for `signal`, though it is a near
+   * neighbour and would have added zero new hues. A service accent and a form state colour are
+   * different things: coupling them means a future retune of /company's palette silently moves
+   * /contact's focus rings and completion ticks. One extra token buys that decoupling.
+   *
+   * ⚠️ `--color-price-high` #f87171 IS NOT AN ALTERNATIVE to `alert`. Its own note above says it
+   * is semantic to the banner ticker and that nothing may use it for an accent; it is also only
+   * ~3.0:1 on white and could not carry 12px error prose.
+   */
+  --color-signal: #0e6472; /* /contact — on track: focus, progress, completion */
+  --color-alert: #b42318; /* /contact — wrong: invalid field, failed submit   */
+
   /* The one elevation on this site. Built from `ink` at low alpha rather than from black, so
      it is derived from an existing token and not a new colour. Used in exactly two places,
      both on /company Block 3: the sticky heading while it is pinned, and a card on hover.
@@ -769,6 +820,118 @@ html {
   50% {
     transform: translateY(calc(-2 * var(--u, 1px)));
   }
+}
+
+/* ---- /contact (2026-08-17) --------------------------------------------------------------
+ *
+ * THE PAGE HAD NO MOTION AT ALL until today, and its FEATURE.md recorded that as a decision
+ * rather than a gap ("nothing animates on entry, on scroll or on mount"). The user lifted it.
+ *
+ * ⚠️ NO GSAP ON THIS PAGE, DELIBERATELY. `gsap` and `@gsap/react` are installed and this repo
+ * has a mature idiom for them (ClixBackdrop, SecurityCanvas, LogoCarousel). Everything below is
+ * either a ONE-SHOT MOUNT REVEAL or a STATE TRANSITION — nothing scroll-driven, scrubbed,
+ * pinned, or sequenced across components, i.e. none of the four things GSAP is in this project
+ * for. A one-shot @keyframes with `animation-fill-mode: backwards` is behaviourally identical
+ * to `gsap.from()`, including the invariant both rely on: THE RESTING CSS IS THE FINAL STATE,
+ * so SSR first paint and the JS-off render are already correct. And /company Block 3 — the band
+ * /contact is being brought into line with — ships zero client JS; adding ~35kB gz of GSAP to
+ * the one page that currently ships only the form would move away from that, not toward it.
+ *
+ * ⚠️⚠️ THE REDUCED-MOTION CLAMP AT THE END OF THIS FILE DOES NOT COVER THESE, AND THAT IS THE
+ * WHOLE REASON THEY LIVE INSIDE A `no-preference` MEDIA BLOCK.
+ *
+ * The clamp zeroes `animation-duration`, `animation-iteration-count`, `transition-duration` and
+ * `scroll-behavior`. It does NOT zero `animation-delay`. Every reveal below is STAGGERED, i.e.
+ * it is `opacity: 0` at 0% and is held there by `backwards` fill for the length of its delay.
+ * Under the clamp alone a reduced-motion visitor would therefore get the element pinned blank
+ * for its full delay and then SNAP in — a timed flash of missing content, which is precisely
+ * the failure `prefers-reduced-motion` exists to prevent, and it would get worse the further
+ * down the stagger an element sits.
+ *
+ * So the rule for this page is: EVERY `animation:` DECLARATION IS BUILT ONLY UNDER
+ * `(prefers-reduced-motion: no-preference)`. Never authored and then neutralised — never
+ * authored at all. This is the CSS equivalent of `gsap.matchMedia()` never building its branch,
+ * which is the idiom the three GSAP components here already use. The global clamp stays as a
+ * backstop for everything else; it is not the mechanism here.
+ *
+ * ⚠️ This is a LATENT GAP IN THE GLOBAL CLAMP, not a quirk of /contact. Any future staggered
+ * CSS entrance anywhere in this repo hits it. Logged in docs/CONTEXT.md 2026-08-17.
+ *
+ * ⚠️ OPACITY AND translateY ONLY — the Y axis is the one that does not flip under RTL, so these
+ * need no `[dir="rtl"]` companion the way `.benefit-bar` and `.clix-marquee` do. The single
+ * exception on this page is the progress bar's `transform-origin`, handled below.
+ */
+
+/* The universal entrance: rail, panel, rail step rows, error messages, success content. One
+   keyframe with per-call-site duration and `animation-delay`, because every user of it wants
+   the same 14px lift and differs only in timing. `backwards` fill is load-bearing — without it
+   a delayed element paints at its FINAL position for the length of the delay and then jumps
+   back to 0 to start, which reads as a flicker. */
+@keyframes contact-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* The submit button's in-flight indicator — three dots, staggered by `animation-delay`.
+   ⚠️ THE BASE FRAME IS 0.55 ON ALL THREE, NOT 0. Under the global clamp this animation is
+   forced to one iteration at ~0ms, so whatever the 0% frame says is what a reduced-motion
+   visitor SEES, permanently. At 0.55 the frozen state is a legible, evenly-lit three-dot
+   indicator; at 0 it would be one lit dot and two blanks, which reads as a rendering bug. Same
+   invariant serviceArt.tsx states for its own loops, and the same one `service-pulse` follows. */
+@keyframes contact-dot {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* The success mark's check, drawn rather than faded in. The path carries `pathLength="1"` so
+   the dash values are unit-independent and this keyframe needs no knowledge of the geometry —
+   see src/components/contact/contactGlyphs.tsx. */
+@keyframes contact-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .contact-rise {
+    animation: contact-rise 0.45s var(--ease-rogo) backwards;
+  }
+  /* Errors arrive faster than the page does: they are a response to something the visitor just
+     did, and 450ms after a failed submit reads as lag rather than as polish. */
+  .contact-rise-fast {
+    animation: contact-rise 0.22s var(--ease-rogo) backwards;
+  }
+  .contact-dot {
+    animation: contact-dot 1.2s var(--ease-rogo) infinite;
+  }
+  .contact-draw {
+    animation: contact-draw 0.4s var(--ease-rogo) 0.12s backwards;
+  }
+}
+
+/* The form panel's completion bar. `transform-origin` has no logical keyword and this bar is
+   full-bleed across the panel's top edge, so under RTL a `left` origin would grow it from the
+   wrong end — it must fill from the inline START. Same `[dir="rtl"]`-scoped idiom `.benefit-bar`
+   and `.clix-marquee` already use, and for the same reason. */
+.contact-progress {
+  transform-origin: left center;
+}
+[dir="rtl"] .contact-progress {
+  transform-origin: right center;
 }
 
 

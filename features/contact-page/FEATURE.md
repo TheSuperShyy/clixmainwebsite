@@ -4,11 +4,11 @@
 |---|---|
 | Slug | `contact-page` |
 | Page(s) | `/contact` · `/he/contact` |
-| Order on page | whole route: `ContactHero` then `ContactBody` (aside + form) |
+| Order on page | `ContactHero` (eyebrow + headline) → `ContactBody` (rail + form) → `Footer`, whose closing CTA is replaced by `ContactChannels` on this route |
 | Status | `review` |
 | Reference | **none of the usual kind** — see below |
 | Original Framer name | **n/a. There is no rogo original.** |
-| Component | `src/components/contact/{ContactHero,ContactBody,ContactAside,ContactForm}.tsx` |
+| Component | `src/components/contact/{ContactHero,ContactBody,ContactChannels,ContactForm,contactGlyphs}.tsx`. ⚠️ `ContactChannels` renders in the **footer** via `Footer`'s `closing` prop, not in this page's own tree. |
 | Route | `src/app/_routes/ContactRoute.tsx` + two shells |
 | API | `src/app/api/contact/route.ts` |
 | Dictionary | `src/lib/i18n/{en,he}/contact.ts` |
@@ -266,10 +266,23 @@ header that it is the only one; that is now out of date).
 - [x] One real end-to-end send confirmed `{"ok":true}`, addressed to `office@clix-solution.com`
 - [x] Spacing / type / colour from tokens, or the deviation is in the table above
 - [x] All interactive states implemented
-- [x] `prefers-reduced-motion` respected (vacuously — nothing animates unprompted)
-- [x] Zero new design tokens
-- [ ] **Visual check at 1600 / 1440 / 1024 / 390 — NOT DONE, handed to the user**
-- [ ] **Hebrew RTL mirroring not visually checked** — logical properties throughout, but unseen
+- [x] `prefers-reduced-motion` respected — **no longer vacuously.** The page now has motion, and
+      every `animation:` is authored inside `@media (prefers-reduced-motion: no-preference)`
+      rather than authored and then clamped. ⚠️ The global clamp does NOT zero `animation-delay`,
+      so a staggered entrance outside that block would hold an element blank for its delay and
+      then snap. Transform hovers carry their own `motion-reduce:` escapes, and the JS
+      `scrollIntoView` reads the media query directly because the global `scroll-behavior`
+      override does not reach a JS `behavior` option. **Not yet confirmed in a browser.**
+- [x] **Two new design tokens** — `--color-signal` `#0e6472`, `--color-alert` `#b42318`. Declared
+      in `globals.css` with a full set justification and documented in `docs/DESIGN-SYSTEM.md`.
+      (This line read "Zero new design tokens" until 2026-08-17; the user lifted that constraint.)
+- [x] `shadow-float` reused — third use on the site, and the first RESTING one
+- [x] Contrast re-checked on every new pairing with `docs/reference/contrast-check.js`
+- [ ] **Visual check at 1600 / 1440 / 1024 / 390 — STILL NOT DONE after the 2026-08-17 redesign.**
+      Rendered HTML was inspected for the 1px-form landmine (clean) but nothing has been *seen*.
+- [ ] **Hebrew RTL mirroring not visually checked** — logical properties throughout (`ms-auto`,
+      `border-s-2`, `justify-between`), `dir="rtl"` and all new strings confirmed present in the
+      served HTML, and `.contact-progress` flips its `transform-origin`. Still unseen.
 - [ ] **Keyboard walk-through not performed in a browser** — semantics are in place, unverified
 - [ ] Deployed send to the real recipient not attempted (needs the Vercel env vars)
 
@@ -282,12 +295,21 @@ header that it is the only one; that is now out of date).
       press wants its own inbox, that one href reverts and nothing else changes.
 - [ ] **`/clix` hero** now leaves the page for `/contact` instead of scrolling to its own
       `#clix-contact` band. The band stays and its button also goes to `/contact`.
-- [ ] **The footer's closing CTA on `/contact` links to the page you are already on.** Same
-      shape as the nav's current-page link; left alone rather than special-cased in a component
-      every route renders.
+- [x] **The footer's closing CTA on `/contact` links to the page you are already on.** ⚠️ **CLOSED
+      2026-08-17 — this is resolved, not outstanding.** It was left alone on the grounds that
+      special-casing a component every route renders was worse than the redundancy. The user
+      disagreed: *"move it down, remove the cta, since you are already in the cta page."* `Footer`
+      gained an optional `closing` node prop; `ContactRoute` passes `<ContactChannels />`, so on
+      this route the reiteration block is the four contact channels and the self-linking button is
+      gone. Six other routes are untouched and pass nothing.
 - [ ] **`id="contact"` on `<footer>` is now unreferenced.** Kept — it costs nothing and is the
       kind of thing linked from outside the codebase.
-- [ ] **The budget ladder has a gap** (`up to ₪10k`, then `₪15k–₪25k`). The real site's own; not
-      ours to tidy.
+- [x] **The budget ladder has a gap** (`up to ₪10k`, then `₪15k–₪25k`). ⚠️ **RAISED WITH THE USER
+      2026-08-17 AND DECLINED — this is closed, not open.** A visitor whose real budget is ₪12k has
+      no truthful band and, budget being optional, will likely skip the question. The user chose to
+      keep the ladder as the business advertises it.
+- [x] **Group order.** ⚠️ **RAISED 2026-08-17 AND DECLINED.** Review argued that asking budget
+      BEFORE the brief extracts a money commitment before the visitor has invested anything, and
+      recommended moving the brief up. The user chose to keep the reference's own order.
 - [ ] Whether the sending mailbox should be `office@clix-solution.com` or a dedicated
       no-reply. Currently whatever `.env` holds.

@@ -198,10 +198,10 @@ at the user's explicit instruction. Acceptance here is a consistency test, not a
 
 | # | Block | Status | Notes |
 |---|---|---|---|
-| 1 | `ContactHero` | **`review`** | **Built** → `src/components/contact/ContactHero.tsx`. Dark band, `data-nav-theme="dark"`. Mono-free eyebrow + a 48/44px display h1 at −0.05em with one `paper` emphasis run against `paper-soft`. `pt-[198px]` is CompanyHero's own fixed-nav clearance, reused not re-derived. |
-| 2 | `ContactBody` | **`review`** | **Built** → `ContactBody.tsx`. Light band, `data-nav-theme="light"`. Server component; two columns at ≥1200 (aside 300 + form capped 720), stacked below. Aside first in the DOM at every tier, no `order-*`, so reading order and tab order cannot disagree. |
-| 2a | `ContactAside` | **`review`** | **Built** → `ContactAside.tsx`. Four hairline rows — email, WhatsApp, hours, location — from `src/lib/contact.ts`, the same map Footer reads. Sticky at `top-198` on desktop. Survives a form failure, which is the argument for it. |
-| 2b | `ContactForm` | **`review`** | **Built** → `ContactForm.tsx`, the only client component and the only real form on the site. Four hairline-ruled numbered groups; underline inputs (`border-b-2`, colour-only focus); pills copied verbatim from `NewsBoard`'s filter row; needs = `aria-pressed` multi, budget = a real `radiogroup` with roving tabindex and direction-aware arrows. Monochrome errors. **Zero new tokens.** |
+| 1 | `ContactHero` | **`review`** | **Built** → `src/components/contact/ContactHero.tsx`. Dark band, `data-nav-theme="dark"`. Eyebrow + a 48/44px display h1 at −0.05em with one `paper` emphasis run against `paper-soft`. `pt-[198px]` is CompanyHero's own fixed-nav clearance, reused not re-derived. Eyebrow raised `muted` → `paper-soft` on 2026-08-17, closing a documented AA failure (3.85 → 11.84). ⚠️ **It briefly carried the contact channels on 2026-08-17 and no longer does** — they went to the footer the same day, on the user's call. This band is therefore DELIBERATELY sparse; the emptiness was called out in review and traded away knowingly. Do not invent filler for it. |
+| 2 | `ContactBody` | **`review`** | **Built** → `ContactBody.tsx`. ⚠️ **Redesigned 2026-08-17:** `bg-paper` → **`bg-bone`**, and it is now just the band — the two-column row moved into `ContactForm`, because the success state has to swap the form out while leaving the rail standing. Still `data-nav-theme="light"`, still a server component. ⚠️ **Must never gain `overflow-hidden`** — it would become the sticky rail's scroll container (the bug that broke /company Block 3) and clip the panel's `shadow-float`. |
+| 2a | `ContactChannels` | **`review`** | **Built** → `ContactChannels.tsx`, **renamed from `ContactAside.tsx` 2026-08-17.** Four rows — email, WhatsApp, hours, location — from `src/lib/contact.ts`, the same map Footer reads. Was a 300px sidebar: weightless beside a 1400px form, ~196px of dead gutter at desktop, and four full-width rows wedged between hero and form below 1200. ⚠️ **It now renders in the FOOTER**, via `Footer`'s new `closing` prop, replacing the reiteration CTA on this route only — see `ContactRoute.tsx`. All colours are for the dark ground **including the focus ring** (`ring-forest`/`offset-paper` → `ring-paper`/`offset-ink`). |
+| 2b | `ContactForm` | **`review`** | **Built** → `ContactForm.tsx`, the only client component and the only real form on the site. Needs = `aria-pressed` multi, budget = a real `radiogroup` with roving tabindex and direction-aware arrows. ⚠️ **Redesigned 2026-08-17** — owns BOTH columns now: a sticky brief-rail (`calc(var(--nav-peak-h) + 16px)`) and one white `shadow-float` panel on `bone`. Four groups read as numbered STEPS with 28px chips that complete, a 2px progress bar, count badges and a character counter. **Two new tokens** `signal`/`alert` replace the monochrome error state, where an invalid underline was the same `ink` as focus. ⚠️ **`w-px flex-[1_0_0]` is RETIRED, not re-gated** — there is no `max-w` cap left for it to serve. |
 | — | `Footer` | **`review`** | **Reused** unchanged. Keeps `id="contact"` although nothing points at it any more. |
 | — | `POST /api/contact` | **`review`** | **Built** → `src/app/api/contact/route.ts`, the project's SECOND route handler (`api/models`'s "only route handler" header is now stale). nodemailer over Gmail SMTP to `info@clix-solution.com`. Honeypot, 3-per-10-min best-effort rate limit, HTML escaping, CRLF-stripped headers, duplicated validation. **`nodemailer` is the first runtime dependency this project has ever added.** |
 
@@ -209,6 +209,18 @@ at the user's explicit instruction. Acceptance here is a consistency test, not a
 no visual check at any width, no Hebrew RTL check, no browser keyboard walk-through. That is the
 whole of what stands between `review` and `done` — see
 [features/contact-page/FEATURE.md](../features/contact-page/FEATURE.md).
+
+⚠️ **Nobody has looked at this page, and that is STILL true after the 2026-08-17 redesign.**
+Build, lint and typecheck are clean, both routes return 200, and the rendered HTML was inspected
+for the two known landmines (the 1px-wide form, and the Hebrew RTL markup) — both clean. But there
+has been **no visual check at any width, in either language**, and no browser keyboard
+walk-through. That is the whole of what stands between `review` and `done`.
+
+⚠️ **The footer's closing CTA is REPLACED on this route** (2026-08-17). Every other page ends with
+"Software that works, results that speak." over a `Let's start` button — which points at
+`/contact`, so on `/contact` it pointed at the page you were already reading. `Footer` gained an
+optional `closing` node prop and `ContactRoute` passes `<ContactChannels />`. The prop takes a
+NODE, not a route name or a flag, so `Footer` never learns what `/contact` is.
 
 ⚠️ **All eleven site CTAs were repointed here** on 2026-08-13, from `#contact` (the footer
 anchor), `/#contact`, `#clix-contact` and one `mailto:`. Six were raw `<a>` and are now

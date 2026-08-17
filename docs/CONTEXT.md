@@ -17,6 +17,27 @@ Line format:
 
 ## 2026-08-17
 
+- `contact-page` — **Full visual redesign in `/company` Block 3's language.** The page shipped
+  2026-08-13 and nobody had ever looked at it: five identical rules, invisible 12px `mark`
+  numerals, no completion signal, a weightless 300px aside leaving ~196px of dead gutter, and the
+  site's terminal CTA at `w-min`. The user lifted all four constraints FEATURE.md recorded as
+  deliberate (motion, accent, elevation, an error red). Now: a sticky brief-rail, one white
+  elevated panel on a `bone` band, four groups that visibly complete, and the four contact
+  channels **ending the page in place of the footer's closing CTA** — that CTA's button pointed at
+  `/contact` from `/contact`, an open question since 2026-08-13, closed by the user on sight
+  ("remove the cta, since you are already in the cta page"). `Footer` gained an optional `closing`
+  NODE prop for it; the other six routes pass nothing. The hero is deliberately sparse as a result. Two new tokens `--color-signal` `#0e6472` / `--color-alert` `#b42318`, tuned
+  as a CVD-safe pair. ⚠️ **`muted` on `bone` is 4.24:1 and FAILS AA** — that is why the form is
+  white on a tinted band, not tinted itself; on `bone`, only `ink`/`ink-soft`. ⚠️ **The global
+  reduced-motion clamp does not zero `animation-delay`**, so every entrance here is authored
+  inside `(prefers-reduced-motion: no-preference)` — a latent gap any future staggered CSS
+  entrance in this repo will hit. Group order and the ₪10k→₪15k budget gap were raised and the
+  user chose to keep both. Still unlooked-at visually.
+  → [detail](../features/contact-page/CONTEXT.md)
+- `docs` — `DESIGN-SYSTEM.md`: new "Added 2026-08-17 — /contact's two state colours" section;
+  `shadow-float` recorded as gaining a third and first-resting use. ⚠️ Also logs a **pre-existing
+  AA failure found but not fixed**: `/company` Block 3's intro is `muted` on `bone`, 4.24:1, on a
+  shipping page.
 - `legal-pages` — **Cookie banner shipped** (`src/components/legal/CookieBanner.tsx`), ported from
   the live clix-solution.com banner and mounted in both layout shells. ⚠️ **COSMETIC BY DECISION** —
   the user was asked and chose it: both buttons write `localStorage` and nothing reads it, so

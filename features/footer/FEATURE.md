@@ -12,6 +12,16 @@
 
 ## Purpose
 
+⚠️ **THE CLOSING CTA IS REPLACEABLE PER ROUTE AS OF 2026-08-17.** `Footer` takes an optional
+`closing?: ReactNode`; when passed it replaces the Reiteration block entirely and everything below
+the divider is untouched. Exactly one route uses it — `/contact` passes `<ContactChannels />`,
+because the CTA's button points at `/contact` and on that page it pointed at itself. The prop is a
+NODE and not a `variant`/route name on purpose: this component is shared by seven routes and must
+not learn what any of them are. The `pt-14` inset belongs to the SLOT, not to the CTA, so the
+replacement wrapper repeats it — the container's `gap-14` measures from there and a different
+padding would move the divider on that one route. Everything in the measured table below still
+describes the default (unreplaced) block.
+
 The closing CTA — "Unlock financial AI for your firm" plus a Request Demo button — a rule,
 four link columns, and a centred copyright line. All on `ink`, continuous with the
 `security` section above it, which is why the two read as one dark block.

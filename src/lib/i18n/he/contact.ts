@@ -60,6 +60,16 @@ export const contact: Translated<ContactDict> = {
     locationValue: "פעילות גלובלית",
   },
 
+  /* AUTHORED, all three — the reference's form is a single centred card with no heading column
+     beside it, so there is nothing to source. Register follows the captured voice: plain,
+     second person plural, no exclamation, no dashes. `reply` restates `successBody`'s promise
+     in the shorter form the rail needs. */
+  panel: {
+    title: "בריף אחד, ואז תשובה אמיתית.",
+    intro: "ארבעה שלבים קצרים. שלושה שדות חובה, וכל השאר רק עוזר לנו לענות טוב יותר.",
+    reply: "אנחנו משיבים תוך יום עסקים אחד.",
+  },
+
   form: {
     groups: {
       /* AUTHORED — the reference has no legend over its first four inputs, only the four field
@@ -153,6 +163,11 @@ export const contact: Translated<ContactDict> = {
          its pills sit in bare divs — so these are ours, and they say what the interaction is
          rather than repeating the visible legend. */
       needsHint: "בחרו כל מה שרלוונטי.",
+      /* AUTHORED — announced by an sr-only role="status", never seen. `{n}` / `{total}` are
+         filled by interpolate(); the digits render Western in Hebrew as they do on the rest of
+         the site. */
+      needsCount: "נבחרו {n} מתוך {total}.",
+      charsLeft: "נותרו בערך {n} תווים.",
       budgetHint: "בחרו אפשרות אחת.",
       honeypot: "השאירו את השדה הזה ריק.",
       required: "חובה",

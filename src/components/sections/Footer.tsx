@@ -19,12 +19,31 @@
  * tempting `grid-template-columns: repeat(2, …)` on the link row. None of it applies. Only
  * the three variants above are authoritative; see the standing rule in README.md.
  *
+ * ⚠️ THE CLOSING CTA IS REPLACEABLE PER ROUTE AS OF 2026-08-17, via the optional `closing`
+ * prop — and exactly one route uses it. On /contact the Reiteration block read "Software that
+ * works, results that speak." over a `Let's start` button pointing at `/contact` itself, i.e. the page
+ * you were already on. That was logged as an open question in features/contact-page/FEATURE.md
+ * and left alone on the grounds that special-casing a component every route renders was worse
+ * than the redundancy. The user disagreed ("remove the cta, since you are already in the cta
+ * page") and it is now a one-line prop rather than a variant system.
+ *
+ * ⚠️ THE PROP TAKES A NODE, NOT A FLAG OR A ROUTE NAME. `Footer` must not learn what /contact is:
+ * a `variant="contact"` would put a page's concern inside a component shared by seven routes, and
+ * the next such request would add a second. A node keeps the knowledge at the call site
+ * (`ContactRoute.tsx` passes `<ContactChannels />`) and this file only knows "something replaces
+ * the reiteration block, or nothing does".
+ *
+ * ⚠️ THE `pt-14` AND THE CONTAINER'S `gap-14` BELONG TO THE SLOT, NOT TO THE CTA. Whatever goes in
+ * has to sit at the same inset or the divider beneath it lands at a different distance than on
+ * every other route. That is why the replacement wrapper below repeats `pt-14` rather than
+ * expecting the caller to bring its own padding.
+ *
  * No animation beyond the link hover, which IS measured: the capture's link preset carries
  * `transition: color .3s cubic-bezier(.44,0,.56,1)` and a hover colour. That makes this the
  * second place on the site with a real authored transition rather than an estimate.
  */
 
-import { Fragment, type ComponentType } from "react";
+import { Fragment, type ComponentType, type ReactNode } from "react";
 import AppLink from "@/components/ui/AppLink";
 import {
   InstagramMark,
@@ -214,7 +233,13 @@ function FooterLinkItem({ item, label }: { item: FooterLink; label: string }) {
   );
 }
 
-export default function Footer() {
+export default function Footer({
+  /* Replaces the closing CTA (the "Reiteration" block) on the route that passes it. Undefined
+     everywhere else, which is six of the seven routes — see the header note. */
+  closing,
+}: {
+  closing?: ReactNode;
+} = {}) {
   /* Server component, so the dictionary comes from the request store rather than a context.
      No prop had to be threaded here — which matters because this component is rendered by all
      6 routes (7 until /careers came out on 2026-08-13) and prop-drilling `locale` would have
@@ -240,6 +265,14 @@ export default function Footer() {
       <div className="relative flex w-px max-w-[var(--container-max)] flex-[1_0_0] flex-col items-center gap-14 overflow-hidden">
         {/* Reiteration — headline and CTA on one baseline at >=810 (`align-items:flex-end`
             is what sits the button on the headline's last line), stacked below. */}
+        {closing ? (
+          /* The replacement slot. `pt-14` is the reiteration block's own top inset and is what
+             the container's `gap-14` measures from, so it is repeated here rather than left to
+             the caller — see the header note. No `items-end` and no `tablet:flex-row`: those
+             exist to sit a button on a headline's last baseline, and whatever replaces the CTA
+             owns its own layout. */
+          <div className="relative w-full pt-14">{closing}</div>
+        ) : (
         <div
           className="relative flex w-full flex-col items-end gap-8 overflow-hidden pt-14
                      tablet:flex-row tablet:justify-start tablet:gap-10"
@@ -317,6 +350,7 @@ export default function Footer() {
             </AppLink>
           </div>
         </div>
+        )}
 
         {/* Divider. TWO different colours: `ink-soft` @50% below 1200, white @10% at and
             above it. Both are opacity modifiers on existing tokens, so neither is a new
