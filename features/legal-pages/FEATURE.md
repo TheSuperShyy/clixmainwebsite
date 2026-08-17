@@ -157,6 +157,56 @@ opposite case.
 
 ---
 
+## The accessibility widget (2026-08-17) — §04's promise, now kept
+
+`src/components/a11y/AccessibilityWidget.tsx`, mounted in both layout shells. Ported from the
+live clix-solution.com widget. **Unlike the cookie banner, this one is real** — every control
+does what its label says.
+
+Seven controls, all Hebrew labels lifted verbatim from the live widget:
+
+| Control | Mechanism |
+|---|---|
+| `גודל טקסט` ± | `documentElement.style.zoom`, 80–150% in 10-point steps |
+| `ניגודיות גבוהה` | `.a11y-high-contrast` — redefines design tokens |
+| `סמן גדול` | `.a11y-big-cursor` — 32px inline-SVG cursor, no asset |
+| `הדגשת קישורים` | `.a11y-highlight-links` — yellow plate, black text, underline |
+| `גופן קריא` | `.a11y-readable-font` — Verdana/Tahoma stack, letter-spacing normal |
+| `מצב התמקדות` | `.a11y-focus-mode` — kills motion, dims `aria-hidden` decoration |
+| `איפוס כל ההגדרות` | Back to defaults |
+
+Persisted to `localStorage["clix-a11y-settings"]` as JSON, parsed defensively (spread over
+frozen `DEFAULTS`, so a missing or unknown key cannot break a page).
+
+### ⚠️ Two mechanisms that look like arbitrary choices and are not
+
+1. **`zoom`, not root `font-size`.** The live site sets `documentElement.style.fontSize = "120%"`.
+   That would do almost nothing here — this codebase sets type in absolute pixels throughout
+   (`text-[14px]`, `text-[32px]`), and px does not inherit from the root size. `zoom` scales px
+   type, spacing and images alike.
+2. **No `filter` on `html` or `body`, for high contrast or anything else.** A filtered ancestor
+   becomes the containing block for `position: fixed` descendants, which would unpin the nav,
+   the cookie banner and the widget's own button. High contrast therefore redefines
+   `--color-muted`, `--color-hairline` and friends; every component picks it up for free because
+   they already read those tokens. `--color-muted` is the load-bearing one: #737373 (4.7:1 on
+   white) becomes #1c1c1c (past 12:1). Filters appear only on `img`/`video`.
+
+Also: the button is at `left-4`, PHYSICAL left, not `start-4`. §04 says "בצד שמאל" in Hebrew,
+where the logical start edge is the right one.
+
+### What this does to the false-promise count
+
+Back to **four**, from the six of earlier the same day. Now TRUE: §04's button, and §03's text
+resize and high-contrast bullets. Still FALSE, unchanged:
+
+- §03's `דילוג לתוכן` skip link — there is none.
+- §03's WCAG AA contrast claim — the DEFAULT palette still has the recorded AA failures. The new
+  high-contrast mode is opt-in and does not make the base claim true.
+- §04's VoiceOver / NVDA / four-browser keyboard testing — never done.
+- §03's ARIA live regions for `עדכוני צ׳אט` — there is no chat.
+
+Plus §05, which still describes a playground node editor and 3D scenes this site does not have.
+
 ## The cookie banner (2026-08-17)
 
 `src/components/legal/CookieBanner.tsx`, mounted once in each layout shell. Ported from the live

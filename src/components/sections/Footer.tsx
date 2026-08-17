@@ -146,13 +146,18 @@ const GROUPS: LinkGroup[] = [
   {
     titleIndex: 2,
     links: [
-      /* The original gates ONE link in this column to >=1200, so the column is 3 links on
-         desktop and 2 below. That behaviour is reproduced, but the gate was moved off the
-         accessibility statement and onto Terms: an accessibility statement is exactly the
-         page a user on assistive tech may be looking for, and hiding it on phones would
-         turn an inherited layout quirk into a real barrier. Terms carries the gate instead.
-         Flagged in FEATURE.md. */
-      { key: "terms", href: "/terms", only: "desktop" },
+      /* ⚠️ NO TIER GATE HERE, AND THAT IS THE POINT — DO NOT "RESTORE" ONE.
+         Until 2026-08-17 Terms carried `only: "desktop"`, so this column rendered 3 links at
+         >=1200 and 2 below. That came from the capture in docs/reference/target/, which gates
+         one link in this column; the gate had merely been moved off the accessibility
+         statement and onto Terms so assistive-tech users would not lose their page on a phone.
+
+         The user found Terms missing on mobile and rejected the premise: this site's footer
+         answers to clix-solution.com, which renders all three legal links at every width. So
+         the gate is gone rather than relocated again. The column is 3 links at every tier now,
+         which makes it one row taller than the capture's on phone — the columns are a flex
+         stack with a 12px gap, so it extends downward and nothing reflows sideways. */
+      { key: "terms", href: "/terms" },
       { key: "privacy", href: "/privacy" },
       { key: "accessibility", href: "/accessibility" },
     ],

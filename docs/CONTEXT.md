@@ -17,6 +17,27 @@ Line format:
 
 ## 2026-08-17
 
+- `footer` — **Terms is no longer hidden below 1200px.** `only: "desktop"` deleted from
+  `Footer.tsx`; the Legal column is 3 links at every tier. The gate came from the
+  docs/reference/target capture; the user rejected the premise — this footer answers to
+  clix-solution.com, which shows all three at every width. ⚠️ `docs/PROJECT.md:7` still names
+  rogo.ai as the target and is now known-stale; left for the user to decide.
+- `a11y-widget` — **Settled as a floating bottom-left icon** that closes on an outside click
+  (`pointerdown`, registered only while open so it cannot eat its own opening event). Back in the
+  layout shells, so it is on every route again and matches §04's "בצד שמאל של המסך".
+- `a11y-widget` — **Moved into the footer's Legal column** (user), out of the layout shells.
+  Trigger is inline and styled like the links beside it; the panel stays `fixed` because the
+  column sets `overflow-hidden`. ⚠️ Two regressions, both reported: /accessibility §04 still says
+  the button is on the left edge of the SCREEN, and /news renders no footer so the widget is
+  absent there.
+- `a11y-widget` — **Accessibility widget built** (`src/components/a11y/AccessibilityWidget.tsx`),
+  ported from the live clix-solution.com. Seven controls: text size ±, high contrast, large
+  cursor, highlight links, readable font, focus mode, reset. Makes /accessibility §04 TRUE and
+  takes the page's false-promise count 6 → 4. Text size is `zoom` not root `font-size` (this
+  codebase sets type in px); high contrast redefines tokens and must never be a `filter` (it
+  would unpin every `position: fixed` element). ⚠️ Not built or typechecked — the user asked to
+  stop self-verifying. → [detail](../features/legal-pages/CONTEXT.md)
+
 - `company-page` — **Caption overlap fixed, mask fade made a computed length, mobile tightened.** *"the subheader is behind the card"* + *"enhance the ui in the mobile view"*. The kicker was an overlay on a panel whose scene fills the whole box, so it sat ON the scene at every size; it now has a reserved band (`--reel-caption-h`, added to the panel's block-start padding and subtracted inside `--reel-scene-max`). Separately the mask faded **14% of the window** — ~87px at desktop against a 90px overhang, but ~38px on a phone against a 21px overhang, so it was dissolving the live panel's own caption. Now `--reel-overhang: (art-h − panel-h) / 2`. ⚠️ **A percentage looked right at one breakpoint only because the two quantities happened to coincide there.** Mobile: the detail spacer is `tablet:`-only (it opened a ~90px void in a 146px box), `--reel-detail-h` 146 → 128, name rows 40 → 44px at 20px type. → [detail](../features/company-page/CONTEXT.md)
 - `company-page` — **Live-row dash is `ink` not the accent, and the heading sits closer** (`mt` 40/48/64 → 16/24/32). ⚠️ **Second time this band has reversed accent → black on its live marker** — the stack's 3px card-top rule went the same way, for the same reason: eight services are one system, and a marker that changes colour per service says the opposite. The margin was all the gap could give — the frame is centred in a `min-h-svh` sticky wrapper that also clears `--nav-peak-h`. → [detail](../features/company-page/CONTEXT.md)
 - `company-page` — **The eight pulsing accent dots are gone** (*"remove these colored dots per card, we have to make the cards simple but looks good"*). `Dot` and `service-pulse` deleted; each dot's label moved back into the space it vacated (8–12 source units). The typing indicator survives but is now `mock-line` grey rather than accent — it was the last coloured dot left, and no chat client draws one in the brand colour. Scene 5's three GREY browser traffic lights stay: they are the window, not a claim about it. ⚠️ **Same diagnosis as `service-step` a day earlier — decoration wearing the costume of information.** A pulsing dot promises something is happening now; nothing was, and it pulsed identically on a finished report and a draft. → [detail](../features/company-page/CONTEXT.md)

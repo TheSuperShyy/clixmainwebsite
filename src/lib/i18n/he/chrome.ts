@@ -96,6 +96,23 @@ export const chrome: ChromeDict = {
     mapTitle: "מפה של מיקום clix — תל אביב-יפו, ישראל",
   },
 
+  /* SOURCED VERBATIM from the live https://www.clix-solution.com accessibility widget,
+     2026-08-17. This is the SOURCE; en/chrome.ts carries the translation. */
+  a11yWidget: {
+    open: "פתח תפריט נגישות",
+    close: "סגור תפריט נגישות",
+    title: "תפריט נגישות",
+    textSize: "גודל טקסט",
+    decrease: "הקטן גודל טקסט",
+    increase: "הגדל גודל טקסט",
+    highContrast: "ניגודיות גבוהה",
+    bigCursor: "סמן גדול",
+    highlightLinks: "הדגשת קישורים",
+    readableFont: "גופן קריא",
+    focusMode: "מצב התמקדות",
+    reset: "איפוס כל ההגדרות",
+  },
+
   /* SOURCED VERBATIM from the live https://www.clix-solution.com cookie banner, 2026-08-17.
      This is the SOURCE; en/chrome.ts carries the translation.
      ⚠️ `bodyLead` ENDS ON THE BARE PREFIX "ב" WITH NO SPACE — it attaches directly to the link

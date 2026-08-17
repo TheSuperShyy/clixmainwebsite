@@ -474,6 +474,98 @@ html {
    The reduced-motion path does NOT rely on the global neutraliser below — ProductHero drops
    the animation class entirely and renders a steady caret, because a caret frozen mid-cycle
    by `animation-duration: 0.01ms` can land invisible. */
+/* ═══════════════════════════════════════════════════════════════════════════════════════
+   ACCESSIBILITY WIDGET MODES — driven by src/components/a11y/AccessibilityWidget.tsx, which
+   toggles these classes on <html>. Added 2026-08-17 to make /accessibility §04 true.
+
+   ⚠️ NOT ONE OF THESE MAY USE `filter` ON html OR body. A filtered ancestor becomes the
+   containing block for `position: fixed` descendants, which would unpin the nav, the cookie
+   banner and the widget's own button. High contrast therefore redefines DESIGN TOKENS, which
+   costs nothing and cannot break layout. Filters appear only on img/video, which contain
+   nothing fixed.
+
+   Text size is NOT here — it is `zoom` set inline by the widget, because this codebase sets
+   type in absolute px and a root font-size would not move it.
+   ═══════════════════════════════════════════════════════════════════════════════════════ */
+
+/* Raises text and border contrast by moving the tokens the whole site already reads, so every
+   component picks it up with no per-component rules. `--color-muted` is the important one:
+   it is the site's secondary text at #737373 (4.7:1 on white) and this takes it past 12:1. */
+html.a11y-high-contrast {
+  --color-muted: #1c1c1c;
+  --color-ink-soft: #000000;
+  --color-hairline: #00000073;
+  --color-hairline-dark: #00000073;
+  --color-hairline-light: #ffffff99;
+  --color-paper-soft: #ffffff;
+  --color-mark: #4a4a4a;
+}
+
+html.a11y-high-contrast img,
+html.a11y-high-contrast video {
+  filter: contrast(1.18) saturate(1.1);
+}
+
+/* The live site's own treatment, kept: yellow plate, black text, always underlined. `!important`
+   throughout because it has to beat utility classes on the anchors themselves — this is an
+   assistive override, which is the one case that earns it. */
+html.a11y-highlight-links a,
+html.a11y-highlight-links a * {
+  background-color: #ffff00 !important;
+  color: #000000 !important;
+  text-decoration: underline !important;
+}
+
+html.a11y-highlight-links a {
+  outline: 1px solid #000000 !important;
+  outline-offset: 1px;
+}
+
+/* A wide-counter, high-legibility stack. Deliberately overrides the brand faces: someone who
+   asks for a readable font is telling you the brand face is the problem. */
+html.a11y-readable-font,
+html.a11y-readable-font * {
+  font-family:
+    Verdana, Tahoma, "DejaVu Sans", Arial, sans-serif !important;
+  letter-spacing: normal !important;
+}
+
+/* A 32px cursor drawn as an inline SVG, so it needs no asset and cannot 404. The hotspot is
+   declared at 4 4 to sit at the arrow's point rather than the bitmap's corner. */
+html.a11y-big-cursor,
+html.a11y-big-cursor * {
+  cursor:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><path d='M6 2 L6 26 L12 20 L16 30 L20 28 L16 19 L25 19 Z' fill='white' stroke='black' stroke-width='2' stroke-linejoin='round'/></svg>")
+      4 4,
+    auto !important;
+}
+
+/* Strips motion and decoration so the reading surface is all that is left. The animation rules
+   repeat the global reduced-motion clamp on purpose — this mode is a DELIBERATE request, not an
+   OS preference, and the two are set independently. */
+html.a11y-focus-mode *,
+html.a11y-focus-mode *::before,
+html.a11y-focus-mode *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+html.a11y-focus-mode [aria-hidden="true"]:not(svg):not(svg *) {
+  opacity: 0.35 !important;
+}
+
+html.a11y-focus-mode video {
+  opacity: 0.5 !important;
+}
+
+/* The widget's own panel must stay fully legible in the mode it switches on. */
+html.a11y-focus-mode #a11y-panel,
+html.a11y-focus-mode #a11y-panel * {
+  opacity: 1 !important;
+}
+
 /* The cookie notice's entrance, added 2026-08-17 with `src/components/legal/CookieBanner.tsx`.
 
    A KEYFRAME RATHER THAN A TAILWIND TRANSITION, on purpose. The banner is mounted by

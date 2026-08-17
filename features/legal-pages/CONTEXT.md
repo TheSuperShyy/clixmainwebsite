@@ -7,6 +7,110 @@ Reading this file plus `FEATURE.md` should be enough to resume work on this sect
 no code scanning.
 
 ---
+## 2026-08-17 (later still) — floating bottom-left, closes on outside click
+
+The footer placement lasted one look. The user asked for a floating icon in the BOTTOM-LEFT
+corner that dismisses on an outside click, so the widget is out of `Footer.tsx` and back in both
+layout shells.
+
+Shape: one fixed stack at `bottom-4 left-4`, `flex-col-reverse` so the FIRST child sits in the
+corner and the panel stacks ABOVE it — no absolute positioning, no measuring, and the panel grows
+upward into free space instead of off the bottom of the screen. Icon-only trigger, so the
+`aria-label` is back (the footer version dropped it because the visible text was the name).
+
+**This placement is the one that agrees with the declaration.** §04 says "בצד שמאל של המסך" and
+this is the left edge of the screen. It also silently fixed the /news gap the footer stop had
+opened — the widget is layout-mounted again, so it is on every route.
+
+⚠️ `left-4`, NOT `start-4`, and that stays load-bearing: §04 is written in Hebrew, where the
+logical start edge is the RIGHT one, so a logical property would put the button on the opposite
+side of the page describing its position.
+
+### Outside-click: three decisions inside four lines
+
+- **`pointerdown`, not `click`** — it fires before a link's own activation, so a tap on the page
+  behind the panel dismisses AND does what it was aimed at, rather than spending one tap on
+  dismissal.
+- **Registered only while open** — which is also what stops it eating its own opening event. That
+  event's `pointerdown` has already dispatched by the time the effect runs, so there is no
+  open-then-immediately-close race and no `setTimeout` needed to dodge one.
+- **Focus is NOT pulled back to the trigger**, unlike the Escape path. Escape is a keyboard
+  dismissal and that user needs somewhere to land; a pointer dismissal has already put the user
+  where they clicked.
+
+Placement history for this control, all on one day: left edge (middle) -> footer Legal column ->
+bottom-left corner. Only the last agrees with §04, so the statement needs no edit after all.
+
+Not built, not typechecked, not looked at — the user's standing instruction.
+
+## 2026-08-17 (earlier) — the widget moved into the footer
+
+User: "put the accessibility button to the footer". Done. The trigger is now an inline item in
+the footer's **Legal column**, styled like the links beside it (paper -> surface on the
+capture's own .3s curve); only the PANEL stays `position: fixed`, centred with
+`inset-x-0` + `mx-auto`.
+
+**The panel HAS to stay fixed.** The footer's column div sets `overflow-hidden`, so an
+absolutely-positioned popover would be clipped out of existence. Fixed elements escape overflow
+clipping, and this footer has no transform/filter ancestor to turn into a containing block —
+checked, not assumed.
+
+Unmounted from both layout shells; mounted at `Footer.tsx` behind `group.titleIndex === 2`.
+
+### ⚠️ Two regressions this move creates. Both reported to the user; neither is a mistake.
+
+1. **/accessibility §04 now disagrees with the build again, in the opposite direction.** It says
+   "בצד שמאל של המסך תמצאו כפתור נגישות" — left edge of the SCREEN. The button is at the bottom
+   of the page instead. The widget was built that morning specifically to make that sentence
+   true; it is now false on its position while true on its function. Either the sentence moves
+   or the button does.
+2. **/news has NO FOOTER** (`src/app/_routes/NewsRoute.tsx` is the one route file that does not
+   import it), so the widget is absent from `/news` and `/he/news`. It was on every route while
+   it lived in the layout. An assistive control that vanishes on one route is a real defect
+   against a statement that describes it as always present.
+
+The one-line fix for (2) was never needed — the move back to a layout mount later the same day
+closed it. Both regressions in this entry are RESOLVED; the entry stays because the reasoning
+about `overflow-hidden` clipping is still the reason a footer placement needs a fixed panel.
+
+Not built, not typechecked, not looked at — the user's standing instruction.
+
+
+## 2026-08-17 — accessibility widget built (real, unlike the cookie banner)
+
+The user's boss sent them the international accessibility icon; they asked what it was for and
+whether it related to cookies. It does not — it is the widget the live site ships and that
+§04 `כפתור נגישות` had been promising since that morning's sync. Scope was presented and
+approved with "build it fast".
+
+`src/components/a11y/AccessibilityWidget.tsx` + five mode classes in globals.css + an
+`a11yWidget` block in `chrome` + a mount in each layout shell. Seven controls, Hebrew verbatim
+from the live widget (extracted from the bundle at offsets ~461770–465845). Full table and the
+false-promise accounting are in FEATURE.md.
+
+### The two decisions that took the thinking
+
+- **Text size is `zoom`, not root `font-size`.** The live site uses `font-size` and it would be
+  near-inert here: this codebase sets type in absolute px, which does not inherit from the root.
+  Checked before choosing, not assumed.
+- **High contrast redefines TOKENS; it must never be a `filter`.** A `filter` on `html`/`body`
+  makes it the containing block for `position: fixed` children — it would unpin the nav, the
+  cookie banner and the widget's own button. Redefining `--color-muted` et al. costs nothing and
+  cannot break layout, and every component already reads them.
+
+Third, smaller: the button sits at PHYSICAL `left-4`. §04 says "בצד שמאל", in Hebrew, where the
+logical start edge is the right one — `start-4` would put it on the wrong side of the page that
+describes it.
+
+Store is `useSyncExternalStore` again, and here the snapshot MUST be cached: it returns an
+object, and a fresh literal per call never compares equal, so an uncached `getSnapshot` renders
+forever. The cookie banner's could skip the cache because it returns a string.
+
+⚠️ **NOT BUILT, NOT TYPECHECKED, NOT LOOKED AT.** The user asked mid-session to stop running
+`npm run build` and `tsc` as self-verification. So this ships unverified by me — the render, the
+seven toggles and both locales are the user's pass.
+
+
 ## 2026-08-17 — cookie banner shipped (cosmetic, by decision)
 
 `src/components/legal/CookieBanner.tsx` + a `cookies` block in `chrome` + one `@keyframes` in

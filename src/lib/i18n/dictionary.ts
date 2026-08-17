@@ -118,6 +118,31 @@ export interface ChromeDict {
     readonly mapTitle: string;
   };
   /**
+   * The accessibility widget's labels, added 2026-08-17. In `chrome` for the same reason the
+   * cookie notice is: it mounts in the LAYOUT, above every route, and `I18nProvider` hands the
+   * client exactly one dictionary.
+   *
+   * ⚠️ INVERTED. The Hebrew is the SOURCE — all twelve strings are lifted verbatim from the
+   * live clix-solution.com widget — and the English is the translation.
+   */
+  readonly a11yWidget: {
+    /** `aria-label` on the trigger when closed, and when open. */
+    readonly open: string;
+    readonly close: string;
+    /** Names the panel, and heads it. */
+    readonly title: string;
+    readonly textSize: string;
+    /** `aria-label`s on the two steppers; the visible glyphs are − and +. */
+    readonly decrease: string;
+    readonly increase: string;
+    readonly highContrast: string;
+    readonly bigCursor: string;
+    readonly highlightLinks: string;
+    readonly readableFont: string;
+    readonly focusMode: string;
+    readonly reset: string;
+  };
+  /**
    * The cookie notice, added 2026-08-17. It lives in `chrome` rather than in a page namespace
    * because `CookieBanner` mounts in the LAYOUT, above every route, and `I18nProvider` hands
    * the client exactly one dictionary — this one.
