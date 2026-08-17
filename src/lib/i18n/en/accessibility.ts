@@ -60,17 +60,30 @@ export const accessibility = {
         "Form fields with explicit labels, error messages tied to the relevant field, and controls grouped where appropriate.",
         "A responsive layout that reflows cleanly down to 320 pixels with no horizontal scrolling, and supports text enlargement of up to 200% without loss of content.",
         "ARIA live regions for status messages (form submission, chat updates) so that every change is announced to assistive technology.",
-        /* ADDED 2026-08-17 — see he/accessibility.ts. ⚠️ Both are false of this build. */
+        /* ADDED 2026-08-17 — see he/accessibility.ts. Both are delivered by the third-party §04 widget,
+           not by the site’s own markup, and must be removed with it. */
         "The ability to increase and decrease the text size.",
         "A high-contrast mode for easier reading.",
       ],
     },
     {
       n: "04",
-      /* ADDED 2026-08-17 — see he/accessibility.ts. ⚠️ This build ships no such widget. */
+      /* ⚠️ REWRITTEN TWICE, NOT PORTED — Sienna's control list, then AccessiYes's. See
+         he/accessibility.ts for why, and for the standing warning that this section goes stale
+         the moment the shipped widget changes. */
       title: "Accessibility button",
       lead: [
-        "On the left-hand side of the screen you will find an accessibility button offering quick adjustments such as changing the text size and turning on high-contrast mode.",
+        "In the bottom-left corner of the screen you will find an accessibility button that opens an adjustments menu. It loads on every page of the site and is provided by AccessiYes, a third-party accessibility tool.",
+      ],
+      items: [
+        "Ready-made profiles: epilepsy safe mode, low vision, and ADHD.",
+        "Text adjustments: increase and decrease text size, font weight, line height, letter spacing, text alignment, a dyslexia-friendly font, title highlighting and link highlighting.",
+        "Colour adjustments: high contrast, dark contrast, light contrast, high saturation, low saturation and monochrome.",
+        "Reading and navigation aids: a large cursor, a reading guide, pause animations, read the page aloud, and mute sounds.",
+        "A link to this statement from inside the menu itself, in the language of the page you are on.",
+      ],
+      tail: [
+        "The menu's language follows the language of the page, so it appears in Hebrew on the Hebrew site and in English on the English one.",
       ],
     },
     {

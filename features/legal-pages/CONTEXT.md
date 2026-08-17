@@ -7,6 +7,250 @@ Reading this file plus `FEATURE.md` should be enough to resume work on this sect
 no code scanning.
 
 ---
+## 2026-08-17 — AccessiYes is the shipped widget
+
+The user generated the embed at accessiyes.com → "Get installation code" (the non-WordPress
+path; the WordPress install steps they were shown do not apply to a Next app) and pasted it.
+AccessiYes is now the DEFAULT branch of `AccessibilityGate`; Sienna and the built-in widget stay
+reachable by env var.
+
+### The snippet, and the three things changed about it
+
+The generator emits `window._cyA11yConfig = {...}` followed by an injected
+`cdn-cookieyes.com/widgets/accessibility.js?id=<uuid>`. As shipped here:
+
+1. **Config and injection stay in ONE inline script.** The widget reads `_cyA11yConfig` at
+   startup — the same global the WordPress plugin sets via `wp_localize_script`. Split across two
+   `<Script>` tags it becomes a race, because `next/script` does not order an inline tag against
+   a `src` tag in the same strategy. Losing it means the widget boots on ITS defaults: bottom
+   RIGHT, statement link pointing at the vendor.
+2. **`position` is `bottom-left` on BOTH breakpoints.** The generator defaults to bottom-right.
+   §04 declares "בצד שמאל של המסך" under תקנה 35 — right-hand placement makes a published
+   declaration false.
+3. **The statement URL is built from `location.origin` + `localeHref`, not hardcoded.** The
+   generator emitted the literal `https://clix-solution.com/accessibility`, which would send
+   every localhost and preview visitor to production, and every HEBREW visitor to the English
+   statement. This is also what makes Sienna's `SiennaCustomize` DOM patch unnecessary here —
+   unlike Sienna's dead `statement` option, AccessiYes's is real and wired.
+
+### §04 rewritten a second time in one day
+
+It described Sienna's controls. AccessiYes's are different, read from its own bundle: profiles
+(epilepsy safe, low vision, ADHD), text (size, font weight, line height, letter spacing, text
+align, dyslexia font, highlight titles/links), colour (high/dark/light contrast, high/low
+saturation, monochrome), aids (big cursor, reading guide, pause animations, page read, mute
+sounds). **Fewer profiles than Sienna, but it adds read-aloud and mute.**
+
+⚠️ The lesson worth keeping: **swapping the widget is never just the gate.** §04 enumerates the
+shipped controls, and both `AccessibilityGate.tsx` and the dictionary files now say so at the
+point of use.
+
+### Findings from the WordPress plugin, which is worth knowing exists
+
+Downloaded and unpacked it to read the real embed. It does NOT use the CDN — it ships
+`widget.min.js` (370 KB) inside the plugin and enqueues it locally, under **GPLv3**. So
+self-hosting that exact file is a legitimate third option: same widget, no third-party CDN,
+nothing that can change underneath, at the cost of manual updates. Offered to the user; not built.
+
+Sienna's `.asw-*` skin and `SiennaCustomize.tsx` are left in place — they match nothing while
+AccessiYes ships, which is harmless, and they are the skin for a branch still reachable.
+
+Not built, not typechecked, not looked at. **The widget's actual appearance is unverified** —
+it ships unskinned, at whatever size and colour AccessiYes chose.
+
+
+## 2026-08-17 — AccessiYes wired, inert, pending a site ID
+
+*"can you try to use this one instead https://www.accessiyes.com/"*. Wired as a third branch of
+`AccessibilityGate`; it renders only once `NEXT_PUBLIC_ACCESSIYES_SITE_ID` is set, and until then
+the gate falls through to Sienna so a button always exists (§04 declares one does).
+
+### What it actually is — checked, not taken from the page
+
+- **A WordPress plugin first.** 57 mentions of WordPress on the homepage, 20,000+ active installs.
+  A generic `<script>` embed does exist — accessiyes.com uses it on its own site — but is NOT
+  published: the snippet in their docs section is a placeholder pointing at
+  `cdn.example.com/widget.js` with `data-id="YOUR_SITE_ID"`. The real one is behind
+  "Get installation code".
+- **The file served is `WebYes Accessibility Widget v2.0.0`, from `cdn-cookieyes.com`.**
+  AccessiYes is the brand; WebYes/CookieYes is what loads.
+- **370 KB, against Sienna's 66 KB** — 5.6× the payload for the same class of control.
+- **No telemetry.** Its only outbound host in 370 KB is `cdn-cookieyes.com/widgets/fonts/`. That
+  supports the "zero data collected" claim. (Their MARKETING site runs GTM; the widget does not.)
+- **The `?id=` parameter is never parsed by the bundle** — no `searchParams.get("id")`, no settings
+  fetch. It is a CDN tenant marker, not a licence check, so the widget would very likely render
+  under any value. **Deliberately not shipped with the vendor's own ID**: that would put this
+  site's accessibility control on another company's tenant, invisibly, until it broke.
+
+### ⚠️ What a switch costs, all recorded in FEATURE.md
+
+1. **§04 becomes wrong.** It was rewritten that morning to name Sienna and enumerate Sienna's
+   controls, precisely because the user wanted the page to describe the real widget. It must be
+   rewritten in the SAME change that flips the gate — it is a תקנה 35 declaration, not a
+   feature list.
+2. **The skin does not transfer.** `globals.css`'s `.asw-*` block and `SiennaCustomize.tsx` are
+   Sienna class names and match nothing here, so AccessiYes renders unstyled and its statement
+   link still points at the vendor. Both would need redoing.
+3. `privacy` §05's third-party list would name `cdn-cookieyes.com` rather than jsDelivr.
+
+Deliberately NOT done ahead of the user seeing it render: skinning, the statement repoint, and
+the §04 rewrite. Three placements in one day is enough churn to justify looking before building.
+
+
+## 2026-08-17 — Sienna's panel cut down from a full-height drawer
+
+*"its too big, and taking lots of space"*. Sienna ships the panel as `width:500px; height:100%;
+top:0` — a full-height drawer, i.e. a third of a 1440 viewport for a menu of toggles. It is now
+a compact popover anchored above its own button: `340px` wide (capped at `100vw - 2rem`),
+`height:auto`, `max-height: min(540px, 100vh - 7rem)`, at `bottom:84px; left:16px`.
+
+**Repositioning is safe because the closed state is `display:none`, not a transform** — checked
+in the bundle first. A transform-based drawer would have needed the hidden state re-derived.
+
+**Overflow was already handled by Sienna**: `.asw-menu-content` is `overflow-y:auto; flex-grow:1`,
+so capping the height scrolls the contents rather than clipping them. Nothing new was added.
+
+`bottom: 84px` is arithmetic, not taste: the button's 52px + its 16px `data-offset` + a 16px gap.
+⚠️ **If the button size or the offset changes, that number has to move with them.**
+
+Everything else in the block is Sienna's internal spacing re-scaled from 500px to 340px — 70px
+header to 52, 30px content padding to 14, 20/25px cards to 12, 1rem grid gap to 8, 34px tile
+glyphs to 24, 14px labels to 12. Padding, gaps and glyph sizes only; no behaviour touched.
+
+⚠️ Same standing risk as the rest of the skin: every selector is a third-party class on an
+`@latest` script. An upstream rename reverts the panel to its 500px drawer silently.
+
+Not looked at — the user's standing instruction. This one especially wants an eye on it, since
+it is a dozen `!important` overrides against someone else's layout.
+
+
+## 2026-08-17 — Sienna skinned, repointed, and §04 rewritten to describe it
+
+Two instructions in one message: *"cant you understand that it has to be a thirdparty?"* and
+*"make sure the accebilityy is connected to the accebility page, like the content of that"*.
+Third-party stands — the built-in widget was NOT swapped back in, only kept behind
+`NEXT_PUBLIC_A11Y_WIDGET=builtin` as the fallback.
+
+Everything below was read out of the **published bundle, v2.2.333**, not from docs. Sienna's
+own customize page 404s and its README lists position as a TODO, so the bundle is the only
+accurate source.
+
+### What is actually configurable
+
+The auto-init reads exactly THREE data attributes — `lang`, `position`, `offset` — and ignores
+every other key in its own defaults object. Set on the script tag: `data-position="bottom-left"`
+(stated rather than inherited, because §04 DECLARES the position) and `data-offset="16,16"` (the
+inset the built-in widget used, so the two are interchangeable). `lang` is deliberately OMITTED:
+Sienna falls back to `document.documentElement.lang`, which this site already sets per locale,
+and both `en` and `he` packs ship with the widget. Checked — 43 languages, Hebrew among them.
+
+### What needed a DOM patch, and the cascade reason
+
+`SiennaCustomize.tsx` rewrites two things after mount:
+
+1. **The statement link.** Sienna's panel footer links to **its own** accessibility statement —
+   a hardcoded literal. Its defaults contain a `statement` key with **no consumer anywhere in the
+   bundle**, so the option is dead. The link now points at this site's `/accessibility`,
+   locale-prefixed, with `target="_blank"` stripped since it is an internal page now. This is the
+   "connected to the accessibility page" half of the instruction.
+2. **The panel accent.** Sienna declares `--asw-primary` in its stylesheet AND re-sets it INLINE
+   with `!important` when it builds the panel. Inline `!important` beats stylesheet `!important`
+   from the same origin, so no rule in globals.css can reach it — only
+   `style.setProperty(..., "important")` can. The BUTTON is different: `.asw-widget` gets no
+   inline value, so it is skinned from globals.css normally. **Hence the split — CSS for the
+   button, JS for the panel, same colour (#1b3a5f) in both. Change one, change the other.**
+
+A `MutationObserver` drives it, because the panel is built lazily on first open rather than with
+the button. It disconnects once both are patched; every lookup is optional-chained, so an
+upstream rename degrades to "the link points back at Sienna" instead of throwing.
+
+### §04 is no longer the live site's text
+
+It was ported verbatim that morning and was false. It now describes the widget that actually
+ships: profiles (seizure safe, blind, visually impaired, ADHD, cognitive/learning, motor),
+content adjustments (size, letter spacing, line height, font weight, dyslexia font, highlight
+titles/links), colour adjustments (high/dark/light contrast, high/low saturation, monochrome),
+reading and navigation aids (big cursor, reading guide, stop animations, focus mode, hide images,
+image tooltips, page structure, screen reader), one-click reset, and the statement link.
+Persistence is claimed because it is real — `localStorage`, verified in the bundle.
+
+⚠️ **§04 is now the first thing that goes stale if the widget is ever swapped or removed**, and
+so are the two §03 bullets, which Sienna delivers rather than the site's markup. Both files say
+so at the point of use. This is a declaration under תקנה 35, not a feature list.
+
+### Findings worth keeping
+
+- **No telemetry endpoint in the bundle.** The defaults carry `analyticsEnabled: true`, but no
+  analytics URL exists in the code — it looks as dead as `statement`. Outbound requests are to
+  jsDelivr for locale packs and a font.
+- **The PDF Reader control posts to `lumiopdf.pages.dev`** — a SECOND third party, reached only
+  if a visitor uses that one feature. Belongs in the privacy §05 note.
+- The trigger is an `<a href="https://accessibility-widget.pages.dev" target="_blank">` with the
+  click intercepted, so a middle-click leaves the site. Left alone; noted.
+
+Not built, not typechecked, not looked at — standing instruction. **The skin in particular is
+unverified against a rendered widget.**
+
+
+## 2026-08-17 (final) — the plugin is Sienna, and it is free
+
+"its paid, we should use some free one". UserWay's free tier no longer covers it, so the
+integration written an hour earlier was deleted unused and replaced with **Sienna**
+(github.com/bennyluk/Sienna-Accessibility-Widget) — one `<script>` from jsDelivr, MIT-licensed,
+no account, no trial, no paywall on the core widget.
+
+It satisfies both halves of the ask: it IS a real third-party plugin, which is what the boss
+wanted, and it costs nothing. Two further reasons it is the right free one rather than merely a
+free one:
+
+- **Open source, so it can be vendored** into this repo if it is ever abandoned. A closed CDN
+  script cannot be.
+- **It makes no compliance CLAIM.** The paid overlays in this category are in trouble precisely
+  for claiming WCAG conformance — accessiBe's $1M FTC order, UserWay's class action. A widget
+  that only claims to be a widget cannot mis-sell anything.
+
+`AccessibilityGate` now reads `NEXT_PUBLIC_A11Y_WIDGET`: unset (default) renders Sienna,
+`builtin` renders ours. Exactly one, always.
+
+⚠️ **Two things to close later, both in FEATURE.md:** the script is on `@latest`, so an upstream
+release ships to production with no commit here — pin it once a version is confirmed good, which
+also makes an SRI hash possible. And `privacy` §05 names the third-party processors; Sienna is
+not among them and should be.
+
+⚠️ Said to the user twice and recorded so it need not be said a third time: **an overlay is not
+compliance.** תקנה 35 and ת״י 5568 are real; no widget discharges them. What would is fixing the
+four things /accessibility still promises falsely.
+
+Not built, not typechecked, and the widget's actual rendering is UNVERIFIED — the script URL is
+Sienna's own documented one, but nobody here has watched it load.
+
+
+## 2026-08-17 (latest) — UserWay integration added behind an env gate
+
+The boss wants a bought plugin; the user relayed it and said to follow it. Researched the
+category first and reported the finding plainly: the Israeli legal requirement is real, but a
+widget is not what meets it, and this exact product category is under FTC/class-action pressure
+(accessiBe $1M final order April 2025; UserWay class action July 2024; 1,000+ US suits in
+2023–24 against sites that HAD a widget). The user reaffirmed. Built.
+
+`UserWayWidget.tsx` injects the CDN script via `next/script` at `afterInteractive`.
+`AccessibilityGate.tsx` picks it OR the built-in widget — never both.
+
+**Why a gate and not a swap.** Two accessibility buttons on one page is worse than none, and
+deleting the built-in one now would leave §04 declaring a button that does not exist for however
+long it takes someone to paste an account ID into `.env`. The gate keeps a working button at
+every point in the switchover. ⚠️ **The built-in widget is therefore NOT dead code.**
+
+**It is inert until `NEXT_PUBLIC_USERWAY_ACCOUNT_ID` is set.** The key was appended to `.env`
+(gitignored) with an empty value and a comment. An account ID can only come from a UserWay
+signup — that part is the user's.
+
+Open item for the lawyer, in FEATURE.md: `privacy` §05 names the third-party processors and
+UserWay is not among them. Not edited — published legal text.
+
+Not built, not typechecked — standing instruction.
+
+
 ## 2026-08-17 (later still) — floating bottom-left, closes on outside click
 
 The footer placement lasted one look. The user asked for a floating icon in the BOTTOM-LEFT

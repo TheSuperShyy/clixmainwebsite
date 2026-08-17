@@ -157,6 +157,76 @@ opposite case.
 
 ---
 
+## ⚠️ ACCESSIYES IS WIRED BUT NOT CONFIGURED (2026-08-17)
+
+The user asked to try AccessiYes instead of Sienna. The integration exists
+(`src/components/a11y/AccessiYesWidget.tsx`) and is INERT until
+`NEXT_PUBLIC_ACCESSIYES_SITE_ID` is set; until then `AccessibilityGate` falls through to Sienna,
+so a button always exists.
+
+**What it is, verified rather than taken from the marketing page:** sold as a WordPress plugin;
+the generic script embed is real but unpublished (their homepage snippet is a placeholder
+pointing at `cdn.example.com`); the file served is `WebYes Accessibility Widget v2.0.0` from
+`cdn-cookieyes.com`; **370 KB against Sienna's 66 KB**; its only outbound host is a font path,
+with no telemetry endpoint anywhere in the bundle.
+
+**⚠️ IF ACCESSIYES BECOMES THE SHIPPED WIDGET, §04 IS WRONG.** That section was rewritten hours
+earlier to name Sienna and enumerate Sienna's controls, at the user's request that the page
+describe the real widget. AccessiYes has a different set. §04 is a declaration under תקנה 35 —
+it has to be rewritten in the same change that flips the gate, not afterwards.
+
+Two smaller consequences of a switch:
+
+- The `.asw-*` skin in globals.css and `SiennaCustomize.tsx` are Sienna's class names. They match
+  nothing in AccessiYes, so it renders unstyled and its statement link keeps pointing at the
+  vendor's page rather than ours. Both would need redoing against its own DOM.
+- `privacy` §05's third-party list would name `cdn-cookieyes.com` instead of jsDelivr.
+
+## ⚠️ THE SIENNA PLUGIN — OPEN LEGAL-COPY ITEM (2026-08-17)
+
+The user's boss asked for "a real plugin because it's illegal" not to have one, then the user
+came back with "it's paid, we should use some free one". The site ships **Sienna**
+(`src/components/a11y/SiennaWidget.tsx`, chosen by `AccessibilityGate.tsx`) — a real, externally
+maintained, MIT-licensed third-party widget that is free with no account and no paywall. A
+UserWay integration was written first and deleted the same hour, unused and never configured.
+
+**What was told to the user before it landed**, and stands:
+
+- The Israeli requirement is real — תקנה 35 and ת״י 5568. **A widget is not what satisfies it.**
+  The FTC finalised a $1M order against accessiBe (April 2025) for claiming an AI widget makes a
+  site WCAG compliant; UserWay drew a class action (July 2024) over similar claims; and 1,000+
+  US lawsuits in 2023–24 targeted sites that HAD a widget installed. The user reaffirmed the
+  instruction, which is their call to make.
+
+**THE ITEM FOR THE LAWYER, and the reason this section exists:**
+
+`privacy` §05 (`מסירת מידע לצד שלישי`) ENUMERATES the third-party processors by name — WhatsApp,
+Facebook, monday, n8n, other CRM tools. **Sienna is a third-party script served from jsDelivr and
+is not in that list.** Adding it is a change to a published legal document, so it is flagged here
+rather than made. Same class of thing as the three conflicts in the 2026-08-17 sync.
+
+Two smaller ones:
+
+- The cookie banner gates nothing by decision, so a second cookie-setting third party widens the
+  gap between terms §07 and the build rather than narrowing it.
+- `/accessibility` §04 says the button is "בצד שמאל של המסך". Sienna's default corner is its
+  own; if it lands anywhere but the LEFT, either its data attributes move it or §04 does.
+- ⚠️ The script is loaded from `@latest`, so an upstream release reaches production with no
+  commit here. Pin it once a known-good version is confirmed in the browser — pinning is also
+  what makes an `integrity` hash possible, which `@latest` forbids by construction. **This is
+  now load-bearing twice over:** `SiennaCustomize.tsx` patches Sienna's DOM by class and id, and
+  §04 of the statement describes its control list. An upstream change breaks the skin silently
+  and makes a legal declaration inaccurate.
+- ⚠️ **A SECOND third party.** Sienna's "PDF Reader" control posts to `lumiopdf.pages.dev`,
+  reached only if a visitor uses that one feature. If §05 is amended to name Sienna, this
+  belongs in the same edit.
+
+**The built-in widget stays as the fallback and must not be deleted as dead code.** It is one env
+var away (`NEXT_PUBLIC_A11Y_WIDGET=builtin`) and it is what keeps §04 from being a lie on the day
+jsDelivr is blocked, an upstream release breaks, or the project is abandoned. §04 is a
+declaration under תקנה 35, not marketing copy — a tested local implementation behind it is the
+point.
+
 ## The accessibility widget (2026-08-17) — §04's promise, now kept
 
 `src/components/a11y/AccessibilityWidget.tsx`, mounted in both layout shells. Ported from the

@@ -33,7 +33,7 @@ import "../globals.css";
 import { ViewTransitionProvider } from "@/components/ui/ViewTransitions";
 import { I18nProvider } from "@/lib/i18n/LocaleProvider";
 import CookieBanner from "@/components/legal/CookieBanner";
-import AccessibilityWidget from "@/components/a11y/AccessibilityWidget";
+import AccessibilityGate from "@/components/a11y/AccessibilityGate";
 import { DICTIONARIES } from "@/lib/i18n/dictionary";
 import { HTML_LANG, DIRECTION } from "@/lib/i18n/config";
 import { seedLocale } from "@/lib/i18n/server";
@@ -69,9 +69,9 @@ export default function HeRootLayout({
               `position: fixed`, so document order costs it nothing visually. Mounted
               inside I18nProvider because it reads `chrome.cookies`. */}
           <CookieBanner />
-          {/* Fixed to the bottom-left corner on every route, which is what
-              /accessibility §04 declares ("בצד שמאל של המסך"). */}
-          <AccessibilityWidget />
+          {/* The Sienna plugin, or the built-in widget when NEXT_PUBLIC_A11Y_WIDGET=builtin.
+              Exactly one of them ever renders — see AccessibilityGate. */}
+          <AccessibilityGate />
         </I18nProvider>
       </body>
     </html>

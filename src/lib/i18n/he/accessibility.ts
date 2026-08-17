@@ -95,23 +95,42 @@ export const accessibility: Translated<AccessibilityDict> = {
         "שדות טופס עם תוויות מפורשות, הודעות שגיאה המקושרות לשדה הרלוונטי, ובקרות מקובצות לפי הצורך.",
         "פריסה רספונסיבית הנפרשת באופן נקי עד 320 פיקסלים ללא גלילה אופקית, ותומכת בהגדלת טקסט של עד 200% ללא אובדן תוכן.",
         "אזורי ARIA Live להודעות סטטוס (שליחת טופס, עדכוני צ׳אט) כך שכל שינוי מוכרז לטכנולוגיה המסייעת.",
-        /* ADDED 2026-08-17 from the live page’s `תכונות נגישות באתר` list. ⚠️ BOTH DESCRIBE
-           THE WIDGET IN §04 AND ARE FALSE OF THIS BUILD — there is no text-resize control and
-           no high-contrast mode in `src/`. Added because the live site is the source of
-           truth; see the ⚠️ block at the top of this file. */
+        /* ADDED 2026-08-17 from the live page’s `תכונות נגישות באתר` list. These were FALSE when
+           they landed and are TRUE as of the same afternoon — both are delivered by the third-party
+           widget described in §04, not by the site’s own markup. If that widget is ever
+           removed, THESE TWO LINES GO WITH IT. */
         "אפשרות להגדלת והקטנת גודל הטקסט.",
         "מצב ניגודיות גבוהה לקריאה נוחה יותר.",
       ],
     },
     {
       n: "04",
-      /* ADDED 2026-08-17 from the live https://www.clix-solution.com/accessibility.
-         ⚠️ THE LIVE SITE SHIPS THIS WIDGET AND THIS BUILD DOES NOT. The clause names a
-         concrete control at a concrete screen position, so until that button exists here it
-         is the most checkable false promise on the page. Flagged in FEATURE.md. */
+      /* ⚠️ THIS SECTION IS NO LONGER THE LIVE SITE'S TEXT, AND THAT IS DELIBERATE.
+         It arrived on 2026-08-17 as a verbatim port and was FALSE — it named a control this
+         build did not have. It was rewritten the same day, at the user's instruction ("make
+         sure the accessibility is connected to the accessibility page, like the content of
+         that"), to describe the widget this site ACTUALLY ships.
+
+         ⚠️ REWRITTEN A SECOND TIME the same day, when the shipped widget changed from Sienna to
+         AccessiYes. Every control listed below was read out of AccessiYes's own bundle
+         (WebYes Accessibility Widget v2.0.0), not copied from marketing — and the list is
+         NOT the same as Sienna's, which is exactly why this had to be redone rather than left.
+
+         THIS SECTION IS THE FIRST THING THAT GOES STALE if the widget is swapped again. It is
+         a declaration under תקנה 35, not a feature list. `AccessibilityGate.tsx` says so too. */
       title: "כפתור נגישות",
       lead: [
-        "בצד שמאל של המסך תמצאו כפתור נגישות המאפשר התאמות מהירות כגון שינוי גודל טקסט והפעלת מצב ניגודיות גבוהה.",
+        "בפינה השמאלית התחתונה של המסך תמצאו כפתור נגישות הפותח תפריט התאמות. התפריט נטען בכל עמוד באתר ומסופק על ידי AccessiYes, כלי נגישות חיצוני.",
+      ],
+      items: [
+        "פרופילים מוכנים מראש: מצב בטוח לאפילפסיה, לקות ראייה, וקשב וריכוז.",
+        "התאמות טקסט: הגדלה והקטנה של גודל הטקסט, עובי גופן, גובה שורה, מרווח בין אותיות, יישור טקסט, גופן ידידותי לדיסלקציה, הדגשת כותרות והדגשת קישורים.",
+        "התאמות צבע: ניגודיות גבוהה, ניגודיות כהה, ניגודיות בהירה, רוויה גבוהה, רוויה נמוכה ומצב מונוכרום.",
+        "עזרי קריאה וניווט: סמן גדול, קו מנחה לקריאה, עצירת אנימציות, הקראת עמוד והשתקת צלילים.",
+        "קישור להצהרה זו מתוך התפריט עצמו, בשפת העמוד שבו אתם נמצאים.",
+      ],
+      tail: [
+        "שפת התפריט נקבעת לפי שפת העמוד, כך שבעברית הוא מוצג בעברית ובאנגלית באנגלית.",
       ],
     },
     {

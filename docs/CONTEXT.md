@@ -17,6 +17,39 @@ Line format:
 
 ## 2026-08-17
 
+- `a11y-widget` — **AccessiYes is now the shipped widget**, from the user's generated embed.
+  Config + injection kept in ONE inline script (`next/script` does not order inline against src,
+  and losing that race boots the vendor defaults); `position` forced `bottom-left` on both
+  breakpoints because §04 declares it; statement URL built from `location.origin` + `localeHref`
+  rather than the hardcoded production URL the generator emitted, so localhost and the Hebrew
+  tree both resolve correctly. **§04 rewritten a second time** for AccessiYes's control list.
+  Sienna + built-in stay reachable by env var. → [detail](../features/legal-pages/CONTEXT.md)
+- `a11y-widget` — (superseded) AccessiYes evaluated as a third gate branch, inert until
+  `NEXT_PUBLIC_ACCESSIYES_SITE_ID` is set (signup required; falls through to Sienna meanwhile).
+  Verified: it is a WordPress-first product whose generic embed is unpublished, the served file is
+  `WebYes Accessibility Widget v2.0.0` from cdn-cookieyes.com, **370 KB vs Sienna's 66 KB**, no
+  telemetry endpoint. ⚠️ Switching invalidates /accessibility §04 (it enumerates Sienna's
+  controls) and the `.asw-*` skin does not transfer.
+- `a11y-widget` — **Sienna's panel cut from a 500px full-height drawer to a 340px popover**
+  anchored above its button (user: "its too big"). Safe because its closed state is
+  `display:none`, not a transform, and `.asw-menu-content` already scrolls. `bottom:84px` is
+  button 52 + offset 16 + gap 16 — move it if either changes.
+- `a11y-widget` — **Sienna skinned to the site and repointed at our own statement.** Read from
+  the published bundle v2.2.333: only `lang`/`position`/`offset` are settable from the script
+  tag, and its `statement` option has no consumer — so `SiennaCustomize.tsx` rewrites the panel
+  footer's link to our `/accessibility` and sets the panel accent from JS (its inline
+  `!important` cannot be reached from a stylesheet; the button can, and is skinned in
+  globals.css). **`/accessibility` §04 rewritten** to describe the real control list rather than
+  the ported text that was false. ⚠️ §04 and two §03 bullets now depend on the widget staying —
+  both files say so at the point of use. → [detail](../features/legal-pages/CONTEXT.md)
+- `a11y-widget` — **Ships the Sienna plugin** (free, MIT, jsDelivr, no account), after a UserWay
+  integration was written and deleted unused the same hour ("its paid, we should use some free
+  one"). `AccessibilityGate` reads `NEXT_PUBLIC_A11Y_WIDGET` — unset = Sienna, `builtin` = ours;
+  exactly one ever renders, so §04 never declares a button that is not there. ⚠️ Open: the script
+  is on `@latest` (pin it, then add SRI), and privacy §05 names third-party processors without
+  naming Sienna. ⚠️ Stated twice and reaffirmed: an overlay does not satisfy תקנה 35 / ת״י 5568.
+  → [detail](../features/legal-pages/CONTEXT.md)
+
 - `footer` — **Terms is no longer hidden below 1200px.** `only: "desktop"` deleted from
   `Footer.tsx`; the Legal column is 3 links at every tier. The gate came from the
   docs/reference/target capture; the user rejected the premise — this footer answers to

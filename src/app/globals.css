@@ -475,6 +475,144 @@ html {
    the animation class entirely and renders a steady caret, because a caret frozen mid-cycle
    by `animation-duration: 0.01ms` can land invisible. */
 /* ═══════════════════════════════════════════════════════════════════════════════════════
+   SIENNA WIDGET SKIN — the third-party accessibility plugin, restyled to this site.
+
+   ⚠️ THIS IS HALF OF THE JOB. Sienna declares `--asw-primary` on `.asw-widget, .asw-menu` in
+   its own stylesheet AND re-sets it INLINE with `!important` on `.asw-menu` when it builds the
+   panel. Inline `!important` beats stylesheet `!important` from the same origin, so:
+     · the BUTTON (`.asw-widget`) gets no inline value and is overridden here;
+     · the PANEL (`.asw-menu`) can only be reached from JS — SiennaCustomize.tsx does it.
+   The two must carry the SAME colour. Change one, change the other.
+
+   ⚠️ EVERY SELECTOR HERE IS A THIRD-PARTY CLASS NAME, on a script loaded from `@latest`. An
+   upstream rename silently reverts the skin to Sienna's blue; nothing breaks, it just stops
+   looking like this site. Pin the version to make that an explicit upgrade instead.
+   ═══════════════════════════════════════════════════════════════════════════════════════ */
+
+.asw-widget {
+  /* The navy of the accessibility mark the client supplied, and the same value the built-in
+     widget's button used — so the two implementations are visually interchangeable. */
+  --asw-primary: #1b3a5f;
+  /* 52/34 against Sienna's 58/36. The default reads oversized against this site's restrained
+     footer and nav; the mobile pair is left at Sienna's own 42/26, which is already right. */
+  --asw-btn-size: 52px;
+  --asw-icon-size: 34px;
+}
+
+/* Sienna's default shadow is a blue-tinted double drop that belongs to its own blue. This is
+   the neutral one the rest of this site uses on floating surfaces. */
+.asw-menu-btn {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.28) !important;
+}
+
+/* The trigger is an `<a>` pointing at Sienna's site with the click intercepted, so it inherits
+   no focus treatment from this site's controls. Given WHAT it is, a visible focus ring is not
+   optional — a keyboard user reaching for the accessibility control must be able to see it. */
+.asw-menu-btn:focus-visible {
+  outline: 2px solid var(--color-paper) !important;
+  outline-offset: 3px !important;
+}
+
+/* ── the panel ────────────────────────────────────────────────────────────────────────────
+   ⚠️ SIENNA SHIPS THIS AS A 500px FULL-HEIGHT DRAWER (`width:500px; height:100%; top:0`),
+   which on a 1440 screen is a third of the viewport for a menu of toggles. The user's words:
+   "its too big, and taking lots of space". It is re-anchored here as a COMPACT POPOVER above
+   its own button instead.
+
+   Safe to reposition: the closed state is `display:none`, not a transform, so nothing depends
+   on the drawer geometry to hide it. Checked in the bundle before touching this.
+
+   `bottom: 84px` = the button's 52px + its 16px offset + a 16px gap. If either the button size
+   or `data-offset` changes, this number moves with them. */
+.asw-menu {
+  top: auto !important;
+  bottom: 84px !important;
+  left: 16px !important;
+  width: min(340px, calc(100vw - 2rem)) !important;
+  height: auto !important;
+  /* Caps the popover at roughly two thirds of a laptop screen. `.asw-menu-content` is already
+     `overflow-y:auto; flex-grow:1`, so the overflow scrolls inside rather than clipping. */
+  max-height: min(540px, calc(100vh - 7rem)) !important;
+  border-radius: 10px !important;
+  font-size: 15px !important;
+}
+
+/* Sienna's internal spacing is scaled for the 500px drawer — 70px header, 30px content pad,
+   20/25px card boxes, 1rem grid gaps. All of it is re-scaled for 340px below. Nothing here
+   changes behaviour; it is padding, gaps and glyph sizes only. */
+.asw-menu-header {
+  height: 52px !important;
+  padding-left: 16px !important;
+  padding-right: 16px !important;
+}
+
+.asw-menu-content {
+  padding: 14px 0 8px !important;
+}
+
+.asw-card {
+  margin: 0 12px 12px !important;
+  padding: 12px !important;
+  border-radius: 12px !important;
+}
+
+.asw-card-title {
+  font-size: 11px !important;
+  padding-bottom: 10px !important;
+}
+
+.asw-items {
+  gap: 8px !important;
+}
+
+.asw-btn {
+  padding: 10px 6px !important;
+  gap: 6px !important;
+}
+
+.asw-btn svg {
+  width: 24px !important;
+  height: 24px !important;
+  min-width: 24px !important;
+  min-height: 24px !important;
+  max-width: 24px !important;
+  max-height: 24px !important;
+}
+
+.asw-btn .asw-translate {
+  font-size: 12px !important;
+}
+
+.asw-adjust-font {
+  padding: 12px !important;
+  margin-bottom: 12px !important;
+}
+
+.asw-adjust-font > div {
+  margin-top: 12px !important;
+}
+
+.asw-adjust-font div[role="button"] {
+  width: 30px !important;
+  height: 30px !important;
+}
+
+.asw-amount {
+  font-size: 15px !important;
+}
+
+.asw-footer {
+  padding: 10px 12px !important;
+}
+
+/* The footer's two links are 14px against a 12px tile label, which reads as the loudest text
+   in the panel once everything above it shrinks. */
+#asw-statement-link,
+.asw-footer-powered {
+  font-size: 11px !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════════════
    ACCESSIBILITY WIDGET MODES — driven by src/components/a11y/AccessibilityWidget.tsx, which
    toggles these classes on <html>. Added 2026-08-17 to make /accessibility §04 true.
 
