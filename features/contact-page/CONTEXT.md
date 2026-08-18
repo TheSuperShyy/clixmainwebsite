@@ -27,6 +27,16 @@ again and the SMTP credential was re-verified with an auth-only handshake. The s
 exists for the next time it is wanted; setting it to `"off"` silences mail without touching
 credentials or code.
 
+**A consent checkbox gates the Send button as of 2026-08-18.** The form's legal sentence is no
+longer static text: it is a checkbox label carrying live `/privacy` and `/terms` links, and Send
+is `aria-disabled` (not `disabled` — see the newest log entry for why) until every required field
+validates *and* the box is ticked. The API enforces it again.
+
+**And the form is drafted to `sessionStorage` as it is typed**, because those two links are a way
+out of a half-filled form. Restored through `useSyncExternalStore` — not an effect, which this
+project's lint forbids and which would have broken hydration — and deleted the moment a send
+succeeds.
+
 **What is not done: nobody has looked at the page.** Still true after the redesign. Both routes
 return 200 and the rendered HTML was inspected for the two known landmines — the 1px-wide form
 (clean) and the Hebrew RTL markup (clean) — but there has been **no visual check at any width in
@@ -41,6 +51,145 @@ then set the two env vars in the Vercel project settings so the deployed form ca
 ---
 
 ## Log
+
+### 2026-08-18 — the form survives a trip to /privacy (sessionStorage draft)
+
+**Trigger:** user, on reading the consent change — *"does the form get save to localstorage?
+becase what if they put data then they click privacy and terms of use, then they go back"*.
+
+**They were right, and the hole was one the consent checkbox had just opened.** The form was
+plain `useState` with no persistence anywhere (the only storage in the codebase belongs to
+`AccessibilityWidget` and `CookieBanner`). `AppLink` routes client-side, so clicking either new
+consent link unmounted the form and lost every field. Before those links existed there was no
+reason to leave this page half-filled; afterwards there were two, next to the one control a
+visitor is *required* to touch.
+
+**`sessionStorage`, chosen by the user over new-tab links.** Key `clix-contact-draft.v1`. It
+holds a name, an email and a phone number on the page whose subject is a privacy policy, so:
+per-tab, dies with the tab, unreadable by another tab, and **deleted outright the moment a
+submission succeeds** (`writeDraft(null)` on the `res.ok` path — the only place it is cleared;
+every other exit is the case it exists for). Not gated on the cookie banner: a draft of a form
+the visitor is actively typing into is functional storage they initiated themselves — the
+shopping-cart case — not analytics.
+
+**⚠️ `useSyncExternalStore`, NOT `useState` + a read-on-mount effect, for two reasons, and the
+second is the one that would have bitten.** `CookieBanner.tsx` records the first: this project's
+lint runs the React Compiler rules and **`react-hooks/set-state-in-effect` rejects the
+read-storage-into-state-on-mount idiom outright**. The second is hydration — `/contact` is
+statically prerendered with EMPTY inputs, so `getServerSnapshot` returns null and the hydration
+render sees an empty form that matches the markup exactly; React re-renders with the real
+snapshot immediately afterwards and the draft appears. A lazy `useState` initialiser reading
+storage would have filled every input during hydration and mismatched every one of them.
+
+**⚠️ The snapshot is the RAW STRING, never a parsed object.** `getSnapshot` runs on every render
+and must return something comparable by identity; a fresh object per call is the classic
+infinite loop. Parsing happens once in a `useMemo` keyed on the string.
+
+**Four `useState`s became one shadowed value**, which reads oddly and is not taste:
+`restored` (from the store) is shadowed by `edited` (null until the visitor touches anything), so
+a stored value can never overwrite something being typed and there is **no effect anywhere in the
+restore path**. Every write goes through one `commit(patch)` that sets and stores together — a
+field cannot be changed without being saved. Call sites updated: `setField`, the needs pills, the
+budget radiogroup's click *and* arrow-key writers, and the consent checkbox.
+
+**⚠️ A stored draft is UNTRUSTED INPUT.** `sessionStorage` is writable by anything on this origin,
+including the visitor with devtools open, so `parseDraft` re-validates on the way out: strings
+only, clamped to the same `LIMITS` the form validates against, `needs` filtered through
+`NEED_ORDER` and `budget` through `BUDGET_ORDER` — the same closed vocabularies the API
+allow-lists. A `needs` that is not an array would otherwise reach React state and break rendering
+rather than be rejected at a boundary. Both accessors swallow throws: storage **throws** rather
+than returning null when the browser refuses it (Safari private mode, partitioned storage), and
+failing to remember a draft must never take the form down.
+
+**Two deliberate exclusions.** The honeypot is not persisted — always empty for a human, and a
+restored value would either do nothing or resurrect a false positive. `consentError` is not
+persisted — a restored draft has not been submitted yet. **The consent tick IS persisted**, which
+is the one judgement call: the likeliest reason to leave this page mid-form is to go and *read*
+the two documents the tick is about, so making someone re-tick on the way back punishes exactly
+the behaviour the links exist to encourage. Same tab, same session, their own action minutes
+earlier — and the server still requires `consent === true` on every submission.
+
+**One consequence worth knowing:** the key is not locale-scoped, so a draft started on `/contact`
+restores on `/he/contact`. Judged desirable — it is the same person and the same enquiry — but
+it is a decision, not an accident.
+
+**Verified by the user** in the browser: fills, follows a consent link, comes back, everything
+restored.
+
+**Status:** `review`
+**Next action:** unchanged — the visual pass at 1600 / 1440 / 1024 / 390 in both languages.
+
+### 2026-08-18 — the consent line became a checkbox, and Send is gated on it
+
+**Trigger:** user — *"in the contact form there should be a checkbox that they check before they
+can submit the form, the button should be disabled"*, with the reference's Hebrew consent row as
+the screenshot.
+
+**This closes an open question and reverses the reason behind it.** `en/contact.ts` carried a ⚠️
+saying the sentence was one unlinked string because "/privacy and /terms are two of the eight
+footer links this build does not have a route for, and two known 404s inside a legal sentence is
+worse than no link at all". Both routes were built on 2026-08-16. The reference's two links are
+therefore reproduced, and that comment is rewritten rather than left to mislead.
+
+**⚠️ THE SENTENCE IS ONE TEMPLATE PER LOCALE, NOT FIVE RUNS, AND THE PLACEHOLDER ORDER IS THE
+LOCALE'S OWN.** English names the privacy policy first; the reference's Hebrew names תנאי השימוש
+first, and its whole sentence is a different one — a first-person acknowledgement ("אני מאשר/ת")
+with a clause about keeping the details on file, not a statement about what sending does. A
+lead/middle/tail split would have hard-coded English's word order into both files. So each locale
+holds one string with `{privacy}` and `{terms}` tokens and places them where its own grammar
+wants them. New keys: `consent` (rewritten), `consentPrivacy`, `consentTerms`,
+`errors.consentRequired`.
+
+`ContactForm.tsx` splits on `/(\{privacy\}|\{terms\})/` — a **capturing** group, so the
+tokens survive into the output array — and maps them to `AppLink`, which prefixes the locale, so
+`/he/contact` links to `/he/privacy`. Deliberately **not** `interpolate()`: that helper fills the
+same `{…}` convention and is what the live regions use, but it returns a string and these two
+runs have to be anchors.
+
+**⚠️ THE LABEL IS NOT A `<label>`, AND MUST NOT BECOME ONE.** A `<label>` wrapping an anchor
+toggles the control when the anchor is clicked, so a visitor going to read the privacy policy
+would tick the consent box on their way out. The input is named by `aria-labelledby` pointing at
+the sentence instead. The cost is real and is accepted: clicking the text no longer ticks the
+box. Native `<input type="checkbox">` with `accent-ink` rather than a hand-built control — it
+already has a correct focus ring, hit target and announcement in every assistive tech, and
+repainting it would cost all three to gain a tick mark of our own drawing.
+
+**⚠️ TWO KINDS OF DISABLED ON THE SUBMIT BUTTON, AND THE SPLIT IS THE WHOLE DESIGN.**
+
+| | attribute | when |
+|---|---|---|
+| in flight | real `disabled` | genuinely inert — nothing to say until the request returns |
+| incomplete | `aria-disabled` + the same styling | looks and announces disabled, still focusable, still fires |
+
+The user chose "checkbox **and** whole form valid" over "checkbox only" when asked. A hard
+`disabled` for that state would take the button out of the tab order and leave someone who
+mistyped their email with a dead control, no message and no way to ask what was wrong — which is
+precisely the failure the existing focus-the-first-bad-field path was built to prevent. With
+`aria-disabled` the click still reaches `onSubmit`, which highlights every bad field, speaks the
+summary through the always-mounted alert region, and moves focus. The checkbox is that walk's
+**fallback target**, not a case of its own: it sits below all six fields, so it is the first bad
+thing only when every field passed.
+
+**The gate is `validate()` re-run at render**, not the `steps` array. `steps` is display state
+for the progress chips and says so in its own comment; re-running the real rules is what
+guarantees the button and the submit path cannot disagree. It costs a handful of length checks
+and two regexes per render. **`needs` and `budget` stay optional** — exactly as `validate()` has
+always had them — so the four required fields plus the tick are what enable Send.
+
+**Server side.** `api/contact/route.ts` rejects `body.consent !== true` with the existing 400
+shape; strictly `true`, so a string, a `0` or an absent key are all refusals. `consent` is not one
+of the six `FieldKey`s, so the client's 400 handler filters it out and shows the whole-form
+summary — which is right, since there is no text input to hang a message under. The flag also
+rides in the n8n payload beside `submittedAt`, so the CRM row can answer "did they accept, and
+when" from itself.
+
+**Not looked at.** No browser has rendered this. Worth a specific look: the checkbox's alignment
+against the first line of the sentence (`mt-0.5` against an 18px line box on a 16px control) and
+the Hebrew row, where the box sits on the right and the two links are mid-sentence.
+
+**Status:** `review`
+**Next action:** user opens `/contact` and `/he/contact`, ticks and un-ticks, clicks Send while
+incomplete, and confirms the links do not toggle the box.
 
 ### 2026-08-18 — n8n webhook added as a second channel; Gmail temporarily off
 

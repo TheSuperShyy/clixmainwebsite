@@ -4,7 +4,6 @@ import Testimonials from "@/components/sections/Testimonials";
 import LandingVideo from "@/components/sections/LandingVideo";
 import WhyRogo from "@/components/sections/WhyRogo";
 import ByTheNumbers from "@/components/sections/ByTheNumbers";
-import Security from "@/components/sections/Security";
 import Footer from "@/components/sections/Footer";
 import { fetchModels } from "@/lib/models";
 import type { Locale } from "@/lib/i18n/config";
@@ -41,8 +40,12 @@ export default async function HomeRoute({ locale }: { locale: Locale }) {
               half of each gap; see the padding note in LandingVideo.tsx. */}
           <LandingVideo />
           <WhyRogo />
+          {/* ⚠️ `<Security />` USED TO BE THE LAST SECTION HERE AND WAS REMOVED 2026-08-18 at
+              the user's request — the "Your systems, your data, your control" badge row.
+              The standalone /security route is a DIFFERENT page and is untouched; the nav and
+              footer still link to it. By the numbers is now the last thing before the footer,
+              which is why it carries the dark tint that hands over to `bg-ink`. */}
           <ByTheNumbers />
-          <Security />
         </main>
         {/* Outside <main>, as in the original — `footer` is a landmark sibling, not page
             content. The closing CTA lives inside it rather than as its own section. */}

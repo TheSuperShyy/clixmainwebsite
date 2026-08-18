@@ -84,7 +84,7 @@ second one. Anything that wants a green accent wants `forest`, and `forest` belo
 | Token | Value | Uses | Role |
 |---|---|---|---|
 | `forest` | `#1a2a25` | ×19 | display headlines + primary button fill on `/clix` |
-| `forest-deep` | `#0f2822` | ×0 static | the `/clix` scroll backdrop's dark state |
+| `forest-deep` | `#0f2822` | ×0 static | the `/clix` scroll backdrop's dark state — **and, since 2026-08-18, the home page's `by-the-numbers` ground.** Both reach it from JS and neither can be found by grepping for a class |
 | `emboss-face` | `#ececec` | ×1 | the `/clix` footer wordmark's face — **sampled from rogo's own 2008×859 PNG** (2026-08-11, fetched to scratchpad for measurement only, never vendored). Numerically it is `ink` at 8% over white (236.28 ≈ 236), but it ships flattened because the SVG inner-shadow filter needs an opaque alpha channel to cut the rim from. |
 
 **`forest-deep` is the exception that proves the counting method.** It is declared as a Framer
@@ -95,6 +95,13 @@ against a live screenshot on 2026-08-09.
 
 It is emphatically **not** `forest`: that is the display-*type* colour, and using it as the
 ground was why our version read too light. Two greens, two jobs.
+
+**It has a second consumer as of 2026-08-18** — `by-the-numbers` on the home page fades its
+`card` panel to this value on scroll (user: "like in the clix section, that same color"). The
+"×0 static" count is still literally true and still means the same thing: the colour is written
+by `NumbersTint.tsx` as an inline style, so it appears in no class and no stylesheet. Anything
+that wants this green must go through the token in `globals.css`, not through a second literal —
+there are now two files carrying `#0f2822` as a string, and a third would be one too many.
 
 **That page adds exactly one colour.** Everything else on it resolves to tokens already
 here: `ink` ×194, `muted` ×48, `hairline` ×19, `paper` ×17, and `canvas` `#f7f7f7` inlined

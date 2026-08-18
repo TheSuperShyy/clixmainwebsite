@@ -135,13 +135,20 @@ export const contact = {
        out on submit. Saying so up front is ours. */
     optional: "Optional",
 
-    /* ⚠️ RENDERED AS PLAIN TEXT, NOT AS TWO LINKS. The reference links "מדיניות הפרטיות" and
-       "תנאי השימוש". /privacy and /terms are two of the eight footer links this build does
-       not have a route for, and two known 404s inside a legal sentence is worse than no link
-       at all. One string, therefore, rather than the five runs a linked version would need.
-       Flagged as an open question in features/contact-page/FEATURE.md. */
-    consent:
-      "By sending this form you accept our privacy policy and terms of use.",
+    /* ⚠️ NOW A CHECKBOX LABEL WITH TWO REAL LINKS (2026-08-18), which reverses what this
+       comment used to say. It was plain text because /privacy and /terms did not exist and
+       "two known 404s inside a legal sentence is worse than no link at all". Both routes are
+       built now, so the reference's own two links are reproduced.
+
+       ⚠️ A TEMPLATE, NOT FIVE RUNS, AND THE PLACEHOLDER ORDER IS THE LOCALE'S OWN. English
+       names the privacy policy first; the Hebrew reference names תנאי השימוש first. A fixed
+       lead/middle/tail split would hard-code English's order into both files, so the sentence
+       stays one string per locale and ContactForm.tsx splits it on the two tokens. Same `{…}`
+       convention as `a11y.needsCount` below and `chrome.ts`, but rendered to NODES rather than
+       through `interpolate()`, which returns a string and cannot carry an <a>. */
+    consent: "By sending this form you accept our {privacy} and {terms}.",
+    consentPrivacy: "privacy policy",
+    consentTerms: "terms of use",
 
     submit: "Send",
     /* Replaces the button label while the request is in flight. */
@@ -173,6 +180,10 @@ export const contact = {
       failed:
         "Something went wrong sending that. Please email us directly and we will pick it up.",
       rateLimited: "That is a few messages in quick succession. Please try again shortly.",
+      /* Rarely seen by a mouse user — the button reads as disabled until the box is ticked —
+         but the button is deliberately still clickable, so this is what a click on it says.
+         See the `aria-disabled` note in ContactForm.tsx. */
+      consentRequired: "Please tick the box to accept the terms before sending.",
     },
 
     a11y: {
