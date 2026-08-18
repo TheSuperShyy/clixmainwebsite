@@ -23,6 +23,7 @@
  */
 
 import CountUp from "@/components/ui/CountUp";
+import NumbersTint from "@/components/sections/NumbersTint";
 import { getDict } from "@/lib/i18n/server";
 import type { HomeDict } from "@/lib/i18n/en/home";
 import type { Translated } from "@/lib/i18n/shape";
@@ -104,7 +105,7 @@ function StatRow({ item, copy }: { item: Stat; copy: StatCopy }) {
        (`--token-8ac923d6-…, #a8a29e33`), not a look-alike literal. */
     <div
       className="flex w-full flex-col items-start gap-1 overflow-clip border-t
-                 border-hairline py-6
+                 border-[color:var(--n-rule,var(--color-hairline))] py-6
                  tablet:flex-row tablet:gap-0 tablet:py-0"
     >
       {/* Number cell — 16px of vertical padding around a 128px line box at >=810. */}
@@ -134,7 +135,8 @@ function StatRow({ item, copy }: { item: Stat; copy: StatCopy }) {
              never wrap. If a word ever lands in this heading, this line-height is the first
              thing to re-measure. */
           className="w-px max-w-[844px] flex-[1_0_0] font-display text-[48px]
-                     leading-[1.2em] tracking-[-0.04em] text-ink
+                     leading-[1.2em] tracking-[-0.04em]
+                     text-[color:var(--n-fg,var(--color-ink))]
                      tablet:text-[96px] tablet:leading-[128px]
                      xl:text-[108px]"
           /* Pins the accessible name to the FINAL value. Without it a screen reader landing
@@ -160,7 +162,8 @@ function StatRow({ item, copy }: { item: Stat; copy: StatCopy }) {
                    desktop:w-px desktop:flex-[1_0_0] desktop:pe-12 desktop:ps-8"
       >
         <p
-          className={`text-[18px] leading-[1.4em] tracking-[-0.02em] text-ink opacity-70
+          className={`text-[18px] leading-[1.4em] tracking-[-0.02em] opacity-70
+                      text-[color:var(--n-fg,var(--color-ink))]
                       tablet:w-auto tablet:max-w-[240px] tablet:whitespace-normal
                       tablet:text-[20px]
                       ${item.labelPhone}`}
@@ -196,16 +199,19 @@ export default function ByTheNumbers() {
   const t = getDict().home.byTheNumbers;
 
   return (
-    <section
-      data-nav-theme="light"
-      /* padding 96/16 phone → 96/40 from 810 up. Background is `card` #eeedec — the same
-         fill as a testimonial card, one shade off `canvas` and two off `surface`. */
-      className="relative flex w-full flex-col items-center justify-center overflow-clip
-                 bg-card px-4 py-24 tablet:px-10"
-    >
+    /* ⚠️ THE `<section>` LIVES IN NumbersTint NOW (2026-08-18), along with the padding, the
+       background and `data-nav-theme` — it has to be a client element to animate, and this
+       file stays a server component by handing it the content instead. The background is no
+       longer the flat `card` #eeedec it was: it fades to `forest-deep` #0f2822 on entry and
+       back on exit, which is a SECOND deliberate divergence from the target alongside the
+       count-up above. Read NumbersTint.tsx before touching any colour below — `--n-fg` and
+       `--n-rule` are written from there, and their `var()` fallbacks are what keep this
+       section correct with JS off. */
+    <NumbersTint>
       {/* Width Container — max-w 1280. Its gap (80/128/164 by tier) never applies: the
-          container has exactly one child here. Reproduced anyway; the same class is shared
-          with the section below, where it does bite. */}
+          container has exactly one child here. Reproduced anyway; the class is the capture's
+          own shared one. (It used to say "the section below, where it does bite" — that was
+          `Security`, deleted 2026-08-18.) */}
       <div
         className="relative flex w-full max-w-[var(--container-max)] flex-col items-start
                    gap-20 overflow-clip tablet:gap-32 desktop:gap-[164px]"
@@ -217,7 +223,8 @@ export default function ByTheNumbers() {
           <div className="relative z-[1] flex w-full flex-col items-start overflow-visible tablet:w-min">
             <h2
               className="w-full max-w-[400px] font-sans text-[28px] leading-[1.1em]
-                         font-medium tracking-[-0.03em] text-ink opacity-70
+                         font-medium tracking-[-0.03em] opacity-70
+                         text-[color:var(--n-fg,var(--color-ink))]
                          tablet:w-[400px]"
             >
               {t.heading}
@@ -232,6 +239,6 @@ export default function ByTheNumbers() {
           </div>
         </div>
       </div>
-    </section>
+    </NumbersTint>
   );
 }

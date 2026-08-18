@@ -358,32 +358,9 @@ export const home: Translated<HomeDict> = {
     },
   },
 
-  security: {
-    /* AUTHORED — the English triple's rhetorical shape kept, because that is the line.
-       ⚠️ BOX: 3 lines at the 1200+ tier (48px) where English sets 2, inside the same centred
-       400px measure; 2 lines at 36px and 44px, matching. The title block is a centred flex
-       column with a 64px gap below it, so the section grows ~50px at that tier and nothing
-       clips. Not trimmed to fit — contract §10. */
-    heading: "המערכות שלכם, הנתונים שלכם, השליטה שלכם",
-    /* AUTHORED ×5, and THESE FIVE NEED CROSS-FILE RECONCILIATION. The same five statements are
-       restated verbatim by security/SecurityCompliance.tsx (all five),
-       security/SecurityBenefits.tsx (four, as card titles) and product/ProductSecurity.tsx
-       (four) — three files owned by other agents, in other namespaces. Whatever Hebrew those
-       three land on must be THESE strings, or the site says the same thing three different ways
-       in one language.
-       ⚠️ SecurityBenefits' titles carry a HARD one-line constraint at every tier (its own
-       header calls the rows "part of the layout"); these boxes are only 137/188px wide but the
-       label is absolutely positioned at `bottom-4`, so extra lines here move nothing.
-       All five measured at 12px in their own box: 129.3 / 131.6 / 105.3 / 112.9 / 73.0 — every
-       one sets a SINGLE line, where English's "Encrypted in transit and at rest" needs two.
-       `your-data` at 131.6 of 137 is the tight one (96%); if real shaping pushes it to two
-       lines that is harmless for the reason above. */
-    badges: {
-      "your-cloud": "הענן שלכם, החשבונות שלכם",
-      "your-data": "הנתונים שלכם נשארים שלכם",
-      "least-privilege": "גישה בהרשאות מינימום",
-      encrypted: "הצפנה בתעבורה ובאחסון",
-      ownership: "הקוד בבעלותכם",
-    },
-  },
+  /* ⚠️ `security` (heading + five badge labels) WAS REMOVED FROM THIS DICTIONARY 2026-08-18,
+     with the home section it fed (src/components/sections/Security.tsx). The five statements
+     are NOT lost: security/SecurityCompliance.tsx, security/SecurityBenefits.tsx and
+     product/ProductSecurity.tsx carry their own copies in their own namespaces, which is what
+     the deleted block's own comment said would happen. Nothing to reconcile here any more. */
 };

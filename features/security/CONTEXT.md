@@ -18,12 +18,53 @@ matrix. No new tokens.
 **Two things need the user's call**, both inherited from the target rather than introduced:
 the grid outline is left open below 1200px, and the 12px labels are `3.85:1` against `ink`.
 
-**Status:** `review`
-**Next action:** get those two calls, then diff against the live site.
+**REMOVED FROM THE HOME PAGE 2026-08-18.** The section no longer exists — component deleted,
+unmounted, dictionary keys gone. See the newest log entry. ⚠️ The `/security` **route** is a
+different page and is untouched; do not conflate the two.
+
+**Status:** `removed`
+**Next action:** none.
 
 ---
 
 ## Log
+
+### 2026-08-18 — REMOVED FROM THE HOME PAGE
+
+**Trigger:** user, with a screenshot of the block — *"remove the security section in the landing
+page"*, and, when the plan named it: *"im talking about the Your systems, your data, your control
+section in landing page you understand?"*. Confirmed before anything was deleted.
+
+⚠️ **THIS FILE NOW DOCUMENTS A SECTION THAT NO LONGER RENDERS.** Everything below is kept rather
+than archived: the ragged-border finding and the 3.85:1 label measurement were expensive to get
+and both still apply to `security/SecurityCompliance.tsx`, which restates the same five badges on
+the `/security` page.
+
+⚠️ **`/security` IS NOT THIS.** The standalone route (`src/components/security/*` — hero,
+terminal, console, canvas, benefits, compliance; spec in `features/security-page/`) is a
+different page built from different components and is completely untouched, as are the nav and
+footer links pointing at it. The user asked to be sure of exactly this before work continued.
+
+**Deleted**
+- `src/components/sections/Security.tsx`.
+- `<Security />` and its import in `src/app/_routes/HomeRoute.tsx`; a comment there records the
+  removal so the gap between `<ByTheNumbers />` and `</main>` is not read as an accident.
+- `home.security` (heading + five badge labels) from `src/lib/i18n/en/home.ts` and
+  `src/lib/i18n/he/home.ts`. Safe because the deleted block's own comment recorded that
+  `SecurityCompliance.tsx`, `SecurityBenefits.tsx` and `ProductSecurity.tsx` each carry their own
+  copies in their own namespaces — that cross-file reconciliation burden is one file lighter now.
+
+**Kept**
+- `public/badges/practice-*.svg`, all five — `SecurityCompliance.tsx` still uses them.
+- Nothing pointed at the `#security` anchor that went with the section: `Nav.tsx` was repointed
+  from `/#security` to the real `/security` route on 2026-08-12.
+
+**Consequence worth stating:** `by-the-numbers` is now the last thing in `<main>`, sitting
+directly above the `bg-ink` footer. It gained its own dark tint the same day, which is what keeps
+that handover from being a light panel butted against black.
+
+**Status:** `removed`
+**Next action:** none. Restoring it means restoring the component and both dictionary blocks.
 
 ### 2026-08-03 — built
 

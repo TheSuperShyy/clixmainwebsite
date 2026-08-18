@@ -237,25 +237,11 @@ export const home = {
     },
   },
 
-  security: {
-    heading: "Your systems, your data, your control",
-    /**
-     * ⚠️ FIVE STRINGS THAT ARE DELIBERATELY RESTATED ON THREE OTHER PAGES, so the site sounds
-     * like one company: `security/SecurityCompliance.tsx` repeats all five verbatim,
-     * `security/SecurityBenefits.tsx` reuses four as its card titles (and says so in its own
-     * header), and `product/ProductSecurity.tsx` reuses four. Those files belong to other
-     * namespaces and other owners. If one of these strings changes, the other three have to
-     * change with it — there is no shared key, on purpose, because each page's box measures
-     * differently.
-     */
-    badges: {
-      "your-cloud": "Your cloud, your accounts",
-      "your-data": "Your data stays yours",
-      "least-privilege": "Least-privilege access",
-      encrypted: "Encrypted in transit and at rest",
-      ownership: "You own the code",
-    },
-  },
+  /* ⚠️ `security` (heading + five badge labels) WAS REMOVED FROM THIS DICTIONARY 2026-08-18,
+     with the home section it fed (src/components/sections/Security.tsx). The five statements
+     are NOT lost: security/SecurityCompliance.tsx, security/SecurityBenefits.tsx and
+     product/ProductSecurity.tsx carry their own copies in their own namespaces, which is what
+     the deleted block's own comment said would happen. Nothing to reconcile here any more. */
 } as const;
 
 export type HomeDict = typeof home;

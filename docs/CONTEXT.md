@@ -141,6 +141,61 @@ Line format:
   the only place it can be set, since the widget spreads it inside the shadow root.
   → [detail](../features/legal-pages/CONTEXT.md)
 
+- `contact-page` — **The consent line became a real checkbox, and Send is now gated on it.** The
+  sentence was a static `<p>`; it is an `<input type="checkbox">` whose label carries the
+  reference's two links — `/privacy` and `/terms`, which did not exist when this was written as
+  plain text and do now. ⚠️ **The label is NOT a `<label>`**: a label wrapping an anchor toggles
+  the box when the anchor is clicked, so the input is named by `aria-labelledby` instead. ⚠️
+  **The sentence is ONE TEMPLATE PER LOCALE with `{privacy}`/`{terms}` tokens, not five runs** —
+  English names the privacy policy first, Hebrew names תנאי השימוש first, and a fixed split
+  would hard-code English's order into both. ⚠️ **The button uses `aria-disabled`, not
+  `disabled`** (user asked for "checkbox + whole form valid"): it looks and announces as
+  disabled but stays focusable and clickable, so a click still runs the existing highlight-and-
+  focus-the-first-bad-field path rather than dead-ending someone with a typo'd email. The gate is
+  `validate()` re-run at render — the real rules, not the step chips — plus the tick; `needs` and
+  `budget` stay optional, as `validate()` always had them. Consent is enforced again in
+  `api/contact/route.ts` (`body.consent !== true`) and recorded in the n8n payload.
+  → [detail](../features/contact-page/CONTEXT.md)
+
+- `security` — **The home page's Security section was deleted** (user, against a screenshot of
+  the block): heading "Your systems, your data, your control" + the five-badge row. Component
+  gone, `<Security />` unmounted from `HomeRoute`, `home.security` deleted from both locale
+  files. ⚠️ **The `/security` ROUTE is untouched and so are the nav and footer links to it** —
+  the user asked twice to be sure, and the two are unrelated code (`components/security/*`).
+  `public/badges/practice-*.svg` stay: `SecurityCompliance.tsx` still uses all five. The dead
+  `#security` anchor went with the section; nothing linked to it since 2026-08-12.
+  → [detail](../features/security/CONTEXT.md)
+
+- `by-the-numbers` — **The section's ground now fades `card` #eeedec → `forest-deep` #0f2822 on
+  scroll**, the same colour and the same gesture as `/clix`'s backdrop (user: "like in the clix
+  section, that same color"). ⚠️ **Different mechanism, deliberately** — `ClixBackdrop` darkens
+  the whole viewport from a fixed layer because eight sections are transparent over it; the ask
+  here was one section, so the colour lives on this element and its neighbours are untouched.
+  New `NumbersTint.tsx` owns the `<section>` so `ByTheNumbers` stays a server component. ⚠️
+  **The type colour is a HARD SWAP at the midpoint and the content dips to 0.08 through it** —
+  interpolating `ink → paper` alongside the ground puts both through their own middle at once:
+  #8a8a8a on #7e8a87, a measured contrast of **1.0**, i.e. the section would go blank for ~100ms
+  every time it was scrolled into. `data-nav-theme` is mutated on the same frame or the white bar
+  sits unreadably on the green. One trigger, one tween, one scalar `p` — `ClixBackdrop`'s rule,
+  inherited whole. Reduced motion gets the colour instantly rather than not at all.
+  → [detail](../features/by-the-numbers/CONTEXT.md)
+
+- `contact-page` — **The form is now drafted to `sessionStorage` as it is typed.** The user spotted
+  what the consent links had just opened: *"what if they put data then they click privacy and
+  terms of use, then they go back"* — `AppLink` navigates client-side, the form unmounted, every
+  field was lost. ⚠️ **Restored with `useSyncExternalStore`, not a read-on-mount effect** — the
+  React Compiler rules this repo lints under reject `set-state-in-effect` outright (the reason
+  `CookieBanner` is built the same way), and its `getServerSnapshot` is also what keeps the
+  statically-prerendered empty form matching at hydration; a lazy `useState` initialiser reading
+  storage would have mismatched every input. The snapshot is the **raw string**, parsed once in a
+  `useMemo` — returning a fresh object per call is the infinite loop. Four `useState`s became one
+  `restored`-shadowed-by-`edited` value so a stored draft can never overwrite live typing. A
+  stored draft is treated as **untrusted input** and re-validated against `LIMITS`/`NEED_ORDER`/
+  `BUDGET_ORDER` on the way out. Session-scoped rather than `localStorage` because it holds a
+  name, email and phone; cleared outright on a successful send. Honeypot not persisted; the
+  consent tick is, deliberately.
+  → [detail](../features/contact-page/CONTEXT.md)
+
 ## 2026-08-17
 
 - `a11y-widget` — **AccessiYes is now the shipped widget**, from the user's generated embed.

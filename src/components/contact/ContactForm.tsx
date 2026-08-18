@@ -70,7 +70,13 @@
  * index — an inserted option would otherwise silently re-pair every label after it.
  */
 
-import { useId, useRef, useState } from "react";
+import {
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { usePageDict, useDirSign } from "@/lib/i18n/LocaleProvider";
 import { interpolate } from "@/lib/i18n/format";
 import AppLink from "@/components/ui/AppLink";
@@ -133,6 +139,171 @@ const EMAIL_RE = /^[^\s@]+@[^\s@.]+\.[^\s@]+$/;
    someone is messaging it, which is n8n's job downstream. Same pair server-side. */
 const PHONE_ALLOWED_RE = /^[+()\-.\s\d]+$/;
 const phoneDigits = (value: string) => value.replace(/\D/g, "").length;
+
+/* ── the consent sentence's two links ─────────────────────────────────────────────────────
+   `t.consent` is one template per locale carrying `{privacy}` and `{terms}`, because the two
+   locales order them differently — English names the privacy policy first, Hebrew names תנאי
+   השימוש first. A capturing group in the split pattern is what keeps the tokens in the output
+   array, so the sentence rebuilds as [text, token, text, token, text] whatever the order.
+
+   ⚠️ NOT `interpolate()`. That helper (src/lib/i18n/format.ts) fills the same `{…}` tokens and
+   is what the live regions below use, but it returns a STRING and these two runs have to be
+   anchors. Same convention, different renderer. */
+const CONSENT_SPLIT = /(\{privacy\}|\{terms\})/;
+
+/* Inline legal links inside a 12px muted sentence, so they are UNDERLINED rather than merely
+   recoloured — `muted` to `ink` alone is not a strong enough signal at this size, and there is
+   no other affordance in a run of body text. Focus ring is the page's own. */
+const CONSENT_LINK = `text-ink underline underline-offset-2 transition-colors duration-300
+                      [transition-timing-function:var(--ease-rogo)] hover:text-muted
+                      focus-visible:rounded-[2px] focus-visible:ring-2 focus-visible:ring-signal
+                      focus-visible:ring-offset-2 focus-visible:ring-offset-paper
+                      focus-visible:outline-none`;
+
+/* ══ the draft ═══════════════════════════════════════════════════════════════════════════
+   Added 2026-08-18, immediately after the consent checkbox, and BECAUSE of it. The user asked
+   the right question: the consent label now carries two links, `AppLink` routes them
+   client-side, and a client-side navigation UNMOUNTS this form. Before those links there was
+   no reason to leave the page half-filled; now there are two, sitting next to the one control
+   a visitor is required to touch. Coming back gave them an empty form.
+
+   `sessionStorage`, NOT `localStorage`, and the difference is the whole privacy argument: this
+   holds a name, an email address and a phone number, on the page whose subject is a privacy
+   policy. Session storage is per-tab and dies with the tab, so the data cannot outlive the
+   visit that created it, cannot be read by another tab, and is gone the moment the browser
+   closes. It is also cleared explicitly the instant a submission succeeds — see `onSubmit`.
+
+   NOT GATED ON THE COOKIE BANNER. A draft of a form the visitor is actively typing into is
+   functional storage they initiated themselves — the shopping-cart case — not analytics or
+   tracking, so "essential only" does not exclude it. Stated here rather than left to be
+   re-litigated. If that call is ever reversed, the gate belongs in `writeDraft` alone.
+
+   ⚠️ THE HONEYPOT IS DELIBERATELY NOT PERSISTED. It is always empty for a human, and a
+   restored value would either do nothing or resurrect a false positive.
+
+   ⚠️ THE CONSENT TICK *IS* PERSISTED, which is a judgement call worth naming. The argument for
+   clearing it is that consent should be a fresh act; the argument for keeping it — which wins —
+   is that the single likeliest reason to leave this page mid-form is to go and READ the two
+   documents the tick is about, and making someone re-tick on their way back punishes exactly
+   the behaviour the links exist to encourage. It is the same tab, the same session, and their
+   own action minutes earlier. The server still requires `consent === true` on every submission.
+   ══════════════════════════════════════════════════════════════════════════════════════════ */
+
+type Draft = {
+  values: Record<FieldKey, string>;
+  needs: readonly NeedId[];
+  budget: BudgetId | null;
+  consent: boolean;
+};
+
+const EMPTY_DRAFT: Draft = {
+  values: { name: "", email: "", phone: "", company: "", role: "", message: "" },
+  needs: [],
+  budget: null,
+  consent: false,
+};
+
+/** Namespaced and versioned. A shape change bumps the suffix rather than trying to migrate. */
+const DRAFT_KEY = "clix-contact-draft.v1";
+
+/* ⚠️ STORAGE THROWS, it does not return null, when the browser refuses it — Safari private
+   mode, partitioned storage, a hardened profile. `CookieBanner.tsx` documents the same trap.
+   Both accessors swallow: failing to remember a draft must never take the form down. */
+function readDraftRaw(): string | null {
+  try {
+    return window.sessionStorage.getItem(DRAFT_KEY);
+  } catch {
+    return null;
+  }
+}
+
+/* ── the store ────────────────────────────────────────────────────────────────────────────
+   `useSyncExternalStore` rather than `useState` + a read-on-mount `useEffect`, for the two
+   reasons CookieBanner.tsx sets out at greater length:
+
+     1. This project's lint runs the React Compiler rules, and `react-hooks/set-state-in-effect`
+        rejects the read-storage-into-state-on-mount idiom outright.
+     2. Its third argument hands us the SSR/hydration split for free. `/contact` is statically
+        prerendered with EMPTY inputs; `getServerSnapshot` returns null, so the hydration render
+        also sees an empty form and the markup matches on both sides. React then re-renders with
+        the real snapshot immediately afterwards, and the draft appears. A lazy `useState`
+        initialiser reading storage would have filled the inputs during hydration and mismatched
+        every one of them.
+
+   The snapshot is the RAW STRING, never a parsed object: `getSnapshot` is called on every
+   render and must return something React can compare by identity. A fresh object each call is
+   the classic infinite loop. */
+let draftListeners: Array<() => void> = [];
+
+function subscribeDraft(onChange: () => void) {
+  draftListeners = [...draftListeners, onChange];
+  return () => {
+    draftListeners = draftListeners.filter((l) => l !== onChange);
+  };
+}
+
+const getDraftSnapshot = (): string | null => readDraftRaw();
+const getDraftServerSnapshot = (): string | null => null;
+
+function writeDraft(draft: Draft | null) {
+  try {
+    if (draft === null) window.sessionStorage.removeItem(DRAFT_KEY);
+    else window.sessionStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+  } catch {
+    /* Storage blocked or full. The form keeps working from React state for this page view;
+       only the crash protection is lost, and silently, which is the correct failure here. */
+  }
+  draftListeners.forEach((l) => l());
+}
+
+/* ⚠️ EVERY FIELD IS RE-VALIDATED ON THE WAY OUT OF STORAGE. `sessionStorage` is writable by
+   anything running on this origin — including the visitor with devtools open — so a stored
+   draft is untrusted input, exactly like a request body. A `needs` that is not an array or a
+   `message` of 40MB would otherwise reach React state and break rendering rather than be
+   rejected at the boundary. Lengths are clamped to the same `LIMITS` the form validates
+   against, and both option lists are filtered through the display orders, which are the same
+   closed vocabularies the API allow-lists. */
+function parseDraft(raw: string | null): Draft | null {
+  if (!raw) return null;
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return null;
+  }
+  if (typeof parsed !== "object" || parsed === null) return null;
+  const d = parsed as Record<string, unknown>;
+
+  const rawValues =
+    typeof d.values === "object" && d.values !== null
+      ? (d.values as Record<string, unknown>)
+      : {};
+  const take = (key: FieldKey, max: number) => {
+    const v = rawValues[key];
+    return typeof v === "string" ? v.slice(0, max) : "";
+  };
+
+  const rawNeeds = Array.isArray(d.needs) ? d.needs : [];
+  const needs = NEED_ORDER.filter((n) => rawNeeds.includes(n));
+
+  return {
+    values: {
+      name: take("name", LIMITS.nameMax),
+      email: take("email", LIMITS.emailMax),
+      phone: take("phone", LIMITS.phoneMax),
+      company: take("company", LIMITS.shortMax),
+      role: take("role", LIMITS.shortMax),
+      message: take("message", LIMITS.messageMax),
+    },
+    needs,
+    budget:
+      typeof d.budget === "string" &&
+      (BUDGET_ORDER as readonly string[]).includes(d.budget)
+        ? (d.budget as BudgetId)
+        : null,
+    consent: d.consent === true,
+  };
+}
 
 type FieldKey = "name" | "email" | "phone" | "company" | "role" | "message";
 type Errors = Partial<Record<FieldKey, string>>;
@@ -363,16 +534,38 @@ export default function ContactForm() {
   const uid = useId();
   const id = (suffix: string) => `${uid}-${suffix}`;
 
-  const [values, setValues] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    company: "",
-    role: "",
-    message: "",
-  });
-  const [needs, setNeeds] = useState<readonly NeedId[]>([]);
-  const [budget, setBudget] = useState<BudgetId | null>(null);
+  /* ── the form's own data, restored from the draft ───────────────────────────────────────
+     ⚠️ FOUR `useState`s BECAME ONE SHADOWED VALUE (2026-08-18). It reads oddly and the reason
+     is hydration, not taste. `restored` comes from the store above, which returns null on the
+     server and during the hydration render, so the prerendered empty form matches its markup
+     exactly; the real draft arrives on the re-render immediately after. `edited` is null until
+     the visitor touches something, and shadows the draft from that moment on — so a stored
+     value can never overwrite something being typed, and there is no effect anywhere in the
+     restore path.
+
+     Everything below reads `values` / `needs` / `budget` / `consent` exactly as before. Only
+     the WRITES changed: they all go through `commit`, which stores as it sets. */
+  const storedRaw = useSyncExternalStore(
+    subscribeDraft,
+    getDraftSnapshot,
+    getDraftServerSnapshot,
+  );
+  const restored = useMemo(
+    () => parseDraft(storedRaw) ?? EMPTY_DRAFT,
+    [storedRaw],
+  );
+  const [edited, setEdited] = useState<Draft | null>(null);
+  const draft = edited ?? restored;
+  const { values, needs, budget, consent } = draft;
+
+  /* One writer, so a field can never be set without being saved. Called only from event
+     handlers — never from render, never from an effect. */
+  const commit = (patch: Partial<Draft>) => {
+    const next = { ...draft, ...patch };
+    setEdited(next);
+    writeDraft(next);
+  };
+
   const [errors, setErrors] = useState<Errors>({});
   /* One value rather than three booleans, so an impossible pair (sending AND sent) cannot be
      represented at all. */
@@ -385,11 +578,20 @@ export default function ContactForm() {
      input by name does. Not a captcha and not claimed to be one. */
   const [trap, setTrap] = useState("");
 
+  /* ⚠️ `consent` LIVES IN THE DRAFT ABOVE BUT IS DELIBERATELY NOT ONE OF `values`, AND IS NOT
+     A `FieldKey`. That union describes the six text fields the API stores, echoes back in its
+     400 body and walks in `FIELD_ORDER`; consent is a gate whose only value is `true`. Folding
+     it in would have put it in the step chips, in the focus-the-first-bad-field walk and in the
+     server's field map, and it belongs in none of the three. Its error is its own state for the
+     same reason — and is NOT persisted, because a restored draft has not been submitted yet. */
+  const [consentError, setConsentError] = useState<string | null>(null);
+
   const successRef = useRef<HTMLDivElement>(null);
   const budgetRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const consentRef = useRef<HTMLInputElement>(null);
 
   const setField = (key: FieldKey, value: string) => {
-    setValues((v) => ({ ...v, [key]: value }));
+    commit({ values: { ...values, [key]: value } });
     /* Clear that field's error the moment it is touched. Re-validating on every keystroke would
        shout at someone halfway through typing an address. */
     setErrors((e) => {
@@ -462,6 +664,18 @@ export default function ContactForm() {
   ];
   const doneCount = steps.filter(Boolean).length;
 
+  /* ── may the form be sent? ───────────────────────────────────────────────────────────────
+     ⚠️ THIS IS `validate()` RE-RUN, NOT `steps` ABOVE. The chips are display state and say so;
+     this is the button's own test and it has to agree with the submit path exactly, or the
+     button enables on a form the server will reject. Re-running the real rules is what
+     guarantees that — it is a handful of length checks and two regexes, per render, which is
+     nothing beside the alternative of a second copy of the rules drifting from the first.
+
+     Note what it does NOT include, which is not an oversight: `needs` and `budget` are
+     optional, exactly as `validate()` has always had them. Only the four required fields plus
+     the consent box gate the button (2026-08-18, user's call). */
+  const canSubmit = Object.keys(validate()).length === 0 && consent;
+
   /* Precedence, stated once: invalid > complete > active > pending. */
   const stepState = (i: number): StepState => {
     const hasError = FIELD_ORDER.some((k) => errors[k] && FIELD_GROUP[k] === i);
@@ -484,32 +698,40 @@ export default function ContactForm() {
     if (status === "sending") return;
 
     setFormError(null);
+    setConsentError(null);
     const found = validate();
-    if (Object.keys(found).length > 0) {
+    /* ⚠️ THIS PATH IS STILL REACHABLE WITH THE BUTTON SHOWING AS DISABLED, AND THAT IS THE
+       WHOLE POINT — see the `aria-disabled` note on the button. A visitor who clicks a button
+       that looks dead gets told what is wrong instead of nothing at all. */
+    const missingConsent = !consent;
+    if (Object.keys(found).length > 0 || missingConsent) {
       setErrors(found);
+      if (missingConsent) setConsentError(t.errors.consentRequired);
       /* ⚠️ THE ALWAYS-MOUNTED ALERT REGION NOW SPEAKS ON THIS PATH TOO. It used to stay silent
          on client-side failure — the most common failure there is — so a screen reader user got
          a form that simply refused to submit with no spoken reason, and only the per-field
          messages, which are below and behind them. */
       setFormError(t.errors.summary);
       /* Move focus to the first bad field. Without this a keyboard user is left standing on the
-         submit button with the errors above and behind them. */
+         submit button with the errors above and behind them. The checkbox is the fallback
+         rather than a case of its own: it sits below all six fields, so it is the first bad
+         thing only when every field passed. */
       const first = FIELD_ORDER.find((k) => found[k]);
-      if (first) {
-        const el = document.getElementById(id(first));
-        el?.focus();
-        /* ⚠️ THE GLOBAL `scroll-behavior: auto !important` DOES NOT REACH THIS. That rule
-           governs CSS-driven scrolling; a JS `behavior` option is a separate channel and wins.
-           So reduced motion has to be read here explicitly, or this smooth-scrolls a visitor
-           who asked the whole site not to. */
-        const reduce = window.matchMedia(
-          "(prefers-reduced-motion: reduce)",
-        ).matches;
-        el?.scrollIntoView({
-          behavior: reduce ? "auto" : "smooth",
-          block: "center",
-        });
-      }
+      const target = first
+        ? document.getElementById(id(first))
+        : consentRef.current;
+      target?.focus();
+      /* ⚠️ THE GLOBAL `scroll-behavior: auto !important` DOES NOT REACH THIS. That rule
+         governs CSS-driven scrolling; a JS `behavior` option is a separate channel and wins.
+         So reduced motion has to be read here explicitly, or this smooth-scrolls a visitor
+         who asked the whole site not to. */
+      const reduce = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+      ).matches;
+      target?.scrollIntoView({
+        behavior: reduce ? "auto" : "smooth",
+        block: "center",
+      });
       return;
     }
 
@@ -524,6 +746,9 @@ export default function ContactForm() {
           budget,
           /* The honeypot travels under an innocuous name. */
           website: trap,
+          /* Always `true` by the time this runs — the route rejects anything else. Sent so the
+             consent is recorded at the boundary rather than only in the browser that gave it. */
+          consent,
           /* Which language the visitor filled the form in, for the notification email. Read off
              the document rather than `useLocale()` so it is the served page's own `lang`. */
           locale: document.documentElement.lang,
@@ -532,6 +757,12 @@ export default function ContactForm() {
 
       if (res.ok) {
         setStatus("sent");
+        /* ⚠️ THE ONE PLACE THE DRAFT IS DELETED, and it is deliberately here rather than in a
+           cleanup: the enquiry is now the business's problem, so holding a copy of the
+           visitor's name, email and phone in their browser buys nothing and costs privacy. Any
+           other exit — a navigation, a reload, a crash — is exactly the case the draft exists
+           for and must NOT clear it. `writeDraft(null)` removes the key outright. */
+        writeDraft(null);
         /* The form leaves the DOM on the next render, so focus has to be placed deliberately or
            it falls to <body> and the confirmation is never announced. The panel is also
            `role="status"`, which covers the case where focus lands elsewhere.
@@ -991,11 +1222,11 @@ export default function ContactForm() {
                   type="button"
                   aria-pressed={active}
                   onClick={() =>
-                    setNeeds((prev) =>
-                      prev.includes(need)
-                        ? prev.filter((n) => n !== need)
-                        : [...prev, need],
-                    )
+                    commit({
+                      needs: needs.includes(need)
+                        ? needs.filter((n) => n !== need)
+                        : [...needs, need],
+                    })
                   }
                   className={pillClass(active)}
                 >
@@ -1077,7 +1308,7 @@ export default function ContactForm() {
                      Leaving all four tabbable would make a keyboard user press Tab four times to
                      cross a single question. */
                   tabIndex={active || (budget === null && i === 0) ? 0 : -1}
-                  onClick={() => setBudget(band)}
+                  onClick={() => commit({ budget: band })}
                   onKeyDown={(e) => {
                     const step =
                       e.key === "ArrowRight" || e.key === "ArrowDown"
@@ -1097,7 +1328,7 @@ export default function ContactForm() {
                       (i + delta + BUDGET_ORDER.length) % BUDGET_ORDER.length;
                     /* In a radiogroup, arrowing SELECTS as well as focuses — that is the
                        pattern's contract, not a shortcut. */
-                    setBudget(BUDGET_ORDER[next]);
+                    commit({ budget: BUDGET_ORDER[next] });
                     budgetRefs.current[next]?.focus();
                   }}
                   className={pillClass(active)}
@@ -1241,12 +1472,85 @@ export default function ContactForm() {
             four groups above it, so it read as a fifth step that could never be completed. It is
             the panel's footer. */}
         <div className="flex w-full flex-col items-start gap-6 border-t border-hairline pt-8">
-          <p
-            className="max-w-[var(--measure)] font-sans text-[12px] text-muted"
-            style={{ lineHeight: "1.5em", letterSpacing: "-0.02em" }}
-          >
-            {t.consent}
-          </p>
+          {/* ── consent ──────────────────────────────────────────────────────────────────
+              ⚠️ THE SENTENCE IS NOT WRAPPED IN A `<label>`, AND MUST NOT BE. It contains two
+              anchors, and a label containing an anchor toggles the checkbox when the anchor is
+              clicked — so a visitor who wanted to read the privacy policy would tick the box on
+              their way there. `aria-labelledby` gives the input the same accessible name with
+              none of that, at the cost of the click-the-text-to-tick affordance. The input's own
+              hit area is padded to make up for it.
+
+              The gap is 12px and the box is nudged down 2px: the sentence's first line box is
+              18px tall against a 16px control, so aligning the two on their tops leaves the tick
+              sitting visibly high against the text. */}
+          <div className="flex w-full flex-col items-start gap-2">
+            <div className="flex w-full max-w-[var(--measure)] flex-row items-start gap-3">
+              <input
+                ref={consentRef}
+                id={id("consent")}
+                name="consent"
+                type="checkbox"
+                checked={consent}
+                onChange={(e) => {
+                  const next = e.target.checked;
+                  commit({ consent: next });
+                  if (!next) return;
+                  setConsentError(null);
+                  /* Same rule as `setField`: the summary banner is only true while something
+                     is still wrong, so clearing the last problem clears the banner too. */
+                  if (Object.keys(errors).length === 0) setFormError(null);
+                }}
+                aria-labelledby={id("consent-text")}
+                aria-describedby={
+                  consentError ? id("consent-error") : undefined
+                }
+                aria-invalid={consentError ? true : undefined}
+                /* `accent-color` rather than a hand-built box: a native checkbox is the one
+                   control here that already has a correct focus ring, a correct hit target and
+                   a correct announcement in every assistive tech, and repainting it would cost
+                   all three to gain a tick mark of our own drawing. `ink` is the page's
+                   selected state — the same call the pills make above. */
+                className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-ink
+                           focus-visible:ring-2 focus-visible:ring-signal
+                           focus-visible:ring-offset-2 focus-visible:ring-offset-paper
+                           focus-visible:outline-none"
+              />
+              <p
+                id={id("consent-text")}
+                className="font-sans text-[12px] text-muted"
+                style={{ lineHeight: "1.5em", letterSpacing: "-0.02em" }}
+              >
+                {/* Rebuilt from the locale's own template — see CONSENT_SPLIT. The plain runs
+                    come back as strings, which React renders without needing keys. */}
+                {t.consent.split(CONSENT_SPLIT).map((part, i) =>
+                  part === "{privacy}" ? (
+                    <AppLink key={i} href="/privacy" className={CONSENT_LINK}>
+                      {t.consentPrivacy}
+                    </AppLink>
+                  ) : part === "{terms}" ? (
+                    <AppLink key={i} href="/terms" className={CONSENT_LINK}>
+                      {t.consentTerms}
+                    </AppLink>
+                  ) : (
+                    part
+                  ),
+                )}
+              </p>
+            </div>
+
+            {/* Indented to the sentence, not to the checkbox — 16px control + 12px gap. */}
+            {consentError ? (
+              <p
+                id={id("consent-error")}
+                className="contact-rise-fast flex flex-row items-start gap-1.5 ps-7 font-sans
+                           text-[12px] text-alert"
+                style={{ lineHeight: "1.4em", letterSpacing: "-0.02em" }}
+              >
+                <AlertGlyph className="mt-px h-3 w-3 shrink-0" />
+                {consentError}
+              </p>
+            ) : null}
+          </div>
 
           {/* `role="alert"`, not `role="status"`: this is the failure path and it should interrupt.
               ⚠️ THE NODE IS ALWAYS RENDERED so the live region exists in the DOM before it has
@@ -1282,11 +1586,28 @@ export default function ContactForm() {
                 Hover is a LIFT rather than `opacity-90` — dimming a black button is the weakest
                 hover on the site. NO TRAILING ARROW: it would need `rtl:-scale-x-100` mirroring
                 and buys nothing here, so leaving it out removes a whole class of RTL bug. */}
+            {/* ⚠️ TWO DIFFERENT KINDS OF DISABLED, AND THE DISTINCTION IS DELIBERATE
+                (2026-08-18, when the consent box was added and the user asked for the button to
+                be disabled until the form is complete).
+
+                  `disabled`       ONLY while a request is in flight. Genuinely inert: there is
+                                   nothing to say and nothing to do until it comes back.
+                  `aria-disabled`  while the form is incomplete. It LOOKS disabled — same
+                                   opacity-50, same not-allowed cursor, same dead hover — and it
+                                   announces as disabled, but it still takes focus and still
+                                   fires. A real `disabled` attribute removes the button from the
+                                   tab order entirely, so a visitor who mistyped their email
+                                   would meet a dead control, no message, and no way to ask what
+                                   was wrong. Clicking this one runs `onSubmit`, which highlights
+                                   every bad field, speaks the summary and moves focus to the
+                                   first of them — the path that already existed for exactly
+                                   this case. Do not "simplify" this into one `disabled`. */}
             <button
               type="submit"
               disabled={status === "sending"}
+              aria-disabled={!canSubmit || undefined}
               aria-busy={status === "sending"}
-              className="flex h-12 w-full cursor-pointer items-center justify-center gap-2
+              className={`flex h-12 w-full cursor-pointer items-center justify-center gap-2
                          overflow-hidden rounded-[6px] border border-transparent bg-ink px-8 py-2
                          transition-[transform,box-shadow,opacity] duration-300
                          [transition-timing-function:var(--ease-rogo)]
@@ -1296,7 +1617,12 @@ export default function ContactForm() {
                          motion-reduce:transition-none motion-reduce:hover:translate-y-0
                          focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2
                          focus-visible:ring-offset-paper focus-visible:outline-none
-                         tablet:w-auto tablet:min-w-[220px]"
+                         tablet:w-auto tablet:min-w-[220px]
+                         ${
+                           canSubmit
+                             ? ""
+                             : "cursor-not-allowed opacity-50 hover:translate-y-0 hover:shadow-none active:translate-y-0"
+                         }`}
             >
               <span className="flex h-5 items-center justify-center gap-[10px] pt-px">
                 <span

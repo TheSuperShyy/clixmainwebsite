@@ -132,11 +132,19 @@ export const contact: Translated<ContactDict> = {
     /* AUTHORED — the reference marks nothing optional. */
     optional: "לא חובה",
 
-    /* SOURCED as prose, restructured as ONE string. The reference sets this as five runs
-       because two of them are links to /privacy and /terms; this build has neither route, so
-       the links are not reproduced and the sentence does not need splitting. Trailing full
-       stop is the reference's own. */
-    consent: "בשליחת הטופס הנכם מאשרים את מדיניות הפרטיות ואת תנאי השימוש שלנו.",
+    /* SOURCED, and now WITH the reference's two links (2026-08-18) — see the English file for
+       why they were absent until /privacy and /terms existed.
+
+       ⚠️ THE REFERENCE'S OWN WORDING AND ORDER, WHICH ARE NOT THE ENGLISH ONE'S. It is a
+       first-person acknowledgement beside a checkbox ("אני מאשר/ת"), not a statement about
+       what sending does, and it names תנאי השימוש BEFORE מדיניות הפרטיות. The `{terms}` and
+       `{privacy}` tokens are why that costs nothing: each locale places them where its own
+       sentence wants them. The clause about keeping the details on file is the reference's
+       too, and it carries no full stop — also the reference's. */
+    consent:
+      "אני מאשר/ת את {terms} ואת {privacy}, ומסכים/ה לשמירת פרטיי ליצירת קשר",
+    consentPrivacy: "מדיניות הפרטיות",
+    consentTerms: "תנאי השימוש",
 
     /* SOURCED — the submit button's label. */
     submit: "שלחו",
@@ -166,6 +174,8 @@ export const contact: Translated<ContactDict> = {
       summary: "בדקו את השדות המסומנים.",
       failed: "משהו לא עבד בשליחה. שלחו לנו אימייל ישירות ונטפל בזה.",
       rateLimited: "אלו כמה הודעות בזמן קצר. נסו שוב בעוד רגע.",
+      /* AUTHORED — see the English file for when this is actually reached. */
+      consentRequired: "יש לסמן את התיבה ולאשר את התנאים לפני השליחה.",
     },
 
     a11y: {

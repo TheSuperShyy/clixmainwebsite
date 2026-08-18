@@ -106,10 +106,44 @@ The row rule is the capture's **own token reference** here
 (`--border-color: var(--token-8ac923d6-…, #a8a29e33)`), not a look-alike literal — unlike
 `why-rogo`, whose dividers are a pure-black one-off. Reuse `hairline`.
 
+⚠️ **THE TABLE ABOVE IS THE LIGHT STATE ONLY, AS OF 2026-08-18.** Every one of those four values
+now has a dark counterpart the section fades to on scroll (user: *"transition to green like in
+the clix section that same color"*). The light column is still what ships in the HTML, what a
+no-JS visitor sees, and what the `var()` fallbacks resolve to.
+
+| Element | Light (`p = 0`) | Dark (`p = 1`) | How |
+|---|---|---|---|
+| Section | `card` `#eeedec` | `forest-deep` `#0f2822` | **interpolated** — inline `backgroundColor`, literals, because GSAP cannot mix a `var()` |
+| Number, headline, caption | `ink` | `paper` | **swapped at the midpoint**, via `--n-fg`; both ends stay token references |
+| Row rule | `hairline` `#a8a29e33` | `hairline-light` `#ffffff26` | **swapped at the midpoint**, via `--n-rule` |
+| Content | opacity `1` | opacity `1` | dips to `0.08` at the midpoint and back — `\|2g − 1\|` |
+
+**Why the type is swapped rather than mixed, in one measurement:** interpolating `ink → paper`
+alongside the ground puts both through their own middle at the same instant — `#8a8a8a` on
+`#7e8a87`, contrast **1.0**. The section would go blank for ~100ms on every entry. The dip exists
+to hide the swap, and is `\|2g − 1\|` so it is 1 at both ends by construction.
+
+Both `#0f2822` and `#eeedec` appear as literals in `NumbersTint.tsx` for the reason above; a
+third copy anywhere is one too many — go through the tokens in `globals.css`.
+
 ### Motion
 
-**None.** No `data-framer-appear-id`, no `transition`, no `will-change` anywhere in the
-subtree, and no `:hover` or `cursor` rule on any of its classes.
+**None in the target.** No `data-framer-appear-id`, no `transition`, no `will-change` anywhere in
+the subtree, and no `:hover` or `cursor` rule on any of its classes.
+
+**Two invented behaviours ship anyway, both at the user's request and both flagged in the code:**
+the count-up (2026-08-08) and the ground fade (2026-08-18). The finding above is still correct —
+this section simply no longer clones the target's stillness.
+
+| | trigger | duration | ease |
+|---|---|---|---|
+| Ground fade + type swap + dip | section `top 75%` → `bottom 30%`, triggered not scrubbed, reverses | `0.6s` both directions (`0s` under `prefers-reduced-motion`) | `power2.inOut`, applied per phase inside the write; the tween itself is `ease:"none"` |
+| Count-up, per number | that number's `top 85%`, `once` | `1.4s` | `power2.out` |
+
+The fade is **one ScrollTrigger, one tween, one scalar `p`** — `ClixBackdrop.tsx`'s rule,
+inherited whole, and its header is where the bugs that came from breaking it are recorded.
+`data-nav-theme` is rewritten on the same frame, because `Nav.tsx` re-reads it every scroll frame
+and would otherwise keep a white bar on the green.
 
 `docs/SECTIONS.md` originally noted "check for count-up animation on scroll → `gsap`". The
 capture says no: the numbers are static text. A count-up would be **inventing** motion, not
@@ -138,6 +172,9 @@ if the live site does count up, this is the one thing here worth revisiting.
 | Heading levels | `<h3>` headline, `<h4>` numbers | `<h2>` and `<h3>` | The hero owns the h1; jumping to h3 skips a level. Same call as `why-rogo` and `testimonials`. Purely semantic. |
 | Row 3's `<br>` wrapper | `<span style="--framer-text-color:rgb(23,23,23)">` around the `<br>` alone | dropped, plain `<br>` | The span contains no text, so it colours nothing. `rgb(23,23,23)` is a stray near-`ink` that appears nowhere else on the page; copying it would put a dead value in the tree. |
 | `ssr-variant` duplication | three DOM copies of every number, two of every caption | one copy, switched with `tablet:`/`xl:` variants | Same reasoning as the previous two sections. Every per-tier value is reproduced. |
+| Section background | flat `card` `#eeedec` | fades `card` → `forest-deep` on scroll | **User request, 2026-08-18** — `/clix`'s colour and gesture, asked for by name. Different mechanism from `ClixBackdrop`: that darkens the whole viewport from a fixed layer because eight sections are transparent over it; this is one section, so the colour is on the element. Carries the type swap, the rule swap and the dip with it. |
+| Motion | none | count-up + ground fade | Both invented, both at the user's request. See **Motion** above. |
+| `<section>` ownership | — | lives in `NumbersTint.tsx` | The element has to be a client component to animate; `ByTheNumbers.tsx` stays a server component by handing it children. Same boundary discipline as `CountUp.tsx`. |
 
 ## Acceptance checklist
 

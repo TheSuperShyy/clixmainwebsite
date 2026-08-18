@@ -383,6 +383,18 @@ export async function POST(request: Request) {
   else if (message.length < LIMITS.messageMin) fields.message = "too short";
   else if (message.length > LIMITS.messageMax) fields.message = "too long";
 
+  /* Consent, added 2026-08-18 with the checkbox on the form. STRICTLY `true` — a string
+     "false", a 0 or an absent key are all refusals, and only a client that actually collected
+     the tick sends the boolean. The form disables its own button until the box is ticked, so
+     reaching this is either a tampered request or a client that has drifted; both are exactly
+     what this route exists to catch.
+
+     ⚠️ `consent` IS NOT ONE OF THE SIX FIELD KEYS THE CLIENT MAPS. ContactForm.tsx's 400
+     handler filters the `fields` object against its own `FIELD_ORDER` and drops anything it
+     does not recognise, so this key surfaces as the whole-form summary rather than as a message
+     under a text input — which is right, because there is no text input to put it under. */
+  if (body.consent !== true) fields.consent = "required";
+
   /* The two pill groups. Unknown ids are DROPPED rather than rejected: they are optional
      metadata, and a stale client that posts a retired id should still get its enquiry through.
      A bad `name` blocks the send; a bad `budget` does not. */
@@ -535,6 +547,11 @@ export async function POST(request: Request) {
     budget,
     budgetLabel: budget ? BUDGET_LABELS[budget] : null,
     message,
+    /* Always `true` — validation above rejects anything else — and sent anyway, because the
+       useful thing about a consent flag is having it recorded beside the record it applies to.
+       The CRM should be able to answer "did they accept the terms, and when" from the row
+       itself; `submittedAt` above is the "when". */
+    consent: true,
     meta: { ip, userAgent },
   };
 

@@ -16,6 +16,11 @@ value extracted from the capture and verified by CDP at all four tiers. No new t
 **The numbers now count up on scroll** (2026-08-08, user request) — see the newest log entry.
 This is invented motion and a deliberate divergence from the target, which has none.
 
+**The ground fades to `forest-deep` `#0f2822` on scroll** (2026-08-18, user request) — /clix's
+colour and /clix's gesture, by a different mechanism. Second invented behaviour on this
+section, and the type colour is a hard swap with an opacity dip through it rather than an
+interpolation, for a measured reason. See the newest log entry.
+
 **Not yet visually diffed against the live site.**
 
 **Status:** `review`
@@ -24,6 +29,69 @@ This is invented motion and a deliberate divergence from the target, which has n
 ---
 
 ## Log
+
+### 2026-08-18 — the ground fades to `forest-deep` on scroll
+
+**Trigger:** user — *"in the by the numbers section, it has to have the background color
+transition to green like in the clix section that same color"*.
+
+**New file:** `src/components/sections/NumbersTint.tsx`, a `"use client"` shell that owns the
+`<section>` element, its padding, its background and its `data-nav-theme`. `ByTheNumbers.tsx`
+stays a **server** component and hands it the content — the same client-boundary discipline
+`CountUp.tsx` established on this section in the entry below.
+
+**SAME COLOUR AND GESTURE AS `/clix`, DIFFERENT MECHANISM, AND THE DIFFERENCE IS THE POINT.**
+`ClixBackdrop.tsx` is a fixed 110vh layer that darkens the *whole viewport*, because all eight
+sections on that page are transparent and the target lets the blocks above and below dissolve
+into the dark. Nothing of the sort was asked for here — the request was this one section — so the
+colour lives on this element and WhyRogo above and the `ink` footer below are untouched. What
+*is* inherited whole is ClixBackdrop's rule: **one ScrollTrigger, one tween, one scalar `p`.**
+Its header records the two classes of bug that came from splitting either, and they would recur
+here identically.
+
+**⚠️ THE TYPE COLOUR IS A HARD SWAP AT THE MIDPOINT, NOT AN INTERPOLATION — measured, not
+guessed.** Fading `ink -> paper` on the same curve as `card -> forest-deep` puts both endpoints
+through their own middle at the same instant: ground `#7e8a87`, type `#8a8a8a`, a contrast ratio
+of **1.0**. The section would go blank for roughly 100ms on every entry, and `power2.inOut` is at
+its fastest exactly there, so it would read as a flicker rather than a fade. So the type takes no
+intermediate value at all — `ink` below the midpoint, `paper` above it — and the content's
+opacity dips to **0.08** as `p` crosses the line, which is where the swap happens. The dip is
+`|2g - 1|`, so it is 1 at both ends *by construction* and cannot strand the section faded. It is
+also the closest thing here to /clix's real behaviour, where the manifesto's words fade in over
+ground that has already gone dark: never show type mid-transition.
+
+**Values**
+- Ground: `#eeedec` (`--color-card`) -> `#0f2822` (`--color-forest-deep`). Literals, because GSAP
+  cannot interpolate a `var()` — ClixBackdrop makes the same call for the same reason.
+- Type and rules are token *references* (`var(--color-ink)` / `var(--color-paper)`,
+  `var(--color-hairline)` / `var(--color-hairline-light)`) precisely because they are swapped
+  rather than mixed — which means the accessibility widget's high-contrast override of
+  `--color-hairline` still reaches them. A literal would have silently opted out of it.
+- Trigger `start: "top 75%"`, `end: "bottom 30%"`, 0.6s in both directions, triggered not
+  scrubbed. ClixBackdrop's own thresholds, so the two read as one decision.
+- Reading path: `--n-bg` / `--n-fg` / `--n-rule` are set on the section and read by the
+  descendants as `var(--n-fg, var(--color-ink))`. **The CSS fallback is the no-JS state** —
+  nothing is seeded from React, deliberately, because a seeded inline value could not be cleared
+  back to the token on cleanup.
+
+**⚠️ `data-nav-theme` IS MUTATED ON EVERY FRAME OF THE FADE.** `Nav.tsx:374-380` re-reads
+`el.dataset.navTheme` off every marked section on every scroll frame, so writing the attribute is
+the whole of the wiring — but without it the white bar keeps its light palette and sits
+unreadably on the green once this section reaches the header. It ships `light`.
+
+**Reduced motion gets the colour, instantly — it is not an opt-out.** ClixBackdrop skips its
+animation and leaves a statically green section behind; the equivalent here would be a section
+that is never green at all, which is a different design rather than a calmer one. Same trigger,
+`duration: 0`. Pleasant side effect: with no intermediate frames there is no dip to see.
+
+**`CountUp` needed no change.** It registers ScrollTrigger itself and starts at `top 85%` per
+number, which is later than the section top reaching 75%, so the count lands after the dip.
+
+**Not looked at.** No tier has been rendered. The two things to watch are the dip's depth (0.08
+is a decision, not a measurement) and whether 0.6s reads as calm or as slow on a fast scroll.
+
+**Status:** `review`
+**Next action:** user scrolls `/` past this section and says whether the fade and the dip land.
 
 ### 2026-08-08 — count-up added (reverses the 2026-08-03 decision)
 
