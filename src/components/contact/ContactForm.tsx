@@ -100,6 +100,13 @@ const BUDGET_ORDER: readonly BudgetId[] = [
 const LIMITS = {
   nameMax: 120,
   emailMax: 200,
+  phoneMax: 40,
+  /* Counted in DIGITS, not characters — the max is 40 so that "+972 (50) 000-0000" fits, but
+     what makes a number a number is how many digits survive the formatting. 7 clears the
+     shortest national numbers still in service; 20 is two past E.164's 15, which leaves room
+     for someone who types an extension without being rejected for it. */
+  phoneDigitsMin: 7,
+  phoneDigitsMax: 20,
   shortMax: 120,
   messageMin: 10,
   messageMax: 4000,
@@ -119,12 +126,21 @@ const CHARS_ANNOUNCE_UNDER = 200;
    address exists is sending to it — which is what the form does. Same pattern server-side. */
 const EMAIL_RE = /^[^\s@]+@[^\s@.]+\.[^\s@]+$/;
 
-type FieldKey = "name" | "email" | "company" | "role" | "message";
+/* ⚠️ DELIBERATELY NOT A PHONE-NUMBER PARSER, AND NOT libphonenumber. Two rules only: the string
+   may contain nothing but digits and the punctuation people actually type into a phone field,
+   and it must hold a plausible number of digits. Anything stricter rejects real numbers — every
+   country writes them differently, and the only thing that settles whether a number reaches
+   someone is messaging it, which is n8n's job downstream. Same pair server-side. */
+const PHONE_ALLOWED_RE = /^[+()\-.\s\d]+$/;
+const phoneDigits = (value: string) => value.replace(/\D/g, "").length;
+
+type FieldKey = "name" | "email" | "phone" | "company" | "role" | "message";
 type Errors = Partial<Record<FieldKey, string>>;
 
 const FIELD_ORDER: readonly FieldKey[] = [
   "name",
   "email",
+  "phone",
   "company",
   "role",
   "message",
@@ -136,6 +152,7 @@ const FIELD_ORDER: readonly FieldKey[] = [
 const FIELD_GROUP: Record<FieldKey, number> = {
   name: 0,
   email: 0,
+  phone: 0,
   company: 0,
   role: 0,
   message: 3,
@@ -349,6 +366,7 @@ export default function ContactForm() {
   const [values, setValues] = useState({
     name: "",
     email: "",
+    phone: "",
     company: "",
     role: "",
     message: "",
@@ -389,6 +407,7 @@ export default function ContactForm() {
     const next: Errors = {};
     const name = values.name.trim();
     const email = values.email.trim();
+    const phone = values.phone.trim();
     const message = values.message.trim();
 
     if (!name) next.name = t.errors.nameRequired;
@@ -397,6 +416,19 @@ export default function ContactForm() {
     if (!email) next.email = t.errors.emailRequired;
     else if (email.length > LIMITS.emailMax || !EMAIL_RE.test(email))
       next.email = t.errors.emailInvalid;
+
+    /* Required as of 2026-08-18 — the workflow behind this form opens a WhatsApp thread and
+       cannot without it. Empty gets its own message; everything else is one "that is not a
+       number", because a visitor cannot act on the difference between "too few digits" and
+       "contains a letter" any better than on the general form. */
+    if (!phone) next.phone = t.errors.phoneRequired;
+    else if (
+      phone.length > LIMITS.phoneMax ||
+      !PHONE_ALLOWED_RE.test(phone) ||
+      phoneDigits(phone) < LIMITS.phoneDigitsMin ||
+      phoneDigits(phone) > LIMITS.phoneDigitsMax
+    )
+      next.phone = t.errors.phoneInvalid;
 
     if (values.company.trim().length > LIMITS.shortMax)
       next.company = t.errors.tooLong;
@@ -417,7 +449,13 @@ export default function ContactForm() {
      is a read of the same constants for display. If the two ever disagree, this is the one that
      is wrong. Company and Role are optional and are deliberately not part of step 01's test. */
   const steps: readonly boolean[] = [
-    values.name.trim().length > 0 && EMAIL_RE.test(values.email.trim()),
+    /* Phone joined this test on 2026-08-18, when it became required. A step chip that reads
+       `complete` on a group that will fail submit is the one bug this derived-from-LIMITS
+       arrangement exists to prevent. */
+    values.name.trim().length > 0 &&
+      EMAIL_RE.test(values.email.trim()) &&
+      PHONE_ALLOWED_RE.test(values.phone.trim()) &&
+      phoneDigits(values.phone) >= LIMITS.phoneDigitsMin,
     needs.length > 0,
     budget !== null,
     values.message.trim().length >= LIMITS.messageMin,
@@ -516,7 +554,12 @@ export default function ContactForm() {
         const mapped: Errors = {};
         for (const key of Object.keys(body.fields) as FieldKey[]) {
           if (!FIELD_ORDER.includes(key)) continue;
-          mapped[key] = key === "email" ? t.errors.emailInvalid : t.errors.tooLong;
+          mapped[key] =
+            key === "email"
+              ? t.errors.emailInvalid
+              : key === "phone"
+                ? t.errors.phoneInvalid
+                : t.errors.tooLong;
         }
         setErrors(mapped);
         setFormError(t.errors.summary);
@@ -772,13 +815,24 @@ export default function ContactForm() {
     required,
     type = "text",
     autoComplete,
+    inputMode,
+    dir,
   }: {
     name: FieldKey;
     label: string;
     placeholder: string;
     required?: boolean;
-    type?: "text" | "email";
+    type?: "text" | "email" | "tel";
     autoComplete?: string;
+    inputMode?: "tel";
+    /* ⚠️ EXISTS FOR ONE FIELD AND ONE REASON: `phone` PASSES "ltr". A phone number is LTR
+       content, and `+` is a bidi-neutral character — inside the Hebrew page's RTL flow the
+       browser reorders "+972 50 000 0000" to put the plus on the wrong end, which is a number
+       that reads as a different number. Forcing the input's own direction fixes the reordering.
+       It also left-aligns the text where its RTL neighbours are right-aligned; that is the
+       lesser of the two, and it is flagged in features/contact-page/FEATURE.md for the Hebrew
+       visual pass rather than guessed at here. */
+    dir?: "ltr";
   }) => {
     const invalid = Boolean(errors[name]);
     return (
@@ -810,6 +864,8 @@ export default function ContactForm() {
           placeholder={placeholder}
           required={required}
           autoComplete={autoComplete}
+          inputMode={inputMode}
+          dir={dir}
           aria-invalid={invalid || undefined}
           aria-describedby={invalid ? id(`${name}-error`) : undefined}
           className={fieldClass(invalid)}
@@ -875,6 +931,20 @@ export default function ContactForm() {
               required: true,
               type: "email",
               autoComplete: "email",
+            })}
+            {/* ⚠️ THIRD, NOT LAST. The two-column grid fills across, so placing `phone` here
+                keeps the three required fields in the first three cells and the two optional
+                ones after them — the group reads "what we need, then what helps". Appending it
+                would have put a required field below two optional ones. */}
+            {textField({
+              name: "phone",
+              label: t.phoneLabel,
+              placeholder: t.phonePlaceholder,
+              required: true,
+              type: "tel",
+              autoComplete: "tel",
+              inputMode: "tel",
+              dir: "ltr",
             })}
             {textField({
               name: "company",

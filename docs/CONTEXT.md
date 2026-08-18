@@ -17,6 +17,24 @@ Line format:
 
 ## 2026-08-18
 
+- `contact-page` — **Gmail switched back ON, same day.** `CONTACT_GMAIL=off` removed from `.env`
+  at the user's request now that the webhook is proven, so **both channels are live**: the
+  notification mail to `info@clix-solution.com` and the n8n POST. SMTP credential re-verified
+  with an AUTH-only handshake (`transporter.verify()`) — **no message was sent**, per the
+  standing rule that a real send is the user's call. This supersedes the "no notification mail"
+  note in the entry below. → [detail](../features/contact-page/CONTEXT.md)
+
+- `contact-page` — **`/api/contact` now delivers over TWO independent channels**, each gated by
+  its own env var and run concurrently: the Gmail notification, and a POST to the n8n workflow
+  `Clix Main Website - Form Submit` (`J1UDMNjKeiaQs7AD`) that will file the lead in the CRM and
+  WhatsApp them. The form gained a **required `phone`** field, which is the only reason n8n can
+  message anyone. ⚠️ **`CONTACT_GMAIL=off` is set — the business is receiving no notification
+  mail**, by request, while the webhook is tested; deleting that `.env` line reverts it. The n8n
+  webhook node **was GET, unauthenticated and inactive**, all three of which reject this route's
+  POST — now POST + Header Auth + active. Verified end to end: two live executions carry the full
+  payload, and a forced-wrong secret surfaces as a 500 rather than a false success.
+  → [detail](../features/contact-page/CONTEXT.md)
+
 - `a11y-widget` — **AccessiYes button 48 → 40 and its panel cut from a 462px full-height drawer to
   a 340px popover.** ⚠️ **It renders in a SHADOW DOM** (`attachShadow`), so globals.css cannot
   reach it — the Sienna approach would be silently inert. Button size went through the real

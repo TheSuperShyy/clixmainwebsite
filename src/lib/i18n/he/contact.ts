@@ -66,7 +66,9 @@ export const contact: Translated<ContactDict> = {
      in the shorter form the rail needs. */
   panel: {
     title: "בריף אחד, ואז תשובה אמיתית.",
-    intro: "ארבעה שלבים קצרים. שלושה שדות חובה, וכל השאר רק עוזר לנו לענות טוב יותר.",
+    /* ⚠️ THE COUNT WENT 3 → 4 WHEN `phone` WAS ADDED (2026-08-18). Same obligation as the
+       English string it mirrors: if a field stops being required, this sentence changes too. */
+    intro: "ארבעה שלבים קצרים, ארבעה שדות חובה, וכל השאר רק עוזר לנו לענות טוב יותר.",
     reply: "אנחנו משיבים תוך יום עסקים אחד.",
   },
 
@@ -90,6 +92,12 @@ export const contact: Translated<ContactDict> = {
     namePlaceholder: "השם שלכם",
     emailLabel: "אימייל",
     emailPlaceholder: "you@company.com",
+    /* AUTHORED — `phone` has no counterpart in the reference, which collects four fields. Added
+       2026-08-18 because the n8n workflow behind the form messages the lead on WhatsApp. The
+       placeholder stays in Latin digits with a `+`: a phone number is not translated, and the
+       `+` is what saves the workflow a guess at the country. */
+    phoneLabel: "טלפון",
+    phonePlaceholder: "+972 50 000 0000",
     companyLabel: "חברה",
     companyPlaceholder: "שם החברה או הפרויקט",
     roleLabel: "תפקיד",
@@ -149,6 +157,8 @@ export const contact: Translated<ContactDict> = {
       nameTooLong: "זה ארוך מדי לשמירה.",
       emailRequired: "נשמח לאימייל כדי שנוכל להשיב.",
       emailInvalid: "הכתובת הזו לא נראית כמו אימייל.",
+      phoneRequired: "נשמח למספר טלפון כדי שנוכל להגיע אליכם בוואטסאפ.",
+      phoneInvalid: "המספר הזה לא נראה כמו מספר טלפון.",
       tooLong: "זה ארוך מדי לשמירה.",
       messageRequired: "ספרו לנו בקצרה מה אתם צריכים.",
       messageTooShort: "משפט או שניים, כדי שנדע למה להשיב.",

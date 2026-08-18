@@ -14,10 +14,18 @@ no code scanning.
 a sparse dark hero, a `bone` band holding a sticky brief-rail and one white elevated form panel,
 and a footer whose closing CTA is replaced by the four contact channels whose four groups read as numbered steps that visibly complete.
 `--color-signal` teal for on-track, `--color-alert` red for wrong. The form POSTs to
-`/api/contact`, which validates, drops honeypot hits, rate-limits, and mails the enquiry to
-`info@clix-solution.com` over Gmail SMTP via nodemailer. All eleven CTAs across the site point
-here. Build, lint and typecheck are clean; the API's five failure paths and one success path were
-exercised over HTTP and behave correctly; the Gmail credential was verified.
+`/api/contact`, which validates, drops honeypot hits, rate-limits, and then **delivers over two
+independent channels (2026-08-18)**: the Gmail notification to `info@clix-solution.com`, and a
+POST to the n8n workflow that will file the lead in the CRM and WhatsApp them. The form collects
+a **required phone number** for that second channel. All eleven CTAs across the site point here.
+Build, lint and typecheck are clean; the API's failure paths and success path were exercised over
+HTTP, including two real end-to-end deliveries into n8n.
+
+**Both channels are ON.** `CONTACT_GMAIL=off` was set for the afternoon of 2026-08-18 while the
+webhook was tested, and **removed the same day** — mail to `info@clix-solution.com` is flowing
+again and the SMTP credential was re-verified with an auth-only handshake. The switch still
+exists for the next time it is wanted; setting it to `"off"` silences mail without touching
+credentials or code.
 
 **What is not done: nobody has looked at the page.** Still true after the redesign. Both routes
 return 200 and the rendered HTML was inspected for the two known landmines — the 1px-wide form
@@ -33,6 +41,105 @@ then set the two env vars in the Vercel project settings so the deployed form ca
 ---
 
 ## Log
+
+### 2026-08-18 — n8n webhook added as a second channel; Gmail temporarily off
+
+> ⚠️ **FOLLOW-UP, SAME DAY — the "temporarily off" in this heading lasted one afternoon.** The
+> user called time on the test once the webhook was proven end to end: `CONTACT_GMAIL=off` was
+> removed from `.env`, so **both channels are now live**. The SMTP credential was re-verified
+> with an AUTH-only handshake (`transporter.verify()`) and **no message was sent** — the real
+> send is the user's to make. Everything below stands as the record of how it was built; only
+> the switch's position changed. The "Open" list at the end of this entry is superseded on that
+> one point.
+
+**What changed.** `/api/contact` stopped being a mail route and became a delivery route with
+**two independent channels**, each gated by its own environment and run concurrently with
+`Promise.allSettled`:
+
+- `gmail` — the existing notification mail. On unless `CONTACT_GMAIL="off"`.
+- `n8n` — POST to the workflow that will file the lead in the CRM and open a WhatsApp thread.
+  On when `N8N_WEBHOOK_URL` is set.
+
+The form gained a **required `phone` field**, which is the reason the phone-shaped parts of this
+exist at all: the workflow cannot WhatsApp a lead without a number.
+
+**Decisions and their reasons**
+
+- **Both channels permanently, not a migration.** The user's words: n8n is there "to put the
+  lead to our crm and message them thru whatsapp" — the mail is still wanted as the human
+  notification. A fan-out, not a swap.
+- **Any enabled channel failing fails the request.** Chosen by the user over "succeed if either
+  worked". The cost was stated at design time: a flaky webhook will error on a submission whose
+  mail arrived. A partial delivery logs which channel *did* accept it, so the duplicate lead is
+  findable afterwards.
+- **No channel enabled → 500.** A route that validates and then drops the submission is the
+  exact failure the original header set out to prevent.
+- **`CONTACT_GMAIL=off` rather than commented-out code.** An env line reverts by deletion;
+  commented-out code gets un-commented wrong. Any value but `off` leaves mail enabled, so a typo
+  fails towards sending.
+- **`phone` required, not optional.** Both were offered; the user picked required, knowing it
+  costs the visitors who will not give a number.
+- **`phone` is the THIRD cell of group 01, not the last.** The grid fills across, so this keeps
+  the three required fields in the first three cells. Appending it would have put a required
+  field below two optional ones.
+- ⚠️ **`phoneE164` does not guess a country code.** Formatting stripped, a typed `+` kept, and a
+  bare `050 000 0000` goes out as `0500000000`. Assuming `+972` silently mangles every
+  non-Israeli lead. `phone` as-typed always travels alongside; n8n resolves it where the rule is
+  visible and fixable. **Verified in a real execution.**
+- **`dir="ltr"` on the phone input.** `+` is bidi-neutral, so inside the Hebrew page's RTL flow
+  the browser moves it to the wrong end — rendering a number that reads as a different number.
+  The side effect (left alignment among right-aligned neighbours) is the lesser problem and is
+  logged as an open question rather than guessed at.
+- **Validation mirrors the email posture:** an allowed character set plus a **7–20 digit** count
+  taken after stripping formatting, so `+972 (50) 000-0000` passes. Not libphonenumber — the
+  same reasoning that keeps `EMAIL_RE` permissive.
+- **The secret travels in a header, not the URL.** `x-clix-token`, checked by a Header Auth
+  credential. Without it anyone who ever sees the URL can inject leads into the CRM.
+- **Both dictionaries' `panel.intro` changed 3 → 4 required fields.** A form that miscounts its
+  own obligations is worse than one that says nothing.
+
+**The n8n side (changed on the live instance, with the user's approval)**
+
+Workflow `Clix Main Website - Form Submit` (`J1UDMNjKeiaQs7AD`) on `n8n.srv1135333.hstgr.cloud`.
+⚠️ **As received it would have rejected every submission on three separate counts:** `httpMethod`
+unset so it defaulted to **GET**, authentication **None**, and the workflow **inactive** — and an
+inactive workflow's production URL 404s outright. Now POST + Header Auth (credential
+`Clix Website Form Token`, `MrKGlGklwgxteywu`) + active. **No downstream nodes yet, by choice:**
+the execution log is where the real payload shape gets read before CRM and WhatsApp are built
+against a guess.
+
+**Verification performed**
+
+- `npx tsc --noEmit` — clean. First run failed: `payload` collided with the parsed request body
+  already bound at the top of the handler; the webhook one is now `webhookPayload`.
+- `npm run build` — clean, 26 routes, `/api/contact` still the one dynamic route.
+- `npm run lint` — 7 errors + 1 warning, **all pre-existing at HEAD**, none in a touched file.
+- Against the webhook directly: GET → 404, POST with no token → 403, wrong token → 403, correct
+  token → 200.
+- Over HTTP against the dev server: 415 on a non-JSON content-type; 400 listing
+  `name/email/phone/message` on an empty body; 400 `phone: required` when only phone is missing;
+  400 `phone: invalid` for letters, for 2 digits and for 22 digits; 200 for `+972 (50) 000-0000`;
+  200-and-drop on a filled honeypot; 429 on the 4th request in the window.
+- **End to end:** two submissions arrived as n8n executions `459525` and `459526`, payload intact
+  — ids and labels, `locale` as an id, `phone` and `phoneE164` both present.
+- **Failure paths, forced:** a deliberately wrong secret produced `403 Authorization data is
+  wrong!` in the server log and `Could not send the message.` to the client; unsetting the
+  webhook URL with Gmail off produced the "every channel is disabled" log and
+  `Contact delivery is not configured.` `.env` was restored and re-verified with a 200 after.
+- ⚠️ **NO MAIL WAS SENT AT ANY POINT.** A grep for gmail/sendMail activity across the whole dev
+  log returns 0 — which is what `CONTACT_GMAIL=off` is for.
+- ⚠️ **The running dev server was restarted** (PID 9048, port 3001, brought back on the same
+  port). It predated the `.env` edit, and with stale env a valid submission would have sent a
+  real email.
+
+**Open**
+
+- **Nobody has looked at the phone field in a browser**, in either language. Group 01 now holds
+  five inputs in a two-column grid, which leaves one cell empty.
+- **`CONTACT_GMAIL=off` is still set** — the business is receiving no notification mail, and
+  every enquiry exists only as an n8n execution.
+- The n8n workflow still does nothing with what it receives.
+
 
 
 ### 2026-08-17 (second pass) — the channels moved to the footer and the closing CTA went

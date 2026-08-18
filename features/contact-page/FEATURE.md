@@ -183,10 +183,57 @@ the base state of every element here IS the shipped design, so the clamp is an e
 
 ---
 
-## The email pipeline
+## The delivery pipeline
+
+⚠️ **Called "the email pipeline" until 2026-08-18, when it stopped being only email.**
 
 `POST /api/contact` — the project's **second** route handler (`api/models` says in its own
 header that it is the only one; that is now out of date).
+
+### Two channels (2026-08-18)
+
+| Channel | Switched on by | What it does |
+|---|---|---|
+| `gmail` | `CONTACT_GMAIL` **not** `"off"` | The notification mail to `info@clix-solution.com`. |
+| `n8n` | `N8N_WEBHOOK_URL` set | POST to the n8n workflow that files the lead in the CRM and opens a WhatsApp thread with them. |
+
+- **They run concurrently** (`Promise.allSettled`) and share no state. Serialising them would
+  put an SMTP round trip in front of the webhook for nothing.
+- **A failure in ANY enabled channel fails the whole request** — 500, and the visitor sees
+  `errors.failed`. Chosen by the user 2026-08-18 over the more forgiving "succeed if anything
+  got through". ⚠️ **The known cost, stated rather than discovered later:** with both channels
+  live, a flaky webhook shows an error for a submission whose email *did* arrive, and the
+  visitor may send it twice. Accepted because the alternative — a green tick when the CRM never
+  heard about the lead — loses the enquiry silently. A partial delivery is logged as such,
+  naming which channel accepted it, so it is findable afterwards.
+- **No channel enabled = 500**, not a quiet `{ok:true}`. Validating a submission and dropping it
+  is the exact failure this route was written to prevent.
+- **`CONTACT_GMAIL=off` is a switch, not a state.** Set on 2026-08-18 so the n8n path could be
+  tested without mailing the business, and **removed the same day — both channels are on.** Any
+  value other than `off` leaves Gmail enabled, so a typo fails towards sending. It must never be
+  set in Vercel.
+- **Webhook auth:** the secret travels as `x-clix-token` and is checked by the
+  `Clix Website Form Token` Header Auth credential on the node. Without `N8N_WEBHOOK_SECRET` the
+  URL is the only secret and anyone who ever sees it can inject leads into the CRM.
+- **10s timeout** (`AbortSignal.timeout`). The node responds "Immediately", so slow means broken.
+- **The n8n payload is structured, not the composed mail.** Ids **and** labels: ids are the
+  stable contract a workflow branches on, labels save it restating the route's vocabulary.
+  Optional text fields are `null`, not `""`, so an empty company is absent in the CRM.
+- ⚠️ **`phoneE164` NEVER GUESSES A COUNTRY CODE.** Formatting is stripped and a typed `+` is
+  kept; a bare `050 000 0000` is sent as `0500000000`, un-prefixed. Deciding that means `+972`
+  would silently mangle every non-Israeli lead. `phone` as-typed is always in the payload
+  alongside it, and resolving national numbers is n8n's job, where the rule is visible.
+
+### The n8n side
+
+Workflow **`Clix Main Website - Form Submit`** (`J1UDMNjKeiaQs7AD`), tag `clixsolutions`, on
+`n8n.srv1135333.hstgr.cloud`. As received it was **GET, unauthenticated and inactive** — all
+three of which reject a POST from this route. Set to **POST + Header Auth + active** on
+2026-08-18. It has **no downstream nodes yet**: it receives, and the execution log is where the
+real payload shape gets read before CRM and WhatsApp are built against it.
+
+⚠️ **An inactive workflow's production URL 404s.** If every submission starts failing with
+`n8n webhook responded 404`, that is the first thing to check.
 
 - **Recipient: `info@clix-solution.com`, one address.** The user first named two
   (`ido.team@` and `info@`) then narrowed it to `info@` only, 2026-08-13. Overridable with
@@ -207,8 +254,13 @@ header that it is the only one; that is now out of date).
   work.
 - **Validation is duplicated** in `ContactForm.tsx` and in the route, deliberately: the client
   copy saves a round trip, the server copy is the boundary. Bounds live in one `LIMITS` block in
-  each file. **Required: name, email, message** — matching the reference's own `required`
-  attributes.
+  each file. **Required: name, email, phone, message.** ⚠️ **`phone` was added 2026-08-18 and
+  DEPARTS FROM THE REFERENCE, which collects four fields and requires three.** It is not a
+  design decision — the n8n workflow cannot open a WhatsApp thread without a number. The user
+  chose required over optional knowing it costs the visitors who will not give one.
+  Validation mirrors the email posture: an allowed character set (`+()-.` , space, digits) and a
+  **digit count of 7–20**, counted after stripping formatting, so `+972 (50) 000-0000` passes.
+  Nothing stricter — every country writes numbers differently and only messaging one settles it.
 - **Both option vocabularies are re-declared in the route** rather than imported from the
   dictionary. A locale file is copy; this is an allow-list at a trust boundary, and the two
   should not be able to widen each other. **Adding an option means editing both.**
@@ -313,3 +365,17 @@ header that it is the only one; that is now out of date).
       recommended moving the brief up. The user chose to keep the reference's own order.
 - [ ] Whether the sending mailbox should be `office@clix-solution.com` or a dedicated
       no-reply. Currently whatever `.env` holds.
+- [x] **`CONTACT_GMAIL=off`.** ⚠️ **SET AND THEN REMOVED ON 2026-08-18 — this is closed.** It
+      silenced mail for the afternoon while the webhook was tested; the user called time on the
+      test the same day. Mail to `info@clix-solution.com` is on, SMTP auth re-verified without
+      sending. Both channels now run. The switch remains available and **must never be set in
+      Vercel**.
+- [ ] **The phone field's alignment in Hebrew.** It carries `dir="ltr"`, which is necessary —
+      `+` is bidi-neutral and RTL reordering moves it to the wrong end, turning the number into a
+      different number. The side effect is that it left-aligns where its RTL neighbours are
+      right-aligned. Unresolved by eye; needs the `/he/contact` visual pass.
+- [ ] **Nobody has looked at the phone field in a browser.** Its grid placement (third cell, so
+      the three required fields lead) is reasoned, not seen. Group 01 now holds five inputs in a
+      two-column grid, which leaves one cell empty on the tablet/desktop tiers.
+- [ ] **The n8n workflow has no downstream nodes.** CRM and WhatsApp are not built. Until they
+      are, a submission's only destination is an execution record.
