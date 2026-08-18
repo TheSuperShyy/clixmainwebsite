@@ -305,58 +305,216 @@ each carrying a piece of product UI that shows what the service produces.
 - All eight marks in `serviceGlyphs.tsx`, now at **20px** in a card header rather than 32px
   above a label. Nothing about the drawings changed — only their box.
 
-### What replaced the grid
+### What replaced the grid — REBUILT TWICE MORE ON 2026-08-17: STACK, THEN REEL
+
+⚠️ **THE 2-COLUMN GRID LASTED ONE DAY AND THE STICKY STACK LASTED HALF OF ONE.** Two briefs,
+same day:
+
+1. *"make it like scroll animation, only 1 service per scroll, give it like modern and better
+   looking UI and animation"* → the grid became a **sticky card stack**. It put all eight
+   services on screen at ~304px each and none of them got read; eight cards competing is eight
+   cards ignored.
+2. *"i think this one is better for the 8 services section, we can use this layout but keep the
+   current cards"*, with a reference layout — a scroll-driven list of titles beside a media
+   track that slides in step with it → the stack became a **reel**.
+
+⚠️ **THE SECOND REBUILD CHANGED THE CONTAINER AND NOTHING ELSE.** All eight scenes, all eight
+step maps and the whole process player came across unaltered. `serviceArt.tsx` was not touched
+by it at all.
+
+⚠️ **THE MEASUREMENT THAT MADE THAT POSSIBLE, RECORDED SO IT IS NOT RE-DERIVED.** `Stage` caps a
+scene at **560px**, and the sticky card's art well **already hit that cap** — so a 52% art
+column in a 1280 frame renders every scene at *exactly* the size it had before. Had that not
+been true the answer would have been no: it would have been a redraw of eight mocks rather than
+a rewrite of one container.
 
 ```
-section[bone]
-  div[Container]   maxW 1280 · col ≤1199 · ROW ≥1200, items-start, justify-between, gap 80
-    div[Heading]     ≥1200: sticky top-24, w 45% (cap 576), type capped 440
-                     ≤1199: static, cap 540 at 810-1199, full below
+section[bone]                        ⚠️ NO overflow-hidden, ever — see below
+  div[Container]   maxW 1280
+    div[Heading]     full width · ROW ≥1200 (h2 cap 640 | intro cap 460) · stacked below
       h2 · p
-    ul[Cards]        grid · 1 col ≤809 · 2 cols ≥810 · gap 16 · min-w-0 flex-1 at ≥1200
-      li[Card] × 8     mark + kicker / name / art well / promise
+    ServiceReel      "use client" passthrough — the band's ONLY client JS
+      div.service-reel[data-reel-scroller]   minH = 100svh + 7 × --reel-step
+        div            position: sticky · top 0 · minH svh · pt --nav-peak-h + 8
+          div[data-reel-frame]   bg white · hairline · shadow-float · ROW ≥810
+            div[names+detail]  flex-1
+              .reel-window(--reel-list-h, faded)
+                ol.reel-track--names      translateY(-i × --reel-item-h)
+                  li × 8 [data-reel-item] · button[data-reel-go] · bar + name
+              .reel-window(--reel-detail-h)
+                div.reel-track--detail    translateY(-i × --reel-detail-h)
+                  div × 8 [data-reel-detail] · promise + stack chips
+            div[art].reel-window(minH --reel-art-h, faded)   basis 52% ≥810
+              div.reel-track--art         translateY(-i × --reel-panel-h)
+                div × 8 [data-service-card][data-reel-panel] · kicker + ServiceArt
 ```
+
+⚠️ **ONE NUMBER DRIVES ALL THREE TRACKS.** `--reel-i` is written on the frame by
+`ServiceReel.tsx`; each track multiplies it by **its own** item height. That is how the names,
+the detail and the art move as one gesture while moving three different distances.
 
 | | ≥1200 | 810–1199 | ≤809 |
 |---|---|---|---|
-| layout | heading BESIDE cards | stacked | stacked |
-| container gap | 80 | 40 | 32 |
-| heading column | sticky `top: 96px`, 45% (cap 576) | static, cap 540 | static, full |
-| grid columns | **2** | **2** | **1** |
-| card | ~304 wide, min-h 400 | ~464 wide, min-h 384 | 358 wide, min-h 352 |
-| grid gap | 16 | 16 | 16 |
+| heading | h2 BESIDE intro | stacked | stacked |
+| frame | names · art | names · art | names ABOVE art |
+| art column | `basis-[52%]` | `basis-[52%]` | full width |
+| name type | 34px | 24px | 20px |
+| `--reel-step` | `56svh` | `52svh` | `46svh` |
+| `--reel-item-h` | 64px | 54px | 44px |
+| `--reel-list-h` | 258px | 218px | 112px |
+| `--reel-detail-h` | 156px | 140px | 128px |
+| `--reel-panel-pad` | 24px | 20px | 16px |
+| `--reel-caption-h` | 24px | 22px | 22px |
+| `--reel-panel-h` | `clamp(300, 46svh, 440)` | `clamp(250, 38svh, 330)` | `clamp(180, 27svh, 235)` |
+| `--reel-art-h` | `clamp(430, 66svh, 620)` | `clamp(360, 56svh, 470)` | `clamp(210, 32svh, 280)` |
 
-`1280 − 576 − 80 = 624` and `(624 − 16) / 2 = 304` — **four pixels off the 308px tile this band
-used to render**, so the card column inherits a width the page had already proved.
+All of them live in **`globals.css` under `.service-reel`**, not at the call site: most are
+per-tier and a custom property cannot be set responsively from inline `style`.
 
-⚠️ **The sticky offset `top: 96px` is not a new number** — it is what `why-rogo` already pins its
-headline at, and that came off the target. Every sticky element on this site is now on one line.
+⚠️ **THE ART MASK FADES OVER `--reel-overhang`, A COMPUTED LENGTH, NOT A PERCENTAGE.**
+`(--reel-art-h − --reel-panel-h) / 2` is the overhang by definition, so the fade covers exactly
+the neighbouring panels and stops where the live one begins. It shipped as 14% of the window,
+which is ~87px at desktop against a 90px overhang — correct by coincidence — and ~38px on a
+phone against a 21px overhang, where it dissolved the live panel's own caption. **A fraction of
+a container is not a substitute for the distance you actually need to cover.** The name list
+keeps the 14% default because its rows have no overhang to measure.
 
-⚠️ **`desktop:self-start` is load-bearing.** A stretched flex item is already as tall as its row,
-so it has no travel to stick within; without it the heading simply does not pin.
+⚠️ **THE ART COLUMN IS TWO ELEMENTS: ONE PAINTS AND CLIPS, THE INNER ONE MASKS.** A mask applies
+to the element it is set on **including that element's own background** — with
+`reel-window--fade` on the column, the `ink` ground bled to white over ~90px top and bottom
+against `bone`, reading as two grey gradient bands rather than as scenes going out of focus.
+**Never put a mask on an element that also paints a background.** The names window is one element
+because it has no background of its own.
 
-### The card
+⚠️ **`--reel-art-h` IS DELIBERATELY TALLER THAN `--reel-panel-h`, AND THAT DIFFERENCE IS THE
+WHOLE EFFECT.** It is what lets the previous and next scenes peek in, blurred, behind the mask.
+Equalise them and this stops being a reel and becomes a cross-fade.
 
-White on `bone`, `1px` `hairline` border, **radius 0**. The reference's `rounded-[8px]` is
-deliberately not ported: this site's radius scale is `--radius-none` / `--radius-pill` and
-nothing else on it is 8px. Radii *inside* a scene are a separate question — see below.
+⚠️ **`--reel-scene-max` IS A DERIVED VALUE AND IT IS WHY THE SCENES NEVER OVERFLOW.**
+`(--reel-panel-h − 2 × --reel-panel-pad) × 1.528` — the panel's height converted back into a
+width, `1.528` being `440 / 288`. `Stage` is **width**-driven, so a short viewport shrinks the
+panel without shrinking the scene; this caps the scene's width at whatever the panel's height
+can actually accommodate, so the fit holds by construction rather than by four hand-checked
+breakpoints. **If the source box changes, this constant changes with it.**
+
+⚠️ **THE ART COLUMN USES `min-height`, NOT `height`.** The frame is `items-stretch`, and a flex
+item with an explicit height does not stretch — so on a short viewport, where the names column's
+fixed windows total more than `--reel-art-h`, the art column would stop short and leave a band
+of white beneath it.
+
+⚠️ **NO `overflow-hidden` ON THE SECTION, THE CONTAINER, THE ServiceReel WRAPPER, OR THE
+SCROLLER.** An ancestor with `overflow: hidden` becomes a sticky element's scroll container, so
+the frame pins to a box that scrolls away with the page — i.e. it does not appear to pin at all.
+This band has already paid for that bug once. The clipping the reel needs happens **inside** the
+frame, on the three track windows, which are descendants of the sticky element and harmless.
+
+⚠️ **THE STICKY IS ON THE WRAPPER — NOT ON THE SCROLLER, NOT ON THE FRAME.** On the scroller it
+would reintroduce the entire measurement problem the rewrite deleted (below). On the frame it
+would collide with the frame's own `overflow-hidden`.
+
+### What went with the stack
+
+- **`.service-stack` and its four `--stack-*` numbers**, the sticky `<li>` deck, `isolate`, the
+  recede tween, the 3px top rule, and **`flowTop()`** — the hand-rolled document-space
+  measurement that existed only because ScrollTrigger cannot measure a stuck element. ≈180 lines
+  of the band's hardest code, deleted.
+- **The one-shot text entrance.** The name, promise and chips change on every index now, so a
+  once-only stagger has nothing to attach to. They cross-fade in CSS instead.
+- **`--nav-peak-h` as a rest offset** → it is `padding-top` on the sticky wrapper, doing the same
+  job for the same reason: the nav's banner returns on upward scroll, so anything pinned beneath
+  it must clear the banner and not just the row.
+
+### What came back
+
+- **`kicker`.** Cut on 2026-08-17 with the templated icon-tile row, unrendered in both
+  dictionaries since. The reel has a caption slot over the live scene — the reference layout puts
+  a location there — and a **sourced** one-line reason for the service is a better tenant than an
+  invented one. It is no longer part of an `01 · KICKER` eyebrow, which is what was wrong with it.
+- ~~**A position indicator**, as `01` over `08` in the frame's rail.~~ **REMOVED WITHIN A
+  MINUTE OF THE USER SEEING IT** — *"remove the border and the number from left side"*. ⚠️ **THIS
+  BAND HAS NOW REJECTED A POSITION INDICATOR TWICE, IN TWO DIFFERENT FORMS** (eight coloured
+  ticks; two digits in a rule), so the pattern is the point rather than the execution. It has
+  none, deliberately, and nothing here says which of eight you are on. **Do not propose a third
+  form.** `ServiceReel` still writes `--reel-i` and `data-state`, so one could be re-hung on
+  markup alone if the user ever asks.
+
+### The frame
+
+White, `1px` `hairline` border, **radius 0**, `shadow-float`, on `bone`. The art track is `ink`
+(/security's ground) — the scenes are white `Surface`es, so the contrast does the work a 5%
+accent tint over `bone` was straining at.
 
 | Slot | Spec |
 |---|---|
-| mark | 20px, `muted` → `ink` on card hover, 2px lift, 300ms `--ease-rogo` |
-| kicker | `EYEBROW_CLASS` (12px, 400, uppercase, `muted`, 130%, tracking normal) — **exported from `CompanyMission.tsx`, not re-authored** |
-| name | 28px `font-display` 400, 110%, −0.02em, `ink` |
-| art well | `flex-1`, centred, clipped — every scene is 280 × 168 source units |
-| promise | 14px `font-sans` 400, 130%, −0.01em, `muted` |
+| name | **18 / 24 / 34** `font-display`, 110%, −0.02em · `muted` 400 → **`ink` 700 when live**. ⚠️ The only weight-700 type on the site, on the user's call (*"make the title of the card bold when its active"*) — a deliberate exception, and a REAL instance because Discovery is variable with `font-weight: 100 800` declared. Check this if the face is ever swapped for a static one. |
+| live-row dash | `inline-size` 0 → **24 / 32px**, `block-size` 2px, **`ink`** — ⚠️ not the accent, on the user's call, and the SECOND time this band has reversed exactly that (the stack's 3px card-top rule went the same way). Eight services are one system; a marker that changes colour per service says the opposite. |
+| kicker | 11px `font-sans` 400 uppercase, `white/55`, +220ms delay, `truncate`. ⚠️ **In a RESERVED BAND above the scene (`--reel-caption-h`), never over it** — it shipped as an overlay and sat on the scene at every size. The band is added to the panel's block-start padding *and* subtracted inside `--reel-scene-max`; change one without the other and the scene overflows. |
+| promise | **15 / 16 / 18** `font-sans` 400, 140%, −0.01em, `muted` |
+| chips | 11 / 12px, `hairline` border, `dir="ltr"` |
+| scene | **440 × 288** source units, capped at `min(560px, --reel-scene-max)` |
 
-⚠️ **CARDS GROW, THEY DO NOT CLIP.** `min-h-*` plus the grid's default `align-items: stretch`, so
-a row is as tall as its tallest card. This is a **deliberate divergence from /product's benefit
-cards**, which are `aspect-ratio`-fixed and whose bodies genuinely clip — that grid is 3 × 6,
-this one is 2 × 8, and a taller row costs nothing here. It also means these cards need no
-per-locale line-count audit to be *safe*, only to look right.
+⚠️ **NAME ROWS ARE FIXED-HEIGHT AND `whitespace-nowrap`.** The track translates by
+`--reel-item-h`, so a name wrapping to two lines would overflow its row. Every string in both
+dictionaries sets on one line with ~35% to spare at every tier; `nowrap` makes a future violation
+obvious (a clipped name) rather than silent (a broken reel).
 
-⚠️ **`min-w-0` on the `<ul>` is load-bearing.** A flex item's default `min-width: auto` would let
-the widest machine token inside a scene set the column floor and push the grid past 1280.
+⚠️ **THE DETAIL WINDOW IS FIXED-HEIGHT AND IT CLIPS.** Sized for the longest Hebrew promise plus
+two rows of chips. **This is the one measurement in the reel a translator can break — check /he
+whenever the copy changes.**
+
+⚠️ **THE DETAIL IS A THIRD TRACK, NOT EIGHT ABSOLUTELY-STACKED BLOCKS.** Stacked absolutely, all
+eight promises would print on top of each other before any `data-state` is written — i.e. with JS
+off. As a track it inherits the same `var(--reel-i, 0)` fallback as everything else.
+
+### The motion (`ServiceReel.tsx` + `globals.css`)
+
+⚠️ **NO STYLE IS WRITTEN FROM JS.** The controller writes `--reel-i` and `data-state`; every
+visual state is an attribute selector in `globals.css`. That is what keeps `CompanyServices.tsx`
+a server component.
+
+| | What | Gated on reduced motion? |
+|---|---|---|
+| Index | `i = round(progress × 7)` → `--reel-i` + `data-state` + `data-idle` | **no — it is state, not motion** |
+| Track glide | `transform` 700ms `--ease-rogo`, all three tracks | CSS clamps duration to 1ms |
+| Panel depth | live sharp · **±1** `opacity .3 / scale .86 / blur 5px` · rest `opacity 0` | blur dropped, rest kept |
+| Process | each scene assembles, holds `HOLD`, dissolves, repeats | **yes — no timeline is built at all** |
+| Jump | click / Enter a name → smooth scroll to its position | `behavior: "auto"` |
+
+⚠️ **`round`, NOT `floor`.** With `floor`, service 8 would be reachable only in the single frame
+where progress is exactly 1, and the first seven would each change over on arrival rather than at
+the midpoint. `round` puts the changeover halfway between two services, so each holds the frame
+for a full `--reel-step`.
+
+⚠️ **THREE PANEL STATES, NOT TWO, AND THE THIRD IS A COST DECISION.** `near` is the pair either
+side of the live scene — visible through the mask, so they carry the blur. `far` is the other
+five: outside the window entirely, so they are simply not drawn rather than composited blurred
+every frame for nothing.
+
+⚠️ **THE MEASUREMENT PROBLEM IS GONE, AND THE REASON MATTERS IF ANYONE MOVES THE STICKY.** The
+stack could not use a card as a ScrollTrigger `trigger`: ScrollTrigger resolves start/end from
+`getBoundingClientRect()`, which for a **stuck** element reports where it is *painted*, not where
+it sits in the document, so every trigger had to be rebuilt from `offsetTop`. Here the element
+being measured (`[data-reel-scroller]`) is **not** sticky — its child is — so a plain
+`start: "top top" / end: "bottom bottom"` is honest.
+
+⚠️ **THE NAMES ARE REAL `<button>`s.** The reference layout hangs `onClick` on the `<li>` and
+marks passed items `pointer-events: none`, so its list is keyboard-unreachable and one-way by
+mouse. Eight services a keyboard user cannot reach is a functional failure on a services page,
+not a nitpick. Passed items sit at **0.15 opacity, not 0**, for the same reason: a control you
+can still focus is a control you must still be able to see.
+
+⚠️ **`data-service-card` IS A FOSSIL AND IS LOAD-BEARING.** It is what `globals.css`'s
+`[data-service-card][data-idle] *` animation gate selects on. The panels carry both it and
+`data-reel-panel`; renaming it would mean touching the gate for nothing.
+
+⚠️ **THE REEL STILL TRACKS UNDER REDUCED MOTION — IT CUTS INSTEAD OF GLIDING.** Freezing the
+tracks would leave the band showing service 1 forever, which is not a calmer version of the
+feature, it is a broken one. The blur goes; the position changes stay, because they are
+information. `ServiceReel.tsx` makes the *separate* decision not to build the scene timelines.
+
+⚠️ **`pin:` STILL APPEARS NOWHERE AND SHOULD NOT.** `position: sticky` is what a pin was wanted
+for, without the viewport lock. The band's one `scrub:` went with the recede — there is now no
+scrubbed tween on this page at all.
 
 ---
 
@@ -381,24 +539,66 @@ distinct UI mock per service and `docs/reference/clixsolutions/content.json`
 Native, push notifications, deep links, offline-first sync). It is the only place on this band
 where the picture is ours rather than the company's. Recorded in Open questions below.
 
-### The scenes carry almost no prose, deliberately
+### The scenes carry real content — REVERSED 2026-08-17
 
-Everything sentence-shaped renders as a grey bar; only **machine tokens** are set as type
-(`POST /lead`, `dashboard.tsx`, `$1.2m`, `98`, `1.2s`). Three reasons, the first decisive:
+⚠️ **THE ORIGINAL RULE WAS "EVERYTHING SENTENCE-SHAPED RENDERS AS A GREY BAR".** It held while
+the card was 304px wide, where a bar read as *a sentence, deliberately blurred*. On the stack
+the mock is ~680px and the same bars read as **SKELETON UI** — a page that has not finished
+loading. User: *"can you add more to it, rather than just some skeleton UI?"*, and they were
+right.
 
-1. **The eight scenes are locale-free** — machine tokens stay Latin in every locale, the rule
-   `workflowMocks.tsx` already states. Not one new dictionary key, and no Hebrew line-fitting
-   risk across eight new boxes. Every token is `direction: ltr` so it reads correctly on /he.
-2. The real site's chat mock is a stock template in someone else's business ("2 kurtas",
-   "Rs.1200"). Porting its words would be borrowing copy; porting its shape is the rebuild.
-3. The reference band does the same — three of its four arts are bars and window chrome.
+**What was wrong with it** was not the locale-free goal but the assumption underneath: that a
+real product UI is mostly prose. It is not. It is names, statuses, counts, IDs, filenames and
+code — **machine content, Latin in every locale**, which was being redacted for no benefit.
+The eight scenes now carry it:
+
+| # | What replaced the bars |
+|---|---|
+| 1 | agent names + live tasks + a stat strip (`142 conversations · 1.2s avg first reply · 98% resolved`) |
+| 2 | four real chat messages, timestamps, ticks, `Lead created in HubSpot · Deal #2041` |
+| 3 | named pipeline stages with deal counts, values and days-in-stage |
+| 4 | every node says what it does to the payload (`Extract name, company, intent`) |
+| 5 | real nav, a real CTA, three real card titles, real Core Web Vitals |
+| 6 | a real list screen, tab labels, a real push, `clix://orders/4023` |
+| 7 | **real TypeScript** — and it is scene 4's workflow written out, the same system from the other end |
+| 8 | the five areas named, each with the finding behind its score |
+
+**Still true, and still the rule:** not one new dictionary key. Every string above is a machine
+token at `direction: ltr`, so /he needs no translation and no line-fit audit.
+
+**Two deliberate exceptions, both recorded at their call site:**
+
+1. ⚠️ **Scene 2's four chat messages are genuine prose.** They are English in both locales.
+   On /he a Hebrew customer would have typed Hebrew — **flagged to the user 2026-08-17, open.**
+   If the answer is "translate them", they move to `company.services` in both dictionaries.
+2. **Scene 5's headline is still two bars, and there that is correct** — it is a headline in a
+   page *thumbnail*, too small to read, surrounded by real labels. Bars are fine as the
+   minority; they were never fine as the default. It also keeps that scene locale-free, since
+   a headline is the one string in it that would genuinely need translating.
+
+Unchanged: the real site's chat mock is a stock template in someone else's business ("2 kurtas",
+"Rs.1200"). Porting its words would be borrowing copy; porting its **shape** is the rebuild —
+so scene 2's exchange is clix's own (a lead qualifying itself and booking a demo).
 
 ### Coordinates
 
-One **280 × 168** source box per scene, every dimension `u(n)`, same idiom as
+One **440 × 288** source box per scene — **was 280 × 168 until 2026-08-17**, widened with the
+stack because the art well went from ~264px to ~680. Every dimension `u(n)`, same idiom as
 `product/benefitArt.tsx` and `product/workflowMocks.tsx`. `Stage` makes itself a query container
-and hands its children `--u = 1cqw / 2.8`, so a scene **scales** with the card rather than
-reflowing — which it must, at ~304 / 464 / 358px. Capped at 280px so it never outgrows the well.
+and hands its children `--u = 1cqw / 4.4`, so a scene **scales** with the card rather than
+reflowing. Capped at **560px** so it never outgrows the well.
+
+⚠️ **THE MIGRATION RAN BOTH BOXES AT ONCE AND THAT SCAFFOLDING IS GONE.** `Stage` / `Header`
+briefly defaulted to the old box so scenes could move over one at a time. With all eight moved,
+`Panel` (the flat, shadowless predecessor of `Surface`) and the old constants were deleted.
+
+⚠️ **`Surface` HAS DEPTH AND `Panel` DID NOT.** A hairline-outlined rectangle was right when the
+mock was a 264px detail; at 680px it reads as a wireframe. Two shadows, the same two-part shape
+as `--shadow-float`, **in source units** so they scale with the scene like everything else.
+
+⚠️ **EVERY PRIMITIVE IS ABSOLUTE AGAINST ITS NEAREST POSITIONED ANCESTOR.** A `Metric` written
+*next to* a strip rather than *inside* it resolves against the `Surface` and lands in the header.
+Nest, and the coordinates stay local. (Cost one bug on 2026-08-17.)
 
 ⚠️ **`container-type` is on the OUTER element and `--u` on the inner one.** An element
 establishes a query container for its *descendants*, not itself; declaring `1cqw` on the same
@@ -413,31 +613,156 @@ Same licence `workflowMocks.tsx` takes reproducing a card corner read off a scre
 child to `inset-inline-end`. No `280 − x − w` arithmetic anywhere. **All eight scenes mirror** —
 the horizontal axis carries reading order in every one, and none depicts fixed foreign chrome.
 
-### Motion — three keyframes, shared by all eight
+### Motion — two layers
 
-In `src/app/globals.css`. No GSAP, no framer-motion (**not installed** — `package.json` has only
-`gsap` + `@gsap/react`), no IntersectionObserver, no `"use client"`.
+`serviceArt.tsx` itself is still pure CSS and still server-rendered: no GSAP, no framer-motion
+(**not installed** — `package.json` has only `gsap` + `@gsap/react`), no `"use client"`. All the
+JavaScript in this band lives one level up in `ServiceReel.tsx`.
+
+**Layer 1 — the ambient loops** (`src/app/globals.css`). Un-sequenced, run forever, say *this
+thing is live*. **THREE** keyframes — `service-step` and `service-pulse` were both deleted on
+2026-08-17:
 
 | Keyframe | What it does | Applied to |
 |---|---|---|
-| `service-step` | overlay opacity `0 → 1 → 0`, staggered by `animation-delay` | 31 elements: roster rows, chat bubbles, flow nodes, page blocks, app screens, code lines, pipeline stages, score rows |
-| `service-pulse` | live dot, opacity `1 → .3 → 1` | 5 |
-| `service-rise` | `translateY(0 → −2 → 0)` | 6 — the one OUTCOME element per scene |
+| `service-rise` | `translateY(0 → −2 → 0)` | the one OUTCOME element per scene |
+| `service-typing` | the three dots of a typing indicator | scenes 1 and 2 |
+| `service-caret` | a text caret, hard on/off (`step-end`) | scene 7 |
 
-⚠️ **Three shared keyframes, not eight bespoke ones.** /product's six cards each got their own
-because each animated a different mechanism; these eight all animate the *same* mechanism — a
-sequence advancing through a list — so one staggered `service-step` covers all of them. That is
-also what makes the eight cards read as one band rather than eight separate toys.
+⚠️ **TWO KEYFRAMES HAVE NOW BEEN DELETED FOR THE SAME REASON AND IT IS THE BAND'S MOST
+LOAD-BEARING RULE.** `service-step` painted a travelling wash across a table row and read as
+*hover*. `service-pulse` faded a 5px accent dot beside each scene's title and promised something
+was happening right now, when nothing was — it pulsed identically on a finished report, a draft
+and a browser window. Both were **decoration wearing the costume of information**.
+
+**A loop that decorates CHROME will be read as a claim about STATE.** If it is not describing
+something genuinely happening to the element it sits on, it does not belong here. The three
+survivors all pass: a chat client draws a typing indicator, an editor blinks a caret, and the
+rise happens to the one element that *is* the outcome.
+
+⚠️ **`Typing` IS `mock-line` GREY, NOT `ACCENT`, SINCE 2026-08-17.** It was the last coloured
+dot in the file once `Dot` went, and the brief was *"remove these colored dots"*. Grey is also
+more accurate — no chat client draws its typing indicator in the brand colour. **Scene 5's three
+grey browser traffic lights are not affected and never were:** they are the window, not a claim
+about it.
+
+**Layer 2 — the process** (`ServiceReel.tsx`, added 2026-08-17). Sequenced, plays on arrival,
+loops while the service is live. Its own section below.
+
+⚠️ **`service-step` WAS DELETED AND MUST NOT COME BACK IN THAT FORM.** It was the workhorse —
+a soft accent wash on an overlay, staggered down a scene's rows so exactly one was lit at a
+time, 31 instances — meant to read as *a sequence advancing*. It read as **hover**: a tinted
+band across a table row is the universal signifier for hover or selection, so every scene
+looked like it had a cursor in it that nobody was moving. The user caught it twice unprompted.
+**The rule that came out of it:** a loop that paints a row CONTAINER borrows a UI state and will
+always be misread as one. Motion that says "live" must happen to the CONTENT and must be
+something the depicted product genuinely does.
 
 ⚠️ **THE INVARIANT, INHERITED FROM /product BLOCK 4: every keyframe's base state is the shipped
-static design.** `service-step` runs on a dedicated overlay resting at `opacity: 0`, so the
-unanimated scene is the finished picture — every roster row present, every bar at its scored
-length. The global reduced-motion clamp is therefore an **exact no-op**, and SSR first paint is
-complete. Written the other way round, a reduced-motion visitor would get eight empty panels.
+static design.** A resting typing indicator is three dim dots; a resting caret is a visible
+cursor. The unanimated scene is the finished picture — every roster row present, every bar at
+its scored length. The global reduced-motion clamp is therefore an **exact no-op**, and SSR
+first paint is complete. Written the other way round, a reduced-motion visitor would get eight
+empty panels.
 
 ⚠️ **Opacity and `translateY` only**, and the Y is not stylistic: it is the one axis that does not
-flip under RTL, so these loops need no `[dir="rtl"]` companion the way `.benefit-bar` does.
-~40 loops run at once when the band is on screen, so every one has to be compositor-only.
+flip under RTL, so these loops need no `[dir="rtl"]` companion the way `.benefit-bar` does. This
+now governs `ServiceReel.tsx` too — its tracks translate on Y only, so they
+mirrors for free; the moment someone sets a `transform-origin` the band owes /he a second rule.
+
+⚠️ **VIEWPORT-GATED SINCE 2026-08-17, AND THIS SECTION USED TO SAY THE OPPOSITE.** It read *"not
+viewport-gated — gating decoration would cost more than the decoration does"*, which was true of
+the GRID: every card was on screen together and a gate bought nothing. In a stack, seven of the
+eight scenes are behind another card at any moment, so ~35 of the ~40 loops were animating things
+nobody could see. `ServiceReel` marks every non-live panel `data-idle` and globals.css pauses
+them — one live scene now rather than the stack's two.
+
+⚠️ **THE GATE IS OPT-OUT (`[data-idle]` pauses), NOT OPT-IN.** The attribute is written by client
+JS: with JS off, or before hydration, no attribute exists and every scene animates exactly as it
+did before the stack shipped. Written the other way round, a no-JS visitor would get eight frozen
+scenes. The frozen state is the finished picture either way — see the invariant above — so the
+opt-out form costs nothing and removes a whole failure mode. The live window is **two** cards
+wide (active + arriving), because the arriving one is visibly sliding up and freezing it would
+show a scene stop dead on its way in.
+
+### The process — each scene plays itself (2026-08-17)
+
+User: *"i want some movements per cards, for example like the process for the service, its like
+the presentation, i want it to look good and modern and smooth"*. Two choices taken with them:
+**plays itself on arrival** (not scrubbed to scroll — the pace must not be whatever the
+visitor's wheel does), and **the whole process loops** while that card is the live one, so
+nothing is missed regardless of when you look.
+
+⚠️ **THE CHOREOGRAPHY IS DATA IN THE SCENES; THE TIMING IS CODE IN THE PLAYER.**
+`serviceArt.tsx` marks elements, `ServiceReel.tsx` turns step ORDER into TIME. There is no
+per-scene JavaScript and there must not be: eight bespoke timelines would be eight things to
+retune every time a scene is redrawn.
+
+| Marker | Beat |
+|---|---|
+| `step={n}` on a primitive | reveal — opacity, and a 6px lift. The default. |
+| `count` on a `Line` | the number counts up to the value already in the HTML |
+| `Track` | groove + fill; the fill grows to its scored length |
+| *no marker* | **chrome** — present from the first frame, never leaves |
+
+`count` and the `Track` fill carry no step of their own: they take the step of their nearest
+marked ancestor, so a bar grows and a stat counts on the same beat as the row they belong to.
+
+#### The eight step maps — the order *is* the process
+
+| # | Scene | Beats |
+|---|---|---|
+| 1 | AI Agents | 1 header · 2 stat strip (`142`, `1.2s`, `98%` count) · 3 column headings · 4–7 the four agents in roster order, ending on the booking |
+| 2 | WhatsApp | 1 contact header · 2 the question · 3 the reply · 4 the follow-up · 5 `Booked — Thu 14:00` · 6 typing · 7 `Lead created in HubSpot` |
+| 3 | CRM | 1 header · 2 KPIs (`63`, `$1.2m`, `$480k` count) · 3 column headings · 4–7 the four stages, each bar growing as its row lands |
+| 4 | Integrations | 1 header · 2 the wire · 3–7 the five nodes down the chain · 8 `success` |
+| 5 | Web | 1 site nav · 2 hero + CTA · 3–5 the three feature cards · 6 vitals (`98`, `0.9s`, `0.01` count) + `+24% conversion` |
+| 6 | Mobile | 1 app header · 2–4 the three orders · 5 tab bar · 6 the four side cards · 7 the push arriving |
+| 7 | Custom Software | 1 explorer · 2–8 the seven code lines, one per beat — the file writes itself · 9 terminal · 10 `build ok` |
+| 8 | AI Strategy | 1 header · 2 column headings · 3–7 the five areas, bar growing while the score counts · 8 the verdict (`78` counts) |
+
+**Scenes 5 and 6 deliberately start at their content, not their frame.** The browser window and
+the handset carry no step: a window that faded in around its own page would be animating the
+wrong noun. The frame stays and the content loads — which is what both products actually do.
+
+#### Timing — the four knobs, all in `ServiceReel.tsx`
+
+| Constant | Value | What it is |
+|---|---|---|
+| `LEAD` | `0.3s` | dead time before beat 1 |
+| `BEAT` | `0.22s` | gap between beats. **The pace of the whole thing** — the number most likely to move. |
+| `HOLD` | `4.5s` | how long the finished scene is held before it dissolves and replays |
+| `REVEAL_D` / `FILL_D` / `COUNT_D` | `0.5` / `0.7` / `0.9s` | per-beat durations |
+
+Cycle length is therefore **7.3s (scene 5, six beats) to 8.1s (scene 7, ten beats)**.
+
+⚠️ **THE PROCESS LOOPS; THE COPY DOES NOT.** The card's text (`[data-card-rise]`) plays its
+entrance exactly once and is deliberately not in the repeating timeline. Re-animating a heading
+and a paragraph every seven seconds beside copy someone is reading is the failure mode this band
+has already been caught on. **Motion loops on the picture, never on the prose.**
+
+⚠️ **THE CYCLE ENDS WITH A 0.45s DISSOLVE, AND WITHOUT IT THE LOOP IS UNWATCHABLE.** A repeating
+timeline jumps from its last frame to time 0, where every `from()` renders its start — so the
+finished scene would vanish in one frame and rebuild. Only the *marked* elements fade; the
+chrome never leaves, so what the eye sees is a window whose contents reload.
+
+⚠️ **A PARKED CARD SITS ON THE FINISHED SCENE, NOT AT `progress(1)`.** Because the cycle ends
+faded out, seeking a paused timeline to its end would park every off-screen card blank. It is
+seeked to `rest` — the moment the scene is complete and still.
+
+⚠️ **NEVER PUT A `step` ON A NODE THAT CARRIES A CSS ANIMATION.** A CSS animation beats an
+inline style in the cascade, so the beat's opacity and transform are silently swallowed. Mark
+the container — which is why scene 6's push card sits inside a bare wrapper. `count` is exempt:
+it writes `textContent`, not style, so it shares a node with `RISE` happily (scene 8's `78`).
+
+⚠️ **THE "NO X-AXIS MOTION" RULE IS AMENDED, AND ONLY FOR THE PLAYER.** Scenes 3 and 8 used to
+carry *"every bar sits at its measured length at rest — never a bar growing"*, because a growing
+bar needs a `transform-origin` and an origin is the one thing on this band that does not mirror
+for free. That reasoning was about **CSS keyframes, which cannot know which way the document
+reads**. A GSAP tween can: `documentElement.dir` is one line, and `FILL_ORIGIN` picks the origin
+per locale. The CSS-side prohibition stands unchanged; `ServiceReel.tsx` is the one place with
+the information to be exempt from it. The bars still **rest** at their measured length — every
+beat is a `from()`, so reduced motion and JS-off see full bars exactly as before.
 
 ---
 
@@ -446,6 +771,18 @@ flip under RTL, so these loops need no `[dir="rtl"]` companion the way `.benefit
 User: *"add some colors and make the header floats when floating, and when hovering to a card,
 make it bigger add a hover animation that is good"*. Three additions, all on top of Block 3
 rather than instead of it.
+
+> ⚠️ **TWO OF THESE THREE NO LONGER EXIST (2026-08-17, the sticky-stack rebuild).** Kept for the
+> reasoning, not as a spec — read Block 3 above for what ships.
+>
+> | | Status after 2026-08-17 |
+> |---|---|
+> | **One accent per card** | **LIVE, and doing more work than before.** Still the fourth positional tuple; the wash is now always-on rather than hover-gated, and `Chip` / `Avatar` / `Surface` all read it. |
+> | **The heading pins** | **GONE.** The heading is full-width above the reel. Its `--nav-peak-h` reasoning did not go with it — it is now `padding-top` on the reel's sticky wrapper, which is what the *frame* rests at, for exactly the reason recorded below. |
+> | **The card hover** | **GONE.** `CARD_HOVER` deleted; a card that owns the stage does not need to grow 4% to be noticed, and `hover:z-10` would fight the stack, whose whole mechanism is source order. |
+>
+> The `overflow-hidden` warning below is the one thing that got **more** load-bearing, not less:
+> it broke one heading in 2026-08-16 and would break the entire section now.
 
 ### One accent per card
 

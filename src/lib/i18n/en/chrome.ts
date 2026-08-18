@@ -63,6 +63,37 @@ export const chrome: ChromeDict = {
     mapTitle: "Map showing clix’s location — Tel Aviv-Yafo, Israel",
   },
 
+  /* ⚠️ TRANSLATION — he/chrome.ts is the source, lifted from the live widget. */
+  a11yWidget: {
+    open: "Open accessibility menu",
+    close: "Close accessibility menu",
+    title: "Accessibility menu",
+    textSize: "Text size",
+    decrease: "Decrease text size",
+    increase: "Increase text size",
+    highContrast: "High contrast",
+    bigCursor: "Large cursor",
+    highlightLinks: "Highlight links",
+    readableFont: "Readable font",
+    focusMode: "Focus mode",
+    reset: "Reset all settings",
+  },
+
+  /* The cookie notice. ⚠️ TRANSLATION — the Hebrew in he/chrome.ts is the source, lifted from
+     the live clix-solution.com banner. See the ChromeDict comment in dictionary.ts.
+     ⚠️ `bodyLead` ENDS WITH A SPACE and `bodyTail` is a bare full stop. The link goes between
+     them. Do not trim. */
+  cookies: {
+    label: "Cookie notice",
+    title: "This site uses cookies 🍪",
+    bodyLead:
+      "We use cookies to operate the site, to measure usage and to improve the experience. You can read more in our ",
+    bodyLink: "privacy policy",
+    bodyTail: ".",
+    acceptAll: "Accept all cookies",
+    essentialOnly: "Essential cookies only",
+  },
+
   a11y: {
     home: "clix home",
     openMenu: "Open menu",

@@ -95,10 +95,46 @@ export const accessibility: Translated<AccessibilityDict> = {
         "שדות טופס עם תוויות מפורשות, הודעות שגיאה המקושרות לשדה הרלוונטי, ובקרות מקובצות לפי הצורך.",
         "פריסה רספונסיבית הנפרשת באופן נקי עד 320 פיקסלים ללא גלילה אופקית, ותומכת בהגדלת טקסט של עד 200% ללא אובדן תוכן.",
         "אזורי ARIA Live להודעות סטטוס (שליחת טופס, עדכוני צ׳אט) כך שכל שינוי מוכרז לטכנולוגיה המסייעת.",
+        /* ADDED 2026-08-17 from the live page’s `תכונות נגישות באתר` list. These were FALSE when
+           they landed and are TRUE as of the same afternoon — both are delivered by the third-party
+           widget described in §04, not by the site’s own markup. If that widget is ever
+           removed, THESE TWO LINES GO WITH IT. */
+        "אפשרות להגדלת והקטנת גודל הטקסט.",
+        "מצב ניגודיות גבוהה לקריאה נוחה יותר.",
       ],
     },
     {
       n: "04",
+      /* ⚠️ THIS SECTION IS NO LONGER THE LIVE SITE'S TEXT, AND THAT IS DELIBERATE.
+         It arrived on 2026-08-17 as a verbatim port and was FALSE — it named a control this
+         build did not have. It was rewritten the same day, at the user's instruction ("make
+         sure the accessibility is connected to the accessibility page, like the content of
+         that"), to describe the widget this site ACTUALLY ships.
+
+         ⚠️ REWRITTEN A SECOND TIME the same day, when the shipped widget changed from Sienna to
+         AccessiYes. Every control listed below was read out of AccessiYes's own bundle
+         (WebYes Accessibility Widget v2.0.0), not copied from marketing — and the list is
+         NOT the same as Sienna's, which is exactly why this had to be redone rather than left.
+
+         THIS SECTION IS THE FIRST THING THAT GOES STALE if the widget is swapped again. It is
+         a declaration under תקנה 35, not a feature list. `AccessibilityGate.tsx` says so too. */
+      title: "כפתור נגישות",
+      lead: [
+        "בפינה השמאלית התחתונה של המסך תמצאו כפתור נגישות הפותח תפריט התאמות. התפריט נטען בכל עמוד באתר ומסופק על ידי AccessiYes, כלי נגישות חיצוני.",
+      ],
+      items: [
+        "פרופילים מוכנים מראש: מצב בטוח לאפילפסיה, לקות ראייה, וקשב וריכוז.",
+        "התאמות טקסט: הגדלה והקטנה של גודל הטקסט, עובי גופן, גובה שורה, מרווח בין אותיות, יישור טקסט, גופן ידידותי לדיסלקציה, הדגשת כותרות והדגשת קישורים.",
+        "התאמות צבע: ניגודיות גבוהה, ניגודיות כהה, ניגודיות בהירה, רוויה גבוהה, רוויה נמוכה ומצב מונוכרום.",
+        "עזרי קריאה וניווט: סמן גדול, קו מנחה לקריאה, עצירת אנימציות, הקראת עמוד והשתקת צלילים.",
+        "קישור להצהרה זו מתוך התפריט עצמו, בשפת העמוד שבו אתם נמצאים.",
+      ],
+      tail: [
+        "שפת התפריט נקבעת לפי שפת העמוד, כך שבעברית הוא מוצג בעברית ובאנגלית באנגלית.",
+      ],
+    },
+    {
+      n: "05",
       title: "טכנולוגיה מסייעת תואמת",
       /* ⚠️ The first line asserts testing this build has never had. */
       lead: [
@@ -107,7 +143,7 @@ export const accessibility: Translated<AccessibilityDict> = {
       ],
     },
     {
-      n: "05",
+      n: "06",
       title: "עמודים ורכיבים בתהליך נגשה",
       /* ⚠️ Describes a playground node editor and 3D scenes that do not exist on this site. */
       items: [
@@ -117,7 +153,7 @@ export const accessibility: Translated<AccessibilityDict> = {
       ],
     },
     {
-      n: "06",
+      n: "07",
       title: "רכז הנגישות",
       /* The only section using all three slots: intro, contact list, response-time note. The
          NAME is published on the live site and is kept verbatim. */
@@ -134,12 +170,20 @@ export const accessibility: Translated<AccessibilityDict> = {
       ],
     },
     {
-      n: "07",
+      n: "08",
       title: "שינויים בהצהרה זו",
       /* The source repeats the date inside this section as well as at the top. Kept. */
       lead: [
         "הצהרה זו נסקרת ומתעדכנת בכל שינוי מהותי באתר ובכל מהדורת שיפורי נגישות שאנו משחררים. תאריך העדכון האחרון בתחתית העמוד משקף את הגרסה הנוכחית.",
         "עדכון אחרון: 16 במאי 2026.",
+      ],
+    },
+    {
+      n: "09",
+      /* ADDED 2026-08-17 — the live page’s closing section, which this port lacked. */
+      title: "שיפור מתמיד",
+      lead: [
+        "אנו עובדים באופן שוטף לשפר את נגישות האתר ולהתאימו לתקנים העדכניים ביותר. המחויבות שלנו לנגישות היא חלק בלתי נפרד מהשירות שאנו מספקים.",
       ],
     },
   ],

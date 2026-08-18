@@ -10,23 +10,177 @@ no code scanning.
 
 ## Current state
 
-`/contact` and `/he/contact` exist and are statically prerendered. Dark hero band, then a light
-band holding a sticky 300px contact aside and a four-group form. The form POSTs to
+`/contact` and `/he/contact` exist and are statically prerendered. **Redesigned 2026-08-17** —
+a sparse dark hero, a `bone` band holding a sticky brief-rail and one white elevated form panel,
+and a footer whose closing CTA is replaced by the four contact channels whose four groups read as numbered steps that visibly complete.
+`--color-signal` teal for on-track, `--color-alert` red for wrong. The form POSTs to
 `/api/contact`, which validates, drops honeypot hits, rate-limits, and mails the enquiry to
-`info@clix-solution.com` over Gmail SMTP via nodemailer. All eleven CTAs across the site now
-point here. Build, lint and typecheck are clean; the API's five failure paths and one success
-path were exercised over HTTP and behave correctly; the Gmail credential was verified.
+`info@clix-solution.com` over Gmail SMTP via nodemailer. All eleven CTAs across the site point
+here. Build, lint and typecheck are clean; the API's five failure paths and one success path were
+exercised over HTTP and behave correctly; the Gmail credential was verified.
 
-**What is not done: nobody has looked at the page.** No visual check at any width, no Hebrew RTL
-check, no browser keyboard walk-through. Handed to the user for exactly that.
+**What is not done: nobody has looked at the page.** Still true after the redesign. Both routes
+return 200 and the rendered HTML was inspected for the two known landmines — the 1px-wide form
+(clean) and the Hebrew RTL markup (clean) — but there has been **no visual check at any width in
+either language**, no browser keyboard walk-through. Handed to the user for exactly that.
 
 **Status:** `review`
-**Next action:** user opens `/contact` and `/he/contact` and says whether the layout is right;
+**Next action:** user opens `/contact` and `/he/contact` at 1600 / 1440 / 1024 / 390 and says
+whether the redesign lands; then set the two env vars in the Vercel project settings so the
+deployed form can send.
 then set the two env vars in the Vercel project settings so the deployed form can send.
 
 ---
 
 ## Log
+
+
+### 2026-08-17 (second pass) — the channels moved to the footer and the closing CTA went
+
+**Why.** The footer's reiteration block ends every page with "Software that works, results that
+speak." over a `Let's start` button — and that button points at `/contact`, so on `/contact` it
+pointed at the page you were already reading. `FEATURE.md` had carried this as an open question
+since 2026-08-13, left alone on the grounds that special-casing a component seven routes render
+was worse than the redundancy. The user closed it on sight of the band:
+*"move it down, remove the cta, since you are already in the cta page."*
+
+**Done**
+- `Footer` gained an optional **`closing?: ReactNode`** prop. When passed, it replaces the
+  reiteration block; the divider, link row and copyright below are untouched.
+- `ContactRoute` passes `<ContactChannels />`. The other six routes pass nothing and render
+  byte-identically to before.
+- `ContactHero` lost the channel grid it had gained hours earlier and is back to eyebrow +
+  headline in a `gap-4` column.
+
+**Decisions**
+- **The prop takes a NODE, not a `variant="contact"` or a route name.** `Footer` must not learn
+  what `/contact` is — that would put a page's concern inside a component shared by seven routes,
+  and the next such request would add a second. The knowledge stays at the call site.
+- **`pt-14` is repeated on the replacement wrapper rather than left to the caller.** That inset is
+  what the container's `gap-14` measures from, so anything at a different padding would land the
+  divider at a different distance than on every other route.
+- ⚠️ **The hero is now deliberately sparse again** — 198px of `ink` holding two lines, which is
+  precisely what the earlier redesign review called "the emptiest hero on the site". The trade was
+  made knowingly and with the concern stated: the channels do more work ending a ~1400px form than
+  decorating its top. **Do not "fix" this by inventing filler for the band.**
+- ⚠️ **A JSDoc gotcha, recorded because it cost a build:** writing `**/contact**` for emphasis
+  inside a `/** */` block terminates the comment — `*/` is `*/` wherever it appears. Use backticks.
+
+**Not done**
+- Still no visual check at any width in either language. Unchanged from the first pass.
+
+### 2026-08-17 — full visual redesign in `/company` Block 3's language
+
+**Why.** The page shipped 2026-08-13 and nobody ever looked at it. A look found: five identical
+`border-t hairline pt-8` blocks stacked ~1400px tall; the `01`–`04` numerals set 12px `text-mark`
+(3.41:1, doing no visual work at all); no progress or completion signal of any kind; the aside
+weightless at 300px beside the form and leaving ~196px of dead gutter at desktop; and the site's
+terminal CTA rendered `tablet:w-min` — the smallest element in its own column.
+
+**The user lifted all four constraints `FEATURE.md` recorded as deliberate here** — motion, an
+accent colour, elevation/a surface tone, and a red for errors — and asked for `/company` Block 3's
+visual language. Two things were raised and **declined**; see Decisions.
+
+**Done**
+- Two new tokens, `--color-signal` `#0e6472` and `--color-alert` `#b42318`, with a full
+  set-justification block in `globals.css` and a section in `docs/DESIGN-SYSTEM.md`.
+- `ContactAside.tsx` → **renamed `ContactChannels.tsx`**, now a 1/2/4-up ruled grid on `ink`.
+  It went into the hero first and then, the same day on the user's call, down into the **footer**
+  — see "Second pass" below.
+- `ContactForm.tsx` now owns **both columns**: a sticky brief-rail and the form panel.
+- `ContactBody.tsx` → `bg-bone`; it is just the band now.
+- New `contactGlyphs.tsx` — `CheckGlyph` and `AlertGlyph`, drawn on `serviceGlyphs.tsx`'s grid.
+- Three keyframes + a `.contact-progress` transform-origin pair in `globals.css`.
+- Four new dictionary keys in both locales (`panel.{title,intro,reply}`, `a11y.{needsCount,charsLeft}`).
+
+**Measurements that decided the design**
+
+| Pair | Ratio | |
+|---|---|---|
+| `signal` on `paper` / `bone` | 6.81 / 6.09 | AA |
+| `alert` on `paper` / `bone` | 6.57 / 5.88 | AA |
+| **`muted` `#737373` on `bone`** | **4.24:1** | **fails AA** |
+| **`mark` `#8b8b8b` on `bone`** | **3.05:1** | fails, worse than its 3.41 on white |
+
+The `muted` failure is what forced the layout: every label, placeholder, hint and the consent line
+on this form is `muted`, so the form could not be tinted. The **band** takes the tint and the form
+stays white — `/company`'s own white-cards-on-`bone` answer. **Rule: on `bone`, only `ink` and
+`ink-soft`.** The rail's intro is `ink-soft` (10.49:1) for exactly this reason.
+
+⚠️ **Pre-existing failure found and NOT fixed:** `/company` Block 3's intro is `muted` on `bone`
+at 16/18px — 4.24:1 on a shipping page. Out of scope here; recorded in `DESIGN-SYSTEM.md` so it is
+not re-discovered as new.
+
+**Decisions**
+- **`signal` is a teal, not a green, and that is CVD reasoning not taste.** Green-complete against
+  red-invalid is the obvious pairing and the one that collapses under deuteranopia/protanopia
+  (~8% of male visitors) — on a page whose whole new state language is those two colours.
+- **Rejected reusing `--color-svc-1` `#0f6b63`** (6.36:1), which would have added zero new hues.
+  A service accent and a form state colour are different things; coupling them means a retune of
+  `/company`'s palette would silently move `/contact`'s focus rings.
+- **No GSAP, and no animation library.** Every motion here is a one-shot mount reveal or a state
+  transition — nothing scroll-driven, scrubbed or pinned, i.e. none of the four things GSAP is in
+  this project for. `/company` Block 3, the band being matched, ships zero client JS.
+- ⚠️ **The global reduced-motion clamp does not zero `animation-delay`.** Every reveal here is
+  staggered and held at `opacity: 0` by `backwards` fill, so under the clamp alone a
+  reduced-motion visitor would get a blank element for the length of its delay and then a snap —
+  a timed flash of missing content, worse the further down the stagger. So **every `animation:`
+  on this page is authored inside `@media (prefers-reduced-motion: no-preference)`** and is never
+  built under reduce, the CSS equivalent of `gsap.matchMedia()`. **This is a latent gap in the
+  global clamp, not a quirk of this page** — any future staggered CSS entrance in this repo hits it.
+- **Step chip state is derived in JS, not from a `focus-within` variant.** Precedence is
+  `invalid > complete > active > pending`; as CSS variants those are four independent rules whose
+  winner depends on Tailwind's emission order, and the case that matters most is a group that is
+  both focused and invalid.
+- **The submit button stays `bg-ink`.** The restraint clause makes the accent a *state* channel;
+  `ink` is this site's primary button on a light ground. Hover became a lift + `shadow-float`
+  rather than `opacity-90` — dimming a black button is the weakest hover on the site. **No
+  trailing arrow**, which avoids `rtl:-scale-x-100` mirroring entirely.
+- **The `w-px flex-[1_0_0]` idiom is RETIRED here, not re-gated.** Its only purpose was to let a
+  `max-w-[720px]` cap decide the column; there is no cap now — the panel is the space left over
+  (~820px at 1280), which is what closes the 196px gutter. `w-full` ungated, `flex-1`/`min-w-0`
+  gated to `desktop:`.
+- **Sticky offset is now `calc(var(--nav-peak-h) + 16px)`** (131px), not the borrowed
+  `top-[198px]`. 198 was the *hero's* padding; it cleared the banner but parked the rail 67px low.
+- **Client-side validation failure now also sets `formError`.** The always-mounted alert region
+  used to stay silent on the most common failure path, so a screen-reader user got a form that
+  refused to submit with no spoken reason.
+- **Counter a11y:** both visual counters are `aria-hidden`; the needs group gets one `sr-only`
+  live region; **budget gets none** (a `radiogroup` already announces its checked radio, and
+  "1 of 4" is meaningless for single-select); the textarea's region is silent until 200 characters
+  remain and then reports the remainder **bucketed to the nearest 50** — at most four
+  announcements over the whole tail instead of one per keystroke.
+- **The needs pills gained a check glyph.** The two pill groups were pixel-identical despite one
+  being multi-select and one single-select, so someone who had just picked three needs would try
+  the same on budget and watch their first choice silently clear. Budget says "Choose one" in its
+  state slot instead — promoting copy that was `sr-only` only.
+- **Textarea 160px/`rows=6` → 120px/`rows=4`.** It was the tallest control on the page and asks
+  for the least text: its own placeholder says "two honest sentences is plenty" and `messageMin`
+  is ten characters.
+- **The reply promise moved forward.** "We reply within one business day" existed only in
+  `successBody` — i.e. the most reassuring line on the page was shown exclusively to people who
+  had already been reassured enough to submit. Now in the rail and beside the button.
+- **Hero eyebrow `muted` → `paper-soft`**, closing a documented AA failure (3.85 → 11.84). The
+  same open item on the other four routes is untouched — they are clones and this is not.
+
+**Raised with the user and DECLINED — decisions, not outstanding defects**
+- **Group order stays `about → needs → budget → brief`.** Review argued budget-before-brief
+  extracts a money commitment before the visitor has invested anything and recommended moving the
+  brief up. The user chose to keep the reference's own order (`SOURCED`, `he/contact.ts`).
+- **The ₪10k → ₪15k budget gap stays open.** A visitor with ₪12k has no truthful band and, budget
+  being optional, will likely skip the question. The user chose to keep the ladder as the business
+  advertises it — the reasoning already recorded in `he/contact.ts`.
+
+**Not done**
+- **Nobody has looked at the redesigned page either.** Build, lint, typecheck clean; both routes
+  200; the rendered HTML was inspected for the 1px-form landmine (clean: `w-full` ungated) and for
+  the Hebrew RTL markup (`dir="rtl"`, `ms-auto`, `border-s-2` all present). **No visual check at
+  any width in either language.** Handed to the user.
+- Consent-line links — still plain text, though `/privacy` and `/terms` now exist, so the blocker
+  recorded in `en/contact.ts` is gone whenever it is wanted.
+- Trust signals (logos, a named person, a "book 15 minutes" alternative beside a ten-decision
+  form). Probably the highest-value future addition to this page; needs content that doesn't exist.
+
 
 ### 2026-08-13
 

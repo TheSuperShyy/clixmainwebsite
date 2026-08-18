@@ -96,6 +96,40 @@ export const chrome: ChromeDict = {
     mapTitle: "מפה של מיקום clix — תל אביב-יפו, ישראל",
   },
 
+  /* SOURCED VERBATIM from the live https://www.clix-solution.com accessibility widget,
+     2026-08-17. This is the SOURCE; en/chrome.ts carries the translation. */
+  a11yWidget: {
+    open: "פתח תפריט נגישות",
+    close: "סגור תפריט נגישות",
+    title: "תפריט נגישות",
+    textSize: "גודל טקסט",
+    decrease: "הקטן גודל טקסט",
+    increase: "הגדל גודל טקסט",
+    highContrast: "ניגודיות גבוהה",
+    bigCursor: "סמן גדול",
+    highlightLinks: "הדגשת קישורים",
+    readableFont: "גופן קריא",
+    focusMode: "מצב התמקדות",
+    reset: "איפוס כל ההגדרות",
+  },
+
+  /* SOURCED VERBATIM from the live https://www.clix-solution.com cookie banner, 2026-08-17.
+     This is the SOURCE; en/chrome.ts carries the translation.
+     ⚠️ `bodyLead` ENDS ON THE BARE PREFIX "ב" WITH NO SPACE — it attaches directly to the link
+     that follows it ("...לקרוא עוד ב" + "מדיניות הפרטיות"). `bodyTail` OPENS WITH A SPACE. A
+     trim on either one breaks the sentence. */
+  cookies: {
+    /* Authored, not sourced — the live banner has no accessible name at all. */
+    label: "הודעת עוגיות",
+    title: "האתר משתמש בעוגיות 🍪",
+    bodyLead:
+      "אנחנו משתמשים בעוגיות לצורך תפעול האתר, מדידה סטטיסטית ושיפור חווית המשתמש. ניתן לקרוא עוד ב",
+    bodyLink: "מדיניות הפרטיות",
+    bodyTail: " שלנו.",
+    acceptAll: "קבל את כל העוגיות",
+    essentialOnly: "רק עוגיות חיוניות",
+  },
+
   a11y: {
     /* AUTHORED ×8. Screen-reader strings; no counterpart in the capture, which ships one
        relevant example: aria-label="הפעלת עדות של <name>" on its testimonial play buttons —

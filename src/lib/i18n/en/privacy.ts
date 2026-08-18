@@ -46,12 +46,20 @@ export const privacy = {
       n: "01",
       title: "The company and contact details",
       lead: [
-        "Clix — a business automation solutions company.",
+        "CLIX — automation solutions for businesses",
         "For privacy enquiries: by email at {email} or by phone at {phone}.",
       ],
     },
     {
       n: "02",
+      /* ADDED 2026-08-17 — see he/privacy.ts. */
+      title: "Introduction",
+      lead: [
+        "This document sets out how Clix collects, uses, stores and protects information provided in the course of using the landing page and the company’s services.",
+      ],
+    },
+    {
+      n: "03",
       title: "The information we collect",
       lead: [],
       items: [
@@ -65,7 +73,7 @@ export const privacy = {
       tail: [],
     },
     {
-      n: "03",
+      n: "04",
       title: "Purposes for which the information is used",
       lead: [],
       items: [
@@ -77,7 +85,7 @@ export const privacy = {
       tail: [],
     },
     {
-      n: "04",
+      n: "05",
       title: "Disclosure of information to third parties",
       lead: [
         "Clix does not sell information to third parties.",
@@ -85,14 +93,14 @@ export const privacy = {
       ],
     },
     {
-      n: "05",
+      n: "06",
       title: "Storage of the information",
       lead: [
         "The information is held in the Clix database. Access is restricted to authorised staff only. Clix applies technological and organisational security measures to prevent unauthorised access.",
       ],
     },
     {
-      n: "06",
+      n: "07",
       title: "User rights under the Protection of Privacy Law",
       lead: [],
       items: [
@@ -104,14 +112,14 @@ export const privacy = {
       ],
     },
     {
-      n: "07",
+      n: "08",
       title: "Retention period",
       lead: [
         "Information is retained for as long as a business and operational need exists. Full deletion may be requested at any time.",
       ],
     },
     {
-      n: "08",
+      n: "09",
       title: "Direct marketing and consent to receive messages",
       lead: [],
       items: [
@@ -121,7 +129,7 @@ export const privacy = {
       tail: [],
     },
     {
-      n: "09",
+      n: "10",
       title: "Use of cookies",
       lead: [],
       items: [
@@ -131,7 +139,7 @@ export const privacy = {
       tail: [],
     },
     {
-      n: "10",
+      n: "11",
       title: "Deleting your details and privacy enquiries",
       lead: ["You can contact us at {email} or by phone at {phone}."],
     },

@@ -20,12 +20,35 @@
  * - `paper` over `paper-soft` for the emphasis is /security's pairing (white heading, 80% body)
  *   inverted onto one line — 11.84:1 and 21:1 on `ink`, both AAA.
  *
+ * ⚠️ THE FOUR CONTACT CHANNELS PASSED THROUGH THIS BAND AND DO NOT LIVE HERE. On 2026-08-17
+ * they moved out of the 300px sidebar (`ContactAside.tsx`) into this hero, and then — the same
+ * day, on the user's call — down into the FOOTER, where they now replace the closing CTA on
+ * this route only. See `ContactChannels.tsx` and `Footer.tsx`'s `closing` prop.
+ *
+ * The reason they did not stay: the footer's closing CTA is "Software that works, results that
+ * speak. [Let's start]", and on /contact that button points at the page you are already on.
+ * Putting the channels there deletes a redundant CTA and ends the page on something useful,
+ * which is worth more than filling this band was. The user's words: "move it down, remove the
+ * cta, since you are already in the cta page."
+ *
+ * ⚠️ SO THIS HERO IS DELIBERATELY SPARSE AGAIN — 198px of `ink` holding an eyebrow and one
+ * headline. That was called out as the emptiest hero on the site during the redesign review and
+ * the trade was made knowingly: the channels do more work at the end of a ~1400px form than they
+ * did decorating the top. Do not "fix" this by inventing filler for the band.
+ *
+ * ⚠️ THE EYEBROW IS `paper-soft`, NOT `muted`, AND THAT IS A FIX. It was `text-muted`, which is
+ * 3.85:1 on `ink` and fails AA — carried as a known open item on four routes, justified here on
+ * the grounds that the word duplicates the <h1> beneath it. That justification was always thin
+ * and it is now free to drop: nothing else on this band uses `muted`, so raising this one
+ * element to `paper-soft` (11.84:1, AAA) closes the failure at zero design cost. The open item
+ * on the OTHER four routes is untouched — they are clones and this is not.
+ *
  * ONE FACE, AND WHY THE EYEBROW IS NOT MONO. `--font-mono` (Fragment Mono) is loaded but its
  * @font-face unicode-ranges cover Latin, Greek and Cyrillic and NOT U+0590–05FF, so any
  * Hebrew set in it silently falls back to the OS monospace beside Discovery. The eyebrow says
  * "צרו קשר" in Hebrew, so it is `font-sans`. Mono is used on this page only where the glyphs
- * are Latin or numeric in BOTH locales — the group numerals and the aside's email and phone.
- * See ContactAside.tsx and ContactForm.tsx, which carry the same note.
+ * are Latin or numeric in BOTH locales — the group numerals, the counters, and the channel
+ * grid's email and phone. See ContactChannels.tsx and ContactForm.tsx, which carry the same note.
  */
 
 import { getDict } from "@/lib/i18n/server";
@@ -42,24 +65,20 @@ export default function ContactHero() {
       className="relative flex w-full items-center justify-center overflow-hidden bg-ink px-4 pt-[198px] pb-16 tablet:px-10 desktop:pb-24"
     >
       <div className="relative flex w-px max-w-[var(--container-max)] flex-[1_0_0] flex-col items-start gap-4">
-        {/* Eyebrow. `text-muted` on `ink` is 3.85:1 — below AA for body text, and the same
-            open item four other routes already carry (docs/DESIGN-SYSTEM.md). It is used here
-            for a five-character label that duplicates the <h1> beneath it, which is the one
-            shape where the failure carries no information loss. Not a new deviation; not a
-            reason to introduce a token either. */}
+        {/* Eyebrow. `paper-soft` — see the note above; this was `muted` and failed AA. */}
         <p
-          className="font-sans text-[14px] font-medium text-muted"
+          className="font-sans text-[14px] font-medium text-paper-soft"
           style={{ lineHeight: "1.3em", letterSpacing: "-0.02em" }}
         >
           {t.eyebrow}
         </p>
 
         {/* The headline. Three runs, one colour boundary, `<span>` in the component and never
-            in the dictionary. `max-w-[--measure]` (844px) is the site's narrow measure and is
-            what keeps the line breaking on its own rather than at a hard-coded <br> — this
-            page has no capture to line-fit against, so the copy is allowed to wrap where the
-            language wants to. That is also why there is no runs-array here as the footer has:
-            nothing is pinned, so nothing needs the escape hatch. */}
+              in the dictionary. `max-w-[--measure]` (844px) is the site's narrow measure and is
+              what keeps the line breaking on its own rather than at a hard-coded <br> — this
+              page has no capture to line-fit against, so the copy is allowed to wrap where the
+              language wants to. That is also why there is no runs-array here as the footer has:
+              nothing is pinned, so nothing needs the escape hatch. */}
         <h1
           className="max-w-[var(--measure)] font-display text-[44px] text-paper-soft tablet:text-[48px]"
           style={{ lineHeight: "1.1em", letterSpacing: "-0.05em" }}

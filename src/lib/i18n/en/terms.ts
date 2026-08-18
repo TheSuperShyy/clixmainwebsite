@@ -28,6 +28,14 @@ export const terms = {
   sections: [
     {
       n: "01",
+      /* ADDED 2026-08-17 — see he/terms.ts. */
+      title: "General",
+      lead: [
+        "Use of the Clix site and landing page constitutes full agreement to these terms of use. If you do not agree to the terms, please refrain from using the site.",
+      ],
+    },
+    {
+      n: "02",
       title: "Fair use of the site",
       items: [
         "No material or information from the site may be copied, distributed, reproduced, published or passed to a third party without prior written permission.",
@@ -35,7 +43,7 @@ export const terms = {
       ],
     },
     {
-      n: "02",
+      n: "03",
       title: "Limitation of liability",
       items: [
         "Use of Clix’s services and of the information on the site is at users’ sole responsibility.",
@@ -43,21 +51,21 @@ export const terms = {
       ],
     },
     {
-      n: "03",
+      n: "04",
       title: "Links to external sites",
       lead: [
         "The site may include links to external sites. Clix is not responsible for the content on those sites.",
       ],
     },
     {
-      n: "04",
+      n: "05",
       title: "Updating these terms",
       lead: [
         "Clix may update, change or replace these terms of use at any time. The date of the most recent update appears at the bottom of the document.",
       ],
     },
     {
-      n: "05",
+      n: "06",
       title: "Types of cookies",
       items: [
         "Essential cookies, for operating the site.",
@@ -66,10 +74,14 @@ export const terms = {
       ],
     },
     {
-      n: "06",
+      n: "07",
       title: "Managing cookies",
       lead: [
         "On your first visit to the site you will be asked to approve the use of cookies. You may choose to accept all cookies or to set your preferences individually.",
+      ],
+      /* ADDED 2026-08-17 — see he/terms.ts. */
+      tail: [
+        "© All rights reserved to Clix | Use of the site is subject to the privacy policy, terms of use and cookie policy",
       ],
     },
   ],

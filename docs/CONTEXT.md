@@ -15,6 +15,197 @@ Line format:
 
 ---
 
+## 2026-08-18
+
+- `a11y-widget` — **AccessiYes button 48 → 40 and its panel cut from a 462px full-height drawer to
+  a 340px popover.** ⚠️ **It renders in a SHADOW DOM** (`attachShadow`), so globals.css cannot
+  reach it — the Sienna approach would be silently inert. Button size went through the real
+  `iconSize` config key (custom properties cross the boundary); the panel needed a `<style>`
+  injected into the shadow root (`AccessiYesCustomize.tsx`), possible only because the root is
+  `mode: "open"`. Also recoloured to the site's navy #1b3a5f via the `primaryColor` config key —
+  the only place it can be set, since the widget spreads it inside the shadow root.
+  → [detail](../features/legal-pages/CONTEXT.md)
+
+## 2026-08-17
+
+- `a11y-widget` — **AccessiYes is now the shipped widget**, from the user's generated embed.
+  Config + injection kept in ONE inline script (`next/script` does not order inline against src,
+  and losing that race boots the vendor defaults); `position` forced `bottom-left` on both
+  breakpoints because §04 declares it; statement URL built from `location.origin` + `localeHref`
+  rather than the hardcoded production URL the generator emitted, so localhost and the Hebrew
+  tree both resolve correctly. **§04 rewritten a second time** for AccessiYes's control list.
+  Sienna + built-in stay reachable by env var. → [detail](../features/legal-pages/CONTEXT.md)
+- `a11y-widget` — (superseded) AccessiYes evaluated as a third gate branch, inert until
+  `NEXT_PUBLIC_ACCESSIYES_SITE_ID` is set (signup required; falls through to Sienna meanwhile).
+  Verified: it is a WordPress-first product whose generic embed is unpublished, the served file is
+  `WebYes Accessibility Widget v2.0.0` from cdn-cookieyes.com, **370 KB vs Sienna's 66 KB**, no
+  telemetry endpoint. ⚠️ Switching invalidates /accessibility §04 (it enumerates Sienna's
+  controls) and the `.asw-*` skin does not transfer.
+- `a11y-widget` — **Sienna's panel cut from a 500px full-height drawer to a 340px popover**
+  anchored above its button (user: "its too big"). Safe because its closed state is
+  `display:none`, not a transform, and `.asw-menu-content` already scrolls. `bottom:84px` is
+  button 52 + offset 16 + gap 16 — move it if either changes.
+- `a11y-widget` — **Sienna skinned to the site and repointed at our own statement.** Read from
+  the published bundle v2.2.333: only `lang`/`position`/`offset` are settable from the script
+  tag, and its `statement` option has no consumer — so `SiennaCustomize.tsx` rewrites the panel
+  footer's link to our `/accessibility` and sets the panel accent from JS (its inline
+  `!important` cannot be reached from a stylesheet; the button can, and is skinned in
+  globals.css). **`/accessibility` §04 rewritten** to describe the real control list rather than
+  the ported text that was false. ⚠️ §04 and two §03 bullets now depend on the widget staying —
+  both files say so at the point of use. → [detail](../features/legal-pages/CONTEXT.md)
+- `a11y-widget` — **Ships the Sienna plugin** (free, MIT, jsDelivr, no account), after a UserWay
+  integration was written and deleted unused the same hour ("its paid, we should use some free
+  one"). `AccessibilityGate` reads `NEXT_PUBLIC_A11Y_WIDGET` — unset = Sienna, `builtin` = ours;
+  exactly one ever renders, so §04 never declares a button that is not there. ⚠️ Open: the script
+  is on `@latest` (pin it, then add SRI), and privacy §05 names third-party processors without
+  naming Sienna. ⚠️ Stated twice and reaffirmed: an overlay does not satisfy תקנה 35 / ת״י 5568.
+  → [detail](../features/legal-pages/CONTEXT.md)
+
+- `footer` — **Terms is no longer hidden below 1200px.** `only: "desktop"` deleted from
+  `Footer.tsx`; the Legal column is 3 links at every tier. The gate came from the
+  docs/reference/target capture; the user rejected the premise — this footer answers to
+  clix-solution.com, which shows all three at every width. ⚠️ `docs/PROJECT.md:7` still names
+  rogo.ai as the target and is now known-stale; left for the user to decide.
+- `a11y-widget` — **Settled as a floating bottom-left icon** that closes on an outside click
+  (`pointerdown`, registered only while open so it cannot eat its own opening event). Back in the
+  layout shells, so it is on every route again and matches §04's "בצד שמאל של המסך".
+- `a11y-widget` — **Moved into the footer's Legal column** (user), out of the layout shells.
+  Trigger is inline and styled like the links beside it; the panel stays `fixed` because the
+  column sets `overflow-hidden`. ⚠️ Two regressions, both reported: /accessibility §04 still says
+  the button is on the left edge of the SCREEN, and /news renders no footer so the widget is
+  absent there.
+- `a11y-widget` — **Accessibility widget built** (`src/components/a11y/AccessibilityWidget.tsx`),
+  ported from the live clix-solution.com. Seven controls: text size ±, high contrast, large
+  cursor, highlight links, readable font, focus mode, reset. Makes /accessibility §04 TRUE and
+  takes the page's false-promise count 6 → 4. Text size is `zoom` not root `font-size` (this
+  codebase sets type in px); high contrast redefines tokens and must never be a `filter` (it
+  would unpin every `position: fixed` element). ⚠️ Not built or typechecked — the user asked to
+  stop self-verifying. → [detail](../features/legal-pages/CONTEXT.md)
+
+- `company-page` — **Caption overlap fixed, mask fade made a computed length, mobile tightened.** *"the subheader is behind the card"* + *"enhance the ui in the mobile view"*. The kicker was an overlay on a panel whose scene fills the whole box, so it sat ON the scene at every size; it now has a reserved band (`--reel-caption-h`, added to the panel's block-start padding and subtracted inside `--reel-scene-max`). Separately the mask faded **14% of the window** — ~87px at desktop against a 90px overhang, but ~38px on a phone against a 21px overhang, so it was dissolving the live panel's own caption. Now `--reel-overhang: (art-h − panel-h) / 2`. ⚠️ **A percentage looked right at one breakpoint only because the two quantities happened to coincide there.** Mobile: the detail spacer is `tablet:`-only (it opened a ~90px void in a 146px box), `--reel-detail-h` 146 → 128, name rows 40 → 44px at 20px type. → [detail](../features/company-page/CONTEXT.md)
+- `company-page` — **Live-row dash is `ink` not the accent, and the heading sits closer** (`mt` 40/48/64 → 16/24/32). ⚠️ **Second time this band has reversed accent → black on its live marker** — the stack's 3px card-top rule went the same way, for the same reason: eight services are one system, and a marker that changes colour per service says the opposite. The margin was all the gap could give — the frame is centred in a `min-h-svh` sticky wrapper that also clears `--nav-peak-h`. → [detail](../features/company-page/CONTEXT.md)
+- `company-page` — **The eight pulsing accent dots are gone** (*"remove these colored dots per card, we have to make the cards simple but looks good"*). `Dot` and `service-pulse` deleted; each dot's label moved back into the space it vacated (8–12 source units). The typing indicator survives but is now `mock-line` grey rather than accent — it was the last coloured dot left, and no chat client draws one in the brand colour. Scene 5's three GREY browser traffic lights stay: they are the window, not a claim about it. ⚠️ **Same diagnosis as `service-step` a day earlier — decoration wearing the costume of information.** A pulsing dot promises something is happening now; nothing was, and it pulsed identically on a finished report and a draft. → [detail](../features/company-page/CONTEXT.md)
+- `company-page` — **The live service name is now weight 700** (*"make the title of the card bold when its active"*). The only bold type on the site, and a deliberate exception: in a list of eight where seven are dimmed, weight is the difference that survives the dimming. A REAL instance, not faux-bold — Discovery is variable with `font-weight: 100 800` declared.
+- `company-page` — **Reel: rail deleted, and a mask bug fixed.** User on first sight: *"remove
+  the border and the number from left side"* — the 56px `01`/`08` rail is gone, so **this band
+  has now rejected a position indicator twice in two forms** and deliberately has none. The
+  screenshot also caught a real bug: `reel-window--fade` was on the art column, and a mask
+  applies to its element's own **background**, so the `ink` ground bled to white top and bottom.
+  Split into an outer element that paints and clips plus an inner masked layer.
+  → [detail](../features/company-page/CONTEXT.md)
+- `company-page` — **Block 3's sticky stack became a REEL** — one sticky frame, three tracks
+  (names · detail · scenes) sliding on one `--reel-i`. User brought the layout: *"i think this
+  one is better for the 8 services section, we can use this layout but keep the current cards"*.
+  The scenes, their step maps and the process player crossed over **unaltered** — `serviceArt.tsx`
+  was not touched — because `Stage` already capped a scene at 560px and the old art well already
+  hit that cap, so a 52% column renders every scene at exactly its previous size. That one
+  measurement is what made this a container rewrite instead of a redraw of eight mocks.
+  `ServiceStack.tsx`, `.service-stack`, the recede, the band's only `scrub:` and `flowTop()`
+  all deleted (≈180 lines) — the reel's scroller is not sticky, so ScrollTrigger can measure it
+  honestly. `kicker` came back as the caption over the live scene. Names are real `<button>`s,
+  unlike the reference. → [detail](../features/company-page/CONTEXT.md)
+- `company-page` — **Every service scene now plays its own process.** User: *"i want some
+  movements per cards, for example like the process for the service, its like the presentation,
+  i want it to look good and modern and smooth"*. The eight scenes were finished stills with two
+  or three ambient loops on top; each now ASSEMBLES ITSELF in the order its service works — the
+  roster reports in agent by agent, the thread books a demo, the workflow walks its chain, the
+  editor writes its file line by line — holds ~4.5s, dissolves and repeats for as long as that
+  card is live. Playback and looping were both chosen by the user (plays-on-arrival over
+  scrubbed-to-scroll; "loop all" over settle-once). ⚠️ **The choreography is DATA IN THE SCENES**
+  (`step={n}`) played by **one generic timeline** in `ServiceStack.tsx` — three beats (reveal,
+  `count`, `Track` fill) cover all eight, and there is no per-scene JS. Reversal logged: **bars
+  grow now**, reversing "never a bar growing" — that rule was about CSS keyframes, which cannot
+  read `dir`; a GSAP tween can, so the fill origin is picked per locale. New rule logged: **never
+  put a `step` on a node carrying a CSS animation** — the cascade swallows it; mark the
+  container. Knobs: `LEAD 0.3` · `BEAT 0.22` · `HOLD 3`; cycle ~6s.
+  → [detail](../features/company-page/CONTEXT.md)
+
+- `company-page` — **The hold cut to 3s and the art ground taken to `ink`.** User: *"why arent
+  they looping after the animation? maybe after 3 seconds it should redo the animation"* — the
+  loop was not broken, it was SLOW: `HOLD 4.5` put the cycle at ~7.5s, and ⚠️ **a loop nobody
+  waits long enough to see is indistinguishable from no loop.** Hardened alongside it: the scene
+  trigger moved off `onToggle` (which fires on refresh-induced `isActive` changes and could
+  park a live card's timeline) onto the four direction callbacks plus an `onRefresh` kick. Also
+  *"try putting black or the same bg from security to the border of each card"* — the art
+  column's ground went from a 5% accent tint over `bone` to `--color-ink`, /security's own
+  ground, so the white `Surface` reads as a lit screen rather than a panel on near-white.
+  → [detail](../features/company-page/CONTEXT.md)
+
+- `company-page` — **The travelling row highlight deleted, and the cards given something to
+  say.** User: *"remove it and improve all the cards, give more life to it, right now its still
+  looking ai slop"*. ⚠️ **`service-step` is gone — 31 instances, the band's workhorse loop.** It
+  washed one row at a time to mean "working through a list" and instead meant "your mouse is
+  here": **a tinted band across a table row is the universal signifier for hover/selection**, so
+  every scene looked like it had a cursor nobody was moving. Rule banked: *a loop that paints a
+  row container borrows a UI state and will always be misread as one.* Replaced by
+  behaviour-specific motion — `service-typing` (chat indicator), `service-caret` (editor cursor),
+  plus live dots where scenes were left bare; ~40 loops → ~12. On the card: a fifth positional
+  tuple `SERVICE_STACKS` (3–4 capability chips, still zero dictionary keys) filling the dead
+  bottom third, a tinted ground under the art so the mock stops floating in white, a 3px accent
+  rule on the top edge that **turns the stack's own peek into a colour index**, and the mark in a
+  square accent tile. → [detail](../features/company-page/CONTEXT.md)
+- `company-page` — **Block 3's eight scenes stop being skeletons.** Mid-build the user asked for
+  *"more to it, rather than just some skeleton UI"*: the rule that everything sentence-shaped
+  renders as a grey `Bar` held at 304px, where a bar reads as a sentence deliberately blurred,
+  but at ~680px it reads as a page still loading. The goal (locale-free scenes, zero dictionary
+  keys) was never wrong — the assumption under it was, because **a real product UI is mostly not
+  prose**: it is names, statuses, counts, IDs, filenames and code, all Latin in every locale.
+  All eight redrawn against a **440 × 288** source box (was 280 × 168), with new `Surface` /
+  `Chip` / `Metric` / `Avatar` / `Bubble` / `ColLabel` primitives and the flat `Panel` deleted.
+  Scene 7 now carries **real TypeScript — scene 4's workflow written out**, so the two are one
+  system from both ends. Still zero new dictionary keys; two deliberate exceptions logged.
+  → [detail](../features/company-page/CONTEXT.md)
+- `company-page` — **Block 3 rebuilt from a 2-column grid into a sticky card stack**, one service
+  per scroll. User: *"make it like scroll animation, only 1 service per scroll… modern and better
+  looking UI and animation"*. Each `<li>` is `position: sticky` and the next scrolls over it —
+  **the stacking is CSS and survives the client component being removed.** New `ServiceStack.tsx`
+  is the band's only client JS (recede, entrance, index) and the **repo's first `scrub:`**; `pin:`
+  still appears nowhere, deliberately. ⚠️ **ScrollTrigger cannot measure a sticky element** —
+  `getBoundingClientRect()` reports where a stuck card is *painted*, so every trigger is built
+  from `offsetTop` instead, re-read on `refreshInit`. The sticky heading column went; its
+  `--nav-peak-h` outlived it as `--stack-top`, closing the "heading hides under the nav on upward
+  scroll" bug open since 2026-08-16. ~35 of ~40 CSS loops now idle off-screen via an **opt-out**
+  `[data-idle]` gate. → [detail](../features/company-page/CONTEXT.md)
+- `contact-page` — **Full visual redesign in `/company` Block 3's language.** The page shipped
+  2026-08-13 and nobody had ever looked at it: five identical rules, invisible 12px `mark`
+  numerals, no completion signal, a weightless 300px aside leaving ~196px of dead gutter, and the
+  site's terminal CTA at `w-min`. The user lifted all four constraints FEATURE.md recorded as
+  deliberate (motion, accent, elevation, an error red). Now: a sticky brief-rail, one white
+  elevated panel on a `bone` band, four groups that visibly complete, and the four contact
+  channels **ending the page in place of the footer's closing CTA** — that CTA's button pointed at
+  `/contact` from `/contact`, an open question since 2026-08-13, closed by the user on sight
+  ("remove the cta, since you are already in the cta page"). `Footer` gained an optional `closing`
+  NODE prop for it; the other six routes pass nothing. The hero is deliberately sparse as a result. Two new tokens `--color-signal` `#0e6472` / `--color-alert` `#b42318`, tuned
+  as a CVD-safe pair. ⚠️ **`muted` on `bone` is 4.24:1 and FAILS AA** — that is why the form is
+  white on a tinted band, not tinted itself; on `bone`, only `ink`/`ink-soft`. ⚠️ **The global
+  reduced-motion clamp does not zero `animation-delay`**, so every entrance here is authored
+  inside `(prefers-reduced-motion: no-preference)` — a latent gap any future staggered CSS
+  entrance in this repo will hit. Group order and the ₪10k→₪15k budget gap were raised and the
+  user chose to keep both. Still unlooked-at visually.
+  → [detail](../features/contact-page/CONTEXT.md)
+- `docs` — `DESIGN-SYSTEM.md`: new "Added 2026-08-17 — /contact's two state colours" section;
+  `shadow-float` recorded as gaining a third and first-resting use. ⚠️ Also logs a **pre-existing
+  AA failure found but not fixed**: `/company` Block 3's intro is `muted` on `bone`, 4.24:1, on a
+  shipping page.
+- `legal-pages` — **Cookie banner shipped** (`src/components/legal/CookieBanner.tsx`), ported from
+  the live clix-solution.com banner and mounted in both layout shells. ⚠️ **COSMETIC BY DECISION** —
+  the user was asked and chose it: both buttons write `localStorage` and nothing reads it, so
+  `FooterMap`'s Google Map still sets third-party cookies unconditionally. terms §07 is now
+  half-kept. Strings live in `chrome` (a layout component cannot reach a page namespace) and the
+  storage read is `useSyncExternalStore` (the `useEffect` form fails `react-hooks/set-state-in-effect`).
+  → [detail](../features/legal-pages/CONTEXT.md)
+
+- `legal-pages` — **The source of truth for the three legal pages changed to
+  `https://www.clix-solution.com`** (user). The 2026-08-16 port was taken from
+  `clixsolutions.info`, a DIFFERENT site; the two documents share almost no structure. Per the
+  user's instruction (*"only the data … if there are missing from ours that is in the live one,
+  then put it to ours"*) our numbering/eyebrow/date shell was KEPT and only missing copy was
+  added: Terms gained §01 `כללי` and the closing © line; Privacy gained §02 `מבוא` and the live
+  `שם החברה` string; Accessibility gained §04 `כפתור נגישות`, §09 `שיפור מתמיד`, and two feature
+  bullets. Sections renumbered; `en/` mirrored (tuple arity is type-checked). `npm run build`
+  passes. ⚠️ Three known conflicts left UNCHANGED and listed in FEATURE.md.
+  → [detail](../features/legal-pages/CONTEXT.md)
+
 ## 2026-08-16
 
 - `nav` — **The locale switch is gone from the nav, SITEWIDE** (user: "remove this translate

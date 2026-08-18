@@ -29,6 +29,7 @@
 
 import Nav from "@/components/sections/Nav";
 import ContactHero from "@/components/contact/ContactHero";
+import ContactChannels from "@/components/contact/ContactChannels";
 import ContactBody from "@/components/contact/ContactBody";
 import Footer from "@/components/sections/Footer";
 import { fetchModels } from "@/lib/models";
@@ -59,7 +60,18 @@ export default async function ContactRoute({ locale }: { locale: Locale }) {
             /contact it is a link to the page you are already on. That is the same shape as the
             nav's current-page link and is left as is: the alternative is a per-route special
             case in a component rendered by every route. */}
-        <Footer />
+        {/* ⚠️ THE CLOSING CTA IS REPLACED ON THIS ROUTE ONLY. The footer's reiteration block ends
+            every other page with "Software that works, results that speak." over a `Let's start`
+            button — and that button points at /contact, so on /contact it pointed at the page you
+            were already reading. features/contact-page/FEATURE.md carried that as an open question
+            from 2026-08-13; the user closed it on 2026-08-17: "move it down, remove the cta, since
+            you are already in the cta page."
+
+            So the four contact channels end the page instead. They are the right thing to land on
+            after a long form — a visitor who does not want to fill it in gets email and WhatsApp
+            as the last thing they see — and it is the same argument ContactChannels.tsx's header
+            has always made, just applied at the bottom of the page rather than the top. */}
+        <Footer closing={<ContactChannels />} />
       </>
     </PageDictProvider>
   );

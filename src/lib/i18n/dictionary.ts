@@ -117,6 +117,59 @@ export interface ChromeDict {
     readonly copyrightHolder: string;
     readonly mapTitle: string;
   };
+  /**
+   * The accessibility widget's labels, added 2026-08-17. In `chrome` for the same reason the
+   * cookie notice is: it mounts in the LAYOUT, above every route, and `I18nProvider` hands the
+   * client exactly one dictionary.
+   *
+   * ⚠️ INVERTED. The Hebrew is the SOURCE — all twelve strings are lifted verbatim from the
+   * live clix-solution.com widget — and the English is the translation.
+   */
+  readonly a11yWidget: {
+    /** `aria-label` on the trigger when closed, and when open. */
+    readonly open: string;
+    readonly close: string;
+    /** Names the panel, and heads it. */
+    readonly title: string;
+    readonly textSize: string;
+    /** `aria-label`s on the two steppers; the visible glyphs are − and +. */
+    readonly decrease: string;
+    readonly increase: string;
+    readonly highContrast: string;
+    readonly bigCursor: string;
+    readonly highlightLinks: string;
+    readonly readableFont: string;
+    readonly focusMode: string;
+    readonly reset: string;
+  };
+  /**
+   * The cookie notice, added 2026-08-17. It lives in `chrome` rather than in a page namespace
+   * because `CookieBanner` mounts in the LAYOUT, above every route, and `I18nProvider` hands
+   * the client exactly one dictionary — this one.
+   *
+   * ⚠️ INVERTED, like `privacy` / `terms` / `accessibility`: the Hebrew is the SOURCE, lifted
+   * verbatim from the live https://www.clix-solution.com banner, and the English is the
+   * translation. `en/chrome.ts` is still the file the TYPE is written against.
+   */
+  readonly cookies: {
+    /** `aria-label` for the region. Authored — the live banner has no accessible name. */
+    readonly label: string;
+    readonly title: string;
+    /**
+     * The sentence is split in three because the privacy link sits INSIDE it. Same shape as
+     * the legal pages' `closingLead` / `closingTail`.
+     *
+     * ⚠️ THESE RUNS CARRY THEIR OWN EDGE SPACING and a "helpful" trim would corrupt both
+     * languages. Hebrew's lead ends on the bare prefix `ב`, which attaches to the link with
+     * NO space; English's ends on `our ` WITH one. Hebrew's tail opens with a space before
+     * `שלנו.`; English's is a bare full stop.
+     */
+    readonly bodyLead: string;
+    readonly bodyLink: string;
+    readonly bodyTail: string;
+    readonly acceptAll: string;
+    readonly essentialOnly: string;
+  };
   readonly a11y: {
     readonly home: string;
     readonly openMenu: string;

@@ -143,7 +143,7 @@ developer's call. Flagged here for the user and their lawyer:
 
 | The terms say | This site |
 |---|---|
-| §06: on first visit you are asked to approve cookies and may set preferences | ❌ **There is no cookie banner and no consent UI of any kind** |
+| §07: on first visit you are asked to approve cookies and may set preferences | 🟡 **HALF TRUE since 2026-08-17.** The prompt now exists — `src/components/legal/CookieBanner.tsx`. "להגדיר העדפות" still does not: there are two buttons and no settings panel, and neither button gates anything. See "The cookie banner" below. (Was §06; the section renumbered when `כללי` was added.) |
 | §05: marketing cookies for tailored advertising on Facebook and Google | ❌ **No ad pixels** — no gtag, no GTM, no Facebook Pixel |
 | §04: the last-updated date appears at the *bottom* of the document | ⚠️ It is at the **top**, on the live page and therefore here. The source contradicts itself; kept as published. |
 
@@ -156,6 +156,163 @@ Over-declaring (privacy §02's phone) is safer than under-declaring. The cookie 
 opposite case.
 
 ---
+
+## ⚠️ ACCESSIYES IS WIRED BUT NOT CONFIGURED (2026-08-17)
+
+The user asked to try AccessiYes instead of Sienna. The integration exists
+(`src/components/a11y/AccessiYesWidget.tsx`) and is INERT until
+`NEXT_PUBLIC_ACCESSIYES_SITE_ID` is set; until then `AccessibilityGate` falls through to Sienna,
+so a button always exists.
+
+**What it is, verified rather than taken from the marketing page:** sold as a WordPress plugin;
+the generic script embed is real but unpublished (their homepage snippet is a placeholder
+pointing at `cdn.example.com`); the file served is `WebYes Accessibility Widget v2.0.0` from
+`cdn-cookieyes.com`; **370 KB against Sienna's 66 KB**; its only outbound host is a font path,
+with no telemetry endpoint anywhere in the bundle.
+
+**⚠️ IF ACCESSIYES BECOMES THE SHIPPED WIDGET, §04 IS WRONG.** That section was rewritten hours
+earlier to name Sienna and enumerate Sienna's controls, at the user's request that the page
+describe the real widget. AccessiYes has a different set. §04 is a declaration under תקנה 35 —
+it has to be rewritten in the same change that flips the gate, not afterwards.
+
+Two smaller consequences of a switch:
+
+- The `.asw-*` skin in globals.css and `SiennaCustomize.tsx` are Sienna's class names. They match
+  nothing in AccessiYes, so it renders unstyled and its statement link keeps pointing at the
+  vendor's page rather than ours. Both would need redoing against its own DOM.
+- `privacy` §05's third-party list would name `cdn-cookieyes.com` instead of jsDelivr.
+
+## ⚠️ THE SIENNA PLUGIN — OPEN LEGAL-COPY ITEM (2026-08-17)
+
+The user's boss asked for "a real plugin because it's illegal" not to have one, then the user
+came back with "it's paid, we should use some free one". The site ships **Sienna**
+(`src/components/a11y/SiennaWidget.tsx`, chosen by `AccessibilityGate.tsx`) — a real, externally
+maintained, MIT-licensed third-party widget that is free with no account and no paywall. A
+UserWay integration was written first and deleted the same hour, unused and never configured.
+
+**What was told to the user before it landed**, and stands:
+
+- The Israeli requirement is real — תקנה 35 and ת״י 5568. **A widget is not what satisfies it.**
+  The FTC finalised a $1M order against accessiBe (April 2025) for claiming an AI widget makes a
+  site WCAG compliant; UserWay drew a class action (July 2024) over similar claims; and 1,000+
+  US lawsuits in 2023–24 targeted sites that HAD a widget installed. The user reaffirmed the
+  instruction, which is their call to make.
+
+**THE ITEM FOR THE LAWYER, and the reason this section exists:**
+
+`privacy` §05 (`מסירת מידע לצד שלישי`) ENUMERATES the third-party processors by name — WhatsApp,
+Facebook, monday, n8n, other CRM tools. **Sienna is a third-party script served from jsDelivr and
+is not in that list.** Adding it is a change to a published legal document, so it is flagged here
+rather than made. Same class of thing as the three conflicts in the 2026-08-17 sync.
+
+Two smaller ones:
+
+- The cookie banner gates nothing by decision, so a second cookie-setting third party widens the
+  gap between terms §07 and the build rather than narrowing it.
+- `/accessibility` §04 says the button is "בצד שמאל של המסך". Sienna's default corner is its
+  own; if it lands anywhere but the LEFT, either its data attributes move it or §04 does.
+- ⚠️ The script is loaded from `@latest`, so an upstream release reaches production with no
+  commit here. Pin it once a known-good version is confirmed in the browser — pinning is also
+  what makes an `integrity` hash possible, which `@latest` forbids by construction. **This is
+  now load-bearing twice over:** `SiennaCustomize.tsx` patches Sienna's DOM by class and id, and
+  §04 of the statement describes its control list. An upstream change breaks the skin silently
+  and makes a legal declaration inaccurate.
+- ⚠️ **A SECOND third party.** Sienna's "PDF Reader" control posts to `lumiopdf.pages.dev`,
+  reached only if a visitor uses that one feature. If §05 is amended to name Sienna, this
+  belongs in the same edit.
+
+**The built-in widget stays as the fallback and must not be deleted as dead code.** It is one env
+var away (`NEXT_PUBLIC_A11Y_WIDGET=builtin`) and it is what keeps §04 from being a lie on the day
+jsDelivr is blocked, an upstream release breaks, or the project is abandoned. §04 is a
+declaration under תקנה 35, not marketing copy — a tested local implementation behind it is the
+point.
+
+## The accessibility widget (2026-08-17) — §04's promise, now kept
+
+`src/components/a11y/AccessibilityWidget.tsx`, mounted in both layout shells. Ported from the
+live clix-solution.com widget. **Unlike the cookie banner, this one is real** — every control
+does what its label says.
+
+Seven controls, all Hebrew labels lifted verbatim from the live widget:
+
+| Control | Mechanism |
+|---|---|
+| `גודל טקסט` ± | `documentElement.style.zoom`, 80–150% in 10-point steps |
+| `ניגודיות גבוהה` | `.a11y-high-contrast` — redefines design tokens |
+| `סמן גדול` | `.a11y-big-cursor` — 32px inline-SVG cursor, no asset |
+| `הדגשת קישורים` | `.a11y-highlight-links` — yellow plate, black text, underline |
+| `גופן קריא` | `.a11y-readable-font` — Verdana/Tahoma stack, letter-spacing normal |
+| `מצב התמקדות` | `.a11y-focus-mode` — kills motion, dims `aria-hidden` decoration |
+| `איפוס כל ההגדרות` | Back to defaults |
+
+Persisted to `localStorage["clix-a11y-settings"]` as JSON, parsed defensively (spread over
+frozen `DEFAULTS`, so a missing or unknown key cannot break a page).
+
+### ⚠️ Two mechanisms that look like arbitrary choices and are not
+
+1. **`zoom`, not root `font-size`.** The live site sets `documentElement.style.fontSize = "120%"`.
+   That would do almost nothing here — this codebase sets type in absolute pixels throughout
+   (`text-[14px]`, `text-[32px]`), and px does not inherit from the root size. `zoom` scales px
+   type, spacing and images alike.
+2. **No `filter` on `html` or `body`, for high contrast or anything else.** A filtered ancestor
+   becomes the containing block for `position: fixed` descendants, which would unpin the nav,
+   the cookie banner and the widget's own button. High contrast therefore redefines
+   `--color-muted`, `--color-hairline` and friends; every component picks it up for free because
+   they already read those tokens. `--color-muted` is the load-bearing one: #737373 (4.7:1 on
+   white) becomes #1c1c1c (past 12:1). Filters appear only on `img`/`video`.
+
+Also: the button is at `left-4`, PHYSICAL left, not `start-4`. §04 says "בצד שמאל" in Hebrew,
+where the logical start edge is the right one.
+
+### What this does to the false-promise count
+
+Back to **four**, from the six of earlier the same day. Now TRUE: §04's button, and §03's text
+resize and high-contrast bullets. Still FALSE, unchanged:
+
+- §03's `דילוג לתוכן` skip link — there is none.
+- §03's WCAG AA contrast claim — the DEFAULT palette still has the recorded AA failures. The new
+  high-contrast mode is opt-in and does not make the base claim true.
+- §04's VoiceOver / NVDA / four-browser keyboard testing — never done.
+- §03's ARIA live regions for `עדכוני צ׳אט` — there is no chat.
+
+Plus §05, which still describes a playground node editor and 3D scenes this site does not have.
+
+## The cookie banner (2026-08-17)
+
+`src/components/legal/CookieBanner.tsx`, mounted once in each layout shell. Ported from the live
+clix-solution.com banner, which is the source of truth for this site's legal surface.
+
+**⚠️ IT IS COSMETIC, AND THAT WAS DECIDED, NOT OVERLOOKED.** The user was asked outright whether
+it should gate anything and chose "cosmetic — matches the live site", which is also all the live
+site does (its buttons set a flag and nothing reads it). So:
+
+- Both buttons write `localStorage["clix-cookie-consent"]` — `"all"` or `"essential"` — and
+  dismiss. **Nothing in this app reads that value.**
+- `FooterMap.tsx` still loads its Google Maps iframe on every route, before any click and
+  regardless of which button is clicked. It remains the only third-party cookie source in the
+  build.
+
+**To make it real** — the change was kept to one step deliberately: import `readConsent()` from
+the banner into `FooterMap`, and render the reserved `bg-ink-soft` box instead of the `<iframe>`
+until it returns `"all"`. The storage key and its two values exist for exactly that.
+
+### Two implementation notes worth not rediscovering
+
+1. **The strings live in `chrome`, not a page namespace.** `I18nProvider` hands the client
+   exactly one dictionary. Page namespaces are seeded per route body; the banner mounts in the
+   LAYOUT, above every route, so a `cookies` namespace would be unreachable from it.
+2. **`useSyncExternalStore`, not `useState` + `useEffect`.** This project's lint runs the React
+   Compiler rules, and `react-hooks/set-state-in-effect` rejects the read-storage-on-mount idiom
+   outright. The store's third argument (`getServerSnapshot`, returning `"unknown"`) is also what
+   makes the server render and the hydration pass agree on rendering nothing — which is why a
+   returning visitor never sees the bar flash before it removes itself. Verified: the banner is
+   absent from the server HTML (`aria-label="הודעת עוגיות"` count 0) while the dictionary reaches
+   the client in the RSC payload (count 1, both locales).
+
+The entrance is a `@keyframes cookie-banner-in` in globals.css rather than a Tailwind transition,
+for the same lint reason — an element mounted already in its resting state has no earlier frame
+to transition from, and forcing one needs a second render. `motion-reduce:animate-none` on the
+element.
 
 ## Structure and where the values came from
 

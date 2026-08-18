@@ -189,6 +189,57 @@
   --color-svc-7: #8a5312; /* Custom Software    — bronze */
   --color-svc-8: #a3441c; /* AI Strategy        — rust   */
 
+  /* ---- /contact's two STATE colours (2026-08-17) ----------------------------------------
+   *
+   * ⚠️ A PAIR, NOT TWO PICKS, AND THEY ARE STATE COLOURS RATHER THAN DECORATION. /contact was
+   * strictly monochrome until today — an invalid field said "wrong" by thickening its underline
+   * to `ink`, which is the SAME value focus used, so the two states were visually identical.
+   * The user lifted that constraint on 2026-08-17 along with motion and elevation. These two
+   * are what the page spends it on, and nothing else.
+   *
+   * ⚠️ TUNED AS A SET, exactly as `--color-svc-*` above was. 6.81 and 6.57 on `paper` — a 0.24
+   * spread — so an error message never visually outranks a completion tick and a form showing
+   * one of each does not look lopsided. Both also land INSIDE the svc set's 6.07–6.81 band,
+   * which is what makes them read as this site's colours rather than a stock palette. They are
+   * NOT members of that set and must never appear on /company.
+   *
+   * ⚠️ CVD-SAFE AGAINST EACH OTHER, and that is why `signal` is a teal and not a green. The
+   * obvious pairing for complete/invalid is green/red — and it is the one pairing that
+   * collapses for deuteranopia and protanopia, i.e. ~8% of male visitors, on a page whose whole
+   * new state language is these two colours. Cyan-teal against warm red is the maximum
+   * separation axis instead.
+   *
+   * ⚠️ NEITHER HAS A DARK-GROUND VARIANT, ON PURPOSE. `signal` is 2.68:1 on `ink` and `alert`
+   * 2.78:1 — both fail. So the accent NEVER appears on the /contact hero. That is the restraint
+   * clause rather than a gap: the accent is the FORM's state channel, and the hero has no state.
+   *
+   * Ratios, from `node docs/reference/contrast-check.js --check "<fg>" "<bg>"`:
+   *            on paper   on bone   on surface   paper on it   on its own 8-10% wash
+   *   signal     6.81       6.09       6.24         6.81            5.84  (#e7eff1)
+   *   alert      6.57       5.88       6.03         6.57            5.75  (#f9edec)
+   *
+   * ⚠️ RESTRAINT CLAUSE — the same shape the svc accents carry, and it is the whole design.
+   *   `signal` paints ONLY: the step chip when complete or focused, the field underline on
+   *   focus, the panel progress bar, the count badges, the character counter once the minimum
+   *   is met, the pill focus ring, and the success mark.
+   *   `alert` paints ONLY: the field underline when invalid, the error message and its glyph,
+   *   the step chip when its group holds an error, the form-level alert banner, and the
+   *   character counter above 90% of the maximum.
+   *   Headings, body copy, labels, placeholders, consent, THE SUBMIT BUTTON and all panel
+   *   chrome stay `ink` / `ink-soft` / `muted` / `hairline`.
+   *
+   * ⚠️ `--color-svc-1` #0f6b63 WAS CONSIDERED AND REJECTED for `signal`, though it is a near
+   * neighbour and would have added zero new hues. A service accent and a form state colour are
+   * different things: coupling them means a future retune of /company's palette silently moves
+   * /contact's focus rings and completion ticks. One extra token buys that decoupling.
+   *
+   * ⚠️ `--color-price-high` #f87171 IS NOT AN ALTERNATIVE to `alert`. Its own note above says it
+   * is semantic to the banner ticker and that nothing may use it for an accent; it is also only
+   * ~3.0:1 on white and could not carry 12px error prose.
+   */
+  --color-signal: #0e6472; /* /contact — on track: focus, progress, completion */
+  --color-alert: #b42318; /* /contact — wrong: invalid field, failed submit   */
+
   /* The one elevation on this site. Built from `ink` at low alpha rather than from black, so
      it is derived from an existing token and not a new colour. Used in exactly two places,
      both on /company Block 3: the sticky heading while it is pinned, and a card on hover.
@@ -423,6 +474,257 @@ html {
    The reduced-motion path does NOT rely on the global neutraliser below — ProductHero drops
    the animation class entirely and renders a steady caret, because a caret frozen mid-cycle
    by `animation-duration: 0.01ms` can land invisible. */
+/* ═══════════════════════════════════════════════════════════════════════════════════════
+   SIENNA WIDGET SKIN — the third-party accessibility plugin, restyled to this site.
+
+   ⚠️ THIS IS HALF OF THE JOB. Sienna declares `--asw-primary` on `.asw-widget, .asw-menu` in
+   its own stylesheet AND re-sets it INLINE with `!important` on `.asw-menu` when it builds the
+   panel. Inline `!important` beats stylesheet `!important` from the same origin, so:
+     · the BUTTON (`.asw-widget`) gets no inline value and is overridden here;
+     · the PANEL (`.asw-menu`) can only be reached from JS — SiennaCustomize.tsx does it.
+   The two must carry the SAME colour. Change one, change the other.
+
+   ⚠️ EVERY SELECTOR HERE IS A THIRD-PARTY CLASS NAME, on a script loaded from `@latest`. An
+   upstream rename silently reverts the skin to Sienna's blue; nothing breaks, it just stops
+   looking like this site. Pin the version to make that an explicit upgrade instead.
+   ═══════════════════════════════════════════════════════════════════════════════════════ */
+
+.asw-widget {
+  /* The navy of the accessibility mark the client supplied, and the same value the built-in
+     widget's button used — so the two implementations are visually interchangeable. */
+  --asw-primary: #1b3a5f;
+  /* 52/34 against Sienna's 58/36. The default reads oversized against this site's restrained
+     footer and nav; the mobile pair is left at Sienna's own 42/26, which is already right. */
+  --asw-btn-size: 52px;
+  --asw-icon-size: 34px;
+}
+
+/* Sienna's default shadow is a blue-tinted double drop that belongs to its own blue. This is
+   the neutral one the rest of this site uses on floating surfaces. */
+.asw-menu-btn {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.28) !important;
+}
+
+/* The trigger is an `<a>` pointing at Sienna's site with the click intercepted, so it inherits
+   no focus treatment from this site's controls. Given WHAT it is, a visible focus ring is not
+   optional — a keyboard user reaching for the accessibility control must be able to see it. */
+.asw-menu-btn:focus-visible {
+  outline: 2px solid var(--color-paper) !important;
+  outline-offset: 3px !important;
+}
+
+/* ── the panel ────────────────────────────────────────────────────────────────────────────
+   ⚠️ SIENNA SHIPS THIS AS A 500px FULL-HEIGHT DRAWER (`width:500px; height:100%; top:0`),
+   which on a 1440 screen is a third of the viewport for a menu of toggles. The user's words:
+   "its too big, and taking lots of space". It is re-anchored here as a COMPACT POPOVER above
+   its own button instead.
+
+   Safe to reposition: the closed state is `display:none`, not a transform, so nothing depends
+   on the drawer geometry to hide it. Checked in the bundle before touching this.
+
+   `bottom: 84px` = the button's 52px + its 16px offset + a 16px gap. If either the button size
+   or `data-offset` changes, this number moves with them. */
+.asw-menu {
+  top: auto !important;
+  bottom: 84px !important;
+  left: 16px !important;
+  width: min(340px, calc(100vw - 2rem)) !important;
+  height: auto !important;
+  /* Caps the popover at roughly two thirds of a laptop screen. `.asw-menu-content` is already
+     `overflow-y:auto; flex-grow:1`, so the overflow scrolls inside rather than clipping. */
+  max-height: min(540px, calc(100vh - 7rem)) !important;
+  border-radius: 10px !important;
+  font-size: 15px !important;
+}
+
+/* Sienna's internal spacing is scaled for the 500px drawer — 70px header, 30px content pad,
+   20/25px card boxes, 1rem grid gaps. All of it is re-scaled for 340px below. Nothing here
+   changes behaviour; it is padding, gaps and glyph sizes only. */
+.asw-menu-header {
+  height: 52px !important;
+  padding-left: 16px !important;
+  padding-right: 16px !important;
+}
+
+.asw-menu-content {
+  padding: 14px 0 8px !important;
+}
+
+.asw-card {
+  margin: 0 12px 12px !important;
+  padding: 12px !important;
+  border-radius: 12px !important;
+}
+
+.asw-card-title {
+  font-size: 11px !important;
+  padding-bottom: 10px !important;
+}
+
+.asw-items {
+  gap: 8px !important;
+}
+
+.asw-btn {
+  padding: 10px 6px !important;
+  gap: 6px !important;
+}
+
+.asw-btn svg {
+  width: 24px !important;
+  height: 24px !important;
+  min-width: 24px !important;
+  min-height: 24px !important;
+  max-width: 24px !important;
+  max-height: 24px !important;
+}
+
+.asw-btn .asw-translate {
+  font-size: 12px !important;
+}
+
+.asw-adjust-font {
+  padding: 12px !important;
+  margin-bottom: 12px !important;
+}
+
+.asw-adjust-font > div {
+  margin-top: 12px !important;
+}
+
+.asw-adjust-font div[role="button"] {
+  width: 30px !important;
+  height: 30px !important;
+}
+
+.asw-amount {
+  font-size: 15px !important;
+}
+
+.asw-footer {
+  padding: 10px 12px !important;
+}
+
+/* The footer's two links are 14px against a 12px tile label, which reads as the loudest text
+   in the panel once everything above it shrinks. */
+#asw-statement-link,
+.asw-footer-powered {
+  font-size: 11px !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════════════
+   ACCESSIBILITY WIDGET MODES — driven by src/components/a11y/AccessibilityWidget.tsx, which
+   toggles these classes on <html>. Added 2026-08-17 to make /accessibility §04 true.
+
+   ⚠️ NOT ONE OF THESE MAY USE `filter` ON html OR body. A filtered ancestor becomes the
+   containing block for `position: fixed` descendants, which would unpin the nav, the cookie
+   banner and the widget's own button. High contrast therefore redefines DESIGN TOKENS, which
+   costs nothing and cannot break layout. Filters appear only on img/video, which contain
+   nothing fixed.
+
+   Text size is NOT here — it is `zoom` set inline by the widget, because this codebase sets
+   type in absolute px and a root font-size would not move it.
+   ═══════════════════════════════════════════════════════════════════════════════════════ */
+
+/* Raises text and border contrast by moving the tokens the whole site already reads, so every
+   component picks it up with no per-component rules. `--color-muted` is the important one:
+   it is the site's secondary text at #737373 (4.7:1 on white) and this takes it past 12:1. */
+html.a11y-high-contrast {
+  --color-muted: #1c1c1c;
+  --color-ink-soft: #000000;
+  --color-hairline: #00000073;
+  --color-hairline-dark: #00000073;
+  --color-hairline-light: #ffffff99;
+  --color-paper-soft: #ffffff;
+  --color-mark: #4a4a4a;
+}
+
+html.a11y-high-contrast img,
+html.a11y-high-contrast video {
+  filter: contrast(1.18) saturate(1.1);
+}
+
+/* The live site's own treatment, kept: yellow plate, black text, always underlined. `!important`
+   throughout because it has to beat utility classes on the anchors themselves — this is an
+   assistive override, which is the one case that earns it. */
+html.a11y-highlight-links a,
+html.a11y-highlight-links a * {
+  background-color: #ffff00 !important;
+  color: #000000 !important;
+  text-decoration: underline !important;
+}
+
+html.a11y-highlight-links a {
+  outline: 1px solid #000000 !important;
+  outline-offset: 1px;
+}
+
+/* A wide-counter, high-legibility stack. Deliberately overrides the brand faces: someone who
+   asks for a readable font is telling you the brand face is the problem. */
+html.a11y-readable-font,
+html.a11y-readable-font * {
+  font-family:
+    Verdana, Tahoma, "DejaVu Sans", Arial, sans-serif !important;
+  letter-spacing: normal !important;
+}
+
+/* A 32px cursor drawn as an inline SVG, so it needs no asset and cannot 404. The hotspot is
+   declared at 4 4 to sit at the arrow's point rather than the bitmap's corner. */
+html.a11y-big-cursor,
+html.a11y-big-cursor * {
+  cursor:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><path d='M6 2 L6 26 L12 20 L16 30 L20 28 L16 19 L25 19 Z' fill='white' stroke='black' stroke-width='2' stroke-linejoin='round'/></svg>")
+      4 4,
+    auto !important;
+}
+
+/* Strips motion and decoration so the reading surface is all that is left. The animation rules
+   repeat the global reduced-motion clamp on purpose — this mode is a DELIBERATE request, not an
+   OS preference, and the two are set independently. */
+html.a11y-focus-mode *,
+html.a11y-focus-mode *::before,
+html.a11y-focus-mode *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+html.a11y-focus-mode [aria-hidden="true"]:not(svg):not(svg *) {
+  opacity: 0.35 !important;
+}
+
+html.a11y-focus-mode video {
+  opacity: 0.5 !important;
+}
+
+/* The widget's own panel must stay fully legible in the mode it switches on. */
+html.a11y-focus-mode #a11y-panel,
+html.a11y-focus-mode #a11y-panel * {
+  opacity: 1 !important;
+}
+
+/* The cookie notice's entrance, added 2026-08-17 with `src/components/legal/CookieBanner.tsx`.
+
+   A KEYFRAME RATHER THAN A TAILWIND TRANSITION, on purpose. The banner is mounted by
+   `useSyncExternalStore` already in its resting state, so there is no earlier frame for a
+   transition to interpolate from -- driving one would need a second render purely to create a
+   "before", which is exactly the setState-in-effect this project's lint forbids. An animation
+   needs no before: it plays once on mount and `both` holds the final frame.
+
+   The component also carries `motion-reduce:animate-none`, so a visitor asking for reduced
+   motion gets the bar in place with no travel. */
+@keyframes cookie-banner-in {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
 @keyframes blink {
   0%,
   100% {
@@ -681,20 +983,27 @@ html {
  * uses framer-motion, which is not installed here and is not needed: the answer this repo
  * already had is /product Block 4's idle loops, and this is the same answer at a larger scale.
  *
- * ⚠️ WHY THREE SHARED KEYFRAMES AND NOT EIGHT BESPOKE ONES. /product's six cards each got their
- * own, because each animated a different mechanism. These eight all animate the SAME
- * mechanism — a sequence advancing through a list of things — so one `service-step` staggered
- * by `animation-delay` covers roster rows, chat bubbles, workflow nodes, page blocks, app
- * screens, code lines, pipeline stages and score rows alike. That is also what makes the eight
- * cards read as one band rather than eight separate toys.
+ * ⚠️ THIS BLOCK ONCE ARGUED FOR ONE SHARED `service-step` ACROSS ALL EIGHT SCENES, on the
+ * grounds that they animate the same mechanism — a sequence advancing through a list — so one
+ * staggered highlight could cover roster rows, chat bubbles, workflow nodes, code lines,
+ * pipeline stages and score rows alike, and that the sharing is what made eight cards read as
+ * one band rather than eight separate toys.
  *
- * ⚠️ THE INVARIANT, INHERITED FROM THE BLOCK ABOVE: **EVERY KEYFRAME'S BASE STATE IS THE
- * SHIPPED STATIC DESIGN.** `service-step` runs on a dedicated OVERLAY element that rests at
- * `opacity: 0`, so the unanimated scene is the finished picture — every roster row present,
- * every bar at its scored length, every code line drawn. The reduced-motion clamp at the end
- * of this file is therefore an exact no-op, and SSR first paint is complete. Written the other
- * way round — scene elements starting hidden and animating IN — a reduced-motion visitor would
- * get eight empty panels, which is the one outcome this band cannot have.
+ * **The economy was real and the keyframe was still wrong.** A soft accent wash across a row
+ * does not read as "this step is running"; it reads as HOVER, because a tinted band on a table
+ * row is the universal signifier for hover or selection. All eight scenes therefore looked like
+ * they had a pointer in them that nobody was moving. Deleted 2026-08-17 after the user caught
+ * it twice unprompted. What replaced it is per-scene and behaviour-specific — `service-typing`,
+ * `service-caret` — which costs the shared-vocabulary argument above and is worth it.
+ *
+ * ⚠️ THE INVARIANT, INHERITED FROM THE BLOCK ABOVE, AND IT SURVIVED THE SWAP: **EVERY
+ * KEYFRAME'S BASE STATE IS THE SHIPPED STATIC DESIGN.** A resting typing indicator is three dim
+ * dots; a resting caret is a visible cursor. The unanimated scene
+ * is the finished picture — every roster row present, every bar at its scored length, every
+ * code line drawn. The reduced-motion clamp at the end of this file is therefore an exact
+ * no-op, and SSR first paint is complete. Written the other way round — scene elements starting
+ * hidden and animating IN — a reduced-motion visitor would get eight empty panels, which is the
+ * one outcome this band cannot have.
  *
  * ⚠️ OPACITY AND translateY ONLY, and the Y is not a stylistic choice: it is the one axis that
  * does not flip under RTL, so these loops need no `[dir="rtl"]` companion rule the way
@@ -702,40 +1011,453 @@ html {
  * transform. That matters more here than it did for /product: around forty of these run at
  * once when the band is on screen, so every one has to be compositor-only.
  *
- * ⚠️ NOT VIEWPORT-GATED. No IntersectionObserver and no `"use client"` — serviceArt.tsx is a
- * server component and CompanyServices reads the dictionary server-side, exactly as
- * benefitArt.tsx does. Gating decoration would cost more than the decoration does.
+ * ⚠️ THAT RULE BINDS THIS FILE. IT DOES NOT BIND `ServiceReel.tsx`, and the distinction is
+ * the REASON rather than the letter: a CSS keyframe cannot know which way the document reads,
+ * so an X translate or a `transform-origin` declared here would owe /he a second rule that
+ * someone will eventually forget to write. JS has the information — `documentElement.dir` is
+ * one line — so the process player picks its origin per locale and grows a bar from the
+ * reading edge in both. Anything added to THIS file still obeys the paragraph above.
+ *
+ * ─── THESE FOUR ARE NOW THE AMBIENT LAYER, NOT THE WHOLE STORY (2026-08-17) ────────────────
+ *
+ * When they shipped, these keyframes were all the motion the band had. They are now what runs
+ * UNDER a played sequence: `ServiceReel.tsx` assembles each scene in the order its service
+ * actually works, holds it, dissolves it and does it again for as long as that card holds the
+ * screen (user: *"i want some movements per cards ... like the process for the service"*).
+ *
+ * The division of labour is worth keeping straight, because it decides where a new loop goes:
+ *
+ *   · THE PROCESS is a GSAP timeline, plays on arrival, repeats on a ~7s cycle, and is driven
+ *     by `data-step` markers that live in `serviceArt.tsx`. It says WHAT HAPPENED, in order.
+ *   · THESE KEYFRAMES are un-sequenced, run forever, and say THE THING IS LIVE — a pulsing
+ *     dot, a typing indicator, a blinking caret. They belong to individual elements and have
+ *     no opinion about order.
+ *
+ * A new loop belongs here only if it is true at every moment of the scene's life. If it is
+ * true at one MOMENT of the process, it is a step, and it belongs in the step map.
+ *
+ * ⚠️ VIEWPORT-GATED SINCE 2026-08-17, AND THIS PARAGRAPH USED TO SAY THE OPPOSITE. It read
+ * "NOT VIEWPORT-GATED — gating decoration would cost more than the decoration does", and that
+ * was true of the eight-card GRID, where every card was on screen together and a gate would
+ * have bought nothing. The band is a REEL now: exactly one scene is live and the other seven
+ * are dimmed, blurred or not drawn at all, so ~35 of the ~40 loops were animating things
+ * nobody could see. `ServiceReel.tsx` marks every non-live panel `data-idle` and the rule
+ * below pauses them.
+ *
+ * ⚠️ THE GATE IS OPT-OUT, NOT OPT-IN, AND THAT IS DELIBERATE. It pauses on `[data-idle]`
+ * rather than running on `[data-live]`, because the attribute is written by client JS: with
+ * JS off, or before hydration, no attribute exists and every scene animates exactly as it did
+ * before the stack shipped. Written the other way round, a no-JS visitor would get eight
+ * permanently frozen scenes. The frozen state is the finished picture either way — see the
+ * invariant above — so this costs nothing and removes a whole failure mode.
+ *
+ * ⚠️ THIS GATE AND THE PROCESS PLAYER'S GATE ARE SEPARATE, AND NEITHER SHOULD BE MADE TO
+ * DEPEND ON THE OTHER, EVEN THOUGH THEY NOW SHARE AN INDEX. This one is a CSS attribute
+ * selector that costs nothing and fails safe with JS off. The player's is
+ * `prefers-reduced-motion`, and under it no timeline is built AT ALL. They answer different
+ * questions — "is this scene worth animating?" versus "does this visitor want animation?" —
+ * and the second must never be inferred from the first. Both fail to the same place: paused
+ * CSS shows the finished picture, and an unbuilt timeline leaves the finished picture alone.
  */
 
-/* The travelling highlight. `linear` and long flat holds, because the interesting part is
-   WHICH element is lit, not how it got there; an eased fade over a 4-6s cycle reads as a
-   throb. Each scene sets one cycle length and staggers its members with `animation-delay`, so
-   exactly one is lit at a time and the sequence closes cleanly. */
-@keyframes service-step {
+/* Only the service on screen animates. `*` is broad but it is scoped to one panel, and it has
+   to be: the loops are declared inline on ~40 different elements inside a scene, so there is
+   no shared class to hang this on. `animation-play-state` freezes in place rather than
+   resetting, so a scene coming back into the window does not restart its cycle mid-stride. */
+[data-service-card][data-idle] * {
+  animation-play-state: paused;
+}
+
+/* ---- The reel (2026-08-17, third rebuild) -----------------------------------------------
+ *
+ * ⚠️ THIS REPLACED `.service-stack` AND ITS FOUR `--stack-*` NUMBERS. The band was a deck of
+ * eight sticky cards; it is now one sticky FRAME with three synchronised tracks sliding inside
+ * it. Chosen by the user from a reference layout (a scroll-driven title list beside a media
+ * track), with the brief *"we can use this layout but keep the current cards"* — so every
+ * scene, every step map and the whole process player came across intact and only the
+ * container changed. See CompanyServices.tsx for the full note.
+ *
+ * ⚠️ ONE NUMBER DRIVES ALL THREE TRACKS: `--reel-i`, written on the frame by ServiceReel.tsx.
+ * Each track multiplies it by ITS OWN item height, which is how the names, the detail block
+ * and the art can move as one gesture while moving three different distances. Nothing else is
+ * written from JS — every state below is an attribute selector.
+ *
+ *   --reel-step      scroll distance per service. The one knob for "the band feels long" or
+ *                    "it feels rushed". Total scroller height is 100svh + 7 × this.
+ *   --reel-item-h    one name row, and the names track's translate unit.
+ *   --reel-list-h    the masked window the names slide through. A multiple of --reel-item-h,
+ *                    plus a little, so a row is never cut exactly in half by the mask.
+ *   --reel-detail-h  the promise + chips block. ⚠️ FIXED AND CLIPPED — see the ⚠️ below.
+ *   --reel-panel-h   one scene panel, and the art track's translate unit.
+ *   --reel-art-h     the art window. DELIBERATELY TALLER than --reel-panel-h: the difference
+ *                    is what lets the previous and next scenes peek in behind the mask, which
+ *                    is the entire reason this reads as a reel rather than as a cross-fade.
+ *
+ * `svh` and not `vh` throughout — the mobile URL bar.
+ *
+ * ⚠️ THE SCENES DO NOT SHRINK IN THIS LAYOUT AND THAT WAS CHECKED BEFORE IT WAS BUILT.
+ * `Stage` in serviceArt.tsx caps at 560px, and the sticky card's art well ALREADY hit that
+ * cap, so a ~52% art column at 1280 renders every scene at exactly the size it had before.
+ * If --reel-art-h or the column basis is ever cut below ~600px wide at desktop, that stops
+ * being true and the scenes start losing their 9px labels. */
+.service-reel {
+  --reel-step: 46svh;
+  --reel-item-h: 44px;
+  --reel-list-h: 112px;
+  --reel-detail-h: 128px;
+  --reel-panel-pad: 16px;
+  --reel-panel-h: clamp(180px, 27svh, 235px);
+  --reel-art-h: clamp(210px, 32svh, 280px);
+
+  /* ⚠️ THE CAPTION GETS ITS OWN BAND AT THE TOP OF EVERY PANEL, AND IT HAD TO. The kicker was
+     absolutely positioned over the panel with the scene centred in the full box, so at every
+     size where the scene filled its panel — which is all of them, by design — the caption sat
+     ON the scene. User: *"the subheader is behind the card"*. This is reserved space above the
+     scene rather than a layer over it; the panel's block-start padding and `--reel-scene-max`
+     both account for it, so the scene simply starts lower. */
+  --reel-caption-h: 22px;
+
+  /* ⚠️ WHAT KEEPS A SCENE INSIDE ITS PANEL AT EVERY VIEWPORT HEIGHT, AND WHY IT IS A
+     WIDTH. `Stage` is width-driven — it takes the width it is given and derives its height
+     from the 440 × 288 aspect — so a short viewport shrinks the PANEL without shrinking the
+     scene, and the scene overflows. This caps the scene's width at whatever the panel's own
+     height can actually accommodate, so the fit holds by construction rather than by four
+     hand-checked breakpoints. 1.528 is 440 / 288; it belongs to serviceArt.tsx's source box
+     and must change with it. `Stage`'s own 560px cap still applies on top of this. */
+  --reel-scene-max: calc(
+    (var(--reel-panel-h) - 2 * var(--reel-panel-pad) - var(--reel-caption-h)) * 1.528
+  );
+
+  /* ⚠️ THE MASK FADES OVER EXACTLY THE OVERHANG, NOT A PERCENTAGE, AND THE DIFFERENCE IS A BUG
+     THE USER SAW. At 14% of the window the fade was ~87px at desktop (fine — the live panel's
+     top edge sits 90px in) but ~38px on a phone, where the panel's top edge is only ~21px in.
+     The fade therefore reached PAST the overhang and started dissolving the live panel's own
+     caption. `(art-h − panel-h) / 2` is the overhang by definition, so the fade now covers the
+     neighbours and stops exactly where the live panel begins, at every viewport height. */
+  --reel-overhang: calc((var(--reel-art-h) - var(--reel-panel-h)) / 2);
+}
+
+@media (width >= 810px) {
+  .service-reel {
+    --reel-step: 52svh;
+    --reel-item-h: 54px;
+    --reel-list-h: 218px;
+    --reel-detail-h: 140px;
+    --reel-caption-h: 22px;
+    --reel-panel-pad: 20px;
+    --reel-panel-h: clamp(250px, 38svh, 330px);
+    --reel-art-h: clamp(360px, 56svh, 470px);
+  }
+}
+
+@media (width >= 1200px) {
+  .service-reel {
+    --reel-step: 56svh;
+    --reel-item-h: 64px;
+    --reel-list-h: 258px;
+    --reel-detail-h: 156px;
+    --reel-caption-h: 24px;
+    --reel-panel-pad: 24px;
+    --reel-panel-h: clamp(300px, 46svh, 440px);
+    --reel-art-h: clamp(430px, 66svh, 620px);
+  }
+}
+
+/* The three tracks. Absolute inside their window, translated by the shared index.
+ *
+ * ⚠️ Y-AXIS ONLY, WHICH IS WHY THIS FILE NEEDS NO `[dir="rtl"]` COMPANION — the band's
+ * standing rule (see the scene keyframes below) is that a CSS rule cannot know the document's
+ * direction, and a vertical reel never has to. The frame's own left-to-right arrangement
+ * mirrors for free because it is flex with logical borders. */
+.reel-track {
+  position: absolute;
+  inset-inline: 0;
+  transition: transform 700ms var(--ease-rogo);
+  will-change: transform;
+}
+
+/* Names and art are CENTRED on the live item, so the ones either side sit symmetrically
+   around it. The detail is TOP-ALIGNED — it is a block of prose under the list, not a wheel,
+   and centring it would leave the promise floating away from the name it belongs to. */
+.reel-track--names {
+  top: 50%;
+  margin-block-start: calc(var(--reel-item-h) / -2);
+  transform: translateY(calc(var(--reel-i, 0) * var(--reel-item-h) * -1));
+}
+
+.reel-track--detail {
+  top: 0;
+  transform: translateY(calc(var(--reel-i, 0) * var(--reel-detail-h) * -1));
+}
+
+.reel-track--art {
+  top: 50%;
+  margin-block-start: calc(var(--reel-panel-h) / -2);
+  transform: translateY(calc(var(--reel-i, 0) * var(--reel-panel-h) * -1));
+}
+
+/* The window a track slides through. `overflow: hidden` HERE is safe and is not the forbidden
+   one: the rule about overflow on this band concerns ANCESTORS of the sticky frame, and every
+   window is a descendant of it. */
+.reel-window {
+  position: relative;
+  overflow: hidden;
+}
+
+/* A soft edge on both sides, so a row entering the window is not sliced by a hard line.
+ * Two-sided, where the reference fades only the bottom — with a hard top edge the list looks
+ * like it is being eaten by the frame rather than moving through it.
+ *
+ * ⚠️ RAW `#000` IS CORRECT HERE AND IS NOT A TOKEN VIOLATION. A mask reads only the alpha
+ * channel; the colour is a placeholder for "opaque" and has no relationship to the palette.
+ * A theme colour here would imply a link that does not exist. */
+.reel-window--fade {
+  /* Overridden by the art layer, which knows its exact overhang — see `--reel-overhang`. 14%
+     is right for the name list, whose rows have no overhang to measure. */
+  --reel-fade: 14%;
+
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 var(--reel-fade),
+    #000 calc(100% - var(--reel-fade)),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 var(--reel-fade),
+    #000 calc(100% - var(--reel-fade)),
+    transparent 100%
+  );
+}
+
+.reel-window--fade-art {
+  --reel-fade: var(--reel-overhang);
+}
+
+/* ---- The name list ---------------------------------------------------------------------
+ *
+ * ⚠️ THE BASE STATE IS THE LIVE ONE AND EVERY DIMMED STATE IS OPT-IN. With JS off no
+ * `data-state` is ever written, `--reel-i` falls back to 0, and the band renders as service 1
+ * at full strength with the other seven below it, clipped by their windows. Inverting these
+ * defaults would put a blank band one failed hydration away — the same invariant the scenes
+ * are drawn under. */
+[data-reel-item] {
+  transition: opacity 500ms var(--ease-rogo);
+}
+
+/* ⚠️ 0.15 AND NOT 0. The reference fades passed items to nothing and marks them
+   `pointer-events: none`, which makes half the list unreachable once you are past it — and a
+   focusable control at zero opacity is worse than either. These stay faintly visible because
+   they stay clickable. */
+[data-reel-item][data-state="past"] {
+  opacity: 0.15;
+}
+
+[data-reel-item][data-state="future"] {
+  opacity: 0.32;
+}
+
+[data-reel-name] {
+  color: var(--color-muted);
+  transition:
+    color 500ms var(--ease-rogo),
+    font-weight 500ms var(--ease-rogo);
+}
+
+/* ⚠️ THE LIVE NAME IS THE ONE BOLD THING ON THIS SITE, ON THE USER'S CALL (*"make the title of
+   the card bold when its active"*). Everything else is weight 400 — see the type presets in
+   FEATURE.md — so this is a deliberate exception rather than an oversight, and it earns it: in
+   a list of eight names where seven are dimmed, weight is the difference that survives the
+   dimming.
+
+   ⚠️ 700 IS A REAL INSTANCE, NOT A SYNTHETIC BOLD. Discovery ships as a variable face with
+   `font-weight: 100 800` declared (fonts-discovery.css), so the browser cuts a true 700 rather
+   than smearing the 400 outlines. If the face is ever swapped for a static one, this line has
+   to be checked or it turns into faux-bold on a 34px display heading.
+
+   The Tailwind `font-normal` on the span is one class; this selector is three, so it wins
+   without `!important`. */
+[data-reel-item][data-state="active"] [data-reel-name] {
+  color: var(--color-ink);
+  font-weight: 700;
+}
+
+/* The rule that marks the live row. It grows from zero, so the name shifts a little as it
+   takes the frame — `inline-size` and a logical margin, so the gesture mirrors on /he without
+   a second rule.
+
+   ⚠️ `ink`, NOT `--accent`, ON THE USER'S CALL (*"make the dash black"*) — AND THIS IS THE
+   SECOND TIME THE SAME DECISION HAS BEEN MADE ON THIS BAND. The stack's 3px card-top rule
+   shipped as the per-card accent on the argument that eight colours turn the deck edge into an
+   INDEX; the user reversed it to `ink` (*"only put black to the top of each card"*). This dash
+   is that rule's descendant and it inherited the mistake with it.
+
+   The argument that loses both times is the same one: the band's whole claim is that eight
+   services are ONE system, and a marker that changes colour per service says the opposite of
+   that in the one place the eye returns to on every transition. The accent has not left — every
+   scene still carries it, and the focus ring is still per-service — it is just no longer the
+   thing doing the pointing. */
+[data-reel-bar] {
+  inline-size: 0;
+  block-size: 2px;
+  flex: none;
+  background-color: var(--color-ink);
+  transition: inline-size 500ms var(--ease-rogo);
+}
+
+[data-reel-item][data-state="active"] [data-reel-bar] {
+  inline-size: 24px;
+}
+
+@media (width >= 1200px) {
+  [data-reel-item][data-state="active"] [data-reel-bar] {
+    inline-size: 32px;
+  }
+}
+
+/* ---- The detail block ------------------------------------------------------------------
+ *
+ * ⚠️ FIXED HEIGHT, AND IT CLIPS. `--reel-detail-h` has to be a constant or the track cannot
+ * translate by it, so a promise that runs longer than the space wins nothing by being longer.
+ * Sized for the longest Hebrew promise plus two rows of chips; CHECK /he WHENEVER THE COPY
+ * CHANGES. This is the one measurement in the reel that a translator can break. */
+[data-reel-detail] {
+  transition:
+    opacity 450ms var(--ease-rogo),
+    transform 450ms var(--ease-rogo);
+}
+
+[data-reel-detail][data-state="idle"] {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+/* ---- The art panels --------------------------------------------------------------------
+ *
+ * Three states, and the cost of each one is why there are three rather than two. `near` is
+ * the pair either side of the live scene — visible through the mask, so they carry the blur
+ * and the scale that make the track read as depth. `far` is the other five: they are outside
+ * the window entirely, so they are simply not drawn, and five blurred sub-trees are not
+ * composited every frame for nothing. */
+[data-reel-panel] {
+  transition:
+    opacity 700ms var(--ease-rogo),
+    transform 700ms var(--ease-rogo),
+    filter 700ms var(--ease-rogo);
+}
+
+[data-reel-panel][data-state="near"] {
+  opacity: 0.3;
+  transform: scale(0.86);
+  filter: blur(5px);
+}
+
+[data-reel-panel][data-state="far"] {
+  opacity: 0;
+  transform: scale(0.86);
+}
+
+/* The kicker over the live scene — the one piece of the deleted card that came back, in the
+   place the reference layout puts its own caption. Delayed, so it arrives after the scene has
+   settled rather than riding in on top of it. */
+/* Sits in the band the panel's block-start padding reserves for it, aligned to the scene's
+   inline start. Never over the scene — see `--reel-caption-h`. */
+[data-reel-kicker] {
+  position: absolute;
+  inset-block-start: var(--reel-panel-pad);
+  inset-inline-start: var(--reel-panel-pad);
+  inset-inline-end: var(--reel-panel-pad);
+  transition: opacity 500ms 220ms var(--ease-rogo);
+}
+
+[data-reel-panel]:not([data-state="active"]) [data-reel-kicker] {
+  opacity: 0;
+}
+
+/* ⚠️ THE REEL STILL TRACKS UNDER REDUCED MOTION — IT CUTS INSTEAD OF GLIDING. Freezing the
+   tracks would leave the band showing service 1 forever, which is not a calmer version of the
+   feature, it is a broken one. The blur goes because a 5px blur crossing the frame is the part
+   that actually provokes; the position changes stay because they are information.
+   ServiceReel.tsx makes the separate decision not to build the scene timelines at all. */
+@media (prefers-reduced-motion: reduce) {
+  .reel-track,
+  [data-reel-item],
+  [data-reel-name],
+  [data-reel-bar],
+  [data-reel-detail],
+  [data-reel-kicker],
+  [data-reel-panel] {
+    transition-duration: 1ms;
+  }
+
+  [data-reel-panel][data-state="near"] {
+    filter: none;
+  }
+}
+
+/* ⚠️ `service-step` WAS DELETED 2026-08-17 AND MUST NOT COME BACK IN THAT FORM.
+ *
+ * It was this band's workhorse — a soft accent wash on a dedicated overlay, staggered down a
+ * scene's rows so exactly one was lit at a time. 31 of them across the eight scenes. The intent
+ * was "the system is working through a list".
+ *
+ * It did not read that way. A full-width tinted band across a table row is the universal
+ * signifier for HOVER or SELECTED, so every scene looked like it had a mouse in it that nobody
+ * was moving. User, twice, unprompted: *"why is there hover stage for each card? its
+ * redundant"* → *"remove it"*. They were right both times.
+ *
+ * ⚠️ THE LESSON, NOT JUST THE DELETION: a loop that paints a ROW CONTAINER borrows a UI STATE
+ * and will always be misread as one. Motion that says "live" has to happen to the CONTENT and
+ * has to be something the depicted product would actually do — a caret blinking, a typing
+ * indicator, a value settling. That is what replaced it below, and it is why the two new
+ * keyframes are both tied to a specific real behaviour rather than being generic highlights. */
+
+/* A text caret. Hard on/off — a caret does not fade — and the base state is ON, so a
+   reduced-motion visitor gets a cursor sitting in the code rather than a missing one. */
+@keyframes service-caret {
   0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
   100% {
     opacity: 0;
   }
-  4%,
-  18% {
-    opacity: 1;
+}
+
+/* The three dots of a typing indicator. Staggered by `animation-delay` across three dots, so
+   it reads as the wave every chat client draws. Base state is the resting dim, which is a
+   complete picture: a typing indicator at rest is three grey dots. */
+@keyframes service-typing {
+  0%,
+  100% {
+    opacity: 0.3;
   }
-  24% {
-    opacity: 0;
+  30% {
+    opacity: 1;
   }
 }
 
 /* A live indicator — the dot in a scene's header, or beside `build ok`. Base is fully lit, so
    reduced motion leaves it simply on rather than half-faded. */
-@keyframes service-pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.3;
-  }
-}
+/* ⚠️ `service-pulse` WAS DELETED 2026-08-17, WITH THE `Dot` PRIMITIVE IT DROVE.
+ *
+ * It faded a 5px accent circle 1 → 0.3 → 1 beside each scene's title — a "live" indicator,
+ * one per scene, eight in the file. User: *"remove these colored dots per card, we have to
+ * make the cards simple but looks good"*.
+ *
+ * ⚠️ THE SAME DIAGNOSIS AS `service-step` BELOW, AND THAT IS WHY BOTH NOTES ARE KEPT: **it was
+ * decoration wearing the costume of information.** A pulsing dot promises something is
+ * happening right now, and nothing was — it pulsed identically on a finished report, a draft
+ * and a browser window. Every scene already claims liveness in a way that is actually true: a
+ * status chip, a latency figure, a counter that counts. The dot said it a ninth time, falsely.
+ *
+ * The rule this band keeps re-learning: **a loop that decorates chrome will be read as a claim
+ * about state.** If it is not describing something that is genuinely happening to the element
+ * it sits on, it does not belong. `service-typing` and `service-caret` survive because they
+ * are exactly that — a chat client typing, an editor's cursor blinking. */
 
 /* The one OUTCOME element per scene — the `+38%` chip, the `98` dial, the push notification,
    `build ok`, the `78` verdict. Two source pixels of lift, so it is felt rather than watched.
@@ -748,6 +1470,118 @@ html {
   50% {
     transform: translateY(calc(-2 * var(--u, 1px)));
   }
+}
+
+/* ---- /contact (2026-08-17) --------------------------------------------------------------
+ *
+ * THE PAGE HAD NO MOTION AT ALL until today, and its FEATURE.md recorded that as a decision
+ * rather than a gap ("nothing animates on entry, on scroll or on mount"). The user lifted it.
+ *
+ * ⚠️ NO GSAP ON THIS PAGE, DELIBERATELY. `gsap` and `@gsap/react` are installed and this repo
+ * has a mature idiom for them (ClixBackdrop, SecurityCanvas, LogoCarousel). Everything below is
+ * either a ONE-SHOT MOUNT REVEAL or a STATE TRANSITION — nothing scroll-driven, scrubbed,
+ * pinned, or sequenced across components, i.e. none of the four things GSAP is in this project
+ * for. A one-shot @keyframes with `animation-fill-mode: backwards` is behaviourally identical
+ * to `gsap.from()`, including the invariant both rely on: THE RESTING CSS IS THE FINAL STATE,
+ * so SSR first paint and the JS-off render are already correct. And /company Block 3 — the band
+ * /contact is being brought into line with — ships zero client JS; adding ~35kB gz of GSAP to
+ * the one page that currently ships only the form would move away from that, not toward it.
+ *
+ * ⚠️⚠️ THE REDUCED-MOTION CLAMP AT THE END OF THIS FILE DOES NOT COVER THESE, AND THAT IS THE
+ * WHOLE REASON THEY LIVE INSIDE A `no-preference` MEDIA BLOCK.
+ *
+ * The clamp zeroes `animation-duration`, `animation-iteration-count`, `transition-duration` and
+ * `scroll-behavior`. It does NOT zero `animation-delay`. Every reveal below is STAGGERED, i.e.
+ * it is `opacity: 0` at 0% and is held there by `backwards` fill for the length of its delay.
+ * Under the clamp alone a reduced-motion visitor would therefore get the element pinned blank
+ * for its full delay and then SNAP in — a timed flash of missing content, which is precisely
+ * the failure `prefers-reduced-motion` exists to prevent, and it would get worse the further
+ * down the stagger an element sits.
+ *
+ * So the rule for this page is: EVERY `animation:` DECLARATION IS BUILT ONLY UNDER
+ * `(prefers-reduced-motion: no-preference)`. Never authored and then neutralised — never
+ * authored at all. This is the CSS equivalent of `gsap.matchMedia()` never building its branch,
+ * which is the idiom the three GSAP components here already use. The global clamp stays as a
+ * backstop for everything else; it is not the mechanism here.
+ *
+ * ⚠️ This is a LATENT GAP IN THE GLOBAL CLAMP, not a quirk of /contact. Any future staggered
+ * CSS entrance anywhere in this repo hits it. Logged in docs/CONTEXT.md 2026-08-17.
+ *
+ * ⚠️ OPACITY AND translateY ONLY — the Y axis is the one that does not flip under RTL, so these
+ * need no `[dir="rtl"]` companion the way `.benefit-bar` and `.clix-marquee` do. The single
+ * exception on this page is the progress bar's `transform-origin`, handled below.
+ */
+
+/* The universal entrance: rail, panel, rail step rows, error messages, success content. One
+   keyframe with per-call-site duration and `animation-delay`, because every user of it wants
+   the same 14px lift and differs only in timing. `backwards` fill is load-bearing — without it
+   a delayed element paints at its FINAL position for the length of the delay and then jumps
+   back to 0 to start, which reads as a flicker. */
+@keyframes contact-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* The submit button's in-flight indicator — three dots, staggered by `animation-delay`.
+   ⚠️ THE BASE FRAME IS 0.55 ON ALL THREE, NOT 0. Under the global clamp this animation is
+   forced to one iteration at ~0ms, so whatever the 0% frame says is what a reduced-motion
+   visitor SEES, permanently. At 0.55 the frozen state is a legible, evenly-lit three-dot
+   indicator; at 0 it would be one lit dot and two blanks, which reads as a rendering bug. Same
+   invariant serviceArt.tsx states for its own loops. */
+@keyframes contact-dot {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* The success mark's check, drawn rather than faded in. The path carries `pathLength="1"` so
+   the dash values are unit-independent and this keyframe needs no knowledge of the geometry —
+   see src/components/contact/contactGlyphs.tsx. */
+@keyframes contact-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .contact-rise {
+    animation: contact-rise 0.45s var(--ease-rogo) backwards;
+  }
+  /* Errors arrive faster than the page does: they are a response to something the visitor just
+     did, and 450ms after a failed submit reads as lag rather than as polish. */
+  .contact-rise-fast {
+    animation: contact-rise 0.22s var(--ease-rogo) backwards;
+  }
+  .contact-dot {
+    animation: contact-dot 1.2s var(--ease-rogo) infinite;
+  }
+  .contact-draw {
+    animation: contact-draw 0.4s var(--ease-rogo) 0.12s backwards;
+  }
+}
+
+/* The form panel's completion bar. `transform-origin` has no logical keyword and this bar is
+   full-bleed across the panel's top edge, so under RTL a `left` origin would grow it from the
+   wrong end — it must fill from the inline START. Same `[dir="rtl"]`-scoped idiom `.benefit-bar`
+   and `.clix-marquee` already use, and for the same reason. */
+.contact-progress {
+  transform-origin: left center;
+}
+[dir="rtl"] .contact-progress {
+  transform-origin: right center;
 }
 
 
