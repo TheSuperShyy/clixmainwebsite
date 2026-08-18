@@ -177,7 +177,7 @@ Hebrew until it fits a box measured against English would make the measured spec
 | 7 | home WhyRogo tenants ×2 | 1 → 2 lines (tablet / phone) | Both are sourced verbatim. A shorter sourced lead existed and was **not** used — trimming would turn a sourced string into a paraphrase. Items are a flex column with no uniform-row constraint, so they just grow ~30.8px. |
 | 8 | home Security heading | 2 → 3 lines at ≥1200 (~+50px) | 48px into a 400px measure. Nothing clips. |
 | 9 | `/clix` rotor box | **306/270 → 159/260px** | A fixed-width box exists so the line never reflows mid-swap, so its width is inherently locale-specific. Derived from `max(advance)` over **all four** Hebrew words, not the resting one. |
-| 10 | `/clix` `hero.words` | **2 entries → 4** | Hebrew restores clix's complete sourced list; the English list was known-incomplete. `words` is `readonly string[]`. |
+| 10 | `/clix` `hero.words` | **2 entries → 4** | Hebrew restores clix's complete sourced list; the English list was known-incomplete. `words` is `readonly string[]`. **Superseded 2026-08-18: both locales carry the same three**, so this row is no longer a divergence. |
 | 11 | `/clix` phone CTA | 1 → 2 lines at 390 (+61.6px) | Hebrew ink is 300.2px against a `max-w-[300px]` measure — over by **0.2px**. Kept on evidence: **rogo's own headline also sets 2 lines in that measure**, so English at one line is the outlier and the 300px cap exists to make it wrap. |
 | 12 | `/clix` testimonials | −62.4px at ≥1024 | Hebrew quotes one 24px/130% line shorter. All 20 cards checked, `items-stretch` equalises them, and `halfA === halfB` so the marquee loop stays exact. |
 | 13 | `/clix` manifesto | −56px at 390 | Lands on English's height **to the pixel** at ≥1024 (18 line boxes, 504.0px in both locales). |
@@ -191,8 +191,11 @@ does not predict any individual string.
 
 ## Pre-existing defects surfaced by this work (none introduced here)
 
-1. **`/clix`'s English rotor box does not fit its own content.** rogo's 270px box is 3px narrower
-   than "investor" at 273.0px, so English `allFit` is `false` at 92px. Hebrew fits at every tier.
+1. ~~**`/clix`'s English rotor box does not fit its own content.**~~ **FIXED 2026-08-18.** rogo's
+   270px box was 3px narrower than "investor" at 273.0px, so English `allFit` was `false` at
+   92px while Hebrew fit at every tier. The hero rotor was rewritten to the user's own three
+   roles that day and both boxes were re-measured off the widest word — EN 206/338, HE 225/370.
+   See features/felix-page/CONTEXT.md, 2026-08-18.
 2. **`sections/Security.tsx` and `security/SecurityCompliance.tsx` disagree about cell 4** of the
    same cloned grid — home drops the inline-end border at every tier, `/security` documents it as
    present at ≥1200. Two files claiming to clone one grid, from two separate probes.

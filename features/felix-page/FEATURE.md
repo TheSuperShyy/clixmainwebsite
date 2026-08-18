@@ -236,7 +236,7 @@ fact. `prefers-reduced-motion` freezes on the first word.
 | Property | Original | Ours | Why |
 |---|---|---|---|
 | Display face | ABC Arizona Mix Regular (serif) | Discovery | Standing sitewide decision, 2026-08-08. Licensing — see above. |
-| Rotating word list | unknown length | **2 words** (`analyst`, `investor`) | Not recoverable from a static capture; see open questions. Only observed words used — nothing invented to pad the cycle. |
+| Rotating word list | unknown length, `analyst` / `investor` observed | **3 words** — `AI agent`, `specialist`, `24/7 team` (HE: `סוכן ה-AI` / `המומחה` / `צוות ה-24/7`) | **2026-08-18, user, verbatim.** rogo's two are finance roles clix does not staff. rogo's list was never recoverable from a static capture anyway — see open questions. |
 | Button count | ships **twice**, gated `hidden-*` (48px ≥1200, 44px below) | one element, responsive height | Nothing but the height differs, and two DOM copies of one link is a duplicate tab stop for no gain. |
 | `Request Access` href | this page's `CTA` section | `#clix-contact` | Was `/#contact` while the CTA did not exist; repointed 2026-08-09 now that `ClixCTA` ships the id. |
 | Page title | `Rogo | Meet Felix` | `clix | Meet Felix` | Same call already recorded for the root layout — the `<title>` names the build, not the clone target. |
@@ -277,9 +277,10 @@ fact. `prefers-reduced-motion` freezes on the first word.
       Blocks the Manifesto (white text) and probably block 6. **Needs live observation.** The
       fade below now keys off `#clix-capabilities`; the selector is optional by design, so a
       missed rename would fail silently rather than throw.
-- [ ] **The rotating word list.** Two words observed. The chunk is lazy-loaded; the main JS
-      bundle (146 KB) has none of the strings and six cache-busted fetches all returned
-      `investor`. Ten seconds on the live page would settle it.
+- [x] **The rotating word list.** ~~Two words observed~~ — **moot as of 2026-08-18.** The list
+      is the user's own three now, so the length of rogo's is no longer a question this build
+      needs answered. Recorded for the archive: the chunk is lazy-loaded, the main JS bundle
+      (146 KB) has none of the strings, and six cache-busted fetches all returned `investor`.
 - [ ] **Rotation timing.** Hold and swap durations are estimates.
 - [ ] **Assets, and who owns them.** Block 2 needs a 16:9 video, block 5 needs three 4000×2667
       photos, block 3 needs 24 logos. All are rogo's. This repo already deleted rogo's
@@ -287,8 +288,10 @@ fact. `prefers-reduced-motion` freezes on the first word.
       have `public/video/hero-clix.mp4` and 14 vendored logo SVGs to reuse; the other 10 logos
       and the 3 photos have no source yet. **Needs the user's call.**
 - [ ] **The copy pass.** See the warning at the top. Non-optional before this page is public.
-      Block 6 is now done (2026-08-13); block 1's rotating words and block 2's video captions
-      have not been re-read since the rename.
+      Block 6 is done (2026-08-13) and **block 1's rotating words are done (2026-08-18)** — the
+      user supplied them. Block 2's video captions have still not been re-read since the
+      rename, and `hero.headline` / `hero.lead` / `hero.cta` are still the target's sentences
+      with the name swapped.
 - [ ] **Block 6's Hebrew has not been read by a native speaker.** The ten capability lines in
       `he/clix.ts` are AUTHORED, and unlike the block they replaced, their line counts were not
       measured against the 372px / 272px content boxes. Both caption lines are `whitespace-pre`

@@ -29,10 +29,10 @@
  *     `manifesto.paragraphs` (five, the shape the block's layout was measured against) and
  *     `testimonial.quotes` (ten cards per marquee row).
  *   - `hero.words` is widened to `readonly string[]` ON PURPOSE. Its count is content, not
- *     layout: English is two words and known-incomplete (see ClixHero.tsx), and the rotor
- *     cycles whatever length it is handed. Hebrew carried four of its own until 2026-08-16,
- *     when the user asked for the two locales to name the same roles; it now carries the same
- *     two. The widening stays — the divergence was allowed on purpose and may return.
+ *     layout, and it has already moved: English carried rogo's two observed roles while Hebrew
+ *     carried four of its own, both locales were pinned to the same two on 2026-08-16, and on
+ *     2026-08-18 both became the same THREE — the user's own words. The rotor cycles whatever
+ *     length it is handed. The widening stays.
  */
 
 export const clix = {
@@ -47,16 +47,38 @@ export const clix = {
     /*
      * The rotating words. `readonly string[]`, not a tuple. See the header.
      *
-     * The English pair is the two ACTUALLY OBSERVED on rogo's live page, and the list is
-     * known-incomplete; ClixHero.tsx explains why it cannot be recovered from a static capture
-     * and why nothing was invented to pad it.
+     * ⚠️ NOT ROGO'S ANY MORE, AS OF 2026-08-18 — the first hero string on /clix where the
+     * route's standing "clone now, rewrite after" decision was actually cashed in. It used to
+     * be `["analyst", "investor"]`: the two roles ACTUALLY OBSERVED on rogo's live page, a
+     * known-incomplete list kept incomplete because nothing was invented to pad a cycle a
+     * static capture cannot recover. ClixHero.tsx still carries that whole investigation, and
+     * it stays there — it is why this array is not a tuple. rogo's two are finance roles clix
+     * does not staff, and the user asked for a headline that connects with this company.
+     *
+     * ⚠️ THESE THREE ARE THE USER'S OWN WORDS, given verbatim, and that is their provenance.
+     * They were not derived from a capture and not proposed by an agent. An earlier pass the
+     * same day put four service roles here — sales rep / support agent / researcher / operator,
+     * lifted from `home.whatWeDo`'s own service copy — and the user rejected them on sight,
+     * before anything was rendered. Do not reintroduce that set as an "improvement".
+     *
+     * WHY THEY WORK IN THIS SLOT: each completes `lead` on its own — "your new AI agent",
+     * "your new specialist", "your new 24/7 team" — and across the cycle they climb from the
+     * mechanism to the promise, which is the only thing a rotating word can sell that a static
+     * one cannot.
+     *
+     * ⚠️ TWO OF THE THREE CONTAIN A SPACE, which nothing on this row ever did before. The
+     * rotor span therefore carries `whitespace-nowrap` — see ClixHero.tsx, where the comment
+     * claiming the span holds "a single unbreakable word" had to be corrected. Without it a
+     * two-word entry breaks at the space inside a fixed-width box and the lockup renders a
+     * line deeper. "24/7" also carries a SLASH, which is a break opportunity in its own right;
+     * the same class covers it.
      */
-    words: ["analyst", "investor"] as readonly string[],
+    words: ["AI agent", "specialist", "24/7 team"] as readonly string[],
     /*
      * WHICH RUN LEADS LINE 2. IT IS A GRAMMAR FACT, NOT A STYLE CHOICE, which is the reason it
      * is a dictionary value at all.
      *
-     * English modifies BEFORE the noun ("your new" + "[analyst]"), so the static run leads and
+     * English modifies BEFORE the noun ("your new" + "[AI agent]"), so the static run leads and
      * the rotor follows. Hebrew is the other way round: the noun carries the definite article
      * and its modifier trails it ("[האנליסט]" + "החדש שלכם"), so there the rotor must come
      * FIRST in the DOM. Under rtl a `flex-row` reverses visually, which means DOM order is
@@ -78,16 +100,47 @@ export const clix = {
      * and not a class.
      *
      * The box is fixed-width so the row's centre never moves as the word swaps; remove the
-     * width and every swap reflows the line. English's 306/270 are rogo's own numbers, and
-     * Hebrew cannot reuse them: they are Latin advances for a serif face, measured for
-     * different words in a different script.
+     * width and every swap reflows the line.
+     *
+     * ⚠️ RE-MEASURED 2026-08-18, and these are OUR numbers now. The 306/270 pair they replace
+     * was rogo's own — Latin advances for a serif face we do not serve, for two words we no
+     * longer show. Hebrew still cannot reuse them, which is why this is a dictionary value and
+     * not a class.
+     *
+     * Discovery variable font at wght 400, letter-spacing -0.06em, GPOS kerning applied,
+     * measured off the shipped public/fonts/discovery/discovery-var.woff2:
+     *
+     *                  92px    72px    56px
+     *   24/7 team     334.8   262.1   203.8   <- widest at every size
+     *   specialist    310.3   242.9   188.9
+     *   AI agent      280.6   219.6   170.8
+     *
+     * `tablet` serves BOTH the 72px and the 92px tier (the class has two stops, the type has
+     * three), so it is sized for 92px. Both values are max(advance of EVERY word) — every one,
+     * not the resting one: under `prefers-reduced-motion` the rotor freezes on `words[0]`, so a
+     * single reading measures the wrong string. Then rounded UP, plus the 0.7% by which real
+     * Chrome ran WIDER than this method on the one string both have measured ("investor",
+     * 273.0 in Chrome against 271.2 here). 334.8 -> 338, 203.8 -> 206.
+     *
+     * ⚠️ METHOD NOTE, because the rest of this route's numbers came from headless Chrome and
+     * these did not: Chrome is not available in this environment, so these were computed from
+     * the font's own hmtx plus GPOS kern pairs at the instanced weight. It was validated before
+     * it was trusted — it reproduces he/clix.ts's Chrome-measured "האנליסט" (281.9 / 220.6 /
+     * 171.6) exactly and its "החדש שלכם" (415.3, computed 415.2) to the tenth, and lands
+     * within 0.7% on "investor". Hence the correction above.
+     *
+     * IT FITS, stated rather than assumed: line 2 at 92px is `lead` 311.5 + the 16px gap + 338
+     * = 665.5px inside the 844px `--measure`, 146px roomier than the pair it replaces. This
+     * also RETIRES the pre-existing defect logged in features/i18n-rtl/FEATURE.md — rogo's
+     * 270px box was 3px NARROWER than its own widest word and leaned on the p-5 blur allowance
+     * to hide the overhang. Ours is measured to contain its widest word.
      *
      * Consumed as CSS custom properties (--rotor-w, --rotor-w-tablet) so the per-locale value
      * never lands on the same class string as a direction utility. STRINGS, not numbers: a
      * numeric literal would survive `Translated<>` unwidened and pin Hebrew to English's
      * value, which is the exact opposite of the point.
      */
-    rotorWidth: { phone: "306px", tablet: "270px" },
+    rotorWidth: { phone: "206px", tablet: "338px" },
     /*
      * The one accessible heading for the whole lockup, `sr-only`.
      *
@@ -98,9 +151,9 @@ export const clix = {
      * strictly beats a joined one.
      *
      * THE COST, stated: it no longer tracks `words` automatically. Add a word above, add it
-     * here. The rendered English text is identical to what the template produced.
+     * here. Re-written 2026-08-18 for the three that replaced rogo's two.
      */
-    srHeading: "Meet Clix, your new analyst or investor",
+    srHeading: "Meet Clix, your new AI agent, specialist or 24/7 team",
     /* Button label. `whitespace-pre` inside a `width: min-content` anchor, so it cannot wrap;
        a longer string overflows rather than reflowing. */
     cta: "Request Access",
