@@ -17,6 +17,55 @@ Line format:
 
 ## 2026-08-18
 
+- `infra` — **The site's search metadata was rogo's, and is now clix's.** Every English page
+  served `"Clix is the trusted AI partner to the world's leading financial institutions."` —
+  the clone target's positioning with clix's name in it — under a `<title>` of just `clix`.
+  Found while chasing a stale favicon in Google's results: the recrawl that fixes the icon
+  republishes the description in the same pass, so this had to ship BEFORE requesting indexing,
+  or a fresh crawl would have been worse than the stale one.
+  · EN title/description rewritten, grounded in the site's own hero and four service cards.
+    HE description EXTENDED not replaced — its closing clause was already sourced from the real
+    company site; the three service names now leading it are sourced too.
+  · Titles are templates now (`%s · clix`), so ten routes stop sharing one tab name. Separator
+    is a pipe, not a dash — the standing no-dashes rule, and what the live clix site uses.
+  · ⚠️ **CANONICAL HOST IS NON-`www`, MEASURED NOT ASSUMED**: `www.clixsolutions.info` answers
+    307 → `clixsolutions.info`. Google treats them as different sites, so `metadataBase` +
+    `alternates.canonical` now declare the one that actually serves. The user's Search Console
+    property is the `www` one and will under-report until a non-www or Domain property is added.
+  · `hreflang` pairs on every page and every sitemap entry, so `/` and `/he` read as one site in
+    two languages rather than duplicates.
+  · **`robots.ts` and `sitemap.ts` added — both URLs previously returned Next's 404.** The
+    missing robots.txt blocked nothing (absent = crawl everything); it is there for the
+    `Sitemap:` line. The sitemap matters more: `/news` is linked only from the footer, and
+    `/news` is the one route that renders no footer, so a crawler landing there found no way
+    onward. 20 URLs, no `lastModified` (the only honest value is deploy time, which would mark
+    everything changed on every deploy).
+  · New `src/lib/site.ts` holds the canonical origin (`NEXT_PUBLIC_SITE_URL`-overridable, since
+    the company also owns clix-solution.com) and the hand-maintained route list. ⚠️ That list
+    will drift — Next exposes no build-time route manifest, so a new page missing from it is a
+    silent absence from the sitemap, not a build error.
+  · Verified by curl against the dev server, not by build: robots.txt 200, sitemap.xml 200 with
+    20 `<loc>`s, both locales' title/description/canonical, three `hreflang` links.
+    ⚠️ `npm run build` NOT run — standing instruction.
+
+- `contact-page` — **Gmail switched back ON, same day.** `CONTACT_GMAIL=off` removed from `.env`
+  at the user's request now that the webhook is proven, so **both channels are live**: the
+  notification mail to `info@clix-solution.com` and the n8n POST. SMTP credential re-verified
+  with an AUTH-only handshake (`transporter.verify()`) — **no message was sent**, per the
+  standing rule that a real send is the user's call. This supersedes the "no notification mail"
+  note in the entry below. → [detail](../features/contact-page/CONTEXT.md)
+
+- `contact-page` — **`/api/contact` now delivers over TWO independent channels**, each gated by
+  its own env var and run concurrently: the Gmail notification, and a POST to the n8n workflow
+  `Clix Main Website - Form Submit` (`J1UDMNjKeiaQs7AD`) that will file the lead in the CRM and
+  WhatsApp them. The form gained a **required `phone`** field, which is the only reason n8n can
+  message anyone. ⚠️ **`CONTACT_GMAIL=off` is set — the business is receiving no notification
+  mail**, by request, while the webhook is tested; deleting that `.env` line reverts it. The n8n
+  webhook node **was GET, unauthenticated and inactive**, all three of which reject this route's
+  POST — now POST + Header Auth + active. Verified end to end: two live executions carry the full
+  payload, and a forced-wrong secret surfaces as a 500 rather than a false success.
+  → [detail](../features/contact-page/CONTEXT.md)
+
 - `a11y-widget` — **AccessiYes button 48 → 40 and its panel cut from a 462px full-height drawer to
   a 340px popover.** ⚠️ **It renders in a SHADOW DOM** (`attachShadow`), so globals.css cannot
   reach it — the Sienna approach would be silently inert. Button size went through the real

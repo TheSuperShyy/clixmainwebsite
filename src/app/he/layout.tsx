@@ -37,16 +37,48 @@ import AccessibilityGate from "@/components/a11y/AccessibilityGate";
 import { DICTIONARIES } from "@/lib/i18n/dictionary";
 import { HTML_LANG, DIRECTION } from "@/lib/i18n/config";
 import { seedLocale } from "@/lib/i18n/server";
+import { SITE_URL } from "@/lib/site";
 
-/* The Hebrew description is SOURCED, not translated: it is the real company site's own
-   positioning line (docs/reference/clixsolutions/, services H1, recovered from pages/*.html
-   rather than content.json — see he/chrome.ts for why the H1s in that file lost their spaces).
-   The English description here is a rogo-derived claim about "the world's leading financial
-   institutions"; the Hebrew deliberately does not repeat it. */
+/* The Hebrew description is SOURCED, not translated: its closing clause is the real company
+   site's own positioning line (docs/reference/clixsolutions/, services H1, recovered from
+   pages/*.html rather than content.json — see he/chrome.ts for why the H1s in that file lost
+   their spaces).
+
+   ⚠️ EXTENDED 2026-08-18, NOT REPLACED. The sourced line alone names no product, so a search
+   result for it told a reader nothing about what clix sells. The three services now leading the
+   sentence are also sourced — they are clix's own service names from the live site
+   (מערכות CRM, סוכני AI לוואטסאפ, אוטומציות לייעול עסקי) and match the four service cards in he/home.ts.
+
+   The English side had no such excuse and was rewritten outright: it carried rogo's claim about
+   "the world's leading financial institutions". See (en)/layout.tsx.
+
+   ⚠️ NO DASHES, per the standing 2026-08-10 instruction on clix prose. The title separator is a
+   pipe, which is also what the live clix site uses ("CLIX | אוטומציות חכמות לעסקים"). */
 export const metadata: Metadata = {
-  title: "clix",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "clix | אוטומציות ובינה מלאכותית לעסקים",
+    template: "%s · clix",
+  },
   description:
-    "אנחנו בונים את המנגנונים השקטים שמניעים עסקים מודרניים.",
+    "clix בונה סוכני AI, אוטומציות WhatsApp, מערכות CRM ותוכנה ייעודית. אנחנו בונים את המנגנונים השקטים שמניעים עסקים מודרניים.",
+  alternates: {
+    canonical: "/he",
+    languages: {
+      en: "/",
+      he: "/he",
+      "x-default": "/",
+    },
+  },
+  openGraph: {
+    type: "website",
+    siteName: "clix",
+    locale: "he_IL",
+    url: "/he",
+    title: "clix | אוטומציות ובינה מלאכותית לעסקים",
+    description:
+      "clix בונה סוכני AI, אוטומציות WhatsApp, מערכות CRM ותוכנה ייעודית.",
+  },
 };
 
 export default function HeRootLayout({

@@ -75,8 +75,12 @@ export const contact = {
      reads from `form.groups` rather than restating. */
   panel: {
     title: "One brief, then a real reply.",
+    /* ⚠️ THE COUNT IS LOAD-BEARING AND WENT 3 → 4 WHEN `phone` WAS ADDED (2026-08-18). Phrased
+       as "four short steps, four required fields" rather than repeating the numeral as a word
+       twice in two sentences. If a field's required-ness ever changes, this string changes with
+       it — a form that miscounts its own obligations is worse than one that says nothing. */
     intro:
-      "Four short steps. Three fields are required; everything else just helps us answer better.",
+      "Four short steps, four required fields; everything else just helps us answer better.",
     /* Sits under the intro and beside the submit button. The SAME promise `successBody` makes
        — moved to where it can still change someone's mind, because after a successful send it
        is reassurance and before one it is a reason to write. */
@@ -96,6 +100,12 @@ export const contact = {
     namePlaceholder: "Your name",
     emailLabel: "Email",
     emailPlaceholder: "you@company.com",
+    /* ⚠️ REQUIRED, AND ADDED FOR A REASON THAT IS NOT THE FORM'S. The n8n workflow behind this
+       form opens a WhatsApp thread with the lead, and it cannot do that without a number — see
+       src/app/api/contact/route.ts. The placeholder shows an international prefix because the
+       workflow is what normalises the number, and a `+` costs it a guess. */
+    phoneLabel: "Phone",
+    phonePlaceholder: "+972 50 000 0000",
     companyLabel: "Company",
     companyPlaceholder: "Company or project name",
     roleLabel: "Role",
@@ -151,6 +161,8 @@ export const contact = {
       nameTooLong: "That is longer than we can store.",
       emailRequired: "Please add an email so we can reply.",
       emailInvalid: "That does not look like an email address.",
+      phoneRequired: "Please add a phone number so we can reach you on WhatsApp.",
+      phoneInvalid: "That does not look like a phone number.",
       tooLong: "That is longer than we can store.",
       messageRequired: "Please tell us a little about what you need.",
       messageTooShort: "A sentence or two, so we know what to reply to.",

@@ -37,15 +37,62 @@ import AccessibilityGate from "@/components/a11y/AccessibilityGate";
 import { DICTIONARIES } from "@/lib/i18n/dictionary";
 import { HTML_LANG, DIRECTION } from "@/lib/i18n/config";
 import { seedLocale } from "@/lib/i18n/server";
+import { SITE_URL } from "@/lib/site";
 
-/* Browser tab title. Deliberately "clix", not the target's own — this is the one place the
-   build identifies as itself rather than as the clone target, and a tab reading "Rogo"
-   would misrepresent whose site it is. An intentional divergence from 1:1, not a defect;
-   do not "correct" it to match the capture. */
+/* ⚠️ REWRITTEN 2026-08-18. WHAT WAS HERE WAS THE CLONE TARGET'S POSITIONING WITH CLIX'S NAME
+   IN IT: "Clix is the trusted AI partner to the world's leading financial institutions." That
+   is rogo's business, not clix's — clix builds automation for Israeli SMBs — and it was live on
+   every English page and served to Google as this company's description of itself.
+
+   It surfaced while chasing a stale favicon in search results. The recrawl that fixes the icon
+   republishes the description in the same pass, so shipping this FIRST is the whole point: a
+   fresh crawl of the old text would have been worse than the stale-but-accurate snippet Google
+   was already showing.
+
+   The title stays lowercase "clix" as the site's own name — the previous note's reasoning holds
+   and is kept below — but it is now a TEMPLATE, so a tab reads "Product · clix" rather than an
+   undifferentiated "clix" on all ten routes. `default` is what the home page and any route
+   without its own title get.
+
+   ⚠️ THE DESCRIPTION IS SOURCED, NOT AUTHORED. It restates this site's own hero
+   (`en/home.ts`: "You bring the business. / We bring the intelligence.") and its four service
+   cards — AI agents, WhatsApp, CRM, integrations. Nothing here is a claim the site does not
+   already make about itself, which is the standing rule for this repo's copy.
+
+   PREVIOUS NOTE, still true of the title: deliberately "clix", not the target's own — this is
+   the one place the build identifies as itself rather than as the clone target, and a tab
+   reading "Rogo" would misrepresent whose site it is. */
 export const metadata: Metadata = {
-  title: "clix",
+  /* Resolves every relative URL below, and every `alternates` entry, against the canonical
+     origin. Without it Next emits relative canonicals, which Google resolves against whichever
+     hostname it crawled — the exact www/non-www split this is meant to settle. */
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "clix | AI agents and automation for business",
+    template: "%s · clix",
+  },
   description:
-    "Clix is the trusted AI partner to the world’s leading financial institutions.",
+    "clix builds AI agents, WhatsApp automation, CRM systems and custom software for businesses that want the work to run itself.",
+  alternates: {
+    canonical: "/",
+    /* hreflang. Tells Google these two trees are the same site in two languages rather than
+       duplicates competing with each other, and which to serve to whom. `x-default` points at
+       English because `/` is the unprefixed default locale. */
+    languages: {
+      en: "/",
+      he: "/he",
+      "x-default": "/",
+    },
+  },
+  openGraph: {
+    type: "website",
+    siteName: "clix",
+    locale: "en_US",
+    url: "/",
+    title: "clix | AI agents and automation for business",
+    description:
+      "clix builds AI agents, WhatsApp automation, CRM systems and custom software for businesses that want the work to run itself.",
+  },
 };
 
 export default function EnRootLayout({
