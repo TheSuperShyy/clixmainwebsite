@@ -1,6 +1,7 @@
 import Nav from "@/components/sections/Nav";
 import Hero from "@/components/sections/Hero";
 import Testimonials from "@/components/sections/Testimonials";
+import LandingVideo from "@/components/sections/LandingVideo";
 import WhyRogo from "@/components/sections/WhyRogo";
 import ByTheNumbers from "@/components/sections/ByTheNumbers";
 import Security from "@/components/sections/Security";
@@ -35,6 +36,10 @@ export default async function HomeRoute({ locale }: { locale: Locale }) {
         <main>
           <Hero />
           <Testimonials />
+          {/* Added 2026-08-18 — /clix's video treatment, on the home page's rhythm.
+              Sits between the testimonials and the services list, so it carries the small
+              half of each gap; see the padding note in LandingVideo.tsx. */}
+          <LandingVideo />
           <WhyRogo />
           <ByTheNumbers />
           <Security />

@@ -17,6 +17,52 @@ Line format:
 
 ## 2026-08-18
 
+- `landing-video` — **The mute toggle came off the home-page clip.** User sent a screenshot of
+  the `Unmute` button: "remove this."
+  · **`muted` is now a hard attribute, not state** — the clip is permanently silent. Dropping the
+    control without pinning `muted` would have left audio a reader cannot stop, which is what the
+    toggle was for. Sound and the control return together or not at all.
+  · **The `home.video.{unmute,mute}` keys were deleted from both locale files**, added hours
+    earlier for this button and read by nothing else. `en/home.ts` and `he/home.ts` are
+    `git diff` clean against their pre-2026-08-18 state.
+  · The section now has **zero interactive elements** — no tab stop, no focus ring — which is
+    correct for decoration. `usePageDict` dropped; `"use client"` stays for the visibility gate.
+  · **`/clix` is untouched** — `ClixVideo` keeps its toggle. The two sections have now diverged,
+    so "a copy of ClixVideo" is no longer the whole truth and the header note says where.
+  → [detail](../features/landing-video/CONTEXT.md)
+
+- `landing-video` — **The clip now plays only while it is on screen.** User's ask, verbatim:
+  "it should only play when its in the screen." `IntersectionObserver` at `threshold: 0.25`,
+  **`autoPlay` removed** so the observer is the only thing that starts the element — with both,
+  the clip would have begun at hydration (this section is below the fold at every tier) and the
+  observer would be stopping something that should never have started.
+  · `pause()`, not a `currentTime` reset — scrolling back resumes in place. **Mute state
+    survives the round trip**; re-muting on exit was rejected as silently undoing a user action.
+  · **`preload="none"` is what the gate earns** — a visitor who never scrolls this far pays 12KB
+    of poster instead of 3.5MB of mp4, invisibly, because the poster is frame 0.
+  · `.catch()` on both `play()` calls; fallback to play-on-mount where the API is absent.
+  · **0.25 is a decision, not a measurement, and is unverified at 390px** — a quarter of a 16:9
+    box is ~50px there. Still not rendered in a browser.
+  → [detail](../features/landing-video/CONTEXT.md)
+
+- `landing-video` — **New section on `/`: a 16:9 clip under the testimonials**, in `/clix`'s
+  Video treatment (aspect 1.77778, radius 6, `object-cover`, the same mute toggle). User's ask,
+  verbatim: "below the client words… make it just like the hero video from clix section."
+  · **The clone of the box is deliberate duplication, not a shared component** — the two differ
+    in source, padding and dictionary namespace, which is everything a section owns.
+  · **Padding is the home page's, not `/clix`'s**: `py-10` / `tablet:py-20` both ends, because
+    Testimonials closes on `pb-32`/`pb-20` and WhyRogo opens on `pt-20`/`pt-24`. `/clix`'s own
+    `pt-32` would have put ~196px of air under the testimonial heading.
+  · `landing-vid.mp4` measured **1920×1080, 25.5s, 3.5MB** — exactly 16:9, so `object-cover`
+    never crops. `landing-vid-poster.jpg` **generated** from frame 0 with ffmpeg, as
+    `clix-demo-poster.jpg` was, so poster and first painted frame are the same image.
+  · New key `home.video.{unmute,mute}` in both locales, duplicating `clix.video` rather than
+    sharing it. Logical properties on the toggle, so `/he` mirrors.
+  · **Not rendered at any tier and no build run.** Three open questions: full-bleed vs
+    1280-capped, whether the clip has audio at all, and whether "below the client words" meant
+    below the whole section or directly under its `<h2>`.
+  → [detail](../features/landing-video/CONTEXT.md)
+
 - `felix-page` — **The /clix hero rotor stops being rogo's.** `Meet Clix / your new
   [analyst | investor]` was the clone target's own two finance roles, kept under this route's
   "clone now, rewrite after" decision; the user asked for words that connect with the company.
