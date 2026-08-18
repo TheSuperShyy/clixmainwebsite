@@ -15,6 +15,17 @@ Line format:
 
 ---
 
+## 2026-08-18
+
+- `a11y-widget` — **AccessiYes button 48 → 40 and its panel cut from a 462px full-height drawer to
+  a 340px popover.** ⚠️ **It renders in a SHADOW DOM** (`attachShadow`), so globals.css cannot
+  reach it — the Sienna approach would be silently inert. Button size went through the real
+  `iconSize` config key (custom properties cross the boundary); the panel needed a `<style>`
+  injected into the shadow root (`AccessiYesCustomize.tsx`), possible only because the root is
+  `mode: "open"`. Also recoloured to the site's navy #1b3a5f via the `primaryColor` config key —
+  the only place it can be set, since the widget spreads it inside the shadow root.
+  → [detail](../features/legal-pages/CONTEXT.md)
+
 ## 2026-08-17
 
 - `a11y-widget` — **AccessiYes is now the shipped widget**, from the user's generated embed.

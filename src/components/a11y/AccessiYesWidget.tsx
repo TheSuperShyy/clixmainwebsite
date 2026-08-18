@@ -38,6 +38,7 @@
  */
 
 import Script from "next/script";
+import AccessiYesCustomize from "./AccessiYesCustomize";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { localeHref } from "@/lib/i18n/config";
 
@@ -64,6 +65,24 @@ export default function AccessiYesWidget() {
      supported: the plugin ships he.json and the bundle carries a "he" pack. Checked. */
   const config = {
     iconId: "default",
+    /* 40 against the vendor default of 48, at the user's request ("make this button little
+       smaller"). This is a REAL CONFIG KEY, not a CSS override — the widget turns it into
+       `--cya11y-size` on its host element, and a custom property is one of only two things that
+       crosses the shadow boundary it renders behind. The panel needed the other one; see
+       AccessiYesCustomize.tsx.
+
+       ⚠️ `AccessiYesCustomize`'s `bottom: 72px` is derived from this value plus the 20px default
+       margin. Change one, change the other. */
+    iconSize: 40,
+    /* The navy of the accessibility mark the client supplied, replacing the vendor's #1863DC.
+       Same value the built-in widget's button uses and the same one the Sienna skin sets, so all
+       three implementations look like this site rather than like their vendor.
+
+       ⚠️ THIS IS THE ONLY PLACE IT IS SET FOR ACCESSIYES. The widget spreads it to ~44 rules as
+       `--cya11y-primary-color`, INSIDE its shadow root — so there is no stylesheet anywhere that
+       can override it afterwards. `focusRingColor` is deliberately left unset: it falls back to
+       this value, and one colour is the point. */
+    primaryColor: "#1b3a5f",
     position: { mobile: "bottom-left", desktop: "bottom-left" },
     language: { default: locale, selected: [] as string[] },
     modules: { statement: { enabled: true } },
@@ -79,15 +98,18 @@ window._cyA11yConfig.modules.statement.url=location.origin+${JSON.stringify(stat
 (function(w,d,s,u){var js=d.createElement(s),fjs=d.getElementsByTagName(s)[0];js.src=u;js.async=true;fjs.parentNode.insertBefore(js,fjs);})(window,document,"script",${JSON.stringify(SRC)});`;
 
   return (
-    <Script
-      /* Keyed by locale so a locale change re-runs it rather than leaving the previous
-         statement URL in place. The two locale trees are separate document loads today, so this
-         is belt and braces — but it costs nothing and stops a soft navigation from silently
-         pointing Hebrew visitors at the English statement. */
-      key={locale}
-      id="accessiyes-widget"
-      strategy="afterInteractive"
-      dangerouslySetInnerHTML={{ __html: body }}
-    />
+    <>
+      <Script
+        /* Keyed by locale so a locale change re-runs it rather than leaving the previous
+           statement URL in place. The two locale trees are separate document loads today, so this
+           is belt and braces — but it costs nothing and stops a soft navigation from silently
+           pointing Hebrew visitors at the English statement. */
+        key={locale}
+        id="accessiyes-widget"
+        strategy="afterInteractive"
+        dangerouslySetInnerHTML={{ __html: body }}
+      />
+      <AccessiYesCustomize />
+    </>
   );
 }

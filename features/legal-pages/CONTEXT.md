@@ -7,6 +7,53 @@ Reading this file plus `FEATURE.md` should be enough to resume work on this sect
 no code scanning.
 
 ---
+## 2026-08-18 — AccessiYes button and panel made smaller
+
+*"can you make this button little smaller, also the when its clicked"*. Button 48 → **40**; panel
+462px full-height drawer → **340px popover** anchored above it.
+
+### ⚠️ THE FINDING THAT MATTERS: ACCESSIYES RENDERS IN A SHADOW DOM
+
+It creates `#cya11y-container` and calls `attachShadow({ mode: "open" })`. **A shadow boundary
+blocks external stylesheets**, so the approach used for Sienna — plain `.asw-*` rules in
+globals.css — WOULD BE SILENTLY INERT here. Anything written in globals.css for `.cya11y-*` does
+nothing at all. This is the single most important thing to know before touching this widget.
+
+Two things cross the boundary, and each did one half of the job:
+
+1. **CSS custom properties inherit through it.** `iconSize: 40` is a real config key — the widget
+   turns it into `--cya11y-size` on the host — so the button needed no CSS at all.
+2. **A `<style>` appended to the shadow root.** `AccessiYesCustomize.tsx` does this for the panel.
+   Reachable only because they used `mode: "open"`; a closed root would have made the panel
+   unstyleable, and the only options would have been a different vendor or their paid tier.
+
+### The config surface, read from the plugin's unminified `widget.js`
+
+`defaultConfig` is richer than the generator exposes: `status` (per-device on/off), `iconId`,
+`iconSize: 48`, `label`, `heading`, `position`, `language`, `margins` (per-device, 20px all
+round), `primaryColor: "#1863DC"`, `keyboard` (`enabled: false`, `alt+a`), `modules`. The
+generator only writes a few of these — the rest are settable by hand in the inline config.
+
+`bottom: 72px` on the panel is arithmetic: 40px button + 20px default margin + 12px gap. ⚠️ Tied
+to `iconSize` and `margins`; both files say so.
+
+Both `bottom-left` and `bottom-right` are handled in the injected CSS even though this site pins
+bottom-left, so a future position change cannot silently restore the full-height drawer.
+
+### Colour, same day
+
+`primaryColor: "#1b3a5f"` — the navy from the accessibility mark the client supplied, replacing
+the vendor's #1863DC. Same value the built-in widget and the Sienna skin use, so all three
+implementations read as this site rather than as their vendor.
+
+⚠️ **The config is the ONLY place this can be set.** The widget spreads it to ~44 rules as
+`--cya11y-primary-color` inside its shadow root; no stylesheet can override it after the fact.
+`focusRingColor` is left unset on purpose — it falls back to `primaryColor`.
+
+⚠️ Still open: the CDN URL carries no pinned version. Not looked at in a browser — standing
+instruction.
+
+
 ## 2026-08-17 — AccessiYes is the shipped widget
 
 The user generated the embed at accessiyes.com → "Get installation code" (the non-WordPress
