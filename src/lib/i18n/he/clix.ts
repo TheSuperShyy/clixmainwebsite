@@ -39,10 +39,14 @@
  * is a build failure rather than an English word on a Hebrew page. `hero.words` is the one
  * array that is NOT a tuple, so this file MAY diverge in length from English. It carried four
  * against English's two until 2026-08-16, when the user asked both locales to name the same
- * roles; it now carries the same two. The widening stays, deliberately.
+ * roles; both carried two from then until 2026-08-18, and both carry three now. The widening
+ * stays, deliberately.
  *
  * EVERY MEASUREMENT QUOTED BELOW was taken in headless Chrome against the real Discovery
  * variable font at the real size, tracking and measure. Line counts, never character counts.
+ * ⚠️ ONE EXCEPTION, disclosed at the value itself: `hero.rotorWidth` was re-measured on
+ * 2026-08-18 without Chrome, straight off the shipped woff2's hmtx and GPOS kern tables. It is
+ * trusted only because it reproduces this file's existing Chrome numbers to the tenth.
  */
 
 import type { Translated } from "../shape";
@@ -68,7 +72,11 @@ export const clix: Translated<ClixDict> = {
      * return to — its measured widths are in git.
      *
      * WHAT IT IS NOW: the direct Hebrew of "your new", split off the rotating noun. Line 2
-     * reads "האנליסט החדש שלכם".
+     * reads "המומחה החדש שלכם". ⚠️ THIS RUN SURVIVED THE 2026-08-18 REWRITE UNCHANGED
+     * — only `words` and `rotorWidth` moved. It is load-bearing for all three new roles, which
+     * are masculine singular like the two before them, so the agreement still holds; a feminine
+     * or plural role added later would need "החדשה שלכם" / "החדשים שלכם" and this key
+     * cannot vary per word. That is the real constraint on what may go in `words`.
      *
      * ⚠️ THIS RUN NO LONGER LEADS THE LINE, AND THE REASON IS GRAMMAR. English modifies BEFORE
      * the noun ("your new" + "analyst"). Hebrew puts the definite noun first and the modifier
@@ -83,24 +91,36 @@ export const clix: Translated<ClixDict> = {
      */
     lead: "החדש שלכם",
     /*
-     * AUTHORED as of 2026-08-16 — the Hebrew of English's two, replacing the four SOURCED roles
-     * described under `lead`. The user's instruction was that both locales name the same
-     * things, and English is the side that was kept.
+     * AUTHORED as of 2026-08-18, replacing the two roles that sat here from 2026-08-16. This is
+     * the Hebrew of English's three, and English's three are THE USER'S OWN WORDS — given
+     * verbatim, not proposed. See en/clix.ts. The parity rule from 2026-08-16 still holds: both
+     * locales name one list.
      *
-     * "אנליסט" is the term Israeli finance writing actually uses; "מנתח" is the
-     * general-purpose analyst and would read as a data role beside a wordmark like this one.
+     * WHAT THEY REPLACE, kept because it is the second reversal on this key: ["האנליסט",
+     * "המשקיע"], the Hebrew of rogo's two finance roles. Before those, four SOURCED roles
+     * from the real services page (למכירות / לתמיכה / למחקר / לתפעול). An agent
+     * proposed restoring exactly those four on 2026-08-18 and the user rejected them, so this
+     * is not a route back to them — their widths are in git if the question ever reopens.
      *
-     * ⚠️ THE DEFINITE `ה` PREFIX IS PART OF THE ROTATING WORD, not of `lead`, and it has to be:
-     * "האנליסט החדש שלכם" needs the article on the noun, the noun leads the line, and a
-     * bare "ה" cannot be left stranded in its own box with a 16px gap behind it. It is counted
-     * in the widths below.
+     * ⚠️ THE DEFINITE ה RIDES ON THE ROTATING WORD, not on `lead`, exactly as it did for the
+     * two roles it replaces: "המומחה החדש שלכם" needs the article on the noun, the noun
+     * leads the line, and a bare "ה" cannot be stranded in its own box behind a 16px gap.
+     *
+     * ⚠️ TWO OF THE THREE CARRY THE PREFIX HYPHEN, and it is the ONE hyphen this file allows:
+     * "סוכן ה-AI" and "צוות ה-24/7" follow the live site's own orthography (ה-AI, ב-WhatsApp,
+     * ל-CRM). In both, the definite article lands on the SECOND element because the phrase is
+     * a construct (סמיכות) — "הסוכן של AI" would be the wrong register and the wrong grammar.
+     *
+     * ⚠️ "צוות ה-24/7" IS THE ONE STRING ON THIS ROUTE WORTH A NATIVE READ. Definite
+     * construct over a numeral is correct but stiff, and the alternative registers ("צוות
+     * 24/7" undefined, or "הצוות שעובד 24/7" spelled out) each cost something — the first
+     * loses agreement with "החדש שלכם", the second is 40% wider and would resize the box.
+     * Flagged rather than quietly chosen.
      *
      * `words` stays `readonly string[]` rather than becoming a tuple even though both locales
-     * now carry two. English's list is known-incomplete (see ClixHero.tsx), so the arity is
-     * still content and not layout, and pinning it would have to be undone the moment a third
-     * English word is observed.
+     * now carry three. The count is content, not layout, and it has moved twice already.
      */
-    words: ["האנליסט", "המשקיע"],
+    words: ["סוכן ה-AI", "המומחה", "צוות ה-24/7"],
     /*
      * TRUE HERE, FALSE IN ENGLISH — the rotating noun renders BEFORE `lead`. See the long note
      * in en/clix.ts and the ⚠️ under `lead` above: this is Hebrew word order, expressed as DOM
@@ -108,43 +128,57 @@ export const clix: Translated<ClixDict> = {
      */
     rotorLeads: true,
     /*
-     * MEASURED, not translated — and this is the value English's 306/270 cannot be reused for.
-     * RE-MEASURED 2026-08-16 for the two new words. The old 159/260 pair was max(advance) over
-     * the four SOURCED roles and is too narrow for these.
+     * MEASURED, not translated — and this is the value English's pair cannot be reused for.
+     * RE-MEASURED 2026-08-18 for the three new words. The 172/282 pair was max(advance) over
+     * the two roles they replace and is too narrow for "צוות ה-24/7".
      *
      * The box is fixed-width so the row's centre never moves as the word swaps. The width has
      * to be `max(advance of every word)` at the largest size that tier renders, and it must be
      * every word, not the resting one: under `prefers-reduced-motion` the rotor freezes on
      * `words[0]`, so a single reading measures the wrong string.
      *
-     * Headless Chrome, Discovery 400 at -0.06em, definite article included:
-     *              92px    72px    56px
-     *   האנליסט    281.9   220.6   171.6   <- widest at every size
-     *   המשקיע     276.3   216.3   168.2
+     * Discovery 400 at -0.06em, definite article and prefix hyphen included:
+     *                  92px    72px    56px
+     *   צוות ה-24/7    369.3   289.0   224.8   <- widest at every size
+     *   סוכן ה-AI       283.8   222.1   172.7
+     *   המומחה          267.7   209.5   162.9
      *
      * `tablet` serves BOTH the 72px and 92px tiers (the class has two stops, the type has
-     * three), so it is sized for 92px: 282px. `phone` is the 56px maximum: 172px. Both are
+     * three), so it is sized for 92px: 370px. `phone` is the 56px maximum: 225px. Both are
      * border-box widths and both round UP off the widest word, which is this file's rule and
-     * NOT English's — rogo's 270px box is deliberately 3px narrower than "investor" at 273.0px
-     * and lets the 20px `p-5` blur allowance absorb the overhang.
+     * NOT English's — rogo's box was deliberately narrower than its own widest word and let the
+     * 20px `p-5` blur allowance absorb the overhang. English stopped doing that on 2026-08-18.
+     *
+     * ⚠️ MEASURED BY A DIFFERENT METHOD THAN THE REST OF THIS FILE, disclosed because it
+     * matters: headless Chrome is not available in this environment, so these come from the
+     * shipped discovery-var.woff2's own hmtx at wght 400 with GPOS kerning applied. It was
+     * validated against the numbers this file ALREADY held from Chrome before it was used — it
+     * reproduces "האנליסט" 281.9 / 220.6 / 171.6 exactly and `lead` at 415.2 against the
+     * recorded 415.3. Hebrew kerns almost not at all, which is why the agreement is exact here
+     * and only within 0.7% on the Latin side (see en/clix.ts).
+     *
+     * IT FITS: line 2 at 92px is `lead` 415.2 + the 16px gap + 370 = 801.2px inside the 844px
+     * measure. On phone the row is a `flex-col`, so the widest box is 225px against the 358px
+     * measure at a 390px viewport.
      *
      * ⚠️ RE-DERIVE THESE IF THE `[dir="rtl"]` LETTER-SPACING HOOK IN globals.css IS EVER FILLED.
-     * At natural tracking these two run about 15% wider, so the pair would land near 324 / 197.
+     * At natural tracking these run about 15% wider, so the pair would land near 425 / 259.
      */
-    rotorWidth: { phone: "172px", tablet: "282px" },
+    rotorWidth: { phone: "225px", tablet: "370px" },
     /*
      * AUTHORED, and it is ONE SENTENCE rather than a join for a reason.
      *
      * English builds this by concatenating the static run with `words.join(" or ")`. Hebrew
-     * cannot: "החדש שלכם" governs BOTH nouns and belongs once, at the END of the sentence,
-     * so a join in visual order would emit "האנליסט המשקיע החדש שלכם" and lose the
-     * coordination entirely. So the sentence is written out. It is `sr-only`, so it costs no
-     * geometry at all.
+     * cannot: "החדש שלכם" governs ALL THREE nouns and belongs once, at the END of the
+     * sentence, so a join in visual order would emit "סוכן ה-AI המומחה צוות ה-24/7 החדש
+     * שלכם" and lose the coordination entirely. So the sentence is written out. It is
+     * `sr-only`, so it costs no geometry at all.
      *
-     * Cost, stated, and it is the same one English pays: it does not track `words`. Add a word
-     * above, add it here.
+     * REWRITTEN 2026-08-18 for the three new roles. Cost, stated, and it is the same one
+     * English pays: it does not track `words`. Add a word above, add it here.
      */
-    srHeading: "הכירו את Clix, האנליסט או המשקיע החדש שלכם.",
+    srHeading:
+      "הכירו את Clix, סוכן ה-AI, המומחה או צוות ה-24/7 החדש שלכם.",
     /* AUTHORED. Not "בואו נתחיל" (the real site's own CTA, and already the chrome nav's label)
        because this button is a gated-access request, not an open invitation, and reusing the
        nav's string would make two different actions read identically two rows apart.

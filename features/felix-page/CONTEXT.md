@@ -49,6 +49,91 @@ pass.
 
 ## Log
 
+### 2026-08-18 — the hero rotor stops being rogo's; the user names the three words
+
+**Asked:** the user sent a screenshot of the headline and said the words should be *"something
+that connects with our company"*. `Meet Clix / your new [analyst | investor]` was rogo's own
+copy, kept verbatim under this route's standing "clone now, rewrite after" decision. They are
+finance roles and clix does not staff them.
+
+**The first attempt was rejected, and that is worth recording.** Two options were put to the
+user and they picked "the roles it fills" — `sales rep / support agent / researcher / operator`,
+lifted word for word from `home.whatWeDo`'s first service card, with the Hebrew restored from
+`pages/services.html`. It shipped to the working tree, the user read it and said **"i dont like
+the new one, give me other"**, and it was reverted with `git checkout` before it was ever
+rendered. Four alternative directions were then measured and drafted — and the user cut that
+short by supplying the words themselves.
+
+**THE THREE WORDS ARE THE USER'S OWN, VERBATIM.** `AI agent`, `specialist`, `24/7 team`. Not
+derived from a capture, not proposed by an agent, not to be "improved". That is the whole
+provenance and it is written into both dictionaries.
+
+| | English | Hebrew |
+|---|---|---|
+| line 1 | `Meet Clix` | `הכירו את Clix` |
+| lead | `your new` | `החדש שלכם` |
+| rotor | `AI agent` · `specialist` · `24/7 team` | `סוכן ה-AI` · `המומחה` · `צוות ה-24/7` |
+| `rotorLeads` | `false` | `true` |
+
+**Nothing structural moved.** `lead` and `rotorLeads` are untouched in both locales — the three
+new roles are masculine singular exactly like the two they replace, so `החדש שלכם` still
+agrees and the Hebrew noun still has to lead its modifier. **That is now the binding constraint
+on this list**: a feminine or plural role would need `החדשה שלכם` / `החדשים שלכם` and
+`lead` cannot vary per word. Noted at the key.
+
+**One real code change, and it is load-bearing:** the rotating span now carries
+**`whitespace-nowrap`**. Every rotating word in either locale had been a single unbroken run
+until today, and the span's comment leaned on that ("a single unbreakable word") to explain why
+its box has no slack. `AI agent` and `24/7 team` carry a **space** and a **slash** — two break
+opportunities — inside a **fixed-width** box, and either one drops the lockup to an extra line
+if the box is a pixel narrow.
+
+**On the Hebrew, one string wants a native read.** `צוות ה-24/7` is a definite construct over a
+numeral: correct, but stiff. The alternatives each cost something — `צוות 24/7` loses agreement
+with `החדש שלכם`, and `הצוות שעובד 24/7` is ~40% wider and would resize the box. The
+prefix hyphen follows the live site's own orthography (`ה-AI`, `ב-WhatsApp`, `ל-CRM`), which is
+the one hyphen this file's no-dashes rule allows. Flagged rather than quietly chosen.
+
+**Re-measured — and NOT in headless Chrome, which is a first for this page.** Chrome is not
+available in this environment, so advances were computed off the shipped
+`public/fonts/discovery/discovery-var.woff2`: instanced to `wght 400`, `hmtx` advances plus
+**GPOS kern pairs**, letter-spacing `-0.06em` counted after every character including the last.
+**Validated against this file's own Chrome numbers before it was trusted** — it reproduces
+`האנליסט` 281.9 / 220.6 / 171.6 **exactly** and `החדש שלכם` at 415.2 against the recorded
+415.3, and lands on `investor` at 271.2 against 273.0 (**0.7% low** — Latin kerns, Hebrew
+barely does).
+
+|                 | 92px      | 72px  | 56px      |
+|-----------------|-----------|-------|-----------|
+| `24/7 team`     | **334.8** | 262.1 | **203.8** |
+| `specialist`    | 310.3     | 242.9 | 188.9     |
+| `AI agent`      | 280.6     | 219.6 | 170.8     |
+| `your new` (lead) | 311.5   | 243.8 | 189.6     |
+| `צוות ה-24/7`    | **369.3** | 289.0 | **224.8** |
+| `סוכן ה-AI`      | 283.8     | 222.1 | 172.7     |
+| `המומחה`         | 267.7     | 209.5 | 162.9     |
+| `החדש שלכם` (lead) | 415.2 | 325.0 | 252.8     |
+
+`hero.rotorWidth`: **EN 306/270 → 206/338**, **HE 172/282 → 225/370**. Phone off the 56px max,
+tablet off the 92px max (that one class stop serves the 72 and 92 tiers both). English adds the
+0.7% Chrome-runs-wider correction on top of the round-up; Hebrew does not need it. **English's
+box shrank by 64px and Hebrew's grew by 88px** — the two locales' widest words moved in opposite
+directions, which is exactly why this value is per-locale.
+
+**It fits, computed rather than assumed.** Line 2 at 92px: EN `311.5 + 16 + 338 = 665.5px`, HE
+`415.2 + 16 + 370 = 801.2px`, both inside the 844px `--measure`. On phone the row is a
+`flex-col`, so the widest single box is 225px (HE) against the 358px measure at 390px.
+
+**A defect logged elsewhere is retired by this.** `features/i18n-rtl/FEATURE.md` recorded, as
+pre-existing, that *"English's rotor box does not fit its own content"* — rogo's 270px box was
+3px narrower than `investor` and leaned on the `p-5` blur allowance to hide the overhang. Ours
+is measured to contain its widest word.
+
+**Not verified visually.** Nothing here has been rendered or diffed at the four tiers; the
+widths are computed and `tsc` is clean, and the user looks at it next.
+
+---
+
 ### 2026-08-16 — the Hebrew hero names the SAME two roles as English, and the row order flips to allow it
 
 **Reported:** a reviewer read `/clix` and `/he/clix` side by side and said the rotating headline

@@ -17,6 +17,26 @@ Line format:
 
 ## 2026-08-18
 
+- `felix-page` — **The /clix hero rotor stops being rogo's.** `Meet Clix / your new
+  [analyst | investor]` was the clone target's own two finance roles, kept under this route's
+  "clone now, rewrite after" decision; the user asked for words that connect with the company.
+  Both locales now cycle **`AI agent` / `specialist` / `24/7 team`** — `סוכן ה-AI` / `המומחה`
+  / `צוות ה-24/7` under the unchanged `החדש שלכם`.
+  · **The three words are the user's own, verbatim.** An earlier pass that day proposed four
+    service roles lifted from `home.whatWeDo` (`sales rep / support agent / researcher /
+    operator`); the user rejected it on sight and it was reverted before rendering. Logged so
+    it is not re-proposed.
+  · `lead` and `rotorLeads` untouched — all three new roles are masculine singular, so the
+    Hebrew agreement holds. That is now the binding constraint on what may join the list.
+  · Rotor span gains `whitespace-nowrap`: the list now holds a space AND a slash, both break
+    opportunities inside a fixed-width box.
+  · `hero.rotorWidth` re-measured, EN 306/270 → 206/338 and HE 172/282 → 225/370 — computed
+    from the shipped woff2's `hmtx` + GPOS kerning at `wght 400`, not headless Chrome (absent
+    here), and validated first against the files' existing Chrome numbers (`האנליסט` and
+    `החדש שלכם` exact, `investor` 0.7% low). Retires the i18n-rtl defect that rogo's box was
+    narrower than its own widest word. **Not yet looked at in a browser.**
+  → [detail](../features/felix-page/CONTEXT.md)
+
 - `infra` — **The site's search metadata was rogo's, and is now clix's.** Every English page
   served `"Clix is the trusted AI partner to the world's leading financial institutions."` —
   the clone target's positioning with clix's name in it — under a `<title>` of just `clix`.

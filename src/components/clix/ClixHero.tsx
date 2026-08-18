@@ -16,19 +16,22 @@
  * and every swap reflows the line.
  *
  * ⚠️ THE ORDER OF THOSE TWO BOXES IS LOCALE-DEPENDENT (2026-08-16), driven by
- * `hero.rotorLeads`. English modifies before the noun ("your new" + "[analyst]"); Hebrew puts
- * the definite noun first and its modifier after ("[האנליסט]" + "החדש שלכם"). Under rtl a
+ * `hero.rotorLeads`. English modifies before the noun ("your new" + "[AI agent]"); Hebrew puts
+ * the definite noun first and its modifier after ("[המומחה]" + "החדש שלכם"). Under rtl a
  * `flex-row` reverses visually, so DOM order is reading order in BOTH locales, which makes a
  * DOM-order swap the only correct fix — not a `flex-row-reverse`, which would reverse the
  * visual order in ltr too. The rotor box's `justify` flips with it, for the reason spelled
  * out on that element.
  *
- * ⚠️ THE WIDTH IS NOW A DICTIONARY VALUE, BECAUSE IT IS LOCALE-SPECIFIC (2026-08-12). English
- * keeps the original's 270px at >=810 and 306px on phone. Hebrew is 260px / 159px, derived as
- * max(advance of every rotating word) at the largest size each tier renders — measured, since
- * rogo's numbers are Latin advances for a serif face. It arrives as `--rotor-w` /
- * `--rotor-w-tablet` rather than as a class, so the per-locale number never shares a line with
- * a direction utility. See `hero.rotorWidth` in src/lib/i18n/{en,he}/clix.ts.
+ * ⚠️ THE WIDTH IS A DICTIONARY VALUE BECAUSE IT IS LOCALE-SPECIFIC (2026-08-12), AND BOTH
+ * LOCALES' NUMBERS ARE NOW OURS (2026-08-18). English is 338px at >=810 and 206px on phone;
+ * Hebrew is 370px / 225px. Both pairs are max(advance of every rotating word) at the largest
+ * size each tier renders — the `tablet` value serves the 92px tier too — rounded up. English
+ * no longer carries the original's 270/306: those were Latin advances for a serif face we do
+ * not serve, for two words we no longer show. It arrives as `--rotor-w` / `--rotor-w-tablet`
+ * rather than as a class, so the per-locale number never shares a line with a direction
+ * utility. See `hero.rotorWidth` in src/lib/i18n/{en,he}/clix.ts, where the per-word tables
+ * and the measurement method live.
  *
  * TIER MAP — read this before touching a size. Framer's four tiers collapse to THREE here,
  * because XL and Desktop share a value:
@@ -57,22 +60,24 @@ import AppLink from "@/components/ui/AppLink";
    `clix.hero.words`. The list is read through `usePageDict` below, and everything the old
    const's comment recorded is recorded beside the strings there. The short version:
 
-   ENGLISH IS INCOMPLETE AND KNOWN TO BE. The original's list is not recoverable from a static
-   capture — the word lives in a Framer code component whose chunk is fetched lazily, so the
-   served HTML carries only the SSR word. The main JS bundle (146 KB) contains none of these
-   strings, and six cache-busted fetches of the live page returned "investor" all six times.
-   "analyst" came from the user's screenshot of the live page. Nothing was invented to pad the
-   cycle; a made-up word would read as measured and it is not.
+   ⚠️ THE LIST IS NOT ROGO'S ANY MORE, as of 2026-08-18. Both locales cycle "AI agent /
+   specialist / 24/7 team", which are THE USER'S OWN WORDS, given verbatim after they rejected
+   an agent's proposal of four service roles the same day. The route's standing "clone now,
+   rewrite after" decision is what allowed the change; the words themselves were not ours to
+   choose and should not be "improved".
 
-   HEBREW NOW NAMES THE SAME TWO ROLES, as of 2026-08-16. It used to carry four of its own,
-   restored from the real company's service page rather than translated off rogo's two finance
-   roles; a reviewer read the two locales side by side, and the user's call was that they
-   should say the same thing. The old strings and the reasoning behind them are preserved in
-   he/clix.ts rather than deleted.
+   THE INVESTIGATION BEHIND THE OLD LIST IS KEPT, because it is the reason this array is not a
+   tuple. rogo's list is not recoverable from a static capture — the word lives in a Framer
+   code component whose chunk is fetched lazily, so the served HTML carries only the SSR word.
+   The main JS bundle (146 KB) contains none of the strings, and six cache-busted fetches of
+   the live page returned "investor" all six times; "analyst" came from the user's screenshot.
+   Nothing was ever invented to pad that cycle. It was two entries, known-incomplete; it is now
+   three that are complete because they describe us instead of them.
 
-   `words` is still typed `readonly string[]` and not a tuple: English's list is
-   known-incomplete, so the count is content and the divergence may return. The rotor cycles
-   whatever length it is handed and nothing else here depends on it. */
+   `words` is still typed `readonly string[]` and not a tuple: the count has moved twice, so it
+   is content and not layout. The rotor cycles whatever length it is handed and nothing else
+   here depends on it. ⚠️ Entries may now contain a SPACE and a SLASH — see the
+   `whitespace-nowrap` note on the rotating span. */
 
 /* ESTIMATED, both of them — a static capture cannot encode a rate, and this is the only
    thing on the section that is not a measured value. The capture DOES pin the enter state
@@ -166,18 +171,28 @@ function RotatingWord() {
       aria-hidden="true"
     >
       <span
-        /* `text-end` / `tablet:text-start` were `text-right` / `tablet:text-left`. MEASURED
+        /* ⚠️ `whitespace-nowrap` IS NEW (2026-08-18) AND IT IS LOAD-BEARING, not tidying.
+           Until that date every rotating word in both locales was a single unbroken run, and
+           the rest of this comment used to lean on exactly that. The list now holds "AI agent"
+           and "24/7 team" (and "צוות ה-24/7" in Hebrew) — a SPACE and a SLASH, both break
+           opportunities — inside a FIXED-WIDTH box. Without this class the string breaks the
+           moment the box is a pixel narrow and the whole lockup renders a line deeper. The box
+           is measured to fit; "measured to fit" is not a guarantee worth betting the headline
+           on when one class removes the failure mode outright.
+
+           `text-end` / `tablet:text-start` were `text-right` / `tablet:text-left`. MEASURED
            INERT AT EVERY TIER, and converted for intent rather than for effect: this span is
            `inline-block` inside a flex container, so it blockifies to a flex item with
-           `flex-basis: auto` and, being a single unbreakable word, a min-content size equal to
-           its max-content size — it therefore cannot shrink and its box is exactly as wide as
-           its text. `text-align` on a box with no slack does nothing. Probed in headless
-           Chrome at 1600/1440/1024/390: `clientWidth === getClientRects()[0].width` at all
-           four. The alignment that actually happens is the parent's `justify-center` /
-           `tablet:justify-start|end`, which is already logical — and which is why the
-           `rotorLeads` flip lives up there on the box and not here. This pair is left as-is
-           precisely because it is inert; flipping a no-op would only imply it does something. */
-        className="inline-block font-display text-forest
+           `flex-basis: auto` and — now by way of `nowrap` rather than by way of being one word
+           — a min-content size equal to its max-content size. It therefore cannot shrink and
+           its box is exactly as wide as its text. `text-align` on a box with no slack does
+           nothing. Probed in headless Chrome at 1600/1440/1024/390: `clientWidth ===
+           getClientRects()[0].width` at all four. The alignment that actually happens is the
+           parent's `justify-center` / `tablet:justify-start|end`, which is already logical —
+           and which is why the `rotorLeads` flip lives up there on the box and not here. This
+           pair is left as-is precisely because it is inert; flipping a no-op would only imply
+           it does something. */
+        className="inline-block font-display whitespace-nowrap text-forest
                    text-end text-[56px] leading-[100%]
                    tablet:text-start tablet:text-[72px]
                    desktop:text-[92px] desktop:leading-[110%]"
