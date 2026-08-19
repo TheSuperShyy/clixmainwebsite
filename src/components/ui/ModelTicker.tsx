@@ -74,7 +74,9 @@ gsap.registerPlugin(useGSAP);
    at a 40px gap, the space *between* two models was barely wider than the space between a
    model and its own price, so the strip read as one long sentence rather than nine items. */
 const GAP = 56;
-const SPEED_PX_PER_SEC = 40; // slower than the logo row's 50 — this one has to be readable
+/* 24, down from 40 (2026-08-19, user: the moving strips "make us dizzy"). Still slower than
+   the logo row's 30, because this one has to be readable, not just recognisable. */
+const SPEED_PX_PER_SEC = 24;
 const REFRESH_MS = 5 * 60 * 1000;
 
 /**

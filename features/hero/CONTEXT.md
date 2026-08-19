@@ -45,6 +45,30 @@ animation. Both need a look at the live site.
 
 ## Log
 
+### 2026-08-19 — the flag survives the phone crop (78% 50% below 810, in globals.css)
+
+**Trigger:** user — *"make the israel flag visible in mobile in the landing page hero video"* —
+then, after the first attempt did nothing, a screenshot: *"where is the flag lol"*.
+
+**The numbers:** the flag in clip 1 (and the poster, frame 0) occupies roughly the right third
+of the 16:9 frame, pole at ~68% of its width. A portrait phone under `object-cover` shows ~25%
+of the frame width; centred, that window is 37%–63% — everything but the flag. `78% 50%` slides
+it to ~59%–85%, holding pole and stripes. From 810px up the visible window is wide enough that
+centre already contains the flag, so tablet/desktop stay at the target's 50% 50%. The other
+three clips shift right with it; they are wide skylines and read fine.
+
+**⚠️ THE FIRST ATTEMPT FAILED, AND THE REASON IS THE LESSON.** Tailwind utilities
+(`object-[78%_50%]`, `bg-[position:78%_50%]`) on the two media elements did nothing:
+`.hero-media { background-position }` / `.hero-video { object-position }` in globals.css are
+**unlayered** rules, and unlayered CSS beats Tailwind's layered utilities regardless of order.
+That block even documented a *previous* 78% phone anchor, removed 2026-08-02 when the flag
+footage left — the flag returned 2026-08-09, the anchor didn't. The fix lives in that
+globals.css block (78% base, 50% from `min-width: 810px`), the utilities were removed, and
+Hero.tsx now carries a warning that the crop anchor cannot be set from the component.
+
+Both layers move together — the wrapper's poster background is the reduced-motion still and
+must frame the same picture as the video.
+
 ### 2026-08-09 (later still) — a fourth clip; Tel Aviv pair, then Jerusalem pair
 
 **Trigger:** user — *"add the new one i send and push live"*, after *"make the 1st clip the

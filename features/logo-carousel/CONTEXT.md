@@ -34,6 +34,15 @@ the tool list with the user (ElevenLabs in particular — see below).
 
 ## Log
 
+### 2026-08-19 — marquee slowed, 50 → 30 px/s
+
+**Trigger:** user — the moving strips *"kinda make us dizzy maybe slow them down?"* — one pass
+covering both marquees. `SPEED_PX_PER_SEC` 50 → 30 here; the model ticker went 40 → 24 in the
+same pass and deliberately stays the slower of the two (it carries prices that have to be read,
+this row only has to be recognised). Speed was never a measured value — FEATURE.md records it as
+unmeasurable from a static capture — so this is tuning a guess, not deviating from spec. Nothing
+else changed: cycle measurement, font-load gate and reduced-motion behaviour are speed-agnostic.
+
 ### 2026-08-07 — banks out, clix's own stack in
 
 **Trigger:** user — *"change the logo to the tools clix use like vapi, elevenlabs, n8n,

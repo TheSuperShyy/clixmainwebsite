@@ -636,10 +636,10 @@ export default function ContactForm() {
       next.company = t.errors.tooLong;
     if (values.role.trim().length > LIMITS.shortMax) next.role = t.errors.tooLong;
 
-    if (!message) next.message = t.errors.messageRequired;
-    else if (message.length < LIMITS.messageMin)
-      next.message = t.errors.messageTooShort;
-    else if (message.length > LIMITS.messageMax)
+    /* Optional as of 2026-08-19 (user's call). Only the ceiling blocks — an empty brief is a
+       valid submission, and `messageMin` now only drives the counter's "long enough" colour.
+       Same change server-side. */
+    if (message.length > LIMITS.messageMax)
       next.message = t.errors.messageTooLong;
 
     return next;
@@ -660,7 +660,9 @@ export default function ContactForm() {
       phoneDigits(values.phone) >= LIMITS.phoneDigitsMin,
     needs.length > 0,
     budget !== null,
-    values.message.trim().length >= LIMITS.messageMin,
+    /* Optional since 2026-08-19, so the step completes the way 02 and 03 do: the moment
+       something is there, not at a minimum length that no longer gates submission. */
+    values.message.trim().length > 0,
   ];
   const doneCount = steps.filter(Boolean).length;
 
@@ -672,8 +674,8 @@ export default function ContactForm() {
      nothing beside the alternative of a second copy of the rules drifting from the first.
 
      Note what it does NOT include, which is not an oversight: `needs` and `budget` are
-     optional, exactly as `validate()` has always had them. Only the four required fields plus
-     the consent box gate the button (2026-08-18, user's call). */
+     optional, exactly as `validate()` has always had them, and `message` joined them on
+     2026-08-19. Only the three required fields plus the consent box gate the button. */
   const canSubmit = Object.keys(validate()).length === 0 && consent;
 
   /* Precedence, stated once: invalid > complete > active > pending. */
@@ -1359,6 +1361,13 @@ export default function ContactForm() {
           state={stepState(3)}
           onFocus={() => setFocusedStep(3)}
           onBlur={groupBlur}
+          /* Same convention as group 02: the word "Optional" while empty, nothing once there
+             is text — the chip's completed state already says "you gave us something". */
+          slot={
+            values.message.trim().length > 0 ? undefined : (
+              <SlotHint>{t.optional}</SlotHint>
+            )
+          }
         >
           {/* The one BOXED control on the page. A bare underline cannot contain rows of text —
               the rule would float unattached below the paragraph — so this borrows the shape of
@@ -1382,7 +1391,6 @@ export default function ContactForm() {
               value={values.message}
               onChange={(e) => setField("message", e.target.value)}
               placeholder={t.messagePlaceholder}
-              required
               maxLength={LIMITS.messageMax}
               aria-invalid={messageInvalid || undefined}
               aria-describedby={`${messageInvalid ? `${id("message-error")} ` : ""}${id("message-chars")}`}

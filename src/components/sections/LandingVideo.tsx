@@ -7,13 +7,26 @@
  * ask (2026-08-18) was "make it just like the hero video from clix section", so the frame is
  * /clix's measured one: aspect-ratio 1.77778, radius 6px, filled with `object-cover`.
  *
- * ⚠️ IT NO LONGER HAS /clix's MUTE TOGGLE (user's call, same day: "remove this", against a
- * screenshot of the button). THAT MAKES THE CLIP PERMANENTLY SILENT AND THAT IS THE POINT —
- * a muted <video> with no control is decoration, while an unmuted one with no control would be
- * audio the reader cannot stop, which is what the toggle existed to prevent. So `muted` is now
- * a hard attribute rather than state, and this section has no affordance at all. If the clip's
- * audio is ever wanted, the toggle comes back WITH it — do not "restore" sound by dropping
- * `muted` on its own. /clix keeps its own toggle; only this section lost one.
+ * ⚠️ THE MUTE TOGGLE IS BACK, AND IT CAME BACK WITH THE AUDIO (2026-08-19). History, because
+ * it reversed twice: the toggle shipped with the section, was removed on 2026-08-18 (user:
+ * "remove this", against a screenshot) — at which point `muted` became a hard attribute and
+ * this header said "if the clip's audio is ever wanted, the toggle comes back WITH it". Then
+ * the user re-exported landing-vid.mp4 with an AAC track and asked for sound. So this is that
+ * clause being exercised, not the 08-18 decision being forgotten: audio-with-no-control would
+ * be sound the reader cannot stop, and the browser would block the observer's play() besides.
+ *
+ * ⚠️ IT STILL STARTS MUTED, AND MUST. The IntersectionObserver below calls play() with no user
+ * gesture behind it — scrolling is not a gesture — and every engine's autoplay policy allows
+ * that only for a muted element. Initial `muted=false` would reject the play() on every scroll
+ * into view and the clip would sit on its poster. Unmuting is the click on the toggle, which
+ * IS the gesture that authorises audio. The toggle is ClixVideo's verbatim — geometry, glyph,
+ * logical-property RTL notes and all — and reads `home.video.{unmute,mute}`, restored to both
+ * locale files (one namespace per route, so it cannot read clix's copy).
+ *
+ * ⚠️ SCROLLING AWAY PAUSES SOUND BUT DOES NOT RESET THE CHOICE. The observer pauses the
+ * element off-screen, audio included, and playback resumes where it left off with the mute
+ * state the visitor chose. Muting again on exit would override an explicit choice; not
+ * pausing would be a soundtrack from a section you cannot see.
  *
  * It is a SEPARATE FILE rather than an import of ClixVideo because the two differ in the
  * things a section owns: the source, the surrounding padding (this one sits between two
@@ -33,7 +46,7 @@
  * `autoPlay` ATTRIBUTE. An IntersectionObserver owns playback end to end: `autoPlay` would have
  * started the clip during hydration — this section sits below the fold on every tier — and the
  * observer would then have had to stop something that should never have started, wasting a
- * 3.5MB fetch on visitors who never scroll this far. The observer's first callback fires on
+ * 1.4MB fetch on visitors who never scroll this far. The observer's first callback fires on
  * observe(), so "visible on load" takes the same code path as every later case; there is no
  * separate initial-state branch.
  *
@@ -42,13 +55,17 @@
  * quarter of the frame is in view and stops when it is not; one number, both directions, so
  * there is no hysteresis band to reason about.
  *
- * The clip is 1920×1080, 25.5s, 3.5MB.
+ * The clip is 1920×1080, 25.5s, 1.4MB — re-exported 2026-08-19 with an AAC audio track (and a
+ * smaller video bitrate; it was 3.5MB silent). Probed with ffprobe, not assumed.
  */
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { usePageDict } from "@/lib/i18n/LocaleProvider";
 
 export default function LandingVideo() {
+  const t = usePageDict("home").video;
   const ref = useRef<HTMLVideoElement>(null);
+  const [muted, setMuted] = useState(true);
 
   /* Playback is gated on visibility — see the header note for why there is no `autoPlay`.
      Empty dependency array on purpose: the observer is built exactly once, and nothing inside
@@ -106,22 +123,76 @@ export default function LandingVideo() {
             poster="/video/landing-vid-poster.jpg"
             /* `none` is the pairing the visibility gate earns: this section is below the fold
                at every tier, so a visitor who never scrolls to it costs 12KB of poster instead
-               of 3.5MB of mp4. The poster IS frame 0, so the fetch that starts when the
+               of 1.4MB of mp4. The poster IS frame 0, so the fetch that starts when the
                observer fires is invisible — the first painted frame matches what was already
                on screen. Same call Testimonials makes for its six client clips. */
             preload="none"
             /* ⚠️ NO `autoPlay` — the IntersectionObserver above starts and stops this element,
                and the two together would race. See the header note. */
             loop
-            /* A hard attribute, not state: the toggle is gone, so nothing can ever unmute this.
-               Read the header note before changing it — silent-with-no-control is the decision;
-               audible-with-no-control is what it protects against. */
-            muted
+            /* State again, not a hard attribute (2026-08-19) — the audio and the toggle came
+               back together. ⚠️ INITIAL `true` IS LOAD-BEARING: the observer's ungestured
+               play() is only allowed on a muted element. See the header note. */
+            muted={muted}
             playsInline
-            /* No `controls`, as on /clix. With the toggle removed this section has NO
-               interactive element at all, which is why there is nothing here to tab to and no
-               focus ring to style — the clip is decoration, and decoration is not a control. */
+            /* No `controls`, as on /clix — the toggle below is the section's one affordance,
+               and a native control bar would be a second. */
           />
+
+          {/* Mute toggle — ClixVideo's verbatim: same box (`Video Muted`: row, gap 8, padding
+              10/16/10/10 with the extra space on the text side of the 20px glyph), same
+              logical-property RTL treatment. See ClixVideo.tsx for the `start-4`/`pe-4`
+              reasoning; it applies unchanged here. */}
+          <button
+            type="button"
+            onClick={() => {
+              const v = ref.current;
+              if (!v) return;
+              v.muted = !v.muted;
+              setMuted(v.muted);
+              /* Unmuting a clip the engine started muted needs an explicit play() in some
+                 engines — the click is what authorises audio. Also covers the edge where the
+                 observer's play() was declined and the visitor reaches for the button. */
+              if (!v.muted) void v.play().catch(() => {});
+            }}
+            aria-pressed={!muted}
+            className="absolute bottom-4 start-4 flex h-min w-min cursor-pointer flex-row
+                       items-center justify-center gap-2 rounded-[6px] bg-ink/60 py-[10px]
+                       pe-4 ps-[10px] text-paper backdrop-blur-sm
+                       transition-opacity duration-300 hover:opacity-90
+                       focus-visible:ring-2 focus-visible:ring-paper
+                       focus-visible:outline-none"
+            style={{ transitionTimingFunction: "var(--ease-rogo)" }}
+          >
+            <span className="block h-5 w-5 flex-none" aria-hidden="true">
+              <svg viewBox="0 0 20 20" className="h-5 w-5" fill="currentColor">
+                <path d="M10 3.5 5.8 7H3a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h2.8l4.2 3.5z" />
+                {muted ? (
+                  <path
+                    d="M13.5 8 L17.5 12 M17.5 8 L13.5 12"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                    fill="none"
+                  />
+                ) : (
+                  <path
+                    d="M13.5 7.5a4 4 0 0 1 0 5M15.6 5.6a7 7 0 0 1 0 8.8"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                    fill="none"
+                  />
+                )}
+              </svg>
+            </span>
+            <span
+              className="font-sans text-[14px] font-medium"
+              style={{ lineHeight: "1em", letterSpacing: "-0.01em" }}
+            >
+              {muted ? t.unmute : t.mute}
+            </span>
+          </button>
         </div>
       </div>
     </section>

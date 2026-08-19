@@ -15,6 +15,24 @@ Line format:
 
 ---
 
+## 2026-08-19
+
+- `landing-video` — **Audio is back, and the mute toggle with it** (user re-exported the mp4
+  with an AAC track, 3.5MB → 1.4MB). Starts muted for autoplay policy; toggle is ClixVideo's
+  verbatim; `home.video.{unmute,mute}` keys restored to both locales.
+  → [detail](../features/landing-video/CONTEXT.md)
+- `contact-page` — **The brief (message) is optional.** Both validators (client + API) now check
+  only `messageMax`; step 04 completes on any text; empty renders `—` in mail, `null` to n8n.
+  → [detail](../features/contact-page/CONTEXT.md)
+- `hero` — **The flag is in frame on phones.** Crop anchored 78% 50% below 810px, centre above —
+  in globals.css' `.hero-media`/`.hero-video` block, the only place it can be set: those rules
+  are unlayered and silently beat Tailwind utilities (first attempt proved it).
+  → [detail](../features/hero/CONTEXT.md)
+- `nav` — **Model ticker slowed 40 → 24 px/s** (user: the strips "make us dizzy").
+  → [detail](../features/nav/CONTEXT.md)
+- `logo-carousel` — **Marquee slowed 50 → 30 px/s**, same pass; ticker stays the slower strip.
+  → [detail](../features/logo-carousel/CONTEXT.md)
+
 ## 2026-08-18
 
 - `landing-video` — **The mute toggle came off the home-page clip.** User sent a screenshot of

@@ -173,6 +173,17 @@ export const home = {
     },
   },
 
+  /* LandingVideo's mute toggle. These two keys existed for a few hours on 2026-08-18, died
+     with the toggle the same day ("remove this"), and RETURNED WITH IT on 2026-08-19 when the
+     user re-exported landing-vid.mp4 with an audio track — sound and the control travel
+     together, per the rule in LandingVideo.tsx. Wording matches clix.video verbatim; the keys
+     are here rather than read from the clix namespace because usePageDict enforces one
+     namespace per route. */
+  video: {
+    unmute: "Unmute",
+    mute: "Mute",
+  },
+
   whyRogo: {
     /**
      * The sticky headline, as RUNS separated by a `<br>` at every tier. `readonly string[]` —

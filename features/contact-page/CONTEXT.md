@@ -52,6 +52,22 @@ then set the two env vars in the Vercel project settings so the deployed form ca
 
 ## Log
 
+### 2026-08-19 — the brief (message) is optional
+
+**Trigger:** user — *"Make the description optional in the form contact"*.
+
+- **Both validators moved together**, per the standing duplication rule: `ContactForm.tsx`
+  `validate()` and `route.ts` step 4 now check only `messageMax` on `message`. Empty is a valid
+  submission; `messageMin` (10) stays in `LIMITS` on both sides because the client's counter
+  still uses it for the "long enough" colour step (`muted` → `signal`).
+- **Step 04 completes on any text** (`trim().length > 0`), matching how the other optional
+  steps (02, 03) complete — not at the retired minimum.
+- Group 04 gained the same "Optional" `SlotHint` group 02 uses while empty; the textarea lost
+  its `required` attribute. `t.errors.{messageRequired,messageTooShort}` keys remain in both
+  locales, now unread — left in place rather than churning the dictionaries.
+- Empty message renders as `—` in the notification mail (both text and HTML bodies) and as
+  `null` in the n8n webhook payload, matching the `company`/`role` convention.
+
 ### 2026-08-18 — the form survives a trip to /privacy (sessionStorage draft)
 
 **Trigger:** user, on reading the consent change — *"does the form get save to localstorage?

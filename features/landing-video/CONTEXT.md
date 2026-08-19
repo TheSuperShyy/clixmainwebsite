@@ -4,6 +4,34 @@ Newest first. Decisions and measurements, not narration.
 
 ---
 
+## 2026-08-19 — audio added, toggle back with it
+
+**Ask:** *"add sound to the landing-vidmp4 i changed it that mp4 has sounds now"* — the user
+replaced `public/video/landing-vid.mp4` themselves.
+
+### Decisions
+
+- **The 08-18 removal is reversed by its own escape clause**, not forgotten: that entry's rule
+  was "sound and the control return together or not at all", and this is them returning
+  together. Audio-with-no-control is sound a reader cannot stop, and autoplay policy would
+  block the observer's ungestured `play()` on an unmuted element anyway.
+- **Starts muted, always** — `muted` is state again with initial `true`. The visibility gate's
+  `play()` has no user gesture behind it and is only allowed muted; the toggle click is the
+  gesture that authorises audio.
+- **The toggle is ClixVideo's verbatim** (geometry, glyph, logical-property RTL treatment),
+  reading `home.video.{unmute,mute}` — the keys deleted on 08-18, restored to both locale
+  files with clix's exact wording. Not read from the clix namespace: `usePageDict` enforces
+  one namespace per route.
+- **Scrolling away pauses sound but keeps the visitor's mute choice** — the observer's
+  `pause()` already covers audio, and re-muting on exit would override an explicit choice.
+
+### Measured
+
+- New file (ffprobe): 1920×1080 h264 + **AAC audio**, 25.514s, **1,506,940 bytes** (~1.4MB,
+  down from 3.5MB silent — smaller video bitrate in the re-export). Stale 3.5MB mentions in
+  the component's comments updated.
+- Poster is unchanged and still matches frame 0 — same footage, new encode.
+
 ## 2026-08-18 — mute toggle removed
 
 **Ask:** a screenshot of the `Unmute` button, and *"remove this."*

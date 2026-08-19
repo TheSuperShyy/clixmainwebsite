@@ -45,6 +45,14 @@ live site for the mobile menu, the scroll flip point, and the `Indicator` elemen
 
 ## Log
 
+### 2026-08-19 — model ticker slowed, 40 → 24 px/s
+
+**Trigger:** user — the moving strips *"kinda make us dizzy maybe slow them down?"* — one pass
+covering both marquees. `SPEED_PX_PER_SEC` in `ModelTicker.tsx` 40 → 24; the hero's logo
+carousel went 50 → 30 in the same pass. The ticker keeps its standing rule of being the slower
+strip, because its content is read, not just recognised. Duration derives from the measured
+cycle at tween-build time, so no other code changed.
+
 ### 2026-08-13 — a decorative candlestick chart in the ticker's signal slot
 
 User: *"add a small graph beside the token price if they are up or down, green if up red if
