@@ -234,6 +234,14 @@ export const home: Translated<HomeDict> = {
     },
   },
 
+  /* Verbatim from clix.video, provenance and measurements recorded there: `unmute` is
+     AUTHORED (the negated form of `mute`), `mute` is SOURCED from home.bodyText's own mute
+     control. See the en/home.ts note for why these live in the home namespace. */
+  video: {
+    unmute: "ביטול השתקה",
+    mute: "השתקה",
+  },
+
   whyRogo: {
     /* SOURCED (condensation) — pages/services.html's H1, recovered from the HTML rather than
        content.json because content.json's H1s have lost their spaces:

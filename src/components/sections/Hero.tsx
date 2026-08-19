@@ -52,7 +52,13 @@ export default function Hero() {
     >
       {/* Background media — absolute, inset 0, cover. The poster is also painted on the
           wrapper so that under prefers-reduced-motion (where we drop the video, which the
-          original does not do) a still frame remains rather than bare #737373. */}
+          original does not do) a still frame remains rather than bare #737373.
+
+          ⚠️ THE CROP ANCHOR DOES NOT LIVE HERE AND CANNOT. `.hero-media` / `.hero-video` in
+          globals.css set the position (78% 50% below 810px so the flag stays in shot, centre
+          above), and those selectors are UNLAYERED — a Tailwind `object-[…]` or
+          `bg-[position:…]` utility on these elements loses to them silently. That exact
+          mistake was made and reverted on 2026-08-19; change the crop in globals.css only. */}
       <div
         className="hero-media absolute inset-0 bg-cover"
         style={{ backgroundImage: "url(/video/hero-israel-poster.jpg)" }}

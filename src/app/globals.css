@@ -361,16 +361,30 @@ body {
 }
 
 /* Hero background crop anchor.
-   The target's own footage is centre-weighted and uses 50% 50% at every tier;
-   ours now matches. An earlier build anchored the phone tier at 78% to hold a
-   right-edge flag composite in shot — that footage was replaced by the sunset
-   montage (2026-08-02), which has no edge-anchored subject, so the override is
-   gone and we track the target exactly. */
+   ⚠️ THE PHONE TIER IS ANCHORED AT 78% AGAIN (2026-08-19), AND THIS RULE IS WHERE IT LIVES.
+   These selectors are unlayered, so they beat any Tailwind utility on the same elements —
+   a `object-[78%_50%]` class on the <video> loses to this block silently. History proves the
+   point: an earlier build anchored the phone tier at 78% for a right-edge flag, the flag
+   footage was swapped out on 2026-08-02 and the anchor removed — then the flag clip returned
+   (2026-08-09, leading the four-clip montage) with the flag in the right third of frame,
+   pole at ~68% width. A portrait phone's cover-crop shows ~25% of the frame width; centred
+   that window is 37%–63% and the flag is entirely out of shot. 78% frames pole and stripes.
+   From 810px up the visible window is wide enough that centre already holds the flag, so the
+   tablet/desktop tiers track the target's 50% 50%. Both layers move together: the wrapper's
+   background is the reduced-motion still and must frame the same picture as the video. */
 .hero-media {
-  background-position: 50% 50%;
+  background-position: 78% 50%;
 }
 .hero-video {
-  object-position: 50% 50%;
+  object-position: 78% 50%;
+}
+@media (min-width: 810px) {
+  .hero-media {
+    background-position: 50% 50%;
+  }
+  .hero-video {
+    object-position: 50% 50%;
+  }
 }
 
 /* In-page nav scrolling (2026-08-05). The nav's links point at sections on this

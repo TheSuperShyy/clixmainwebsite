@@ -77,8 +77,10 @@ const LOCKUP_GAP = 10; // px, glyph -> name
 
 const GAP = 56; // px — the <ul>'s own gap, verbatim from the capture
 
-/** Marquee travel rate. NOT measurable from a static capture — see FEATURE.md. */
-const SPEED_PX_PER_SEC = 50;
+/** Marquee travel rate. NOT measurable from a static capture — see FEATURE.md.
+ *  30, down from 50 (2026-08-19, user: the moving strips "make us dizzy"). The model ticker
+ *  dropped in the same pass and stays the slower of the two. */
+const SPEED_PX_PER_SEC = 30;
 
 /**
  * Progressive blur: 8 absolutely-stacked bands. Each is a `backdrop-filter` masked to a

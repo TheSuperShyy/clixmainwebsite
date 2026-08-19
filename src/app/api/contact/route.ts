@@ -379,9 +379,9 @@ export async function POST(request: Request) {
   if (company.length > LIMITS.shortMax) fields.company = "too long";
   if (role.length > LIMITS.shortMax) fields.role = "too long";
 
-  if (!message) fields.message = "required";
-  else if (message.length < LIMITS.messageMin) fields.message = "too short";
-  else if (message.length > LIMITS.messageMax) fields.message = "too long";
+  /* Optional as of 2026-08-19 (user's call) — mirrored in ContactForm.tsx. Only the ceiling
+     blocks; `messageMin` stays in LIMITS because the client's counter colour still reads it. */
+  if (message.length > LIMITS.messageMax) fields.message = "too long";
 
   /* Consent, added 2026-08-18 with the checkbox on the form. STRICTLY `true` — a string
      "false", a 0 or an absent key are all refusals, and only a client that actually collected
@@ -493,7 +493,7 @@ export async function POST(request: Request) {
     ...rows.map(([label, value]) => `${label}: ${value}`),
     "",
     "Message:",
-    message,
+    message || "—",
     "",
     "—",
     `Filled in: ${locale}`,
@@ -516,7 +516,7 @@ export async function POST(request: Request) {
     "</table>",
     "<p style='margin:16px 0 4px;color:#737373'>Message</p>",
     /* The one multi-line value, so it is the one that needs its newlines turned into breaks. */
-    `<p style="margin:0;white-space:pre-wrap">${esc(message)}</p>`,
+    `<p style="margin:0;white-space:pre-wrap">${esc(message || "—")}</p>`,
     "<hr style='border:none;border-top:1px solid #e5e5e5;margin:20px 0'>",
     `<p style="margin:0;color:#737373;font-size:12px">Filled in: ${esc(locale)}<br>` +
       `Submitted: ${esc(submittedAt)}<br>IP: ${esc(ip)}<br>User agent: ${esc(userAgent)}</p>`,
@@ -546,7 +546,9 @@ export async function POST(request: Request) {
     needLabels: needs.map((n) => NEED_LABELS[n]),
     budget,
     budgetLabel: budget ? BUDGET_LABELS[budget] : null,
-    message,
+    /* `null` rather than "" when empty, matching `company` and `role` above: an absent brief
+       should be absent in the CRM. Optional since 2026-08-19. */
+    message: message || null,
     /* Always `true` — validation above rejects anything else — and sent anyway, because the
        useful thing about a consent flag is having it recorded beside the record it applies to.
        The CRM should be able to answer "did they accept the terms, and when" from the row
