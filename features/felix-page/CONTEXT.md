@@ -49,6 +49,23 @@ pass.
 
 ## Log
 
+### 2026-08-20 (fourth pass) — second Higgsfield run replaces the clip; both artifacts gone at the source
+
+**Asked:** "the first 2 seconds of the video is blurry" — frame comparison showed the
+diffusion upscaler had denoised the intro's sparse dot field into near-nothing at 0.2s
+(the 480p original's dots are crisp there; from ~1s the upscale is sharper than the
+original). Classic diffusion failure: sparse fine detail reads as noise. The user re-ran
+Higgsfield with the non-diffusion model and delivered `new-hd-hero.mp4` (2544×1440, H.264,
+18.5MB).
+
+- **Verified before wiring:** dots crisp at 0.2s, text sharp at 1s, all four edges clean —
+  no bottom line this run, so the previous entry's 24px crop is NOT carried over.
+- **Same served filename**, so only the transcode was redone: `scale=1920:-2, crf 22` →
+  `clix-hero-hd.mp4` at 1920×1086, 5.8MB; poster regenerated from frame 0. No code change
+  beyond the provenance comment.
+- **Masters untracked:** `new-hd-hero.mp4` (this run) replaces `hd-new-hero-vid.mp4`
+  (diffusion run) as the keep-around master; the diffusion one is now safe to delete.
+
 ### 2026-08-20 (later still) — the upscaler's dark bottom line is cropped out of the HD clip
 
 **Asked:** "why does it have black in the bottom?" — a hard dark line ran the full width of

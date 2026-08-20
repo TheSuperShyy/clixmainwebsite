@@ -17,6 +17,10 @@ Line format:
 
 ## 2026-08-20
 
+- `felix-page` — **Second Higgsfield run (non-diffusion model) replaces the clip** — the
+  first run's blurry intro (~2s, denoised dot field) and bottom line are both gone at the
+  source; re-transcoded to 1920×1086 @ 5.8MB, same filename, no crop.
+  → [detail](../features/felix-page/CONTEXT.md)
 - `felix-page` — **The HD clip's dark bottom line cropped out** (diffusion upscaler had
   sharpened the 480p source's faint edge shading into a hard stroke; bottom 24px cropped in
   a re-transcode from the HEVC master, now 1920×1062). → [detail](../features/felix-page/CONTEXT.md)
