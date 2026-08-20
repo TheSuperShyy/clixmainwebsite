@@ -49,6 +49,22 @@ pass.
 
 ## Log
 
+### 2026-08-20 (later still) — the upscaler's dark bottom line is cropped out of the HD clip
+
+**Asked:** "why does it have black in the bottom?" — a hard dark line ran the full width of
+the video a few px above its bottom edge.
+
+- **Diagnosed by pixel, not guess:** bottom-40px strips were extracted from the served file,
+  the Higgsfield HEVC master, and (via `git show 8f49cb8^:`) the original 480p clip. The
+  master has the line; the 480p original has only a faint soft shading there. So the
+  diffusion upscaler sharpened a subtle edge gradient into a solid stroke — not the
+  transcode, not CSS. Top/left/right strips profiled clean.
+- **Fix is in the asset:** re-transcoded from the HEVC master with
+  `scale=1920:-2,crop=1920:1062:0:0` (bottom 24px off), same codec settings → 5.2MB.
+  Line confirmed gone at 2s and 8s. Poster regenerated from the new frame 0.
+- **Aspect consequence:** 1.808:1 in the 1.77778 box means `object-cover` now trims ~8px
+  per side instead of a sliver top/bottom. Nothing of interest lives at the side edges.
+
 ### 2026-08-20 (later) — the Video clip goes HD: Higgsfield 2x upscale, transcoded to H.264
 
 **Asked:** "why is the video low quality" — `new-clix-hero-vid.mp4` was 848x480 in a box that

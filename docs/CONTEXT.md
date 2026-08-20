@@ -17,6 +17,13 @@ Line format:
 
 ## 2026-08-20
 
+- `felix-page` — **The HD clip's dark bottom line cropped out** (diffusion upscaler had
+  sharpened the 480p source's faint edge shading into a hard stroke; bottom 24px cropped in
+  a re-transcode from the HEVC master, now 1920×1062). → [detail](../features/felix-page/CONTEXT.md)
+- `security-page` — **Bug fix: the hero's mock windows painted over the fixed nav.** Their
+  z-10/20 (and drag-time 30) sat in the root stacking context, above the nav's z-[3];
+  `isolate` on SecurityCanvas' root now contains them. Nav z-index untouched.
+  → [detail](../features/security-page/CONTEXT.md)
 - `felix-page` — **The clix clip goes HD**: user upscaled it 2x via Higgsfield (Topaz);
   the 17.7MB HEVC result was transcoded to web-safe H.264 1920×1086 @ 5.2MB
   (`clix-hero-hd.mp4`, poster = frame 0) — HEVC doesn't play in Firefox. HEVC master stays
