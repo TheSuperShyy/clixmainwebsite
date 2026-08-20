@@ -4,6 +4,7 @@ import Testimonials from "@/components/sections/Testimonials";
 import LandingVideo from "@/components/sections/LandingVideo";
 import WhyRogo from "@/components/sections/WhyRogo";
 import ByTheNumbers from "@/components/sections/ByTheNumbers";
+import ClixFelixFooter from "@/components/clix/ClixFelixFooter";
 import Footer from "@/components/sections/Footer";
 import { fetchModels } from "@/lib/models";
 import type { Locale } from "@/lib/i18n/config";
@@ -43,9 +44,17 @@ export default async function HomeRoute({ locale }: { locale: Locale }) {
           {/* ⚠️ `<Security />` USED TO BE THE LAST SECTION HERE AND WAS REMOVED 2026-08-18 at
               the user's request — the "Your systems, your data, your control" badge row.
               The standalone /security route is a DIFFERENT page and is untouched; the nav and
-              footer still link to it. By the numbers is now the last thing before the footer,
-              which is why it carries the dark tint that hands over to `bg-ink`. */}
+              footer still link to it. By the numbers carried the dark handover to `bg-ink`
+              while it was the last section; since 2026-08-20 the wordmark closer below sits
+              between them, so the tint now settles back to paper before the footer. */}
           <ByTheNumbers />
+          {/* Added 2026-08-20 at the user's request — /clix's oversized-wordmark closer, as
+              the last thing before the footer. A server component reading getDict().clix
+              directly, so it needs no PageDictProvider and the "home" provider above it is
+              irrelevant to it. The section paints no background of its own (see its header),
+              so here it sits on the page's paper ground between the numbers' dark tint and
+              the bg-ink footer. */}
+          <ClixFelixFooter />
         </main>
         {/* Outside <main>, as in the original — `footer` is a landmark sibling, not page
             content. The closing CTA lives inside it rather than as its own section. */}
