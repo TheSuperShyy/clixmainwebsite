@@ -53,6 +53,7 @@ import Nav from "@/components/sections/Nav";
 import CompanyHero from "@/components/company/CompanyHero";
 import CompanyMission from "@/components/company/CompanyMission";
 import CompanyServices from "@/components/company/CompanyServices";
+import ClixFelixFooter from "@/components/clix/ClixFelixFooter";
 import Footer from "@/components/sections/Footer";
 import { fetchModels } from "@/lib/models";
 import type { Locale } from "@/lib/i18n/config";
@@ -78,6 +79,11 @@ export default async function CompanyRoute({ locale }: { locale: Locale }) {
           <CompanyHero />
           <CompanyMission />
           <CompanyServices />
+          {/* Added 2026-08-20 at the user's request — the oversized-wordmark closer, same
+              placement as the home page: last thing in <main>, before the site footer. A
+              server component reading getDict().clix directly, so the "company" provider
+              above is irrelevant to it. The page no longer closes on the services band. */}
+          <ClixFelixFooter />
         </main>
         {/* The shared footer. Its tier-gating hashes in the capture (d23fwj / 1roolzl /
             1leoyz4 / 16n7npo) are byte-identical to /product's, which is the proof that this

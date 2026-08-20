@@ -14,6 +14,7 @@
 
 import Nav from "@/components/sections/Nav";
 import NewsBoard from "@/components/news/NewsBoard";
+import ClixFelixFooter from "@/components/clix/ClixFelixFooter";
 import AppLink from "@/components/ui/AppLink";
 import { fetchModels } from "@/lib/models";
 import type { Locale } from "@/lib/i18n/config";
@@ -112,6 +113,11 @@ export default async function NewsRoute({ locale }: { locale: Locale }) {
 
             <NewsBoard />
           </section>
+          {/* Added 2026-08-20 at the user's request — the oversized-wordmark closer. This
+              route renders no site <Footer />, so unlike /product and /company the wordmark
+              is the actual end of the page here. A server component reading getDict().clix
+              directly, so the "news" provider above is irrelevant to it. */}
+          <ClixFelixFooter />
         </main>
       </>
     </PageDictProvider>
