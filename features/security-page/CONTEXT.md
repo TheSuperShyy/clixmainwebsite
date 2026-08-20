@@ -3,6 +3,23 @@
 Newest entry on top. Append, never rewrite. Written so a cold session can resume without
 re-deriving anything: the spec is `FEATURE.md`, this file is what happened and why.
 
+## 2026-08-20 - stacking bug: the hero windows painted over the fixed nav
+
+User (with a screenshot of the terminal covering the nav row): *"in security section, the code
+terminal goes front the nav, fix that bug"*.
+
+**Root cause, not a symptom patch.** `SecurityCanvas`'s two panes carry `z-10`/`z-20`, and
+Draggable sets `z-30` on the pane being dragged. Neither the canvas root nor any ancestor up to
+`<body>` creates a stacking context (`#first` is `relative` but z-auto), so all three values
+landed in the ROOT stacking context — where the fixed Nav is only `z-[3]`. Any overlap (scroll,
+or a window dragged upward) put the panes in front of the nav bar.
+
+**Fix: `isolate` on the canvas root div** (SecurityCanvas.tsx). `isolation: isolate` creates a
+stacking context without touching z-index, so the pane values now only order the two windows
+against each other and the canvas as a whole stays z-auto, beneath the nav. The alternative —
+raising the nav past 30 — was rejected: nav `z-[3]` is the measured capture value shared by
+every route, and the drag-time `z-30` would still need containing anyway.
+
 ## 2026-08-14 (fifth pass) - the hero windows speak Hebrew, prose only
 
 User: *"in hebrew settings, can we translate this part also? only the necessary parts"*, on a
