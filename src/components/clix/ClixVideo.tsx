@@ -7,12 +7,15 @@
  * ⚠️ THE CLIP IS OURS, NOT THE TARGET'S. The original plays a Framer-hosted mp4 that is
  * rogo's property. This repo already removed rogo's `hero-original.mp4` once the repo went
  * public, for exactly that reason. As of 2026-08-20 this plays
- * `public/video/new-clix-hero-vid.mp4` — 848x480 (1.767, a hair narrower than the 16:9 box,
- * so `object-cover` crops a sliver top/bottom), 10s, 1.3MB — replacing `clix-demo.mp4` at
- * the user's request. Every BOX value is still the original's: the 16:9 container, the 80px
- * gap, the section padding, and the mute toggle's geometry.
+ * `public/video/clix-hero-hd.mp4` — 1920x1086, 10s, 5.2MB, H.264. Same footage as the
+ * `new-clix-hero-vid.mp4` it replaced the same day: that file was 848x480 and visibly soft
+ * in this box, so the user upscaled it 2x through Higgsfield (Topaz Video) and the 17.7MB
+ * HEVC result was transcoded here to web-safe H.264 (`scale=1920:-2, crf 22` — HEVC does
+ * not play in Firefox and is patchy elsewhere). 1.768:1 against the 1.77778 box, so
+ * `object-cover` crops a sliver top/bottom. Every BOX value is still the original's: the
+ * 16:9 container, the 80px gap, the section padding, and the mute toggle's geometry.
  *
- * `new-clix-hero-vid-poster.jpg` is frame 0 of that mp4, so the poster and the first painted
+ * `clix-hero-hd-poster.jpg` is frame 0 of that mp4, so the poster and the first painted
  * frame are the same image and there is no visible swap when the clip starts.
  */
 
@@ -47,8 +50,8 @@ export default function ClixVideo() {
           <video
             ref={ref}
             className="h-full w-full object-cover"
-            src="/video/new-clix-hero-vid.mp4"
-            poster="/video/new-clix-hero-vid-poster.jpg"
+            src="/video/clix-hero-hd.mp4"
+            poster="/video/clix-hero-hd-poster.jpg"
             autoPlay
             loop
             muted={muted}

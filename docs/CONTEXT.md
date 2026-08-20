@@ -17,6 +17,14 @@ Line format:
 
 ## 2026-08-20
 
+- `felix-page` — **The clix clip goes HD**: user upscaled it 2x via Higgsfield (Topaz);
+  the 17.7MB HEVC result was transcoded to web-safe H.264 1920×1086 @ 5.2MB
+  (`clix-hero-hd.mp4`, poster = frame 0) — HEVC doesn't play in Firefox. HEVC master stays
+  untracked. → [detail](../features/felix-page/CONTEXT.md)
+- `felix-page` — **The oversized-CLIX wordmark closer now also renders on /product, /company
+  and /news** (last child of each route's `<main>`, same placement as the home page; on /news
+  it is the page's actual end since that route has no site footer). Component untouched.
+  → [detail](../features/felix-page/CONTEXT.md)
 - `felix-page` — **/clix's Video block plays `new-clix-hero-vid.mp4`** (848×480, 10s, 1.3MB;
   poster is frame 0 via ffmpeg), replacing `clix-demo.mp4`.
   → [detail](../features/felix-page/CONTEXT.md)
