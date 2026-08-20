@@ -17,6 +17,25 @@ Line format:
 
 ## 2026-08-20
 
+- `felix-page` — **Second Higgsfield run (non-diffusion model) replaces the clip** — the
+  first run's blurry intro (~2s, denoised dot field) and bottom line are both gone at the
+  source; re-transcoded to 1920×1086 @ 5.8MB, same filename, no crop.
+  → [detail](../features/felix-page/CONTEXT.md)
+- `felix-page` — **The HD clip's dark bottom line cropped out** (diffusion upscaler had
+  sharpened the 480p source's faint edge shading into a hard stroke; bottom 24px cropped in
+  a re-transcode from the HEVC master, now 1920×1062). → [detail](../features/felix-page/CONTEXT.md)
+- `security-page` — **Bug fix: the hero's mock windows painted over the fixed nav.** Their
+  z-10/20 (and drag-time 30) sat in the root stacking context, above the nav's z-[3];
+  `isolate` on SecurityCanvas' root now contains them. Nav z-index untouched.
+  → [detail](../features/security-page/CONTEXT.md)
+- `felix-page` — **The clix clip goes HD**: user upscaled it 2x via Higgsfield (Topaz);
+  the 17.7MB HEVC result was transcoded to web-safe H.264 1920×1086 @ 5.2MB
+  (`clix-hero-hd.mp4`, poster = frame 0) — HEVC doesn't play in Firefox. HEVC master stays
+  untracked. → [detail](../features/felix-page/CONTEXT.md)
+- `felix-page` — **The oversized-CLIX wordmark closer now also renders on /product, /company
+  and /news** (last child of each route's `<main>`, same placement as the home page; on /news
+  it is the page's actual end since that route has no site footer). Component untouched.
+  → [detail](../features/felix-page/CONTEXT.md)
 - `felix-page` — **/clix's Video block plays `new-clix-hero-vid.mp4`** (848×480, 10s, 1.3MB;
   poster is frame 0 via ffmpeg), replacing `clix-demo.mp4`.
   → [detail](../features/felix-page/CONTEXT.md)

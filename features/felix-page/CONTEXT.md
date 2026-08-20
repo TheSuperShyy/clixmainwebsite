@@ -49,6 +49,70 @@ pass.
 
 ## Log
 
+### 2026-08-20 (fourth pass) — second Higgsfield run replaces the clip; both artifacts gone at the source
+
+**Asked:** "the first 2 seconds of the video is blurry" — frame comparison showed the
+diffusion upscaler had denoised the intro's sparse dot field into near-nothing at 0.2s
+(the 480p original's dots are crisp there; from ~1s the upscale is sharper than the
+original). Classic diffusion failure: sparse fine detail reads as noise. The user re-ran
+Higgsfield with the non-diffusion model and delivered `new-hd-hero.mp4` (2544×1440, H.264,
+18.5MB).
+
+- **Verified before wiring:** dots crisp at 0.2s, text sharp at 1s, all four edges clean —
+  no bottom line this run, so the previous entry's 24px crop is NOT carried over.
+- **Same served filename**, so only the transcode was redone: `scale=1920:-2, crf 22` →
+  `clix-hero-hd.mp4` at 1920×1086, 5.8MB; poster regenerated from frame 0. No code change
+  beyond the provenance comment.
+- **Masters untracked:** `new-hd-hero.mp4` (this run) replaces `hd-new-hero-vid.mp4`
+  (diffusion run) as the keep-around master; the diffusion one is now safe to delete.
+
+### 2026-08-20 (later still) — the upscaler's dark bottom line is cropped out of the HD clip
+
+**Asked:** "why does it have black in the bottom?" — a hard dark line ran the full width of
+the video a few px above its bottom edge.
+
+- **Diagnosed by pixel, not guess:** bottom-40px strips were extracted from the served file,
+  the Higgsfield HEVC master, and (via `git show 8f49cb8^:`) the original 480p clip. The
+  master has the line; the 480p original has only a faint soft shading there. So the
+  diffusion upscaler sharpened a subtle edge gradient into a solid stroke — not the
+  transcode, not CSS. Top/left/right strips profiled clean.
+- **Fix is in the asset:** re-transcoded from the HEVC master with
+  `scale=1920:-2,crop=1920:1062:0:0` (bottom 24px off), same codec settings → 5.2MB.
+  Line confirmed gone at 2s and 8s. Poster regenerated from the new frame 0.
+- **Aspect consequence:** 1.808:1 in the 1.77778 box means `object-cover` now trims ~8px
+  per side instead of a sliver top/bottom. Nothing of interest lives at the side edges.
+
+### 2026-08-20 (later) — the Video clip goes HD: Higgsfield 2x upscale, transcoded to H.264
+
+**Asked:** "why is the video low quality" — `new-clix-hero-vid.mp4` was 848x480 in a box that
+renders 1200px+ wide, so the browser upscaled ~1.7x. The user ran the clip through
+Higgsfield's upscaler (Topaz Video model, 2k target) and delivered `hd-new-hero-vid.mp4`.
+
+- **What came back could not ship as-is:** 2046x1158 but **HEVC** at 13.8 Mbps / 17.7MB.
+  HEVC in MP4 does not play in Firefox and is patchy in Chrome-on-Windows without hardware
+  support. Transcoded to `public/video/clix-hero-hd.mp4`: H.264 (`libx264 -preset slow
+  -crf 22`), `scale=1920:-2` → 1920x1086, `+faststart`, AAC 128k → **5.2MB**. ClixVideo
+  points at it; poster is frame 0 again (`clix-hero-hd-poster.jpg`).
+- **`hd-new-hero-vid.mp4` (the 17.7MB HEVC master) stays UNTRACKED** — it is a source file,
+  not a servable asset, and committing it would put 17.7MB of dead weight in history.
+- The morning's `new-clix-hero-vid.mp4` + poster are now unreferenced, as are
+  `clix-demo.mp4` + poster; both pairs left in place pending the user's call.
+
+### 2026-08-20 — the wordmark closer is now also on /product, /company and /news
+
+**Asked:** the user sent a screenshot of the CLIX closer and said "this part put it also in
+product, company, and news section".
+
+- **ClixFelixFooter added as the last child of `<main>`** in `ProductRoute.tsx`,
+  `CompanyRoute.tsx` and `NewsRoute.tsx` — the same placement the home page got earlier
+  today. Component untouched; it is a server component reading `getDict().clix.felixFooter`,
+  so each route's page-scoped PageDictProvider is irrelevant to it, and `seedLocale` in each
+  route body means both locales work (the RTL SVG fix in the component already covers /he).
+- **On /product and /company** it sits between the last content section and the shared
+  `<Footer />`. **On /news it is the actual end of the page** — that route renders no site
+  footer, so the wordmark closes it. The news articles section's `pb-[120px]` stacks with the
+  closer's own `pt-32`/desktop `pt-24`; left as-is pending the user's visual check.
+
 ### 2026-08-20 — the Video block plays the new clip; the wordmark closer is now also on the home page
 
 **Asked:** "change the hero video in clix section to the new-clix-hero-vid.mp4" and "add the

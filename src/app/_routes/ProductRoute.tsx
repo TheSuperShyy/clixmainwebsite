@@ -38,6 +38,7 @@
 import Nav from "@/components/sections/Nav";
 import ProductHero from "@/components/product/ProductHero";
 import ProductFeatures from "@/components/product/ProductFeatures";
+import ClixFelixFooter from "@/components/clix/ClixFelixFooter";
 import Footer from "@/components/sections/Footer";
 import { fetchModels } from "@/lib/models";
 import type { Locale } from "@/lib/i18n/config";
@@ -70,6 +71,12 @@ export default async function ProductRoute({ locale }: { locale: Locale }) {
         <main>
           <ProductHero />
           <ProductFeatures />
+          {/* Added 2026-08-20 at the user's request — the oversized-wordmark closer, same
+              placement as the home page: last thing in <main>, before the site footer. A
+              server component reading getDict().clix directly, so the "product" provider
+              above is irrelevant to it. It paints no background (see its header), so it
+              sits on the page's paper ground. */}
+          <ClixFelixFooter />
         </main>
         {/* Byte-identical to the home page's footer in both captures — same
             `.framer-8dt5bh-container`, same link rows. Reused unchanged; it was the one block

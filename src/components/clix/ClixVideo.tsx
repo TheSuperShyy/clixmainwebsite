@@ -7,12 +7,19 @@
  * ⚠️ THE CLIP IS OURS, NOT THE TARGET'S. The original plays a Framer-hosted mp4 that is
  * rogo's property. This repo already removed rogo's `hero-original.mp4` once the repo went
  * public, for exactly that reason. As of 2026-08-20 this plays
- * `public/video/new-clix-hero-vid.mp4` — 848x480 (1.767, a hair narrower than the 16:9 box,
- * so `object-cover` crops a sliver top/bottom), 10s, 1.3MB — replacing `clix-demo.mp4` at
- * the user's request. Every BOX value is still the original's: the 16:9 container, the 80px
- * gap, the section padding, and the mute toggle's geometry.
+ * `public/video/clix-hero-hd.mp4` — 1920x1086, 10s, 5.8MB, H.264. This is the SECOND
+ * Higgsfield upscale of the same 848x480 source (`new-clix-hero-vid.mp4`, deleted). The
+ * first run used the DIFFUSION "Topaz Video" model and failed twice: it painted a hard dark
+ * line along the bottom edge (cropped out in an interim version) and denoised the intro's
+ * sparse dot field into blur for the first ~2s. This run used the classical model instead
+ * and profiled clean on all four edges AND in the intro, so nothing is cropped. The
+ * 2544x1440 / 18.5MB delivery (`new-hd-hero.mp4`, kept untracked as the master) was
+ * transcoded here with `scale=1920:-2, libx264 crf 22` — the box never renders wider than
+ * ~1900px, so 1440p is pure payload. 1.767:1 against the 1.77778 box, so `object-cover`
+ * crops a sliver top/bottom. Every BOX value is still the original's: the 16:9 container,
+ * the 80px gap, the section padding, and the mute toggle's geometry.
  *
- * `new-clix-hero-vid-poster.jpg` is frame 0 of that mp4, so the poster and the first painted
+ * `clix-hero-hd-poster.jpg` is frame 0 of that mp4, so the poster and the first painted
  * frame are the same image and there is no visible swap when the clip starts.
  */
 
@@ -47,8 +54,8 @@ export default function ClixVideo() {
           <video
             ref={ref}
             className="h-full w-full object-cover"
-            src="/video/new-clix-hero-vid.mp4"
-            poster="/video/new-clix-hero-vid-poster.jpg"
+            src="/video/clix-hero-hd.mp4"
+            poster="/video/clix-hero-hd-poster.jpg"
             autoPlay
             loop
             muted={muted}

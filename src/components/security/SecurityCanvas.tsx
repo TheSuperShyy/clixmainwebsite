@@ -183,9 +183,17 @@ export default function SecurityCanvas() {
     /* Below 1200 this is a plain centred column holding one window, and every utility that
        builds the composite is `desktop:`-gated. That is what keeps the tablet and phone heights
        byte-identical to what was measured before the console existed. */
+    /* ⚠️ `isolate` IS A BUG FIX (2026-08-20): the panes' z-10/z-20 — and the z-30 Draggable
+       sets mid-drag — used to land in the ROOT stacking context, because neither this div
+       (z-auto) nor any ancestor up to <body> creates one. The fixed Nav is z-[3], so on
+       scroll the windows painted OVER the nav bar. `isolation: isolate` traps all three
+       values in here, where they only order the two panes against each other, while the
+       canvas as a whole stays z-auto — beneath the nav like every other section. Do not
+       "fix" this again by raising the nav's z-index; 3 is the measured value from the
+       capture and every page shares it. */
     <div
       ref={root}
-      className="relative flex w-full justify-center desktop:block"
+      className="isolate relative flex w-full justify-center desktop:block"
       style={
         {
           /* Applied as custom properties so the two magic numbers appear exactly once in the
