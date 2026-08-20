@@ -15,6 +15,16 @@ Line format:
 
 ---
 
+## 2026-08-20
+
+- `felix-page` — **/clix's Video block plays `new-clix-hero-vid.mp4`** (848×480, 10s, 1.3MB;
+  poster is frame 0 via ffmpeg), replacing `clix-demo.mp4`.
+  → [detail](../features/felix-page/CONTEXT.md)
+- `felix-page` — **The oversized-CLIX wordmark closer now also renders on the home page**,
+  between By the numbers and the footer (HomeRoute.tsx; component unchanged — it reads
+  `getDict().clix` server-side, so no provider was needed).
+  → [detail](../features/felix-page/CONTEXT.md)
+
 ## 2026-08-19
 
 - `landing-video` — **Audio is back, and the mute toggle with it** (user re-exported the mp4

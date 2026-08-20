@@ -49,7 +49,24 @@ pass.
 
 ## Log
 
-### 2026-08-18 — the hero rotor stops being rogo's; the user names the three words
+### 2026-08-20 — the Video block plays the new clip; the wordmark closer is now also on the home page
+
+**Asked:** "change the hero video in clix section to the new-clix-hero-vid.mp4" and "add the
+huge clix section into the landing page before the footer".
+
+- **ClixVideo now plays `public/video/new-clix-hero-vid.mp4`** (848×480, 10s, 1.3MB),
+  replacing `clix-demo.mp4`. The source is 1.767:1 against the container's fixed 1.77778
+  box, so `object-cover` crops a sliver top/bottom — box values untouched. Poster is
+  `new-clix-hero-vid-poster.jpg`, frame 0 extracted with ffmpeg (`-frames:v 1 -q:v 3`),
+  keeping the no-visible-swap property the old pair had. `clix-demo.mp4` + poster stay in
+  `public/video/` — nothing else references them, but removal wasn't asked for.
+- **ClixFelixFooter is now ALSO rendered on the home page** (`HomeRoute.tsx`, between
+  ByTheNumbers and the site footer). No component change was needed: it is a server
+  component reading `getDict().clix.felixFooter` directly, so it works under the home
+  route's `"home"` PageDictProvider. It paints no background, so on the home page it sits
+  on the paper body ground rather than /clix's fixed backdrop; ByTheNumbers' dark tint now
+  settles back to paper before the `bg-ink` footer instead of handing over directly (the
+  stale "last section" comment in HomeRoute was updated).
 
 **Asked:** the user sent a screenshot of the headline and said the words should be *"something
 that connects with our company"*. `Meet Clix / your new [analyst | investor]` was rogo's own
