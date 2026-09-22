@@ -84,6 +84,9 @@ Line format:
 - `docs` / `hero` — **Bold headings REVERTED** (`bc7e218` reverted; user, live: "bro wtf revert the
   font"). Headings back to their measured weights, hero wrapper back to 648 / 568 / 344. End
   state for type today = the state at the start of the day. → [detail](DESIGN-SYSTEM.md)
+- `nav` — **Wordmark final: 500 with the hero headline's −0.05em tracking** (user picked the h1
+  as the reference, then "a bit thicker" than its 400; "ok perfect push that").
+  → [detail](../features/nav/CONTEXT.md)
 
 ## 2026-08-20
 
