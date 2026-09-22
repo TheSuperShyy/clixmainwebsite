@@ -144,7 +144,7 @@ for the CTA border) · `--font-display` · `--font-sans` · `--container-max` `1
 | Section padding, gaps | 4pt scale | `156px`, `120px`, `44px`, `248px` | One-offs in the original; not tokenized — see DESIGN-SYSTEM.md §Spacing. |
 | `prefers-reduced-motion` | — | original has none | Our a11y floor. Video pauses; poster remains. |
 | Headline + tagline copy | target's finance-AI copy | **clix's own**, 2026-08-04 | User picked it from five candidates. Headline is the English rendering of the real company site's closing CTA (*אתם מביאים את העסק. אנחנו מביאים את הבינה.*) — see `docs/reference/clixsolutions/`. |
-| h1 max-width widened for clix copy | `600 / 600 / 370 / 300` | **`704 / 704 / 616 / 344`** (648 / 648 / 568 / 344 while headings were weight 400; since 2026-09-22 every heading is 700 and the bold line needs 694 / 607 at desktop / tablet) | Measured, not guessed — see below. |
+| h1 max-width widened for clix copy | `600 / 600 / 370 / 300` | **`648 / 648 / 568 / 344`** | Measured, not guessed — see below. |
 | Authored `<br>` between the two sentences | original wraps freely | explicit break | See below. |
 
 ### Crop anchor is live again (2026-08-05) — OPEN
