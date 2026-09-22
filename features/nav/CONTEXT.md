@@ -45,6 +45,13 @@ live site for the mobile menu, the scroll flip point, and the `Indicator` elemen
 
 ## Log
 
+### 2026-09-22 (later) — REVERTED: wordmark back to 700
+
+Deployed at 400 (PR #15), user saw it live: *"i think its too thin make it like this"*, with a
+crop of the bold mark. `ClixWordmark.tsx` back to `font-bold`; only the comment differs from
+`979f461`. Net for the day on this mark: nothing. Lesson kept: at 30px the headings' 400 reads
+as thin next to the 500 nav links, whatever it matches in principle.
+
 ### 2026-09-22 — wordmark weight 700 → 400, matching the page headings
 
 **Trigger:** user — *"make the font of the clix logo like the one we have in the header"*, then

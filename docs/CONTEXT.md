@@ -79,6 +79,8 @@ Line format:
   Two misreads on the way, both reverted: 500 to match nav links (pushed in `f254ef9`,
   superseded), and the footer serif CLIX re-cut in Discovery (never asked; file restored).
   → [detail](../features/nav/CONTEXT.md)
+- `nav` — **Wordmark back to 700** after one deploy at 400 (user, live: "i think its too thin
+  make it like this"). Net change on the mark today: none. → [detail](../features/nav/CONTEXT.md)
 
 ## 2026-08-20
 
