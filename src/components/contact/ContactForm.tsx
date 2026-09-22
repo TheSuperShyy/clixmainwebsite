@@ -507,7 +507,7 @@ function CountBadge({ n, total }: { n: number; total: number }) {
   );
 }
 
-/* The small grey word in a state slot — "Optional", "Choose one". `muted` #737373 is 4.74:1 on
+/* The small grey word in a state slot — "Optional" on groups 02, 03 and 04. `muted` #737373 is 4.74:1 on
    the white panel and passes; it would fail on the `bone` band outside it. */
 function SlotHint({ children }: { children: React.ReactNode }) {
   return (
@@ -1236,9 +1236,10 @@ export default function ContactForm() {
                       multi-select and group 03 is single-select, and until today they were
                       pixel-identical — so someone who had just picked three needs would try the
                       same on budget and watch their first choice silently clear. A check inside
-                      an active pill is the shape that says "toggle"; the budget group says
-                      "Choose one" in its state slot instead. `aria-pressed` already carries this
-                      for assistive tech, which is why the glyph is decorative. */}
+                      an active pill is the shape that says "toggle"; the budget group has no
+                      check, and its "Choose one." rule is sr-only (its visible slot reads
+                      "Optional" since 2026-09-22). `aria-pressed` already carries this for
+                      assistive tech, which is why the glyph is decorative. */}
                   {active ? <CheckGlyph className="h-3.5 w-3.5 shrink-0" /> : null}
                   {/* `whitespace-pre` cannot wrap, so a label has to fit its pill outright. Every
                       Hebrew label here is shorter than its English counterpart, so the row only
@@ -1277,12 +1278,16 @@ export default function ContactForm() {
           state={stepState(2)}
           onFocus={() => setFocusedStep(2)}
           onBlur={groupBlur}
-          /* The "choose one" rule was `sr-only` until today, so a sighted visitor had to infer
-             the interaction model by trying it. It stays sr-only AS WELL — that copy is wired
-             through `aria-describedby`, which visible text beside a legend is not. */
+          /* Same convention as groups 02 and 04: the word "Optional" while nothing is picked.
+             The slot read "Choose one." from 2026-08-18 to 2026-09-22 so a sighted visitor could
+             see the single-select rule, but that copy reads as a requirement, and the field has
+             never gated submission (see `validate()`). The "choose one" rule stays `sr-only`
+             below — it is wired through `aria-describedby`, which visible text beside a legend
+             is not — and the arrow keys / lack of a check glyph carry the rest. (user's call,
+             2026-09-22) */
           slot={
             budget === null ? (
-              <SlotHint>{t.a11y.budgetHint}</SlotHint>
+              <SlotHint>{t.optional}</SlotHint>
             ) : (
               <CountBadge n={1} total={BUDGET_ORDER.length} />
             )

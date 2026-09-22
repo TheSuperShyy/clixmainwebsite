@@ -15,6 +15,12 @@ Line format:
 
 ---
 
+## 2026-09-22
+
+- `contact-page` — **Budget range slot reads "Optional" instead of "Choose one."** — copy-only;
+  the field never gated submission. sr-only "Choose one." kept for the radiogroup.
+  → [detail](../features/contact-page/CONTEXT.md)
+
 ## 2026-08-20
 
 - `felix-page` — **Second Higgsfield run (non-diffusion model) replaces the clip** — the
