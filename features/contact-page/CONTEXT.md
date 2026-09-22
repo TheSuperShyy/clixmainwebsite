@@ -52,6 +52,50 @@ then set the two env vars in the Vercel project settings so the deployed form ca
 
 ## Log
 
+### 2026-09-22 — Google Ads conversion fires from the `res.ok` branch, and only there
+
+**Trigger:** user — "set up Google Ads conversion tracking correctly", with the gtag snippet
+for `AW-18467124282` and a hard rule: fire only after the backend accepted the submission, never
+on visit / click / validation failure / API failure / refresh, once per submission.
+
+**Where it landed — and where it moved.** First cut: inside `onSubmit`'s `if (res.ok)` branch
+in `ContactForm.tsx`, with a `conversionSent` ref. That was stashed by GitHub Desktop when the
+user pulled Miko's same-day refactor (below), which extracted the fetch into `sendContact()` in
+`contactRules.ts` and added a SECOND form in the footer that calls it. Resolved by dropping every
+ContactForm.tsx change of mine (upstream taken verbatim) and calling `reportContactConversion()`
+(`src/lib/gads.ts`) inside `sendContact()`'s `if (res.ok)` branch instead — one place, both forms,
+and a third form would get it for free. Every forbidden case is still excluded by control flow:
+each form runs `validateContact` and returns before calling `sendContact`; a non-2xx never enters
+the branch; a refresh loses the React state that put the success panel up and the call is in a
+handler, not an effect. Once per submission: `sendContact` is called once per accepted submit
+(both forms ignore clicks while `status === "sending"`) and the branch runs once per call.
+
+**Honeypot.** The route answers a filled `website` trap with `200 { ok: true }` on purpose (a bot
+must not learn it was caught). `sendContact` receives `trap`, so the call is gated on `!trap` — a
+bot's fake success is not a conversion.
+
+**The conversion label — supplied later the same day.** The user forwarded the Google Ads Team's
+"Set up a Google tag" email: action **"Submit lead form"**, `send_to:
+'AW-18467124282/wo7vCM3x-YAdELro5-VE'`, `value: 1.0`, `currency: 'ILS'`. All three are now in
+`lib/gads.ts` and sent verbatim. (Until then `reportContactConversion` sent nothing — a
+bare-account `send_to` registers on the account without attaching to a conversion action, noise
+that looks like success.) The email also said "We haven't found a Google tag on your website" —
+expected: nothing has been deployed yet. Google's own instructions place the tag "before the
+closing </head>" and the event snippet "right after the Google tag"; ours puts the tag in
+`<head>` and fires the event from the submit callback instead, which is exactly what the user's
+own brief required (no thank-you page URL; must not fire on page view).
+
+**Tag placement** (site-wide, not this section's): both root layouts render `<GoogleAdsTag />`
+inside an explicit `<head>`. `next/script beforeInteractive` was tried first and measured out —
+the loader reached `<head>` but the inline bootstrap was emitted in `<body>` as a
+`self.__next_s` push, and React logged "Cannot render a sync or defer <script> outside the main
+document". Raw `<script>` elements in the layout `<head>` emit verbatim. Not consent-gated, per
+the recorded "banner is cosmetic" decision and terms §05 already naming Google ad cookies.
+
+**Verified (pre-merge):** curl of `/`, `/he`, `/contact` — loader + bootstrap both inside
+`<head>`; `tsc` clean; `next build` passes (after `npm install` restored the missing
+`nodemailer`). Re-verified after the merge — see the global log line.
+
 ### 2026-09-22 — CRM welcome email copy edited (the em dash, "דחופה")
 
 **Trigger:** user sent screenshots of the welcome email: *"remove the hypen and also the word that

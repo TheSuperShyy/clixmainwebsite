@@ -40,6 +40,43 @@ Line format:
   repo): the em dash became a comma, and "דחופה" was dropped from the reply line. Uncommitted on
   the CRM's `dev`, so leads don't see it until it's committed and deployed.
   → [detail](../features/contact-page/CONTEXT.md)
+- `nav` — **Banner model ticker 24 → 60 px/s** in three passes (user: "a bit faster" ×2; 32 read
+  the same as the logo row's 30, 45 not quite enough). Now 2x the logo row, which stays at 30.
+  → [detail](../features/nav/CONTEXT.md)
+- `docs` / `infra` — **Type system swapped: Sora (display) / IBM Plex Sans (body) / IBM Plex
+  Mono (data)**, from the user's "04 Typography" spec sheet. Vendored from Google Fonts into
+  `public/fonts/{sora,plex}/`, declared in `src/app/fonts-clix-type.css`, three tokens repointed
+  in `globals.css`. Discovery kept second in every stack — new faces have no Hebrew, so `/he`
+  falls through to it. Wordmark + emboss tokens untouched. **Families only; the spec's size
+  ramp is recorded in DESIGN-SYSTEM.md, not applied.** → [detail](DESIGN-SYSTEM.md)
+- `docs` / `infra` — **Headings back to Discovery** (user, with a logo crop: "use the same font
+  as the logo in the headers"; the wordmark is Discovery 700). `--font-display` only; body stays
+  Plex Sans, data Plex Mono. Sora stays vendored + declared, applied nowhere.
+  → [detail](DESIGN-SYSTEM.md)
+- `docs` / `infra` — **Body back to Discovery too** (user: "change the font match the font used
+  in the logo"). Net: sitewide Discovery as before the spec sheet; only `--font-mono` = IBM Plex
+  Mono survives. Sora + Plex Sans vendored, applied nowhere. → [detail](DESIGN-SYSTEM.md)
+- `docs` / `infra` — **All h1–h6 at 700**, the wordmark's weight (user: "include the font weight
+  as well"). One unlayered rule in `globals.css` over the per-heading utilities. Bold is wider:
+  home hero H1 now wraps to three lines at 1440. → [detail](DESIGN-SYSTEM.md)
+- `contact-page` / `infra` — **Google Ads tag `AW-18467124282` in `<head>` of both root layouts
+  (raw `<script>`, not `next/script` — measured), conversion fired from `sendContact()`'s
+  `res.ok` branch in `contactRules.ts` — so BOTH forms, /contact and the footer — gated on the
+  honeypot being empty.** Landed on top of Miko's footer-form refactor after a GitHub Desktop
+  stash/pull; three-file conflict resolved by hand, ContactForm.tsx taken from upstream. Conversion LABEL still missing from
+  the user, so nothing is sent until `lib/gads.ts` / `NEXT_PUBLIC_GADS_CONTACT_LABEL` carries it.
+  `npm install` restored `nodemailer`; build green. → [detail](../features/contact-page/CONTEXT.md)
+- `hero` — **h1 wrapper 648 → 704 desktop, 568 → 616 tablet** so the bold headline is two
+  lines again (user: "make it 2 lines the header"). Measured at wght 700 from the served woff2
+  via fontTools, calibrated to the 2026-08-04 browser figures. → [detail](../features/hero/CONTEXT.md)
+- `docs` / `infra` / `hero` — **ALL type changes above REVERTED** (user: "ok nvm dont change the
+  font revert it to original"): tokens back to Discovery / Discovery / Fragment Mono, heading
+  700 rule removed, hero wrapper back to 648 / 568 / 344, Sora + Plex files and
+  `fonts-clix-type.css` deleted. Ticker speed and Google Ads work untouched.
+  → [detail](DESIGN-SYSTEM.md)
+- `nav` — **Wordmark weight 700 → 500** to match the nav links (user: "make the font of the clix
+  logo like the one we have in the header"; family was already Discovery on both).
+  → [detail](../features/nav/CONTEXT.md)
 
 ## 2026-08-20
 
@@ -1788,6 +1825,9 @@ Line format:
   its own — `translateY(-min(scrollY, bannerH))`, gone by 45px, untransitioned because it
   follows the scrollbar — while the colour swap keeps firing on the hero boundary.
   → [detail](../features/nav/CONTEXT.md)
+- `contact-page` — **Google Ads conversion label landed**: `AW-18467124282/wo7vCM3x-YAdELro5-VE`,
+  value 1.0 ILS, from the Ads Team email ("Submit lead form"). Conversions now actually send.
+  Still uncommitted, undeployed. → [detail](../features/contact-page/CONTEXT.md)
   · **Open:** the live frame had the banner *back* at testimonials depth, which points at a
     direction-aware header (scroll up → banner returns). Not implemented.
 

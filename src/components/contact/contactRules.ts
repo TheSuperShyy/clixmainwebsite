@@ -17,6 +17,7 @@
  */
 
 import type { Dict } from "@/lib/i18n/dictionary";
+import { reportContactConversion } from "@/lib/gads";
 
 /** The `contact.form` namespace, in either locale. The footer receives it from the server. */
 export type ContactFormDict = Dict["contact"]["form"];
@@ -162,7 +163,18 @@ export async function sendContact(
       }),
     });
 
-    if (res.ok) return { kind: "sent" };
+    if (res.ok) {
+      /* ⚠️ THE GOOGLE ADS CONVERSION FIRES HERE AND NOWHERE ELSE (2026-09-22, user: "the
+         conversion must fire only after the form has been successfully submitted and accepted
+         by the backend"). Both forms — /contact and the footer — reach this line only on a 2xx
+         from /api/contact, after their own `validateContact` pass, so a page visit, a click, a
+         validation failure, an API failure or a refresh can none of them get here; and each
+         accepted submit calls `sendContact` exactly once, so it fires once. `!trap`: the route
+         deliberately answers the honeypot with a 200 so a bot cannot learn it was caught (see
+         route.ts) — that "success" is not a conversion. See src/lib/gads.ts for the rest. */
+      if (!trap) reportContactConversion();
+      return { kind: "sent" };
+    }
     if (res.status === 429) return { kind: "rate-limited" };
 
     const body = (await res.json().catch(() => null)) as {

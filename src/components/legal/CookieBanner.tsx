@@ -17,8 +17,12 @@
  *
  *   · `FooterMap.tsx` embeds a keyless Google Maps iframe. It sits in the FOOTER, so it loads
  *     on every route, and it sets Google's third-party cookies BEFORE the visitor has clicked
- *     anything and REGARDLESS of which button they click. It is the only third-party cookie
- *     source in the build — there is no gtag, no GTM and no Meta pixel anywhere in `src/`.
+ *     anything and REGARDLESS of which button they click. It WAS the only third-party cookie
+ *     source in the build until 2026-09-22, when the Google Ads tag (gtag.js, `AW-18467124282`)
+ *     went into `<head>` on every page — see `components/analytics/GoogleAdsTag.tsx` and
+ *     `lib/gads.ts`. That tag is likewise NOT gated on this banner, for the same recorded
+ *     reason; `lib/gads.ts` says how to add Consent Mode if that ever changes. There is still
+ *     no GTM and no Meta pixel.
  *   · terms §07 (`ניהול העוגיות`) promises both a prompt AND the ability to "להגדיר העדפות".
  *     This delivers the prompt. It does not deliver preferences — there are two buttons and no
  *     settings panel, which is also all the live site has.

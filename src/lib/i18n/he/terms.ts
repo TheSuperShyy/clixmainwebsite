@@ -20,8 +20,10 @@
  *     **THIS SITE HAS NO COOKIE BANNER AND NO CONSENT UI OF ANY KIND** — while `FooterMap.tsx`
  *     embeds a Google Map that sets third-party cookies on every page. So the one clause that
  *     promises a consent gate sits on a site whose only third-party cookie has none.
- *   · §05 lists marketing cookies for Facebook and Google ads. There are no ad pixels in this
- *     repo — no gtag, no GTM, no Facebook Pixel. Grepped 2026-08-16.
+ *   · §05 lists marketing cookies for Facebook and Google ads. As of 2026-09-22 the Google half
+ *     is TRUE: the Google Ads tag (gtag.js) loads on every page — see `lib/gads.ts`. There is
+ *     still no Facebook Pixel and no GTM. (Before that date there was no ad pixel of any kind;
+ *     grepped 2026-08-16.)
  *
  *   · §04 says the last-updated date appears at the BOTTOM of the document. On the live page,
  *     and therefore here, it is at the TOP. The source contradicts itself; kept as published.

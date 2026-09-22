@@ -465,14 +465,16 @@ color:          #ffffff
 
 ### Fonts — vendored 1:1, no substitutions
 
-Only **two families are actually applied to text on the home page**. The Framer project
-declares fourteen; the rest belong to other pages and must not be used here.
-
-| Family | Role | Token | Uses | Source |
-|---|---|---|---|---|
-| **ABC Arizona Mix Regular** | all display type / headings | `--font-display` | ×33 | vendored `.woff2` |
-| **Discovery** | body + UI, 14px default | `--font-sans` | rest of page | vendored variable `.woff2` |
-| **Inter** | the logo lockup, and *only* that | `--font-wordmark` | ×1 | vendored `.woff2` |
+> ### Tried and reverted, 2026-09-22: Sora / IBM Plex Sans / IBM Plex Mono
+>
+> The user supplied a "04 Typography" spec sheet (Sora 600 headings, IBM Plex Sans body, IBM
+> Plex Mono data) and the three families were vendored and wired in; over the next hour the
+> headings, then the body, went back to Discovery to match the logo, headings went to 700, and
+> the hero wrapper was re-widened for the bold line. Then: *"ok nvm dont change the font revert
+> it to original."* **Everything type-related is back to the state below** — Discovery for
+> display and sans, Fragment Mono for mono, no heading-weight rule, hero wrapper 648 / 568 / 344
+> — and the Sora/Plex files and their `@font-face` file are deleted, not left dormant. The full
+> sequence is in `docs/CONTEXT.md` under 2026-09-22 if the spec ever comes back.
 
 > ### ⚠️ The sans changed on 2026-08-07: Inter → Discovery
 >

@@ -34,6 +34,7 @@ import { ViewTransitionProvider } from "@/components/ui/ViewTransitions";
 import { I18nProvider } from "@/lib/i18n/LocaleProvider";
 import CookieBanner from "@/components/legal/CookieBanner";
 import AccessibilityGate from "@/components/a11y/AccessibilityGate";
+import GoogleAdsTag from "@/components/analytics/GoogleAdsTag";
 import { DICTIONARIES } from "@/lib/i18n/dictionary";
 import { HTML_LANG, DIRECTION } from "@/lib/i18n/config";
 import { seedLocale } from "@/lib/i18n/server";
@@ -111,6 +112,12 @@ export default function EnRootLayout({
      still does the job it was added for. */
   return (
     <html lang={HTML_LANG.en} dir={DIRECTION.en} data-scroll-behavior="smooth">
+      {/* An explicit <head> so the Google Ads tag is the first thing in it, as asked. Next
+          merges its own metadata and stylesheet tags in after it. Mounted in BOTH root
+          layouts; see GoogleAdsTag.tsx. */}
+      <head>
+        <GoogleAdsTag />
+      </head>
       <body>
         <I18nProvider locale="en" chrome={DICTIONARIES.en.chrome}>
           <ViewTransitionProvider>{children}</ViewTransitionProvider>

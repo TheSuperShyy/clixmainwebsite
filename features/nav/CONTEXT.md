@@ -45,13 +45,28 @@ live site for the mobile menu, the scroll flip point, and the `Indicator` elemen
 
 ## Log
 
-### 2026-08-19 — model ticker slowed, 40 → 24 px/s
+### 2026-09-22 — wordmark weight 700 → 500, matching the nav links
 
-**Trigger:** user — the moving strips *"kinda make us dizzy maybe slow them down?"* — one pass
-covering both marquees. `SPEED_PX_PER_SEC` in `ModelTicker.tsx` 40 → 24; the hero's logo
-carousel went 50 → 30 in the same pass. The ticker keeps its standing rule of being the slower
-strip, because its content is read, not just recognised. Duration derives from the measured
-cycle at tween-build time, so no other code changed.
+**Trigger:** user — *"make the font of the clix logo like the one we have in the header."* The
+family was already the same (Discovery via `--font-wordmark`; nav links via `--font-sans`), so the
+only visible difference was weight: links are `font-medium` (500), the mark was `font-bold`
+(700). `ClixWordmark.tsx` now `font-medium`. Size 30px, uppercase, −0.015em tracking unchanged.
+⚠️ This moves the rendered mark further from `src/app/icon.png` (Inter-700-like) than it already
+was — the 2026-08-08 note in the component still applies, only more so. Not yet confirmed by the
+user as the intended reading; the alternative ("header" = the h1s) would mean 400, the hero's
+weight.
+
+### 2026-09-22 — model ticker sped up, 24 → 60 px/s
+
+**Trigger:** user — *"make the marquee on top a bit faster."* First pass took
+`SPEED_PX_PER_SEC` in `ModelTicker.tsx` 24 → 32; user: *"still moving the same speed as the
+marquee on the logo."* Lesson: **a strip only reads as faster than another if the ratio is
+large** — 32 vs the logo row's 30 was invisible. Second pass → 45 (1.5x the logo row) read as
+different; user asked for *"a bit faster"* once more, so third pass → 60, exactly 2x the logo
+row. This inverts the old "ticker is the slower strip" rule on the
+user's say-so; the 2026-08-19 dizzy complaint was about both strips together (logo row was 50
+then), and the logo carousel stays at 30. Duration still derives from the measured cycle, so
+nothing else changed.
 
 ### 2026-08-13 — a decorative candlestick chart in the ticker's signal slot
 

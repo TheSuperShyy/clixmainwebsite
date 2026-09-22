@@ -74,9 +74,13 @@ gsap.registerPlugin(useGSAP);
    at a 40px gap, the space *between* two models was barely wider than the space between a
    model and its own price, so the strip read as one long sentence rather than nine items. */
 const GAP = 56;
-/* 24, down from 40 (2026-08-19, user: the moving strips "make us dizzy"). Still slower than
-   the logo row's 30, because this one has to be readable, not just recognisable. */
-const SPEED_PX_PER_SEC = 24;
+/* 60, up from 24 in three passes on 2026-09-22 (user: "make the marquee on top a bit faster").
+   32 was rejected — "still moving the same speed as the marquee on the logo" — because 32 against
+   the logo row's 30 is not a difference the eye can see. 45 (1.5x) read as different but the user
+   asked for "a bit faster" again, so 60: exactly 2x the logo row. The 2026-08-19 "dizzy" call
+   that took this from 40 to 24 was about BOTH strips at once (logo row was 50 then); with the
+   logo row at 30, this one carrying the pace is the user's explicit choice. */
+const SPEED_PX_PER_SEC = 60;
 const REFRESH_MS = 5 * 60 * 1000;
 
 /**

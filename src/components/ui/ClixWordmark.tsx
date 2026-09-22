@@ -48,7 +48,11 @@ export default function ClixWordmark({ className = "" }: { className?: string })
          (20 -> 24 -> 28), so the mark-to-cap-height ratio the lockup was built on holds —
          scaling one without the other is what makes a lockup look wrong. The ratio drifts
          by ~1% at this step (28/30 vs 24/26) purely from rounding to whole pixels. */
-      className={`inline-block text-[30px] leading-none font-bold uppercase
+      /* `font-medium`, not `font-bold`, since 2026-09-22 (user: "make the font of the clix
+         logo like the one we have in the header"). The family already matched — both are
+         Discovery — so the visible difference was weight: the nav links are 500 (`font-medium`
+         in Nav.tsx) and the mark was 700. Now the same 500. Size, case and tracking untouched. */
+      className={`inline-block text-[30px] leading-none font-medium uppercase
                   ${className}`}
       /* Letter-spacing is painted after the final X too, so the box carries a trailing
          gap the glyphs do not fill. `marginRight: -letterSpacing` cancels it. Negligible
