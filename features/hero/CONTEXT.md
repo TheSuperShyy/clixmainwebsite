@@ -45,6 +45,32 @@ animation. Both need a look at the live site.
 
 ## Log
 
+### 2026-09-22 (later) — REVERTED: wrapper back to 648 / 568 / 344
+
+User: *"ok nvm dont change the font revert it to original."* The sitewide 700 rule is gone, so
+the bold measurements below no longer apply; `Hero.tsx` and `FEATURE.md` are restored from
+`979f461`. The 700 numbers stay recorded here in case the weight comes back.
+
+### 2026-09-22 — h1 wrapper re-widened for weight 700 (648 → 704, 568 → 616)
+
+**Trigger:** user, with a screenshot of the hero wrapping "We bring the intelligence." onto a
+third line: *"make it 2 lines the header"*. Cause: the sitewide `h1–h6 { font-weight: 700 }`
+rule added the same day (globals.css), matching the wordmark; the 2026-08-04 wrapper widths
+were measured at 400.
+
+- **Measured at 700, not guessed.** No TTF on this machine (`assets/fonts/discovery/` is not
+  checked in), so fontTools instanced the served `discovery-var.woff2` at wght 700 — its MVAR
+  table references a `vhea` the woff2 lacks and has to be deleted first. Raw advances +
+  −0.05em tracking: 494 / 576 / 659 px at 48 / 56 / 64. The 2026-08-04 browser figures (478 /
+  558 / 637 at 400) are 1.053× the same font's raw 400 advances (454 / 530 / 605), so the same
+  factor puts the bold line at 520 / 607 / 694 in the browser.
+- **Wrapper:** desktop 704 (694 + margin), tablet 616 (607 + margin), phone unchanged at 344 —
+  520 cannot fit 358px, so phone still wraps each sentence in two, as it always did.
+- **Verified by headless-Edge screenshot at 1440 and 1024: two lines at both.** 390 could NOT
+  be verified this way — headless Edge clamps its minimum window width, so a 390 capture is a
+  crop of a wider layout, not a phone render. Phone's wrapper is unchanged, so nothing to
+  re-check there beyond what 2026-08-04 established; user to eyeball on a real phone.
+
 ### 2026-08-19 — the flag survives the phone crop (78% 50% below 810, in globals.css)
 
 **Trigger:** user — *"make the israel flag visible in mobile in the landing page hero video"* —

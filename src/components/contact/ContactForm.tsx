@@ -8,10 +8,12 @@
  * Reference (structure and copy only): docs/reference/clixsolutions/pages/contact.html
  *
  * WHAT IS TAKEN FROM THE REFERENCE AND WHAT IS NOT.
- * Taken: the field list and its order, the five placeholders, which three fields are
- * `required`, both pill vocabularies, and the two groups' ARIA semantics — `aria-pressed` on
- * the six "relevant" pills (multi-select) and `role="radio"` on the four budget pills
- * (single-select). Those are facts read off the saved HTML, not choices.
+ * Taken: the field list and its order, the five placeholders, and which three fields are
+ * `required`. Those are facts read off the saved HTML, not choices.
+ * ⚠️ THE REFERENCE'S TWO PILL GROUPS ARE GONE (2026-09-22, user's call). "What's relevant for
+ * you?" (six multi-select pills) and "Budget range" (four single-select pills) were removed
+ * from the form, the dictionaries and the API together; the form is two steps now — About you,
+ * then the brief. features/contact-page/CONTEXT.md has the entry.
  * Not taken: every pixel. The reference is a rounded card with grey filled inputs and a violet
  * gradient pill button; this is the site's own vocabulary. Requested explicitly by the user on
  * 2026-08-13 ("our own design, also our own layout").
@@ -26,7 +28,7 @@
  *
  * The user lifted all four constraints FEATURE.md recorded as deliberate for this page —
  * motion, an accent colour, elevation, and a red for errors — and asked for the visual language
- * of /company Block 3. So: a `bone` band, one white elevated panel, four groups that read as
+ * of /company Block 3. So: a `bone` band, one white elevated panel, groups that read as
  * numbered STEPS which visibly complete, `signal` teal for on-track and `alert` red for wrong.
  *
  * ⚠️ THE ACCENT IS A STATE CHANNEL, NOT DECORATION, and the restraint clause is in globals.css
@@ -45,8 +47,8 @@
  *
  * ⚠️ MONO IS ON THE NUMERALS AND THE COUNTERS ONLY. `--font-mono` (Fragment Mono) has no Hebrew
  * coverage — its @font-face unicode-ranges in src/app/fonts.css are Latin, Greek and Cyrillic,
- * not U+0590–05FF — so anything Hebrew set in it falls back to the OS monospace mid-line. `01`
- * through `04`, `3/6` and `120 / 4000` are Latin digits and punctuation in both locales, so
+ * not U+0590–05FF — so anything Hebrew set in it falls back to the OS monospace mid-line. `01`,
+ * `02` and `120 / 4000` are Latin digits and punctuation in both locales, so
  * they are safe and they are the whole of mono's use here. Legends, labels and errors are
  * `font-sans`. The check and alert marks are SVG paths for the same reason — see
  * contactGlyphs.tsx. Same note in ContactChannels.tsx.
@@ -58,16 +60,12 @@
  * invalid field carries the alert glyph, the message text, `aria-invalid`, `aria-describedby`
  * AND its step chip. The colour is added on top of those, never instead of one.
  *
- * ⚠️ VALIDATION IS DUPLICATED, AND MUST BE. The same rules live here and in
+ * ⚠️ VALIDATION IS DUPLICATED, AND MUST BE. The client rules live in ./contactRules.ts (moved
+ * there 2026-09-22, when the footer's compact form arrived and needed the same ones) and again in
  * src/app/api/contact/route.ts. The client copy exists so a typo does not cost a round trip;
  * the server copy exists because the client copy is unenforceable. If a bound changes, change
- * both — the API is the one that counts. The step-completion rules below DERIVE from these
+ * both — the API is the one that counts. The step-completion rules below DERIVE from those
  * same constants and are not a third copy.
- *
- * ⚠️ THE OPTION IDS ARE THE WIRE FORMAT. `NEED_ORDER` / `BUDGET_ORDER` below are display order;
- * the ids inside them are what gets POSTed and what the API's allow-list checks, so the email
- * reads identically whichever language filled the form in. Labels are looked up by id, never by
- * index — an inserted option would otherwise silently re-pair every label after it.
  */
 
 import {
@@ -77,46 +75,24 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import { usePageDict, useDirSign } from "@/lib/i18n/LocaleProvider";
+import { usePageDict } from "@/lib/i18n/LocaleProvider";
 import { interpolate } from "@/lib/i18n/format";
 import AppLink from "@/components/ui/AppLink";
 import { CONTACT, CONTACT_EMAIL, CONTACT_PHONE } from "@/lib/contact";
-import type { BudgetId, NeedId } from "@/lib/i18n/en/contact";
 
 import { AlertGlyph, CheckGlyph } from "./contactGlyphs";
-
-/* Display order. The reference's own, top to bottom. */
-const NEED_ORDER: readonly NeedId[] = [
-  "ai-agents",
-  "whatsapp",
-  "crm",
-  "integrations",
-  "custom-software",
-  "consulting",
-];
-
-const BUDGET_ORDER: readonly BudgetId[] = [
-  "upto-10k",
-  "15-25k",
-  "25-75k",
-  "75k-plus",
-];
-
-/* Kept in step with src/app/api/contact/route.ts by hand. See the note above. */
-const LIMITS = {
-  nameMax: 120,
-  emailMax: 200,
-  phoneMax: 40,
-  /* Counted in DIGITS, not characters — the max is 40 so that "+972 (50) 000-0000" fits, but
-     what makes a number a number is how many digits survive the formatting. 7 clears the
-     shortest national numbers still in service; 20 is two past E.164's 15, which leaves room
-     for someone who types an extension without being rejected for it. */
-  phoneDigitsMin: 7,
-  phoneDigitsMax: 20,
-  shortMax: 120,
-  messageMin: 10,
-  messageMax: 4000,
-} as const;
+import {
+  CONSENT_SPLIT,
+  EMAIL_RE,
+  FIELD_ORDER,
+  LIMITS,
+  PHONE_ALLOWED_RE,
+  phoneDigits,
+  sendContact,
+  validateContact,
+  type Errors,
+  type FieldKey,
+} from "./contactRules";
 
 /* The character counter turns `alert` here. 90% of the maximum — far enough in that it is a
    genuine warning rather than ambient noise, early enough that 400 characters remain to finish
@@ -127,31 +103,10 @@ const MESSAGE_WARN_AT = Math.floor(LIMITS.messageMax * 0.9);
    speaking. Announcing from character one would make a screen reader recite the whole tail. */
 const CHARS_ANNOUNCE_UNDER = 200;
 
-/* Deliberately permissive: one @, something either side, a dot in the domain, no whitespace.
-   A stricter regex rejects real addresses, and the only test that actually settles whether an
-   address exists is sending to it — which is what the form does. Same pattern server-side. */
-const EMAIL_RE = /^[^\s@]+@[^\s@.]+\.[^\s@]+$/;
-
-/* ⚠️ DELIBERATELY NOT A PHONE-NUMBER PARSER, AND NOT libphonenumber. Two rules only: the string
-   may contain nothing but digits and the punctuation people actually type into a phone field,
-   and it must hold a plausible number of digits. Anything stricter rejects real numbers — every
-   country writes them differently, and the only thing that settles whether a number reaches
-   someone is messaging it, which is n8n's job downstream. Same pair server-side. */
-const PHONE_ALLOWED_RE = /^[+()\-.\s\d]+$/;
-const phoneDigits = (value: string) => value.replace(/\D/g, "").length;
-
 /* ── the consent sentence's two links ─────────────────────────────────────────────────────
-   `t.consent` is one template per locale carrying `{privacy}` and `{terms}`, because the two
-   locales order them differently — English names the privacy policy first, Hebrew names תנאי
-   השימוש first. A capturing group in the split pattern is what keeps the tokens in the output
-   array, so the sentence rebuilds as [text, token, text, token, text] whatever the order.
+   Rebuilt from `t.consent` with CONSENT_SPLIT — ./contactRules.ts explains the template.
 
-   ⚠️ NOT `interpolate()`. That helper (src/lib/i18n/format.ts) fills the same `{…}` tokens and
-   is what the live regions below use, but it returns a STRING and these two runs have to be
-   anchors. Same convention, different renderer. */
-const CONSENT_SPLIT = /(\{privacy\}|\{terms\})/;
-
-/* Inline legal links inside a 12px muted sentence, so they are UNDERLINED rather than merely
+   Inline legal links inside a 12px muted sentence, so they are UNDERLINED rather than merely
    recoloured — `muted` to `ink` alone is not a strong enough signal at this size, and there is
    no other affordance in a run of body text. Focus ring is the page's own. */
 const CONSENT_LINK = `text-ink underline underline-offset-2 transition-colors duration-300
@@ -191,19 +146,17 @@ const CONSENT_LINK = `text-ink underline underline-offset-2 transition-colors du
 
 type Draft = {
   values: Record<FieldKey, string>;
-  needs: readonly NeedId[];
-  budget: BudgetId | null;
   consent: boolean;
 };
 
 const EMPTY_DRAFT: Draft = {
   values: { name: "", email: "", phone: "", company: "", role: "", message: "" },
-  needs: [],
-  budget: null,
   consent: false,
 };
 
-/** Namespaced and versioned. A shape change bumps the suffix rather than trying to migrate. */
+/** Namespaced and versioned. A shape change bumps the suffix rather than trying to migrate.
+    NOT bumped when `needs` and `budget` left the shape (2026-09-22): a v1 draft that still
+    carries them parses cleanly, because `parseDraft` reads only the keys it knows. */
 const DRAFT_KEY = "clix-contact-draft.v1";
 
 /* ⚠️ STORAGE THROWS, it does not return null, when the browser refuses it — Safari private
@@ -258,11 +211,10 @@ function writeDraft(draft: Draft | null) {
 
 /* ⚠️ EVERY FIELD IS RE-VALIDATED ON THE WAY OUT OF STORAGE. `sessionStorage` is writable by
    anything running on this origin — including the visitor with devtools open — so a stored
-   draft is untrusted input, exactly like a request body. A `needs` that is not an array or a
+   draft is untrusted input, exactly like a request body. A `values` that is not an object or a
    `message` of 40MB would otherwise reach React state and break rendering rather than be
    rejected at the boundary. Lengths are clamped to the same `LIMITS` the form validates
-   against, and both option lists are filtered through the display orders, which are the same
-   closed vocabularies the API allow-lists. */
+   against. */
 function parseDraft(raw: string | null): Draft | null {
   if (!raw) return null;
   let parsed: unknown;
@@ -283,9 +235,6 @@ function parseDraft(raw: string | null): Draft | null {
     return typeof v === "string" ? v.slice(0, max) : "";
   };
 
-  const rawNeeds = Array.isArray(d.needs) ? d.needs : [];
-  const needs = NEED_ORDER.filter((n) => rawNeeds.includes(n));
-
   return {
     values: {
       name: take("name", LIMITS.nameMax),
@@ -295,38 +244,21 @@ function parseDraft(raw: string | null): Draft | null {
       role: take("role", LIMITS.shortMax),
       message: take("message", LIMITS.messageMax),
     },
-    needs,
-    budget:
-      typeof d.budget === "string" &&
-      (BUDGET_ORDER as readonly string[]).includes(d.budget)
-        ? (d.budget as BudgetId)
-        : null,
     consent: d.consent === true,
   };
 }
 
-type FieldKey = "name" | "email" | "phone" | "company" | "role" | "message";
-type Errors = Partial<Record<FieldKey, string>>;
+/* `FieldKey`, `Errors` and `FIELD_ORDER` are ./contactRules.ts's, shared with the footer form.
 
-const FIELD_ORDER: readonly FieldKey[] = [
-  "name",
-  "email",
-  "phone",
-  "company",
-  "role",
-  "message",
-];
-
-/* Which group each field belongs to, so a field error can colour its step chip. Groups 02 and
-   03 hold no text fields and can never be invalid — they are optional, and a pill cannot hold
-   a bad value. */
+   Which group each field belongs to, so a field error can colour its step chip. Index into
+   `steps`: 0 is group 01 (about you), 1 is group 02 (the brief). */
 const FIELD_GROUP: Record<FieldKey, number> = {
   name: 0,
   email: 0,
   phone: 0,
   company: 0,
   role: 0,
-  message: 3,
+  message: 1,
 };
 
 /* Four states, one attribute. `active` is derived in JS rather than from a `focus-within`
@@ -360,36 +292,6 @@ const FIELD_BASE =
 
 function fieldClass(invalid: boolean) {
   return `${FIELD_BASE} ${invalid ? "border-alert" : "border-hairline focus:border-signal"}`;
-}
-
-/* Every pill on this page. Geometry copied from the /news filter row (NewsBoard.tsx) rather
-   than re-invented: 40px tall, 10x20 padding, 28px radius, active is ink-on-paper inverted, and
-   the inactive border is the literal `rgba(24,24,24,0.1)` that row inlines — NOT the `hairline`
-   token, which is a warm grey and visibly different beside it.
-
-   ⚠️ SELECTED STAYS `bg-ink`, NOT `bg-signal`. Six accent-filled pills would be the accent
-   doing decoration, which the restraint clause forbids; the inverted-ink pill is also the
-   site's own selected state and is already proven on /news. `signal` appears on a pill in
-   exactly one place: the focus ring. That ring was `ring-forest`, which was a stand-in chosen
-   when this page had no accent at all.
-
-   The hover LIFT is ours and is new — /news ships no hover because none was observable in its
-   fetch, but a control that changes state on click needs to say it is a control. */
-function pillClass(active: boolean) {
-  return `flex h-10 cursor-pointer items-center justify-center gap-2 rounded-[28px] px-5 py-[10px]
-          transition-[background-color,border-color,color,transform] duration-300
-          [transition-timing-function:var(--ease-rogo)]
-          hover:-translate-y-0.5 focus-visible:-translate-y-0.5
-          active:scale-[0.97] motion-reduce:active:scale-100
-          motion-reduce:transition-none motion-reduce:hover:translate-y-0
-          motion-reduce:focus-visible:translate-y-0
-          focus-visible:ring-2 focus-visible:ring-signal focus-visible:ring-offset-2
-          focus-visible:ring-offset-paper focus-visible:outline-none
-          ${
-            active
-              ? "bg-ink text-paper"
-              : "border border-[rgba(24,24,24,0.1)] bg-paper text-muted hover:border-ink hover:text-ink"
-          }`;
 }
 
 /* ── the step chip ────────────────────────────────────────────────────────────────────────
@@ -435,8 +337,8 @@ function StepChip({ index, state }: { index: string; state: StepState }) {
 }
 
 /* ── one group: rule, chip, legend, state slot, controls ──────────────────────────────────
-   `legendId` is the legend's id, so a `role="group"` / `role="radiogroup"` inside can name
-   itself from the visible text instead of repeating it in an aria-label.
+   `legendId` is the legend's id, so a control inside can name itself from the visible text
+   instead of repeating it in an aria-label.
 
    ⚠️ THE FIRST GROUP DROPS ITS RULE. `first:border-t-0 first:pt-0` — the panel already has a
    2px progress bar across its top edge, and a hairline 40px below it read as a double line. */
@@ -491,23 +393,7 @@ function Group({
   );
 }
 
-/* The count badge in a pill group's state slot. Mono is safe: digits and `/` are Latin in both
-   locales. `aria-hidden` — an sr-only live region carries the same number in a full sentence,
-   and a screen reader reading "3/6" out of a badge beside it would be duplicate noise. */
-function CountBadge({ n, total }: { n: number; total: number }) {
-  return (
-    <span
-      aria-hidden="true"
-      className="flex h-5 items-center rounded-[6px] bg-[color-mix(in_srgb,var(--color-signal)_10%,white)]
-                 px-2 font-mono text-[12px] tabular-nums text-signal"
-      style={{ lineHeight: "1em" }}
-    >
-      {n}/{total}
-    </span>
-  );
-}
-
-/* The small grey word in a state slot — "Optional" on groups 02, 03 and 04. `muted` #737373 is 4.74:1 on
+/* The small grey word in a state slot — "Optional" on group 02, the brief. `muted` #737373 is 4.74:1 on
    the white panel and passes; it would fail on the `bone` band outside it. */
 function SlotHint({ children }: { children: React.ReactNode }) {
   return (
@@ -523,10 +409,6 @@ function SlotHint({ children }: { children: React.ReactNode }) {
 export default function ContactForm() {
   const dict = usePageDict("contact");
   const t = dict.form;
-  /* +1 in LTR, -1 in RTL. The radiogroup's arrow keys have to follow the VISUAL order, and in
-     Hebrew ArrowRight moves to the previous pill. This is the primitive the repo already has
-     for exactly this (src/lib/i18n/config.ts:66). */
-  const sign = useDirSign();
 
   /* `useId` rather than hand-written ids: this component is mounted once today, but a
      duplicated id silently breaks every label and aria-describedby association, and that is
@@ -543,7 +425,7 @@ export default function ContactForm() {
      value can never overwrite something being typed, and there is no effect anywhere in the
      restore path.
 
-     Everything below reads `values` / `needs` / `budget` / `consent` exactly as before. Only
+     Everything below reads `values` / `consent` exactly as before. Only
      the WRITES changed: they all go through `commit`, which stores as it sets. */
   const storedRaw = useSyncExternalStore(
     subscribeDraft,
@@ -556,7 +438,7 @@ export default function ContactForm() {
   );
   const [edited, setEdited] = useState<Draft | null>(null);
   const draft = edited ?? restored;
-  const { values, needs, budget, consent } = draft;
+  const { values, consent } = draft;
 
   /* One writer, so a field can never be set without being saved. Called only from event
      handlers — never from render, never from an effect. */
@@ -587,7 +469,6 @@ export default function ContactForm() {
   const [consentError, setConsentError] = useState<string | null>(null);
 
   const successRef = useRef<HTMLDivElement>(null);
-  const budgetRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const consentRef = useRef<HTMLInputElement>(null);
 
   const setField = (key: FieldKey, value: string) => {
@@ -605,45 +486,10 @@ export default function ContactForm() {
     });
   };
 
-  function validate(): Errors {
-    const next: Errors = {};
-    const name = values.name.trim();
-    const email = values.email.trim();
-    const phone = values.phone.trim();
-    const message = values.message.trim();
-
-    if (!name) next.name = t.errors.nameRequired;
-    else if (name.length > LIMITS.nameMax) next.name = t.errors.nameTooLong;
-
-    if (!email) next.email = t.errors.emailRequired;
-    else if (email.length > LIMITS.emailMax || !EMAIL_RE.test(email))
-      next.email = t.errors.emailInvalid;
-
-    /* Required as of 2026-08-18 — the workflow behind this form opens a WhatsApp thread and
-       cannot without it. Empty gets its own message; everything else is one "that is not a
-       number", because a visitor cannot act on the difference between "too few digits" and
-       "contains a letter" any better than on the general form. */
-    if (!phone) next.phone = t.errors.phoneRequired;
-    else if (
-      phone.length > LIMITS.phoneMax ||
-      !PHONE_ALLOWED_RE.test(phone) ||
-      phoneDigits(phone) < LIMITS.phoneDigitsMin ||
-      phoneDigits(phone) > LIMITS.phoneDigitsMax
-    )
-      next.phone = t.errors.phoneInvalid;
-
-    if (values.company.trim().length > LIMITS.shortMax)
-      next.company = t.errors.tooLong;
-    if (values.role.trim().length > LIMITS.shortMax) next.role = t.errors.tooLong;
-
-    /* Optional as of 2026-08-19 (user's call). Only the ceiling blocks — an empty brief is a
-       valid submission, and `messageMin` now only drives the counter's "long enough" colour.
-       Same change server-side. */
-    if (message.length > LIMITS.messageMax)
-      next.message = t.errors.messageTooLong;
-
-    return next;
-  }
+  /* The rules themselves are ./contactRules.ts's `validateContact`, shared with the footer form
+     since 2026-09-22. Kept as a local name because the submit path, `canSubmit` and the notes
+     below all call it `validate()`. */
+  const validate = (): Errors => validateContact(values, t.errors);
 
   /* ── step completion ────────────────────────────────────────────────────────────────────
      ⚠️ DERIVED FROM `LIMITS` AND `EMAIL_RE`, NOT A SECOND SET OF RULES. `validate()` above is
@@ -658,10 +504,8 @@ export default function ContactForm() {
       EMAIL_RE.test(values.email.trim()) &&
       PHONE_ALLOWED_RE.test(values.phone.trim()) &&
       phoneDigits(values.phone) >= LIMITS.phoneDigitsMin,
-    needs.length > 0,
-    budget !== null,
-    /* Optional since 2026-08-19, so the step completes the way 02 and 03 do: the moment
-       something is there, not at a minimum length that no longer gates submission. */
+    /* Optional since 2026-08-19, so the step completes the moment something is there, not at
+       a minimum length that no longer gates submission. */
     values.message.trim().length > 0,
   ];
   const doneCount = steps.filter(Boolean).length;
@@ -673,9 +517,8 @@ export default function ContactForm() {
      guarantees that — it is a handful of length checks and two regexes, per render, which is
      nothing beside the alternative of a second copy of the rules drifting from the first.
 
-     Note what it does NOT include, which is not an oversight: `needs` and `budget` are
-     optional, exactly as `validate()` has always had them, and `message` joined them on
-     2026-08-19. Only the three required fields plus the consent box gate the button. */
+     Note what it does NOT include, which is not an oversight: `message` has been optional
+     since 2026-08-19. Only the three required fields plus the consent box gate the button. */
   const canSubmit = Object.keys(validate()).length === 0 && consent;
 
   /* Precedence, stated once: invalid > complete > active > pending. */
@@ -738,71 +581,35 @@ export default function ContactForm() {
     }
 
     setStatus("sending");
-    try {
-      const res = await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...values,
-          needs,
-          budget,
-          /* The honeypot travels under an innocuous name. */
-          website: trap,
-          /* Always `true` by the time this runs — the route rejects anything else. Sent so the
-             consent is recorded at the boundary rather than only in the browser that gave it. */
-          consent,
-          /* Which language the visitor filled the form in, for the notification email. Read off
-             the document rather than `useLocale()` so it is the served page's own `lang`. */
-          locale: document.documentElement.lang,
-        }),
-      });
+    /* The request and the reading of its response are ./contactRules.ts's `sendContact`, shared
+       with the footer form. It never throws; a network failure comes back as `failed`. */
+    const result = await sendContact({ values, trap, consent }, t.errors);
 
-      if (res.ok) {
-        setStatus("sent");
-        /* ⚠️ THE ONE PLACE THE DRAFT IS DELETED, and it is deliberately here rather than in a
-           cleanup: the enquiry is now the business's problem, so holding a copy of the
-           visitor's name, email and phone in their browser buys nothing and costs privacy. Any
-           other exit — a navigation, a reload, a crash — is exactly the case the draft exists
-           for and must NOT clear it. `writeDraft(null)` removes the key outright. */
-        writeDraft(null);
-        /* The form leaves the DOM on the next render, so focus has to be placed deliberately or
-           it falls to <body> and the confirmation is never announced. The panel is also
-           `role="status"`, which covers the case where focus lands elsewhere.
-           ⚠️ UNCONDITIONAL — focus management is not motion and has no reduced-motion variant. */
-        requestAnimationFrame(() => successRef.current?.focus());
-        return;
-      }
+    if (result.kind === "sent") {
+      setStatus("sent");
+      /* ⚠️ THE ONE PLACE THE DRAFT IS DELETED, and it is deliberately here rather than in a
+         cleanup: the enquiry is now the business's problem, so holding a copy of the
+         visitor's name, email and phone in their browser buys nothing and costs privacy. Any
+         other exit — a navigation, a reload, a crash — is exactly the case the draft exists
+         for and must NOT clear it. `writeDraft(null)` removes the key outright. */
+      writeDraft(null);
+      /* The form leaves the DOM on the next render, so focus has to be placed deliberately or
+         it falls to <body> and the confirmation is never announced. The panel is also
+         `role="status"`, which covers the case where focus lands elsewhere.
+         ⚠️ UNCONDITIONAL — focus management is not motion and has no reduced-motion variant. */
+      requestAnimationFrame(() => successRef.current?.focus());
+      return;
+    }
 
-      const body = (await res.json().catch(() => null)) as {
-        fields?: Partial<Record<FieldKey, string>>;
-      } | null;
-
-      setStatus("idle");
-      if (res.status === 429) {
-        setFormError(t.errors.rateLimited);
-      } else if (res.status === 400 && body?.fields) {
-        /* The server disagreed with the client's own pass — a bound drifted, or the request was
-           tampered with. Its verdict wins, but its messages are English-only strings meant for
-           a log, so the visitor sees this locale's message for the same rule. */
-        const mapped: Errors = {};
-        for (const key of Object.keys(body.fields) as FieldKey[]) {
-          if (!FIELD_ORDER.includes(key)) continue;
-          mapped[key] =
-            key === "email"
-              ? t.errors.emailInvalid
-              : key === "phone"
-                ? t.errors.phoneInvalid
-                : t.errors.tooLong;
-        }
-        setErrors(mapped);
-        setFormError(t.errors.summary);
-      } else {
-        setFormError(t.errors.failed);
-      }
-    } catch {
-      /* Offline, DNS, an aborted navigation. Indistinguishable from a 500 to the visitor, and
-         the advice is the same either way: mail us directly. */
-      setStatus("idle");
+    setStatus("idle");
+    if (result.kind === "rate-limited") {
+      setFormError(t.errors.rateLimited);
+    } else if (result.kind === "invalid") {
+      /* The server disagreed with the client's own pass — a bound drifted, or the request was
+         tampered with. Its verdict wins, already mapped to this locale's messages. */
+      setErrors(result.errors);
+      setFormError(t.errors.summary);
+    } else {
       setFormError(t.errors.failed);
     }
   }
@@ -851,13 +658,13 @@ export default function ContactForm() {
         {/* The live step list. `hidden desktop:flex` — below 1200 the rail's heading stacks
             above the panel and a horizontal step strip under it would be clutter, while the
             panel's own chips and progress bar already carry completion at every width.
-            `aria-hidden`: it duplicates the four legends inside the form, which are real
+            `aria-hidden`: it duplicates the two legends inside the form, which are real
             headings with real controls under them; announcing them twice helps nobody. */}
         <ol
           aria-hidden="true"
           className="mt-4 hidden w-full list-none flex-col p-0 desktop:flex"
         >
-          {[t.groups.about, t.groups.needs, t.groups.budget, t.groups.brief].map(
+          {[t.groups.about, t.groups.brief].map(
             (legend, i) => {
               const state = stepState(i);
               return (
@@ -1129,7 +936,7 @@ export default function ContactForm() {
         style={{ animationDelay: "100ms" }}
       >
         {/* The completion bar — the one progress signal that survives at 390px, where the rail's
-            step list is hidden. `aria-hidden`: the four groups already announce themselves, and
+            step list is hidden. `aria-hidden`: the two groups already announce themselves, and
             a percentage read aloud on every keystroke would be noise. `.contact-progress` sets
             the transform-origin and flips it under RTL; `transform-origin` has no logical
             keyword, so the class is the only way to get this right in both directions. */}
@@ -1194,180 +1001,16 @@ export default function ContactForm() {
           </div>
         </Group>
 
-        {/* ── 02 · what is relevant · multi-select, `aria-pressed` ── */}
+        {/* ── 02 · the brief ── */}
         <Group
           index="02"
-          legend={t.groups.needs}
-          legendId={id("needs")}
+          legend={t.groups.brief}
+          legendId={id("brief")}
           state={stepState(1)}
           onFocus={() => setFocusedStep(1)}
           onBlur={groupBlur}
-          slot={
-            needs.length > 0 ? (
-              <CountBadge n={needs.length} total={NEED_ORDER.length} />
-            ) : (
-              <SlotHint>{t.optional}</SlotHint>
-            )
-          }
-        >
-          <div
-            role="group"
-            aria-labelledby={id("needs")}
-            aria-describedby={id("needs-hint")}
-            className="flex w-full flex-wrap items-center gap-[10px]"
-          >
-            {NEED_ORDER.map((need) => {
-              const active = needs.includes(need);
-              return (
-                <button
-                  key={need}
-                  type="button"
-                  aria-pressed={active}
-                  onClick={() =>
-                    commit({
-                      needs: needs.includes(need)
-                        ? needs.filter((n) => n !== need)
-                        : [...needs, need],
-                    })
-                  }
-                  className={pillClass(active)}
-                >
-                  {/* ⚠️ THE CHECK IS WHAT TELLS THE TWO PILL GROUPS APART. Group 02 is
-                      multi-select and group 03 is single-select, and until today they were
-                      pixel-identical — so someone who had just picked three needs would try the
-                      same on budget and watch their first choice silently clear. A check inside
-                      an active pill is the shape that says "toggle"; the budget group has no
-                      check, and its "Choose one." rule is sr-only (its visible slot reads
-                      "Optional" since 2026-09-22). `aria-pressed` already carries this for
-                      assistive tech, which is why the glyph is decorative. */}
-                  {active ? <CheckGlyph className="h-3.5 w-3.5 shrink-0" /> : null}
-                  {/* `whitespace-pre` cannot wrap, so a label has to fit its pill outright. Every
-                      Hebrew label here is shorter than its English counterpart, so the row only
-                      narrows — the same argument NewsBoard's filter row makes. */}
-                  <span
-                    className="font-sans text-[16px] whitespace-pre"
-                    style={{ letterSpacing: "-0.01em", lineHeight: "130%" }}
-                  >
-                    {t.needs[need]}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-          <p id={id("needs-hint")} className="sr-only">
-            {t.a11y.needsHint}
-          </p>
-          {/* A pill press is a discrete user action, so announcing the resulting count is
-              expected rather than chatty. The visible badge is `aria-hidden` so this is the only
-              thing that speaks. */}
-          <p role="status" aria-live="polite" className="sr-only">
-            {needs.length > 0
-              ? interpolate(t.a11y.needsCount, {
-                  n: needs.length,
-                  total: NEED_ORDER.length,
-                })
-              : ""}
-          </p>
-        </Group>
-
-        {/* ── 03 · budget · single-select, a real radiogroup ── */}
-        <Group
-          index="03"
-          legend={t.groups.budget}
-          legendId={id("budget")}
-          state={stepState(2)}
-          onFocus={() => setFocusedStep(2)}
-          onBlur={groupBlur}
-          /* Same convention as groups 02 and 04: the word "Optional" while nothing is picked.
-             The slot read "Choose one." from 2026-08-18 to 2026-09-22 so a sighted visitor could
-             see the single-select rule, but that copy reads as a requirement, and the field has
-             never gated submission (see `validate()`). The "choose one" rule stays `sr-only`
-             below — it is wired through `aria-describedby`, which visible text beside a legend
-             is not — and the arrow keys / lack of a check glyph carry the rest. (user's call,
-             2026-09-22) */
-          slot={
-            budget === null ? (
-              <SlotHint>{t.optional}</SlotHint>
-            ) : (
-              <CountBadge n={1} total={BUDGET_ORDER.length} />
-            )
-          }
-        >
-          <div
-            role="radiogroup"
-            aria-labelledby={id("budget")}
-            aria-describedby={id("budget-hint")}
-            className="flex w-full flex-wrap items-center gap-[10px]"
-          >
-            {BUDGET_ORDER.map((band, i) => {
-              const active = budget === band;
-              return (
-                <button
-                  key={band}
-                  ref={(el) => {
-                    budgetRefs.current[i] = el;
-                  }}
-                  type="button"
-                  role="radio"
-                  aria-checked={active}
-                  /* ROVING TABINDEX. A radiogroup is ONE tab stop: Tab reaches the checked option
-                     (or the first, while nothing is checked) and the arrow keys move within.
-                     Leaving all four tabbable would make a keyboard user press Tab four times to
-                     cross a single question. */
-                  tabIndex={active || (budget === null && i === 0) ? 0 : -1}
-                  onClick={() => commit({ budget: band })}
-                  onKeyDown={(e) => {
-                    const step =
-                      e.key === "ArrowRight" || e.key === "ArrowDown"
-                        ? 1
-                        : e.key === "ArrowLeft" || e.key === "ArrowUp"
-                          ? -1
-                          : 0;
-                    if (step === 0) return;
-                    e.preventDefault();
-                    /* Vertical arrows are direction-agnostic; horizontal ones are not. `sign` is
-                       -1 in Hebrew, so ArrowRight walks backwards through the array, which is
-                       forwards on screen. */
-                    const horizontal =
-                      e.key === "ArrowRight" || e.key === "ArrowLeft";
-                    const delta = horizontal ? step * sign : step;
-                    const next =
-                      (i + delta + BUDGET_ORDER.length) % BUDGET_ORDER.length;
-                    /* In a radiogroup, arrowing SELECTS as well as focuses — that is the
-                       pattern's contract, not a shortcut. */
-                    commit({ budget: BUDGET_ORDER[next] });
-                    budgetRefs.current[next]?.focus();
-                  }}
-                  className={pillClass(active)}
-                >
-                  <span
-                    className="font-sans text-[16px] whitespace-pre"
-                    style={{ letterSpacing: "-0.01em", lineHeight: "130%" }}
-                  >
-                    {t.budget[band]}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-          <p id={id("budget-hint")} className="sr-only">
-            {t.a11y.budgetHint}
-          </p>
-          {/* ⚠️ NO LIVE REGION HERE, DELIBERATELY. A `role="radiogroup"` already announces the
-              newly checked radio on selection; a second announcement saying "1 of 4 selected"
-              would be duplicate noise, and the count itself is meaningless for a single-select. */}
-        </Group>
-
-        {/* ── 04 · the brief ── */}
-        <Group
-          index="04"
-          legend={t.groups.brief}
-          legendId={id("brief")}
-          state={stepState(3)}
-          onFocus={() => setFocusedStep(3)}
-          onBlur={groupBlur}
-          /* Same convention as group 02: the word "Optional" while empty, nothing once there
-             is text — the chip's completed state already says "you gave us something". */
+          /* The word "Optional" while empty, nothing once there is text — the chip's completed
+             state already says "you gave us something". */
           slot={
             values.message.trim().length > 0 ? undefined : (
               <SlotHint>{t.optional}</SlotHint>
@@ -1482,7 +1125,7 @@ export default function ContactForm() {
             meets them in.
 
             ⚠️ NO STEP CHIP AND NO NUMERAL HERE. This block used to be styled exactly like the
-            four groups above it, so it read as a fifth step that could never be completed. It is
+            groups above it, so it read as one more step that could never be completed. It is
             the panel's footer. */}
         <div className="flex w-full flex-col items-start gap-6 border-t border-hairline pt-8">
           {/* ── consent ──────────────────────────────────────────────────────────────────
@@ -1522,7 +1165,7 @@ export default function ContactForm() {
                    control here that already has a correct focus ring, a correct hit target and
                    a correct announcement in every assistive tech, and repainting it would cost
                    all three to gain a tick mark of our own drawing. `ink` is the page's
-                   selected state — the same call the pills make above. */
+                   selected state — the same call the /news filter pills make. */
                 className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-ink
                            focus-visible:ring-2 focus-visible:ring-signal
                            focus-visible:ring-offset-2 focus-visible:ring-offset-paper

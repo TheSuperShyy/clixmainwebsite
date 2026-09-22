@@ -136,7 +136,7 @@ developer's call. Flagged here for the user and their lawyer:
 | The policy says | What this site actually does |
 |---|---|
 | Collects a **phone number** (§02) | The contact form has no phone field. It takes name, email, company, message, plus need and budget options. |
-| Uses cookies for **statistical measurement** (§03, §09) | **There is no analytics on this site at all** — no gtag, no GTM, no Pixel, no Hotjar. Grepped 2026-08-16. |
+| Uses cookies for **statistical measurement** (§03, §09) | **No analytics** — no GA, no GTM, no Hotjar (grepped 2026-08-16). ⚠️ Since 2026-09-22 the Google **Ads** tag (gtag.js, `AW-18467124282`) loads on every page — an ads/conversion tag, not a statistics one; see `src/lib/gads.ts`. |
 | Names WhatsApp, Facebook, Mundi, n8n, CRM as processors (§04) | Those are the *company's* tools. This *site's* actual third parties are **Google** (Gmail SMTP via nodemailer for the form, and the footer's Google Maps iframe) — and Google is not named. |
 
 **/terms adds three more:**
@@ -144,7 +144,7 @@ developer's call. Flagged here for the user and their lawyer:
 | The terms say | This site |
 |---|---|
 | §07: on first visit you are asked to approve cookies and may set preferences | 🟡 **HALF TRUE since 2026-08-17.** The prompt now exists — `src/components/legal/CookieBanner.tsx`. "להגדיר העדפות" still does not: there are two buttons and no settings panel, and neither button gates anything. See "The cookie banner" below. (Was §06; the section renumbered when `כללי` was added.) |
-| §05: marketing cookies for tailored advertising on Facebook and Google | ❌ **No ad pixels** — no gtag, no GTM, no Facebook Pixel |
+| §05: marketing cookies for tailored advertising on Facebook and Google | ⚠️ **Half true since 2026-09-22**: the Google Ads tag (gtag.js) is live on every page, not consent-gated (see `CookieBanner.tsx`, `lib/gads.ts`). Still no Facebook Pixel and no GTM. |
 | §04: the last-updated date appears at the *bottom* of the document | ⚠️ It is at the **top**, on the live page and therefore here. The source contradicts itself; kept as published. |
 
 The cookie ones are the sharpest, across both documents. `FooterMap.tsx` embeds a keyless Google

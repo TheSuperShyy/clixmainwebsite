@@ -144,6 +144,40 @@ Nothing else in the footer animates — no `data-framer-appear-id` in the subtre
 | `ssr-variant` duplication | three DOM copies of the whole footer | one tree, `tablet:`/`desktop:` variants — except the two links that genuinely differ, which ship twice and are gated | Consistent with the four sections before it. |
 | Focus rings | none observable | `focus-visible:ring-2` on every link and the CTA | The project's accessibility floor; the original ships nothing. |
 | **Map panel in the link row** | **no map anywhere in the footer** | a Google Maps embed of Tel Aviv-Yafo as a fifth item in the link row, right-aligned | **Additive, requested by the user 2026-08-11.** Not drift and not a measurement — see below. |
+| **Closing CTA is a form** | tagline + one CTA button, on one baseline at ≥810 | tagline + reply line, beside a **compact contact form** at ≥1200, stacked below; the `Let's start` link is gone | **Requested by the user 2026-09-22.** Not drift and not a measurement — see below. `/contact` still replaces the block with its channels via `closing`. |
+
+### The compact contact form (added 2026-09-22)
+
+User's words: *"in this part, we can add the form, the about you part and also the tell us, but
+compressed. make it look good"*. Component: `src/components/contact/FooterContactForm.tsx`.
+
+- **Fields:** all six of `/contact`'s — Full name*, Email*, Phone* on row 1; Company, Role on
+  row 2; the brief ("Tell us") as a 3-row box on row 3. Then the consent tick (required by the
+  API) beside the Send button, and an always-mounted `role="alert"` line under both.
+- **Same endpoint and rules as `/contact`:** `POST /api/contact`; client rules are
+  `src/components/contact/contactRules.ts`, extracted from `ContactForm.tsx` so both forms share
+  one copy. Copy is the `contact.form` namespace passed from the server — **no new dictionary
+  keys.** `chrome.footer.cta` is now unread in both locales and was left in place.
+- **Layout:** ≥1200 — tagline column `flex-1` beside a **640px** form column, gap **64px**
+  (`gap-16`); at the 1200 floor the tagline keeps 416px for a ~370px line. 810–1199.98 — stacked,
+  gap **40px**, form full width. <810 — one field per row, Send full width. The form's grid is 6
+  columns from 810 up (required fields `col-span-2`, optional `col-span-3`, brief `col-span-6`),
+  gaps **24px** across / **20px** down; label→field **6px**; block gap **32px**.
+- **Type:** labels 12px/500 `paper/60`, brightening to `paper` on focus; field text 16px `paper`;
+  placeholders `paper/50`; consent 12px `paper/60` with underlined `paper` links; errors 12px
+  `alert-dark`; form alert 14px `alert-dark`; reply line 16px `paper/60`.
+- **Controls:** inputs `h-11` (44px) with a 2px underline — `paper/25` rest, `paper/40` hover,
+  `paper` focus, `alert-dark` invalid. Textarea 1px border, radius 6, `min-h-24`. Button: the old
+  CTA's white `bg-paper` / `ink` 16px/500 label, 44px, radius 6, `min-w-160px` from 810, full
+  width below; hover lifts 2px (off under reduced motion).
+- **New token:** `--color-alert-dark` `#f97066` — 6.55:1 on `ink`. `alert` is 2.78:1 there and
+  fails. See `docs/DESIGN-SYSTEM.md`.
+- **Focus without clipping:** the container is `overflow-hidden` and below 1200 the form's edges
+  are its edges, so the button draws its focus outline **inside** itself (`-outline-offset-4`,
+  `ink`). The checkbox keeps an outset `paper` outline — at ≤1199 its inline-start side can clip
+  — and its sentence brightens as a second signal.
+- **Not kept from `/contact`:** step chips, progress bar, character counter, the white panel,
+  and the `sessionStorage` draft.
 
 ### The map panel (added 2026-08-11)
 
@@ -201,6 +235,8 @@ is not disclosed anywhere and should be, before this ships to production.
 - [ ] **Contrast: group titles and the copyright are `3.85:1`** — see below
 - [ ] Matches reference at 1600 / 1440 / 1024 / 390 — the ≥1200 tier was compared to the
       user's screenshot of the live site and matches; the others against the capture only
+- [ ] **Compact form (2026-09-22) not yet looked at** in a browser at any tier or in Hebrew;
+      `tsc` clean only. Also unverified: a real send from it.
 
 ## Open questions
 

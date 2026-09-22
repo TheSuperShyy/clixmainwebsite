@@ -358,6 +358,7 @@ Block 3's language.
 |---|---|---|
 | `signal` | `#0e6472` | on track — step complete, focus, progress, counters, the success mark |
 | `alert` | `#b42318` | wrong — invalid field, error message, failed submit |
+| `alert-dark` | `#f97066` | wrong, **on `ink`** — the footer's compact contact form only (added 2026-09-22) |
 
 ### Ratios
 
@@ -386,6 +387,13 @@ error prose, so both are doing real work at small sizes.
 4. **No dark-ground variants, deliberately.** `signal` is 2.68:1 on `ink` and `alert` 2.78:1;
    both fail. So the accent never appears on `/contact`'s dark hero. That is the restraint
    clause, not a gap — the accent is the *form's* state channel and the hero has no state.
+   ⚠️ **Amended 2026-09-22: one dark-ground variant now exists.** The footer's compact contact
+   form is the first form on `ink`, so "wrong" finally has to be said on a dark ground:
+   `alert-dark` `#f97066` is **6.55:1** on `ink` and carries the same 12px error prose. There is
+   still no dark `signal` — that form paints focus in `paper` (18.26:1) and has no completion
+   state. The form's labels are `paper/60` (composites to `#a1a1a1`, 7.07:1) and its
+   placeholders `paper/50` (`#8a8a8a`, 5.29:1) — opacity modifiers on an existing token, not
+   new colours.
 
 **Rejected: reusing `--color-svc-1` `#0f6b63`** (6.36:1), which would have added zero new hues
 and had precedent — this file records four tokens whose scope widened. Rejected because a
@@ -457,14 +465,16 @@ color:          #ffffff
 
 ### Fonts — vendored 1:1, no substitutions
 
-Only **two families are actually applied to text on the home page**. The Framer project
-declares fourteen; the rest belong to other pages and must not be used here.
-
-| Family | Role | Token | Uses | Source |
-|---|---|---|---|---|
-| **ABC Arizona Mix Regular** | all display type / headings | `--font-display` | ×33 | vendored `.woff2` |
-| **Discovery** | body + UI, 14px default | `--font-sans` | rest of page | vendored variable `.woff2` |
-| **Inter** | the logo lockup, and *only* that | `--font-wordmark` | ×1 | vendored `.woff2` |
+> ### Tried and reverted, 2026-09-22: Sora / IBM Plex Sans / IBM Plex Mono
+>
+> The user supplied a "04 Typography" spec sheet (Sora 600 headings, IBM Plex Sans body, IBM
+> Plex Mono data) and the three families were vendored and wired in; over the next hour the
+> headings, then the body, went back to Discovery to match the logo, headings went to 700, and
+> the hero wrapper was re-widened for the bold line. Then: *"ok nvm dont change the font revert
+> it to original."* **Everything type-related is back to the state below** — Discovery for
+> display and sans, Fragment Mono for mono, no heading-weight rule, hero wrapper 648 / 568 / 344
+> — and the Sora/Plex files and their `@font-face` file are deleted, not left dormant. The full
+> sequence is in `docs/CONTEXT.md` under 2026-09-22 if the spec ever comes back.
 
 > ### ⚠️ The sans changed on 2026-08-07: Inter → Discovery
 >

@@ -12,8 +12,9 @@
  *
  * Faithful rather than fluent. `{email}` is a placeholder, not copy — see `he/privacy.ts`.
  *
- * ⚠️ Three clauses do not describe this build (a cookie consent dialog that does not exist, ad
- * cookies with no ad pixels behind them, and a self-contradiction about where the date sits).
+ * ⚠️ Clauses that do not describe this build (a cookie consent dialog that does not exist, a
+ * Facebook ad cookie with no pixel behind it — the GOOGLE one is real since 2026-09-22, see
+ * `lib/gads.ts` — and a self-contradiction about where the date sits).
  * Listed in `he/terms.ts` and in features/legal-pages/FEATURE.md; not corrected here.
  */
 

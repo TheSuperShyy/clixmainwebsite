@@ -12,7 +12,7 @@ no code scanning.
 
 `/contact` and `/he/contact` exist and are statically prerendered. **Redesigned 2026-08-17** —
 a sparse dark hero, a `bone` band holding a sticky brief-rail and one white elevated form panel,
-and a footer whose closing CTA is replaced by the four contact channels whose four groups read as numbered steps that visibly complete.
+and a footer whose closing CTA is replaced by the four contact channels. The form's groups (two since 2026-09-22: About you, the brief) read as numbered steps that visibly complete.
 `--color-signal` teal for on-track, `--color-alert` red for wrong. The form POSTs to
 `/api/contact`, which validates, drops honeypot hits, rate-limits, and then **delivers over two
 independent channels (2026-08-18)**: the Gmail notification to `info@clix-solution.com`, and a
@@ -51,6 +51,153 @@ then set the two env vars in the Vercel project settings so the deployed form ca
 ---
 
 ## Log
+
+### 2026-09-22 — Google Ads conversion fires from the `res.ok` branch, and only there
+
+**Trigger:** user — "set up Google Ads conversion tracking correctly", with the gtag snippet
+for `AW-18467124282` and a hard rule: fire only after the backend accepted the submission, never
+on visit / click / validation failure / API failure / refresh, once per submission.
+
+**Where it landed — and where it moved.** First cut: inside `onSubmit`'s `if (res.ok)` branch
+in `ContactForm.tsx`, with a `conversionSent` ref. That was stashed by GitHub Desktop when the
+user pulled Miko's same-day refactor (below), which extracted the fetch into `sendContact()` in
+`contactRules.ts` and added a SECOND form in the footer that calls it. Resolved by dropping every
+ContactForm.tsx change of mine (upstream taken verbatim) and calling `reportContactConversion()`
+(`src/lib/gads.ts`) inside `sendContact()`'s `if (res.ok)` branch instead — one place, both forms,
+and a third form would get it for free. Every forbidden case is still excluded by control flow:
+each form runs `validateContact` and returns before calling `sendContact`; a non-2xx never enters
+the branch; a refresh loses the React state that put the success panel up and the call is in a
+handler, not an effect. Once per submission: `sendContact` is called once per accepted submit
+(both forms ignore clicks while `status === "sending"`) and the branch runs once per call.
+
+**Honeypot.** The route answers a filled `website` trap with `200 { ok: true }` on purpose (a bot
+must not learn it was caught). `sendContact` receives `trap`, so the call is gated on `!trap` — a
+bot's fake success is not a conversion.
+
+**The conversion label — supplied later the same day.** The user forwarded the Google Ads Team's
+"Set up a Google tag" email: action **"Submit lead form"**, `send_to:
+'AW-18467124282/wo7vCM3x-YAdELro5-VE'`, `value: 1.0`, `currency: 'ILS'`. All three are now in
+`lib/gads.ts` and sent verbatim. (Until then `reportContactConversion` sent nothing — a
+bare-account `send_to` registers on the account without attaching to a conversion action, noise
+that looks like success.) The email also said "We haven't found a Google tag on your website" —
+expected: nothing has been deployed yet. Google's own instructions place the tag "before the
+closing </head>" and the event snippet "right after the Google tag"; ours puts the tag in
+`<head>` and fires the event from the submit callback instead, which is exactly what the user's
+own brief required (no thank-you page URL; must not fire on page view).
+
+**Tag placement** (site-wide, not this section's): both root layouts render `<GoogleAdsTag />`
+inside an explicit `<head>`. `next/script beforeInteractive` was tried first and measured out —
+the loader reached `<head>` but the inline bootstrap was emitted in `<body>` as a
+`self.__next_s` push, and React logged "Cannot render a sync or defer <script> outside the main
+document". Raw `<script>` elements in the layout `<head>` emit verbatim. Not consent-gated, per
+the recorded "banner is cosmetic" decision and terms §05 already naming Google ad cookies.
+
+**Verified (pre-merge):** curl of `/`, `/he`, `/contact` — loader + bootstrap both inside
+`<head>`; `tsc` clean; `next build` passes (after `npm install` restored the missing
+`nodemailer`). Re-verified after the merge — see the global log line.
+
+### 2026-09-22 — CRM welcome email copy edited (the em dash, "דחופה")
+
+**Trigger:** user sent screenshots of the welcome email: *"remove the hypen and also the word that
+is highlighted"* (the highlighted word was "דחופה").
+
+The change is in `Clix-CRM/src/lib/email/lead-welcome.ts` (not this repo), two string literals:
+- Line 36: `בהקדם — בדרך כלל` → `בהקדם, בדרך כלל`. It's a comma rather than nothing because
+  with no punctuation the sentence runs on.
+- Line 39: `אם עולה שאלה דחופה,` → `אם עולה שאלה,`. The comma stays, because the selection
+  covered only the word.
+
+**Uncommitted on the CRM's `dev`.** Leads keep getting the old copy until it's committed and
+deployed. Not sent as a test (sending is the user's call). No test or doc in the CRM quotes this
+copy, so nothing else needed to change.
+
+### 2026-09-22 — client rules extracted to `contactRules.ts` (for the footer form)
+
+**Trigger:** the footer's closing CTA became a compact contact form the same day — see
+[footer CONTEXT](../footer/CONTEXT.md). That form needed the same rules, and a copy of them
+would have been the third.
+
+- **Moved out of `ContactForm.tsx`, verbatim:** `LIMITS`, `EMAIL_RE`, `PHONE_ALLOWED_RE`,
+  `phoneDigits`, `CONSENT_SPLIT`, the `FieldKey` / `Errors` types and `FIELD_ORDER`. `validate()`
+  is now `validateContact(values, t.errors)`; the fetch + response reading is `sendContact()`,
+  which returns `sent` / `rate-limited` / `invalid` (already mapped to this locale's messages) /
+  `failed` and never throws.
+- **Intended to change no behaviour on /contact.** Same rules, same messages, same focus and
+  draft handling — `writeDraft(null)` and the success focus stay in the component. One ordering
+  detail: the 429 check now happens before the body is parsed, which changes nothing observable.
+- The route keeps its own server copy, as before. The footer form posts the identical payload,
+  so the CRM autoresponder described in the entry below fires for it too.
+- `tsc` clean. Not re-tested in a browser.
+
+### 2026-09-22 — the submitter DOES get an autoresponder; the CRM sends it, not this repo
+
+**Trigger:** user asked whether a Hebrew "פנייתך התקבלה בהצלחה" email (screenshot) was ours.
+Question only; nothing changed here, in n8n, or in the CRM.
+
+**Yes.** The chain: `/api/contact` → n8n **"Clix Main Website - Form Submit"**
+(`J1UDMNjKeiaQs7AD`, which has no email node) → `CRM: create lead` inserts into Supabase
+`public.leads` → a DB webhook on that INSERT calls the CRM's `/api/webhooks/new-lead` → staff
+alert **and** `sendLeadWelcomeEmail()` in `Clix-CRM/src/lib/email/lead-welcome.ts`. Subject
+`היי קיבלנו את פנייתך`. The body, link and signature card (`Clix-CRM/public/clixsolutionoffice.jpeg`,
+inlined by CID) match the screenshot line for line.
+
+⚠️ **"No autoresponder to the submitter" is true of THIS ROUTE ONLY.** `route.ts`'s header,
+`FEATURE.md` and an older entry below all say it. For the system as a whole, every submission
+that reaches the CRM gets one, subject to the CRM's gate (`lead-welcome-gate.ts`: env, a present
+email, the campaign flag). Left as written because each is a statement about this route, and it
+holds there. **Do not add a confirmation email here — it would double-send.**
+
+Before anyone edits that email:
+- **Sender: `CLIX <LEAD_GMAIL_USER>`** (`Clix-CRM/src/lib/email/lead-client.ts`), the CRM's
+  "office inbox" Gmail. It is NOT `clixteam579@gmail.com`, the account the CRM's staff alerts
+  come from. There is no Reply-To, so the lead's replies land in that office inbox. The value
+  is set in Vercel Production only, and no local `.env*` has it. The test fixture and the
+  signature image name both point to `clixsolutionoffice@gmail.com`. The CRM's earlier plan
+  said "Ido's Gmail". Unverified from here; the received mail's From line settles it.
+- **It's Hebrew only.** No English copy exists, and nothing in the chain passes the form's
+  locale to it (n8n folds `locale` into the `questionnaire` text only). Someone who submits the
+  English `/contact` form gets the Hebrew email.
+- **It fires for every new `public.leads` row**, whichever workflow created it (campaign imports
+  too), not just this form. Per-campaign off switch: `lead_campaigns.welcome_email_enabled`.
+- **Website leads go to campaign `50bce831-2a37-4855-b3ca-d7f3b091623a`** (that is what the
+  node's body sends). The workflow's sticky note says `11ad0ec0-…f575f5`, which is stale.
+  Trust the node.
+- The link is `https://www.clixsolutions.info/` (the `www` host 307s to the bare one, see
+  `src/lib/site.ts`), but the signature card says `clix-solution.com`. Both domains are ours.
+  This is the known split-domain inconsistency, not a spoof.
+
+**Open (CRM side, not this repo):** whether English-locale submitters should get an English
+version.
+
+### 2026-09-22 — needs and budget groups removed; the form is two steps
+
+**Trigger:** user — *"remove these 2 from the contact form"* (screenshot of group 02 "What's
+relevant for you?" and group 03 "Budget range"). Supersedes the "Optional" slot change below,
+made earlier the same day.
+
+- **Removed end to end, not just hidden.** `ContactForm.tsx`: `NEED_ORDER`, `BUDGET_ORDER`,
+  `pillClass`, `CountBadge`, `budgetRefs`, `useDirSign`/`sign` (only the radiogroup's arrows
+  used it), both `<Group>` blocks, `needs`/`budget` in `Draft`, `parseDraft` and the POST body.
+  The brief is now **step 02**: `index="02"`, `stepState(1)`, `FIELD_GROUP.message = 1`; the
+  rail's step list reads `[about, brief]`. Dictionaries (both locales): `groups.needs`,
+  `groups.budget`, the `needs` and `budget` label maps, `a11y.{needsHint,needsCount,budgetHint}`,
+  and the `NeedId`/`BudgetId` types. `route.ts`: `NEED_IDS`/`BUDGET_IDS` and their labels, the
+  parse step, the "Relevant"/"Budget" email rows, and the four webhook keys (`needs`,
+  `needLabels`, `budget`, `budgetLabel`).
+- **n8n checked before the payload changed.** Workflow `J1UDMNjKeiaQs7AD` ("Clix Main Website -
+  Form Submit"), node *Normalize phone*, folds needs/budget into `questionnaire` only
+  `if (Array.isArray(needs) && needs.length)` / `if (b.budgetLabel || b.budget)` — absent keys
+  skip the line, nothing throws. The workflow was **not** edited; its sticky note still lists
+  needs and budget among the folded fields, which is now stale but harmless.
+- **Draft key NOT bumped** (`clix-contact-draft.v1`). An old draft carrying `needs`/`budget`
+  still parses — `parseDraft` reads only the keys it knows.
+- **`panel.intro` corrected in both locales:** "Two short steps, three required fields" /
+  "שני שלבים קצרים, שלושה שדות חובה". Steps 4 → 2 is this change. **Required 4 → 3 is a
+  pre-existing miscount fixed in passing** — `message` went optional on 2026-08-19 and the
+  sentence was never updated; required today is name, email, phone.
+- `npx tsc --noEmit` clean (run because removing dictionary keys across two locales is a
+  compile-time failure, not a visual one). Not built, not viewed in a browser — user to check
+  `/contact` and `/he/contact`.
 
 ### 2026-09-22 — budget range reads "Optional"
 
