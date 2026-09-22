@@ -74,8 +74,10 @@ Line format:
   700 rule removed, hero wrapper back to 648 / 568 / 344, Sora + Plex files and
   `fonts-clix-type.css` deleted. Ticker speed and Google Ads work untouched.
   → [detail](DESIGN-SYSTEM.md)
-- `nav` — **Wordmark weight 700 → 500** to match the nav links (user: "make the font of the clix
-  logo like the one we have in the header"; family was already Discovery on both).
+- `nav` — **Nav wordmark weight 700 → 400, matching the page headings** (user: "make the logo
+  CLIX match the font of the header"; confirmed by question that "header" = headings, nav mark).
+  Two misreads on the way, both reverted: 500 to match nav links (pushed in `f254ef9`,
+  superseded), and the footer serif CLIX re-cut in Discovery (never asked; file restored).
   → [detail](../features/nav/CONTEXT.md)
 
 ## 2026-08-20

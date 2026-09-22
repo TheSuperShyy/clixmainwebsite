@@ -45,7 +45,23 @@ live site for the mobile menu, the scroll flip point, and the `Indicator` elemen
 
 ## Log
 
-### 2026-09-22 — wordmark weight 700 → 500, matching the nav links
+### 2026-09-22 — wordmark weight 700 → 400, matching the page headings
+
+**Trigger:** user — *"make the font of the clix logo like the one we have in the header"*, then
+*"the logo did not change"*, then *"i told you to make the logo CLIX match the font of the
+header"*. Settled by a direct question: **the nav mark, matching the page HEADINGS** — in this
+user's vocabulary "header" = h1/h2 (see the 2026-09-22 type entries in docs/CONTEXT.md, where
+"headers" meant headings every time). Headings are Discovery 400, so `ClixWordmark.tsx` is
+`font-normal`. Family was already Discovery; size, uppercase, −0.015em tracking unchanged.
+
+Two wrong readings on the way, both reverted: (1) 700 → 500 to match the nav LINKS — the
+user saw no change; (2) the footer's big serif CLIX re-cut in Discovery 700 — never what was
+asked; `ClixFelixFooter.tsx` restored from `f254ef9`, DM Serif and all. ⚠️ `origin/dev` at
+`f254ef9` still carries reading (1); this entry's change supersedes it on the next push.
+⚠️ Also: the mark is now further from `src/app/icon.png` (Inter-700-like) than ever — the
+2026-08-08 note in the component still applies.
+
+#### (superseded, reverted) wordmark weight 700 → 500, matching the nav links
 
 **Trigger:** user — *"make the font of the clix logo like the one we have in the header."* The
 family was already the same (Discovery via `--font-wordmark`; nav links via `--font-sans`), so the
