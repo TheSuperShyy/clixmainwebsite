@@ -100,40 +100,10 @@ export const runtime = "nodejs";
    in an otherwise fully-static app is the kind of thing a build-time optimiser reasons about. */
 export const dynamic = "force-dynamic";
 
-/* ── the closed vocabularies ──────────────────────────────────────────────────────────────
-   Re-declared here rather than imported from src/lib/i18n/en/contact.ts on purpose. A locale
-   dictionary is copy; this is an allow-list at a trust boundary, and the two should not be able
-   to widen each other. They are checked against each other by hand — if you add an option,
-   both files change. */
-const NEED_IDS = [
-  "ai-agents",
-  "whatsapp",
-  "crm",
-  "integrations",
-  "custom-software",
-  "consulting",
-] as const;
-
-const BUDGET_IDS = ["upto-10k", "15-25k", "25-75k", "75k-plus"] as const;
-
-/* Human-readable, English-only, for the notification body. This is an internal mail to the
-   business, not site UI, so it is deliberately not a dictionary concern — and it means one
-   inbox reads the same whichever language the visitor filled the form in. */
-const NEED_LABELS: Record<(typeof NEED_IDS)[number], string> = {
-  "ai-agents": "AI agents",
-  whatsapp: "WhatsApp",
-  crm: "CRM",
-  integrations: "Integrations",
-  "custom-software": "Custom software",
-  consulting: "Consulting",
-};
-
-const BUDGET_LABELS: Record<(typeof BUDGET_IDS)[number], string> = {
-  "upto-10k": "Up to ₪10k",
-  "15-25k": "₪15k – ₪25k",
-  "25-75k": "₪25k – ₪75k",
-  "75k-plus": "₪75k+",
-};
+/* ⚠️ NO PILL VOCABULARIES ANY MORE (2026-09-22). The form's "relevant" and "budget" groups were
+   removed, and with them `NEED_IDS` / `BUDGET_IDS` and their labels here. A stale client that
+   still posts `needs` or `budget` is not rejected — the keys are simply never read. The n8n
+   workflow's Normalize node already skips both lines when they are absent. */
 
 /* ── bounds · MIRRORED IN ContactForm.tsx ─────────────────────────────────────────────── */
 const LIMITS = {
@@ -395,21 +365,6 @@ export async function POST(request: Request) {
      under a text input — which is right, because there is no text input to put it under. */
   if (body.consent !== true) fields.consent = "required";
 
-  /* The two pill groups. Unknown ids are DROPPED rather than rejected: they are optional
-     metadata, and a stale client that posts a retired id should still get its enquiry through.
-     A bad `name` blocks the send; a bad `budget` does not. */
-  const needs = Array.isArray(body.needs)
-    ? (body.needs.filter(
-        (n): n is (typeof NEED_IDS)[number] =>
-          typeof n === "string" && (NEED_IDS as readonly string[]).includes(n),
-      ) as (typeof NEED_IDS)[number][])
-    : [];
-  const budget =
-    typeof body.budget === "string" &&
-    (BUDGET_IDS as readonly string[]).includes(body.budget)
-      ? (body.budget as (typeof BUDGET_IDS)[number])
-      : null;
-
   if (Object.keys(fields).length > 0) {
     return NextResponse.json({ ok: false, error: "Validation failed.", fields }, { status: 400 });
   }
@@ -485,8 +440,6 @@ export async function POST(request: Request) {
     ["Phone", phone],
     ["Company", company || "—"],
     ["Role", role || "—"],
-    ["Relevant", needs.length ? needs.map((n) => NEED_LABELS[n]).join(", ") : "—"],
-    ["Budget", budget ? BUDGET_LABELS[budget] : "—"],
   ];
 
   const text = [
@@ -525,10 +478,10 @@ export async function POST(request: Request) {
 
   /* ── the webhook payload ────────────────────────────────────────────────────────────────
      Structured, and pointedly NOT the composed mail: n8n needs fields it can map onto CRM
-     columns, not prose it would have to take apart again. IDS AND LABELS BOTH — the ids are the
-     stable contract a workflow should branch on, the labels save it from restating this file's
-     vocabulary and drifting from it. Optional text fields are `null` rather than "", so an
-     empty company is absent in the CRM rather than being an empty string in it. */
+     columns, not prose it would have to take apart again. Optional text fields are `null`
+     rather than "", so an empty company is absent in the CRM rather than being an empty string
+     in it. `needs` / `needLabels` / `budget` / `budgetLabel` left the payload 2026-09-22 with
+     the form groups that fed them. */
   const webhookPayload = {
     source: "clix-website",
     form: "contact",
@@ -542,10 +495,6 @@ export async function POST(request: Request) {
     phoneE164: toE164(phone),
     company: company || null,
     role: role || null,
-    needs,
-    needLabels: needs.map((n) => NEED_LABELS[n]),
-    budget,
-    budgetLabel: budget ? BUDGET_LABELS[budget] : null,
     /* `null` rather than "" when empty, matching `company` and `role` above: an absent brief
        should be absent in the CRM. Optional since 2026-08-19. */
     message: message || null,

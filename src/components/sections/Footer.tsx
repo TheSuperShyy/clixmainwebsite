@@ -33,6 +33,16 @@
  * (`ContactRoute.tsx` passes `<ContactChannels />`) and this file only knows "something replaces
  * the reiteration block, or nothing does".
  *
+ * ⚠️ THE CLOSING CTA IS A FORM AS OF 2026-09-22 — A DELIBERATE DEPARTURE FROM THE TARGET. The
+ * clone's Reiteration block was the tagline over a `Let's start` link to /contact. At the user's
+ * request ("add the form, the about you part and also the tell us, but compressed") the link is
+ * gone and FooterContactForm sits beside the tagline instead: all six /contact fields, the
+ * consent tick, same endpoint, same rules (src/components/contact/contactRules.ts). The tagline
+ * is untouched and gains the reply promise under it. Copy is the `contact` namespace, read here
+ * on the server and handed to the client form as a prop, so no dictionary keys were added.
+ * `chrome.footer.cta` ("Let's start") is now unread and was left in both locales rather than
+ * churned — the same call /contact made for its retired error keys.
+ *
  * ⚠️ THE `pt-14` AND THE CONTAINER'S `gap-14` BELONG TO THE SLOT, NOT TO THE CTA. Whatever goes in
  * has to sit at the same inset or the divider beneath it lands at a different distance than on
  * every other route. That is why the replacement wrapper below repeats `pt-14` rather than
@@ -50,9 +60,10 @@ import {
   LinkedInMark,
   WhatsAppMark,
 } from "./socialMarks";
-import { getChrome } from "@/lib/i18n/server";
+import { getChrome, getDict } from "@/lib/i18n/server";
 import type { ChromeDict } from "@/lib/i18n/dictionary";
 import { CONTACT } from "@/lib/contact";
+import FooterContactForm from "@/components/contact/FooterContactForm";
 import FooterMap from "./FooterMap";
 
 type FooterLink = {
@@ -250,6 +261,9 @@ export default function Footer({
      6 routes (7 until /careers came out on 2026-08-13) and prop-drilling `locale` would have
      meant the same edit in every one of them. */
   const t = getChrome().footer;
+  /* The compact form's copy, and the reply promise under the tagline. Same request-store read as
+     `getChrome()`, so the Hebrew footer gets the Hebrew form with no prop threaded in. */
+  const contact = getDict().contact;
 
   return (
     /* padding `0 16px` phone -> `0 40px` from 810 up. No vertical padding at all: the
@@ -278,11 +292,17 @@ export default function Footer({
              owns its own layout. */
           <div className="relative w-full pt-14">{closing}</div>
         ) : (
+        /* Tagline beside the form from 1200 up, stacked below it. The form column is 640px: at
+           the 1200 floor the container is 1120, so 640 + the 64px gap leaves the tagline 416px,
+           and its longest line ("Software that works," at 48px) is ~370. Below 1200 the form
+           runs the container's full width, where its 6-column grid has room for three fields
+           a row. `items-start` sits the tagline's cap height level with the form's first
+           labels — there is no longer a button whose baseline it has to meet. */
         <div
-          className="relative flex w-full flex-col items-end gap-8 overflow-hidden pt-14
-                     tablet:flex-row tablet:justify-start tablet:gap-10"
+          className="relative flex w-full flex-col items-start gap-10 pt-14
+                     desktop:flex-row desktop:justify-between desktop:gap-16"
         >
-          <div className="relative flex w-full flex-none flex-col items-start gap-10 overflow-visible tablet:w-px tablet:flex-[1_0_0]">
+          <div className="relative flex w-full flex-col items-start gap-5 desktop:w-auto desktop:min-w-0 desktop:flex-1">
             <div className="relative h-auto w-full">
               <h2 className="font-display text-[44px] leading-[1.1em] tracking-[-0.05em] text-paper tablet:text-[48px]">
                 {/* THE TAGLINE, AND THE ONE PLACE ON THIS SITE WHERE THE TWO LOCALES GENUINELY
@@ -325,34 +345,20 @@ export default function Footer({
                 ))}
               </h2>
             </div>
+            {/* The reply promise — /contact's own `panel.reply`, the same sentence its rail and
+                its submit row carry. `paper/60` composites to #a1a1a1, 7.07:1 on `ink`. */}
+            <p
+              className="font-sans text-[16px] text-paper/60"
+              style={{ lineHeight: "1.5em", letterSpacing: "-0.02em" }}
+            >
+              {contact.panel.reply}
+            </p>
           </div>
 
-          {/* CTA — 44px tall, 42px at tablet, full-width on phone. Same button internals as
-              the nav's (8/16 padding around a 20px row with a 1px optical top nudge) but a
-              16px label instead of 14px. */}
-          <div className="relative h-11 w-full flex-none tablet:h-[42px] tablet:w-auto desktop:h-11">
-            {/* `AppLink`, not a raw `<a>`: this is an internal route now, so a bare anchor
-                would throw the document away on click (white flash, refetched fonts, Nav's
-                theme scanner re-initialising) AND trip
-                `@next/next/no-html-link-for-pages`. AppLink also applies `localeHref`, which
-                is what turns `/contact` into `/he/contact` on the Hebrew footer without this
-                component knowing the locale. */}
-            <AppLink
-              href="/contact"
-              className="relative flex h-full w-full cursor-pointer flex-row items-center
-                         justify-center gap-2 overflow-hidden rounded-[6px] border
-                         border-[rgba(168,162,158,0)] bg-paper px-4 py-2 no-underline
-                         focus-visible:ring-2 focus-visible:ring-paper
-                         focus-visible:ring-offset-2 focus-visible:ring-offset-ink
-                         focus-visible:outline-none
-                         tablet:w-min"
-            >
-              <div className="relative flex h-5 w-min flex-row items-center justify-center gap-[10px] pt-px">
-                <p className="text-center text-[16px] leading-[1em] font-medium tracking-[-0.01em] whitespace-pre text-ink">
-                  {t.cta}
-                </p>
-              </div>
-            </AppLink>
+          {/* The form, where `Let's start` was. A client component inside this server one; its
+              copy crosses as a plain prop. */}
+          <div className="relative w-full desktop:w-[640px] desktop:flex-none">
+            <FooterContactForm t={contact.form} />
           </div>
         </div>
         )}

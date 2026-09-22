@@ -14,38 +14,14 @@
  * ⚠️ NO JSX, NO HTML, NO MARKUP. The headline's three runs are three keys because the middle
  * one is a COLOUR boundary (paper-soft / paper); the `<span>` stays in ContactHero.tsx.
  *
- * ⚠️ OPTION LABELS ARE KEYED BY A STABLE ID, NOT BY INDEX, and the ids are the wire format.
- * `ContactForm` posts `["ai-agents","crm"]` and `"25-75k"` to the API, so the email that
- * reaches the inbox reads the same whichever language filled the form in. An index-keyed
- * table would also silently re-pair every label the moment an option is inserted. Display
- * ORDER is the component's business and lives in ContactForm.tsx — the same split
- * `newsItems.ts` draws.
- *
- * ⚠️ THE BUDGET FIGURES ARE NOT TRANSLATED AND THEIR EN DASHES ARE NOT OURS. `₪15k – ₪25k`
- * is the reference's own string. The standing no-dashes rule (2026-08-10) governs clix PROSE;
- * a numeric range is not prose, and rewriting the real site's price bands as "to" would
- * change what the business advertises. Same carve-out shape as the Hebrew prefix hyphen.
+ * ⚠️ THE REFERENCE'S TWO PILL GROUPS ARE NOT HERE (removed 2026-09-22, user's call). "What's
+ * relevant for you?" and "Budget range" — their legends, option labels, id types and sr-only
+ * hints — left this file, he/contact.ts, ContactForm.tsx and the API route together.
  *
  * ⚠️ THE FOUR ASIDE VALUES ARE NOT HERE. The email, the phone number and their `mailto:` /
  * `wa.me` forms live in src/lib/contact.ts, because an address is an identifier, not copy.
  * Only the LABELS above them are in this file.
  */
-
-/* ── the two option sets ───────────────────────────────────────────────────────────────────
-   Records, not arrays, for the id-keyed reason above. Their key sets ARE the closed
-   vocabularies the API validates against — `src/app/api/contact/route.ts` re-declares the
-   same ids as a const array and a locale dictionary cannot be the source of truth for a
-   server-side allow-list. If you add an option, both files change. */
-
-export type NeedId =
-  | "ai-agents"
-  | "whatsapp"
-  | "crm"
-  | "integrations"
-  | "custom-software"
-  | "consulting";
-
-export type BudgetId = "upto-10k" | "15-25k" | "25-75k" | "75k-plus";
 
 export const contact = {
   hero: {
@@ -71,16 +47,18 @@ export const contact = {
   /* ── the brief-rail beside the form (AUTHORED, 2026-08-17) ───────────────────────────────
      The reference has no heading column beside its form — it is a single centred card — so
      there is nothing to source here. Added when the page gained its two-column layout: the
-     rail carries this heading, this intro and a live list of the four group legends, which it
+     rail carries this heading, this intro and a live list of the two group legends, which it
      reads from `form.groups` rather than restating. */
   panel: {
     title: "One brief, then a real reply.",
-    /* ⚠️ THE COUNT IS LOAD-BEARING AND WENT 3 → 4 WHEN `phone` WAS ADDED (2026-08-18). Phrased
-       as "four short steps, four required fields" rather than repeating the numeral as a word
-       twice in two sentences. If a field's required-ness ever changes, this string changes with
-       it — a form that miscounts its own obligations is worse than one that says nothing. */
+    /* ⚠️ BOTH COUNTS ARE LOAD-BEARING. Steps went 4 → 2 when the needs and budget groups were
+       removed (2026-09-22); required fields went 3 → 4 when `phone` was added (2026-08-18) and
+       should have gone back to 3 when `message` became optional (2026-08-19) — corrected on
+       2026-09-22. Required today: name, email, phone. If a field's required-ness or a group
+       ever changes, this string changes with it — a form that miscounts its own obligations is
+       worse than one that says nothing. */
     intro:
-      "Four short steps, four required fields; everything else just helps us answer better.",
+      "Two short steps, three required fields; everything else just helps us answer better.",
     /* Sits under the intro and beside the submit button. The SAME promise `successBody` makes
        — moved to where it can still change someone's mind, because after a successful send it
        is reassurance and before one it is a reason to write. */
@@ -88,11 +66,9 @@ export const contact = {
   },
 
   form: {
-    /* The four group legends, each with its own numeral in the component. */
+    /* The two group legends, each with its own numeral in the component. */
     groups: {
       about: "About you",
-      needs: "What's relevant for you?",
-      budget: "Budget range",
       brief: "Tell us",
     },
 
@@ -111,26 +87,10 @@ export const contact = {
     roleLabel: "Role",
     rolePlaceholder: "e.g. founder, COO",
 
-    needs: {
-      "ai-agents": "AI agents",
-      whatsapp: "WhatsApp",
-      crm: "CRM",
-      integrations: "Integrations",
-      "custom-software": "Custom software",
-      consulting: "Consulting",
-    },
-
-    budget: {
-      "upto-10k": "Up to ₪10k",
-      "15-25k": "₪15k – ₪25k",
-      "25-75k": "₪25k – ₪75k",
-      "75k-plus": "₪75k+",
-    },
-
     messagePlaceholder:
       "Two honest sentences is plenty. What is the problem? What have you already tried?",
 
-    /* Optional-field hint, shown beside the four legends that are not required. The reference
+    /* Optional-field hint, shown beside the brief's legend while it is empty. The reference
        marks nothing; it just declares `required` on three inputs and leaves the user to find
        out on submit. Saying so up front is ours. */
     optional: "Optional",
@@ -144,7 +104,7 @@ export const contact = {
        names the privacy policy first; the Hebrew reference names תנאי השימוש first. A fixed
        lead/middle/tail split would hard-code English's order into both files, so the sentence
        stays one string per locale and ContactForm.tsx splits it on the two tokens. Same `{…}`
-       convention as `a11y.needsCount` below and `chrome.ts`, but rendered to NODES rather than
+       convention as `a11y.charsLeft` below and `chrome.ts`, but rendered to NODES rather than
        through `interpolate()`, which returns a string and cannot carry an <a>. */
     consent: "By sending this form you accept our {privacy} and {terms}.",
     consentPrivacy: "privacy policy",
@@ -187,18 +147,11 @@ export const contact = {
     },
 
     a11y: {
-      /* The pill groups are `<div role="group">` and `role="radiogroup"`, so each needs its
-         own accessible name; the visible legend supplies it via aria-labelledby, and these
-         two describe the INTERACTION, which the legend does not. */
-      needsHint: "Choose any that apply.",
-      /* Announced by an sr-only `role="status"`, never seen. The visible count badge beside the
-         legend is `aria-hidden` — it duplicates what these say. `{n}`/`{total}` go through
-         `interpolate()` (src/lib/i18n/format.ts), which is what `chrome.ts` already uses. */
-      needsCount: "{n} of {total} selected.",
       /* Only announced once the remaining count is low, and BUCKETED to the nearest 50 by the
-         component — an exact figure would fire this live region on every keystroke. */
+         component — an exact figure would fire this live region on every keystroke. `{n}` goes
+         through `interpolate()` (src/lib/i18n/format.ts), which is what `chrome.ts` already
+         uses. */
       charsLeft: "About {n} characters left.",
-      budgetHint: "Choose one.",
       /* The honeypot's label. Never seen; read aloud only if a screen reader ignores
          `aria-hidden`, which is why it says what to do rather than what it is. */
       honeypot: "Leave this field empty.",

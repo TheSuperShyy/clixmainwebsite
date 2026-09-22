@@ -33,7 +33,7 @@ apply the way it does everywhere else.
   `docs/reference/clixsolutions/pages/contact.html` is the user's OWN live site. It supplied
   the **field list, the field order, the five placeholders, which three fields are `required`,
   both pill vocabularies and both pill groups' ARIA semantics** — all read off the saved HTML,
-  so those are facts. It supplied **no pixels**: it is a rounded card with grey filled inputs
+  so those are facts. (Both pill groups were removed from our form on 2026-09-22.) It supplied **no pixels**: it is a rounded card with grey filled inputs
   and a violet gradient pill button, and this design system has `--radius-none: 0px` as its
   default, no shadows, no gradients and no blue.
 - **The visual design is ours, at the user's explicit instruction** (2026-08-13: "our own
@@ -289,12 +289,9 @@ real payload shape gets read before CRM and WhatsApp are built against it.
 - Required fields: `required` + a decorative `*` + an `sr-only` "(required)".
 - Errors: `aria-invalid`, `aria-describedby` to the message, focus moved to the first bad field
   on submit.
-- Needs group: `role="group"` + `aria-labelledby` the visible legend + an `sr-only` hint;
-  `aria-pressed` per pill (multi-select — the reference's own semantics).
-- Budget group: `role="radiogroup"` + `role="radio"` + `aria-checked`, **one tab stop** via
-  roving `tabIndex`, arrow keys move and select. **Horizontal arrows respect direction** via
-  `useDirSign()` — in Hebrew ArrowRight walks backwards through the array, which is forwards on
-  screen.
+- ~~Needs group / Budget group~~ — **both groups REMOVED 2026-09-22 (user's call).** The form
+  is two steps now: 01 About you, 02 the brief. The pill a11y (`aria-pressed`, the roving-tabindex
+  radiogroup with direction-aware arrows) went with them; see CONTEXT.md.
 - Whole-form failure is `role="alert" aria-live="assertive"`, always mounted so the region
   exists before it has anything to say.
 - Success panel is `role="status" aria-live="polite"` with `tabIndex={-1}` and focus placed on
@@ -356,11 +353,13 @@ real payload shape gets read before CRM and WhatsApp are built against it.
       gone. Six other routes are untouched and pass nothing.
 - [ ] **`id="contact"` on `<footer>` is now unreferenced.** Kept — it costs nothing and is the
       kind of thing linked from outside the codebase.
-- [x] **The budget ladder has a gap** (`up to ₪10k`, then `₪15k–₪25k`). ⚠️ **RAISED WITH THE USER
+- [x] **The budget ladder has a gap** (`up to ₪10k`, then `₪15k–₪25k`). ⚠️ **MOOT SINCE
+      2026-09-22 — the budget group was removed.** ⚠️ **RAISED WITH THE USER
       2026-08-17 AND DECLINED — this is closed, not open.** A visitor whose real budget is ₪12k has
       no truthful band and, budget being optional, will likely skip the question. The user chose to
       keep the ladder as the business advertises it.
-- [x] **Group order.** ⚠️ **RAISED 2026-08-17 AND DECLINED.** Review argued that asking budget
+- [x] **Group order.** ⚠️ **MOOT SINCE 2026-09-22 — budget removed, brief is now step 02.**
+      ⚠️ **RAISED 2026-08-17 AND DECLINED.** Review argued that asking budget
       BEFORE the brief extracts a money commitment before the visitor has invested anything, and
       recommended moving the brief up. The user chose to keep the reference's own order.
 - [ ] Whether the sending mailbox should be `office@clix-solution.com` or a dedicated

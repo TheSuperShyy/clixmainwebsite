@@ -9,6 +9,10 @@ with no code scanning.
 ---
 ## Current state
 
+⚠️ **As of 2026-09-22 the closing CTA is a compact contact form** (tagline + reply line beside
+it at ≥1200, stacked below) — see the newest log entry and `FEATURE.md`. Not yet viewed in a
+browser.
+
 Built and building clean. Closing CTA, divider, four link columns, a **map panel** and a
 centred copyright, all on `ink`. Every cloned value extracted from the capture and verified
 by CDP at all four tiers. No new tokens. The link hover is one of only two **measured**
@@ -42,6 +46,39 @@ whether the map embed needs a consent gate before production.
 ---
 
 ## Log
+
+### 2026-09-22 — the closing CTA becomes a compact contact form
+
+**Trigger:** user, over screenshots of this band and of `/contact`'s "About you" group —
+*"in this part, we can add the form, the about you part and also the tell us, but compressed.
+make it look good"*. Short design approved in chat first ("go").
+
+- **The `Let's start` link is gone; `FooterContactForm` sits beside the tagline** on every route
+  that renders the default footer (home, product, company, security, legal, 404). `/contact`
+  passes `closing` and is unchanged. The tagline markup is untouched; `contact.panel.reply` ("We
+  reply within one business day.") sits under it in 16px `paper/60`.
+- **Layout numbers:** ≥1200 row, form column **640px**, gap **64px**, `items-start`; below 1200
+  stacked with gap **40px**. The 1200 floor was the constraint: container 1120 − 640 − 64 = 416px
+  for a tagline whose longest line is ~370px at 48px. Form grid is 6 columns from 810 up —
+  3 required fields at `col-span-2`, 2 optional at `col-span-3`, brief at `col-span-6` — so
+  there is never an orphan field on a row.
+- **All six fields kept**, plus consent (the API rejects without it) and the honeypot. Dropped
+  from `/contact`'s version: step chips, progress bar, character counter, panel, draft storage.
+- **Colours on `ink` were measured, not carried over.** `signal` 2.68:1 and `alert` 2.78:1 both
+  fail on `ink`, so focus is `paper` (18.26:1) and invalid is the new **`--color-alert-dark`
+  `#f97066` (6.55:1)**. Labels `paper/60` → `#a1a1a1` 7.07:1; placeholders `paper/50` →
+  `#8a8a8a` 5.29:1 (`paper/45` would have been ~4.5:1, on the line — rejected).
+- **Focus rings vs `overflow-hidden`:** the container clips, and below 1200 the form touches its
+  edges. The Send button's focus outline is drawn inside it (`-outline-offset-4`, `ink`); the
+  checkbox's outset outline can lose its inline-start side at ≤1199, so its sentence also
+  brightens to `paper` on focus. (The old `Let's start` had the same clipping and nobody fixed it.)
+- **No new copy, no new keys.** The server Footer reads `getDict().contact` and passes `form` to
+  the client component as a prop. `chrome.footer.cta` is now unread; left in both locales.
+- **Shared rules:** validation + the send path moved from `ContactForm.tsx` to
+  `src/components/contact/contactRules.ts` so this form is not a third copy. See
+  [contact-page CONTEXT](../contact-page/CONTEXT.md).
+- `npx tsc --noEmit` clean. **Not looked at in a browser, at any tier, in either locale** — the
+  dev server was running on :3002 for the user to check.
 
 ### 2026-08-16 — Brand marks beside the three social links
 

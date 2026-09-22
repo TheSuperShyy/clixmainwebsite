@@ -20,6 +20,26 @@ Line format:
 - `contact-page` — **Budget range slot reads "Optional" instead of "Choose one."** — copy-only;
   the field never gated submission. sr-only "Choose one." kept for the radiogroup.
   → [detail](../features/contact-page/CONTEXT.md)
+- `contact-page` — **"What's relevant" and "Budget range" groups removed** (supersedes the line
+  above) — form, both dictionaries and the API route; the brief is step 02. Webhook payload
+  lost `needs`/`needLabels`/`budget`/`budgetLabel`; n8n's Normalize node already tolerates
+  their absence. Rail intro now "Two short steps, three required fields" (required count was
+  stale since 2026-08-19). tsc clean. → [detail](../features/contact-page/CONTEXT.md)
+- `footer` — **Closing CTA replaced by a compact contact form** (user request): tagline + reply
+  line beside a 640px form at ≥1200, stacked below; all six fields + consent, same endpoint.
+  New token `--color-alert-dark` `#f97066` (6.55:1 on ink; `alert` is 2.78:1 there). tsc clean,
+  not yet viewed. → [detail](../features/footer/CONTEXT.md)
+- `contact-page` — **Client validation + send extracted to `contactRules.ts`**, shared by both
+  forms; no behaviour change intended on /contact. → [detail](../features/contact-page/CONTEXT.md)
+- `docs` — `DESIGN-SYSTEM.md` gains `alert-dark` and an amendment to "no dark-ground variants".
+- `contact-page` — **Confirmed: the Hebrew "פנייתך התקבלה" email a submitter gets is ours, and
+  the CRM sends it, not this repo** (n8n → Supabase `leads` INSERT → Clix-CRM
+  `/api/webhooks/new-lead` → `src/lib/email/lead-welcome.ts`). It's Hebrew only, so English-form
+  submitters get it in Hebrew. No code changed. → [detail](../features/contact-page/CONTEXT.md)
+- `contact-page` — **CRM welcome email copy edited** (in Clix-CRM `lead-welcome.ts`, not this
+  repo): the em dash became a comma, and "דחופה" was dropped from the reply line. Uncommitted on
+  the CRM's `dev`, so leads don't see it until it's committed and deployed.
+  → [detail](../features/contact-page/CONTEXT.md)
 
 ## 2026-08-20
 

@@ -13,18 +13,19 @@
  *
  * The extraction that produced these strings: `pages/contact.html`, tags stripped, whitespace
  * collapsed. The five `placeholder=` values and the three `required=""` flags came off the
- * `<input>`/`<textarea>` attributes in the same file, which is also where the two pill groups'
- * semantics were read — `aria-pressed` on the six "relevant" pills (multi-select) and
- * `role="radio"` on the four budget pills (single-select). That is a fact about the reference,
- * not a guess, and ContactForm.tsx reproduces both.
+ * `<input>`/`<textarea>` attributes in the same file.
+ *
+ * ⚠️ THE REFERENCE'S TWO PILL GROUPS ARE NOT HERE (removed 2026-09-22, user's call). "מה
+ * רלוונטי עבורכם?" and "טווח תקציב" were SOURCED strings; they left this file, the English
+ * one, ContactForm.tsx and the API route together.
  *
  * ⚠️ TYPED AGAINST THE ENGLISH SHAPE, so a missing key, an extra key or a wrong tuple length
  * is a build failure rather than an English word on a Hebrew page.
  *
  * ⚠️ THE NO-DASHES RULE'S SECOND CARVE-OUT. The rule (2026-08-10) forbids dashes in clix copy.
- * `₪15k – ₪25k` and `א׳–ה׳` keep theirs, because both are the real site's own strings and both
- * are RANGES rather than prose — the same shape of exception as the Hebrew prefix hyphen in
- * `ב-WhatsApp`. Nothing authored below contains a dash.
+ * `א׳–ה׳` keeps its own, because it is the real site's own string and a RANGE rather than
+ * prose — the same shape of exception as the Hebrew prefix hyphen in `ב-WhatsApp`. Nothing
+ * authored below contains a dash.
  *
  * Geresh `׳` (U+05F3) and gershayim `״` (U+05F4), never ASCII quotes — `א׳–ה׳`, `סמנכ״ל`.
  */
@@ -66,9 +67,11 @@ export const contact: Translated<ContactDict> = {
      in the shorter form the rail needs. */
   panel: {
     title: "בריף אחד, ואז תשובה אמיתית.",
-    /* ⚠️ THE COUNT WENT 3 → 4 WHEN `phone` WAS ADDED (2026-08-18). Same obligation as the
-       English string it mirrors: if a field stops being required, this sentence changes too. */
-    intro: "ארבעה שלבים קצרים, ארבעה שדות חובה, וכל השאר רק עוזר לנו לענות טוב יותר.",
+    /* ⚠️ BOTH COUNTS CHANGED 2026-09-22: two steps (the needs and budget groups were removed)
+       and three required fields (name, email, phone — `message` has been optional since
+       2026-08-19). Same obligation as the English string it mirrors: if a field stops being
+       required or a group goes, this sentence changes too. */
+    intro: "שני שלבים קצרים, שלושה שדות חובה, וכל השאר רק עוזר לנו לענות טוב יותר.",
     reply: "אנחנו משיבים תוך יום עסקים אחד.",
   },
 
@@ -78,11 +81,7 @@ export const contact: Translated<ContactDict> = {
          labels. Our layout gives every group a numeral and a legend, so this one had to be
          written; it names what the group asks for and nothing more. */
       about: "עליכם",
-      /* SOURCED — pages/contact.html, the legend over the six pills. */
-      needs: "מה רלוונטי עבורכם?",
-      /* SOURCED — the legend over the four budget pills. */
-      budget: "טווח תקציב",
-      /* SOURCED — the legend over the textarea. */
+      /* SOURCED — pages/contact.html, the legend over the textarea. */
       brief: "ספרו לנו",
     },
 
@@ -102,28 +101,6 @@ export const contact: Translated<ContactDict> = {
     companyPlaceholder: "שם החברה או הפרויקט",
     roleLabel: "תפקיד",
     rolePlaceholder: "למשל מייסד, סמנכ״ל תפעול",
-
-    /* SOURCED — all six, verbatim and in the reference's display order. "WhatsApp" and "CRM"
-       stay Latin: they are product names, and the contract's rule 4 holds here as it does on
-       /news. */
-    needs: {
-      "ai-agents": "סוכני AI",
-      whatsapp: "WhatsApp",
-      crm: "CRM",
-      integrations: "אינטגרציות",
-      "custom-software": "תוכנה מותאמת אישית",
-      consulting: "ייעוץ",
-    },
-
-    /* SOURCED — all four bands verbatim, including the gap between ₪10k and ₪15k that the real
-       site's own ladder leaves. Reproduced, not corrected: what the business advertises is not
-       ours to tidy. */
-    budget: {
-      "upto-10k": "עד ₪10k",
-      "15-25k": "₪15k – ₪25k",
-      "25-75k": "₪25k – ₪75k",
-      "75k-plus": "₪75k+",
-    },
 
     /* SOURCED — the textarea's `placeholder`, verbatim. It is the best line on the reference
        form and the reason the English one is a translation rather than a rewrite. */
@@ -179,16 +156,10 @@ export const contact: Translated<ContactDict> = {
     },
 
     a11y: {
-      /* AUTHORED, all four. Nothing in the reference names these groups for assistive tech —
-         its pills sit in bare divs — so these are ours, and they say what the interaction is
-         rather than repeating the visible legend. */
-      needsHint: "בחרו כל מה שרלוונטי.",
-      /* AUTHORED — announced by an sr-only role="status", never seen. `{n}` / `{total}` are
-         filled by interpolate(); the digits render Western in Hebrew as they do on the rest of
-         the site. */
-      needsCount: "נבחרו {n} מתוך {total}.",
+      /* AUTHORED — announced by an sr-only role="status", never seen. `{n}` is filled by
+         interpolate(); the digits render Western in Hebrew as they do on the rest of the
+         site. */
       charsLeft: "נותרו בערך {n} תווים.",
-      budgetHint: "בחרו אפשרות אחת.",
       honeypot: "השאירו את השדה הזה ריק.",
       required: "חובה",
     },

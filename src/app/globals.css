@@ -239,6 +239,14 @@
    */
   --color-signal: #0e6472; /* /contact — on track: focus, progress, completion */
   --color-alert: #b42318; /* /contact — wrong: invalid field, failed submit   */
+  /* ⚠️ THE ONE DARK-GROUND VARIANT, added 2026-09-22 with the footer's compact contact form —
+     the first form on this site to sit on `ink`, and so the first time "wrong" had to be said on
+     a dark ground. `alert` is 2.78:1 there and fails; this is 6.55:1 on `ink` (contrast-check.js)
+     and carries the same 12px error prose. Same restraint as `alert`, scoped to that form: the
+     invalid underline, the error message and its glyph, and the form-level alert line. There is
+     still NO dark `signal` — the footer form paints focus in `paper` and has no completion
+     state to show. */
+  --color-alert-dark: #f97066; /* footer form — wrong, on `ink` */
 
   /* The one elevation on this site. Built from `ink` at low alpha rather than from black, so
      it is derived from an existing token and not a new colour. Used in exactly two places,
