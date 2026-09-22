@@ -45,6 +45,14 @@ animation. Both need a look at the live site.
 
 ## Log
 
+### 2026-09-22 (later still) — wrapper 704 / 616 / 344 again: headings are 700 for good
+
+User: *"ok match the font and the fontweight on the header now"* — the nav wordmark settled at
+Discovery 700 (after a 400 detour the user saw live and rejected), and the headings now follow
+it. The unlayered `h1–h6 { font-weight: 700 }` rule is back in globals.css and the wrapper takes
+the weight-700 numbers measured earlier today (entry two below): 704 desktop, 616 tablet, 344
+phone. Nothing re-measured; the figures were never in doubt, only the decision.
+
 ### 2026-09-22 (later) — REVERTED: wrapper back to 648 / 568 / 344
 
 User: *"ok nvm dont change the font revert it to original."* The sitewide 700 rule is gone, so

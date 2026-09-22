@@ -276,6 +276,28 @@ body {
   font-family: var(--font-sans);
 }
 
+/* Every heading at the logo wordmark's face and weight (2026-09-22, user: "match the font and
+   the fontweight on the header now", after the wordmark settled at Discovery 700 — see
+   ClixWordmark.tsx). Family already matches (`--font-display` and `--font-sans` are both
+   Discovery); this rule supplies the weight. UNLAYERED ON PURPOSE: Tailwind v4 puts every
+   utility in `@layer utilities`, and unlayered author CSS beats layered CSS regardless of
+   specificity — so this one rule overrides the per-heading `font-normal` / `font-medium`
+   utilities across all 45 h1–h6 in the tree without touching them. Those utilities stay in
+   the markup as the record of what each section measured from its target; remove this rule
+   and they come back. Inline `style={{ fontWeight }}` would still win — none exists on any
+   heading (checked 2026-09-22). The a11y readable-font override below is unaffected: it
+   changes family, not weight. This rule shipped once earlier today, was reverted with the
+   rest of the type work, and is back by request; the hero wrapper widths in Hero.tsx are
+   measured against it. */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 700;
+}
+
 /* Hero "Darken" overlay (.framer-e39ygh).
    #15151500 is ink at zero alpha — NOT `transparent`, which would interpolate
    through rgba(0,0,0,0) and grey the fade.

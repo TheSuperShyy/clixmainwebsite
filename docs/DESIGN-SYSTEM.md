@@ -465,6 +465,15 @@ color:          #ffffff
 
 ### Fonts — vendored 1:1, no substitutions
 
+> ### Headings are Discovery 700 — the wordmark's face and weight (2026-09-22, final)
+>
+> User: *"ok match the font and the fontweight on the header now."* One unlayered rule in
+> `globals.css`, `h1–h6 { font-weight: 700 }`, over the per-heading utilities (which stay in the
+> markup as the measured record). Family was already Discovery on both tokens. Bold is wider,
+> so the hero H1 wrapper is 704 / 616 / 344 — see `features/hero/FEATURE.md`. This is the
+> end state of a day that also tried Sora/Plex (below, reverted) and a 400-weight wordmark
+> (rejected live as too thin).
+
 > ### Tried and reverted, 2026-09-22: Sora / IBM Plex Sans / IBM Plex Mono
 >
 > The user supplied a "04 Typography" spec sheet (Sora 600 headings, IBM Plex Sans body, IBM
