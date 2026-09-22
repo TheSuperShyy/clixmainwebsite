@@ -81,9 +81,9 @@ Line format:
   → [detail](../features/nav/CONTEXT.md)
 - `nav` — **Wordmark back to 700** after one deploy at 400 (user, live: "i think its too thin
   make it like this"). Net change on the mark today: none. → [detail](../features/nav/CONTEXT.md)
-- `docs` / `hero` — **All h1–h6 at 700, the wordmark's weight, FINAL** (user: "match the font
-  and the fontweight on the header now"). Unlayered rule in `globals.css`; hero wrapper 704 /
-  616 / 344 from the wght-700 measurements taken earlier today. → [detail](DESIGN-SYSTEM.md)
+- `docs` / `hero` — **Bold headings REVERTED** (`bc7e218` reverted; user, live: "bro wtf revert the
+  font"). Headings back to their measured weights, hero wrapper back to 648 / 568 / 344. End
+  state for type today = the state at the start of the day. → [detail](DESIGN-SYSTEM.md)
 
 ## 2026-08-20
 

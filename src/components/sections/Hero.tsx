@@ -125,21 +125,15 @@ export default function Hero() {
           <div className="flex w-full flex-col items-center gap-6">
             {/* h1 wrapper. The target's caps were 300 / 370 / 600, sized around ITS headline;
                 ours is longer, so they are widened to the measured width of the longest
-                sentence + a rounding margin.
-                ⚠️ SIZED FOR WEIGHT 700 (2026-09-22, user: "match the font and the fontweight on
-                the header now" — every heading is 700 via globals.css, the wordmark's weight).
-                The 2026-08-04 numbers were measured at 400: "We bring the intelligence." 478px
-                @48 · 558 @56 · 637 @64, giving 344 / 568 / 648. Bold is wider. Raw advances
-                from the served woff2 at wght 700 (fontTools, MVAR dropped) are 494 / 576 /
-                659; the 400 figures run 1.053x their raw advances, so the same factor gives
-                520 / 607 / 694 in the browser. Same rounding margin as before:
-                · desktop 648 -> 704  — 694 fits, so each sentence gets its own line
-                · tablet  568 -> 616  — 607 fits, same
-                · phone   344 stays   — 520 cannot fit in 358px either; phone wraps to two lines
-                  per sentence at any width, as it always did.
-                If the heading weight ever goes back to 400, 648 / 568 are the numbers.
+                sentence + a rounding margin. Measured unwrapped at the real face and
+                tracking: "We bring the intelligence." is 478px @48 · 558px @56 · 637px @64.
+                · desktop 600 -> 648  — 637 fits, so each sentence gets its own line
+                · tablet  370 -> 568  — 558 fits, same
+                · phone   300 -> 344  — 478 does NOT fit and cannot: a 390 viewport less the
+                  32px of side padding leaves 358px, so phone wraps to two lines per
+                  sentence no matter how wide this box is. 344 just buys better ragging.
                 Deviation logged in features/hero/FEATURE.md. */}
-            <div className="relative w-full max-w-[344px] tablet:max-w-[616px] desktop:max-w-[704px]">
+            <div className="relative w-full max-w-[344px] tablet:max-w-[568px] desktop:max-w-[648px]">
               <h1
                 className="text-center font-display text-paper
                            text-[48px] tablet:text-[56px] desktop:text-[64px]"
