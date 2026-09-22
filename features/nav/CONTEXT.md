@@ -45,6 +45,15 @@ live site for the mobile menu, the scroll flip point, and the `Indicator` elemen
 
 ## Log
 
+### 2026-09-22 (final) — wordmark 500, with the hero headline's −0.05em tracking
+
+Asked directly which header text the logo should follow, the user picked the hero h1 ("You
+bring the business."): Discovery 400, −0.05em. Shown at 400 + −0.05em locally: *"how to make
+it a bit thicker"* → 500 (the nav links' weight), tracking kept. *"ok perfect push that."*
+`ClixWordmark.tsx`: `font-medium`, `letterSpacing −0.05em`, `marginRight 0.05em`; size 30px
+and uppercase unchanged. Headings themselves stay at their measured weights (the 700 pass was
+reverted). Net for the day on this mark: 700/−0.015em → 500/−0.05em.
+
 ### 2026-09-22 (later) — REVERTED: wordmark back to 700
 
 Deployed at 400 (PR #15), user saw it live: *"i think its too thin make it like this"*, with a

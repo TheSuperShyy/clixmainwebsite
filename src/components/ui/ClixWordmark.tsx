@@ -48,11 +48,15 @@ export default function ClixWordmark({ className = "" }: { className?: string })
          (20 -> 24 -> 28), so the mark-to-cap-height ratio the lockup was built on holds —
          scaling one without the other is what makes a lockup look wrong. The ratio drifts
          by ~1% at this step (28/30 vs 24/26) purely from rounding to whole pixels. */
-      /* `font-bold` (700). Went to 400 for one deploy on 2026-09-22 (user: "make the logo
-         CLIX match the font of the header", i.e. the headings' weight), then straight back:
-         "i think its too thin make it like this", with a crop of the bold mark. So 700 it
-         stays. See features/nav/CONTEXT.md for the day's full sequence. */
-      className={`inline-block text-[30px] leading-none font-bold uppercase
+      /* THE HERO HEADLINE'S RECIPE (2026-09-22, user, asked directly which header text the
+         logo should follow: "You bring the business. / We bring the intelligence."). That h1
+         is Discovery, weight 400, letter-spacing -0.05em (Hero.tsx). The tracking is taken
+         as is; the weight is ONE STEP UP, `font-medium` (500), because 400 at 30px read as
+         "too thin" beside the 500 nav links (user, on seeing 400: "how to make it a bit
+         thicker"). Discovery is a variable font, so any value 100–800 is available if 500
+         needs nudging — 450 or 550 are one-line changes. Uppercase kept — the brand mark is
+         CLIX. See features/nav/CONTEXT.md for the day's full sequence. */
+      className={`inline-block text-[30px] leading-none font-medium uppercase
                   ${className}`}
       /* Letter-spacing is painted after the final X too, so the box carries a trailing
          gap the glyphs do not fill. `marginRight: -letterSpacing` cancels it. Negligible
@@ -71,8 +75,8 @@ export default function ClixWordmark({ className = "" }: { className?: string })
          in src/app/fonts-discovery.css. */
       style={{
         fontFamily: "var(--font-wordmark)",
-        letterSpacing: "-0.015em",
-        marginRight: "0.015em",
+        letterSpacing: "-0.05em",
+        marginRight: "0.05em",
       }}
     >
       clix
