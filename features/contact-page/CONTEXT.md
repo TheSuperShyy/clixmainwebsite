@@ -52,6 +52,21 @@ then set the two env vars in the Vercel project settings so the deployed form ca
 
 ## Log
 
+### 2026-09-22 — budget range reads "Optional"
+
+**Trigger:** user — *"in the contact page, make this field optional only"* (screenshot of
+group 03).
+
+- **Copy-only change.** Budget never gated submission — `validate()`, `canSubmit` and the
+  route's step for `budget` all treat it as optional — but the visible state slot read
+  *"Choose one."*, which is the same slot where groups 02 and 04 say *"Optional"*, so the field
+  read as required. The slot now renders `t.optional` while `budget === null`; the `1/4`
+  count badge once picked is unchanged.
+- **The sr-only "Choose one." stays.** It is `a11y.budgetHint`, wired through
+  `aria-describedby` on the radiogroup, and describes the interaction rather than the
+  requirement. No i18n key added or removed in either locale.
+- Not verified in a browser (user to check).
+
 ### 2026-08-19 — the brief (message) is optional
 
 **Trigger:** user — *"Make the description optional in the form contact"*.
